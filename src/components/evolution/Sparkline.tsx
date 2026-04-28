@@ -21,8 +21,8 @@ export function Sparkline({ data, height = 70, labels, fill = true }: SparklineP
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="none" style={{ height }}>
         <defs>
           <linearGradient id="sparkFill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.88 0.28 145)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="oklch(0.88 0.28 145)" stopOpacity="0" />
+            <stop offset="0%" stopColor="oklch(0.78 0.22 240)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="oklch(0.78 0.22 240)" stopOpacity="0" />
           </linearGradient>
         </defs>
         {fill && <path d={area} fill="url(#sparkFill)" />}
@@ -30,7 +30,7 @@ export function Sparkline({ data, height = 70, labels, fill = true }: SparklineP
           className="spark-line"
           d={path}
           fill="none"
-          stroke="oklch(0.88 0.28 145)"
+          stroke="oklch(0.78 0.22 240)"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
