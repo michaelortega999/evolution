@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Play, Pause, RotateCcw, Target, X, Bell,
+  Play, Pause, RotateCcw, Target,
 } from "lucide-react";
 import { Sidebar } from "@/components/evolution/Sidebar";
 import { Input } from "@/components/ui/input";
@@ -312,56 +312,3 @@ function formatHrs(sec: number) {
   return `${h}h ${m}m`;
 }
 
-function FocusNotification() {
-  const timer = useFocusTimer();
-  const [autoClose, setAutoClose] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!timer.notification) return;
-    const id = window.setTimeout(() => timer.clearNotification(), 12000);
-    setAutoClose(id);
-    return () => window.clearTimeout(id);
-  }, [timer.notification, timer]);
-  void autoClose;
-
-  if (!timer.notification) return null;
-  const n = timer.notification;
-  const isFocusDone = n.mode === "focus";
-  const title = isFocusDone ? "Session complete." : "Break over.";
-  const subtitle = isFocusDone
-    ? `Time for a break · ${Math.round(n.durationSec / 60)} min logged.`
-    : "Ready to focus?";
-  return (
-    <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-in-from-top-2">
-      <div
-        className="hud-card p-4 pr-3 flex items-start gap-3 max-w-sm"
-        style={{
-          boxShadow: "0 0 24px color-mix(in oklab, var(--glow) 60%, transparent), 0 0 60px color-mix(in oklab, var(--glow) 25%, transparent)",
-        }}
-      >
-        <div className="h-9 w-9 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center text-primary">
-          <Bell className="h-4 w-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="hud-label text-sm text-primary hud-glow">{title}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
-          {!isFocusDone && (
-            <button
-              onClick={() => { timer.start(); timer.clearNotification(); }}
-              className="mt-2 hud-label text-[10px] px-3 py-1 rounded border border-primary/40 text-primary hover:bg-primary/10"
-            >
-              Start Focus
-            </button>
-          )}
-        </div>
-        <button
-          onClick={() => timer.clearNotification()}
-          className="text-muted-foreground hover:text-foreground"
-          aria-label="Dismiss"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
