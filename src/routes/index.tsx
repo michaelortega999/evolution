@@ -10,6 +10,7 @@ import { Sparkline } from "@/components/evolution/Sparkline";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { BarChart } from "@/components/evolution/BarChart";
 import { MarketTicker } from "@/components/evolution/MarketTicker";
+import { useEvolutionData, nutritionSummary, fitnessSummary, investingSummary } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,7 +22,22 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+function formatMoney(n: number) {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
+  return `$${n.toLocaleString()}`;
+}
+
 function Index() {
+  const { data } = useEvolutionData();
+  const nut = nutritionSummary(data.nutrition);
+  const fit = fitnessSummary(data.fitness);
+  const inv = investingSummary(data.investing);
+
+  const nutMonth = [...data.nutrition].slice(-12).map((r) => r.calories);
+  const invSeries = inv.data.slice(-12);
+  const invLabels = data.investing.slice(-12).map((r) => r.date.slice(5, 7));
+
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
@@ -35,23 +51,31 @@ function Index() {
           <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <HudCard icon={Wallet} number="1" title="Wealth">
               <div className="hud-label text-[10px] text-muted-foreground">Net Worth</div>
-              <div className="hud-label text-2xl text-primary hud-glow my-1">$124,850,000</div>
-              <div className="hud-label text-[10px] text-primary/80">▲ 8.42% this month</div>
+              <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(inv.current * 1.82)}</div>
+              <div className="hud-label text-[10px] text-primary/80">
+                {inv.pct >= 0 ? "▲" : "▼"} {Math.abs(inv.pct).toFixed(2)}% recent
+              </div>
               <div className="mt-3">
-                <Sparkline data={[40, 42, 45, 43, 50, 55, 58, 65, 70, 78, 85, 92]} labels={["JAN","FEB","MAR","APR","MAY"]} />
+                <Sparkline data={invSeries.length ? invSeries : [1]} labels={invLabels.slice(0, 5)} />
               </div>
             </HudCard>
 
             <HudCard icon={Apple} number="2" title="Nutrition">
               <div className="hud-label text-[10px] text-muted-foreground">Daily Calories</div>
-              <div className="hud-label text-2xl text-primary hud-glow my-1">2,350 / 2,800</div>
+              <div className="hud-label text-2xl text-primary hud-glow my-1">
+                {nut.last?.calories.toLocaleString() ?? 0} / {nut.target.toLocaleString()}
+              </div>
               <div className="flex items-center gap-4 mt-3">
-                <RingProgress value={84} sublabel="Good" />
+                <RingProgress value={nut.percent} sublabel={nut.percent >= 80 ? "Good" : "Low"} />
                 <div className="flex-1 space-y-1.5">
-                  {[["Protein","165g"],["Carbs","225g"],["Fats","75g"]].map(([k,v]) => (
+                  {([
+                    ["Protein", nut.last?.protein],
+                    ["Carbs", nut.last?.carbs],
+                    ["Fats", nut.last?.fats],
+                  ] as const).map(([k, v]) => (
                     <div key={k} className="flex justify-between hud-label text-[10px]">
                       <span className="text-muted-foreground">{k}</span>
-                      <span className="text-primary">{v}</span>
+                      <span className="text-primary">{v != null ? `${v}g` : "—"}</span>
                     </div>
                   ))}
                 </div>
@@ -60,9 +84,9 @@ function Index() {
 
             <HudCard icon={Dumbbell} number="3" title="Fitness">
               <div className="hud-label text-[10px] text-muted-foreground">Weekly Activity</div>
-              <div className="hud-label text-2xl text-primary hud-glow my-1">5 / 6</div>
-              <div className="hud-label text-[10px] text-muted-foreground mb-2">Workouts</div>
-              <BarChart data={[6,4,7,5,8,3,6]} labels={["M","T","W","T","F","S","S"]} />
+              <div className="hud-label text-2xl text-primary hud-glow my-1">{fit.daysHit} / {fit.target}</div>
+              <div className="hud-label text-[10px] text-muted-foreground mb-2">Active Days</div>
+              <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} />
             </HudCard>
 
             <HudCard icon={FileText} number="4" title="Journal">
@@ -89,11 +113,13 @@ function Index() {
 
             <HudCard icon={TrendingUp} number="6" title="Investing" footer="View portfolio">
               <div className="hud-label text-[10px] text-muted-foreground">Portfolio Value</div>
-              <div className="hud-label text-2xl text-primary hud-glow my-1">$68,420,000</div>
-              <div className="hud-label text-[10px] text-muted-foreground mt-2">Day Change</div>
-              <div className="hud-label text-xs text-primary">▲ 1.32% (+$892,300)</div>
+              <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(inv.current)}</div>
+              <div className="hud-label text-[10px] text-muted-foreground mt-2">Recent Change</div>
+              <div className="hud-label text-xs text-primary">
+                {inv.pct >= 0 ? "▲" : "▼"} {Math.abs(inv.pct).toFixed(2)}% ({inv.change >= 0 ? "+" : "−"}{formatMoney(Math.abs(inv.change))})
+              </div>
               <div className="mt-2">
-                <Sparkline data={[20,22,21,25,24,28,30,32,35,33,38,42]} height={50} />
+                <Sparkline data={invSeries.length ? invSeries : [1]} height={50} />
               </div>
             </HudCard>
 
@@ -102,8 +128,10 @@ function Index() {
               <div className="hud-label text-2xl text-primary hud-glow my-1">7</div>
               <div className="flex items-center gap-4 mt-2">
                 <div>
-                  <div className="hud-label text-[10px] text-muted-foreground">Revenue (YTD)</div>
-                  <div className="hud-label text-lg text-primary">$42.7M</div>
+                  <div className="hud-label text-[10px] text-muted-foreground">Avg Calories</div>
+                  <div className="hud-label text-lg text-primary">
+                    {nutMonth.length ? Math.round(nutMonth.reduce((a,b)=>a+b,0)/nutMonth.length).toLocaleString() : "—"}
+                  </div>
                 </div>
                 <RingProgress value={72} size={70} sublabel="On Track" />
               </div>
