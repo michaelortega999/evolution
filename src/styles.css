@@ -145,8 +145,8 @@
   to { transform: scaleY(1); }
 }
 @keyframes bar-breathe {
-  0%, 100% { opacity: 0.85; box-shadow: 0 0 6px oklch(0.78 0.22 240 / 0.4); }
-  50% { opacity: 1; box-shadow: 0 0 14px oklch(0.78 0.22 240 / 0.85); }
+  0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 3px oklch(0.78 0.22 240 / 0.5)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px oklch(0.78 0.22 240 / 0.95)); }
 }
 @keyframes ring-spin {
   to { transform: rotate(360deg); }
