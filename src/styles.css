@@ -516,8 +516,6 @@
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
-  animation: holo-j-spin 8s linear infinite, holo-j-float 3.4s ease-in-out infinite;
-  will-change: transform;
 }
 .holo-j-svg {
   width: 78%;
@@ -560,9 +558,6 @@
 }
 
 /* hover boost */
-.hud-card:hover .holo-j-spin {
-  animation-duration: 3s, 3.4s;
-}
 .hud-card:hover .holo-j-orbit--1 { animation-duration: 4s; }
 .hud-card:hover .holo-j-orbit--2 { animation-duration: 5s; }
 .hud-card:hover .holo-j-orbit--3 { animation-duration: 6s; }
