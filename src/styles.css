@@ -397,66 +397,182 @@
 }
 
 /* ===== Module card holographic corner icon ===== */
-.holo-icon {
+/* ===== Jarvis-style holographic projection ===== */
+.holo-jarvis {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 110px;
-  height: 110px;
-  perspective: 800px;
+  top: 8px;
+  right: 8px;
+  width: 96px;
+  height: 96px;
+  perspective: 700px;
   transform-style: preserve-3d;
   pointer-events: none;
+  overflow: visible;
   z-index: 2;
+  color: var(--primary);
 }
-.holo-icon-base {
+
+.holo-j-base {
   position: absolute;
   left: 50%;
-  bottom: 6px;
-  width: 80px;
-  height: 14px;
+  bottom: 4px;
+  width: 70px;
+  height: 10px;
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(ellipse at center,
-    color-mix(in oklab, var(--glow) 60%, transparent) 0%,
+    color-mix(in oklab, var(--glow) 70%, transparent) 0%,
     transparent 70%);
   filter: blur(4px);
   opacity: 0.7;
-  animation: holo-icon-base-pulse 3s ease-in-out infinite;
+  animation: holo-j-base-pulse 3s ease-in-out infinite;
 }
-.holo-icon-spin {
+.holo-j-base--inner {
+  width: 40px;
+  height: 5px;
+  bottom: 6px;
+  animation-duration: 2s;
+  animation-delay: -1s;
+}
+@keyframes holo-j-base-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.95; }
+}
+
+.holo-j-grid {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  color: color-mix(in oklab, var(--glow) 60%, transparent);
+  opacity: 0.55;
+  border-radius: 50%;
+  mask-image: radial-gradient(circle, black 60%, transparent 100%);
+}
+
+.holo-j-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid color-mix(in oklab, var(--glow) 55%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px color-mix(in oklab, var(--glow) 50%, transparent),
+    inset 0 0 8px color-mix(in oklab, var(--glow) 30%, transparent);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.holo-j-orbit--1 {
+  width: 92%; height: 92%;
+  margin: -46% 0 0 -46%;
+  animation: holo-j-orbit-1 9s linear infinite;
+}
+.holo-j-orbit--2 {
+  width: 78%; height: 78%;
+  margin: -39% 0 0 -39%;
+  border-color: color-mix(in oklab, var(--glow) 45%, transparent);
+  animation: holo-j-orbit-2 12s linear infinite reverse;
+}
+.holo-j-orbit--3 {
+  width: 105%; height: 105%;
+  margin: -52.5% 0 0 -52.5%;
+  border-color: color-mix(in oklab, var(--glow) 35%, transparent);
+  animation: holo-j-orbit-3 14s linear infinite;
+}
+@keyframes holo-j-orbit-1 {
+  from { transform: rotateX(72deg) rotateZ(0deg); }
+  to   { transform: rotateX(72deg) rotateZ(360deg); }
+}
+@keyframes holo-j-orbit-2 {
+  from { transform: rotateX(20deg) rotateY(0deg) rotateZ(15deg); }
+  to   { transform: rotateX(20deg) rotateY(360deg) rotateZ(15deg); }
+}
+@keyframes holo-j-orbit-3 {
+  from { transform: rotateY(75deg) rotateZ(0deg); }
+  to   { transform: rotateY(75deg) rotateZ(360deg); }
+}
+
+.holo-j-node {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--glow);
+  box-shadow: 0 0 6px var(--glow), 0 0 12px var(--glow);
+  animation: holo-j-node-pulse 1.6s ease-in-out infinite;
+}
+.holo-j-orbit--2 .holo-j-node { animation-delay: -0.5s; }
+.holo-j-orbit--3 .holo-j-node { animation-delay: -1s; }
+@keyframes holo-j-node-pulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.6; }
+  50%      { transform: scale(1.4); opacity: 1; }
+}
+
+.holo-j-spin {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
-  animation: holo-icon-spin 6s linear infinite, holo-icon-float 3.4s ease-in-out infinite;
+  animation: holo-j-spin 8s linear infinite, holo-j-float 3.4s ease-in-out infinite;
   will-change: transform;
 }
-.holo-icon-svg {
+.holo-j-svg {
+  width: 78%;
+  height: 78%;
   color: var(--primary);
   filter:
-    drop-shadow(0 0 4px color-mix(in oklab, var(--glow) 80%, transparent))
-    drop-shadow(0 0 10px color-mix(in oklab, var(--glow) 50%, transparent));
-  transition: filter 0.3s ease;
+    drop-shadow(0 0 3px color-mix(in oklab, var(--glow) 90%, transparent))
+    drop-shadow(0 0 8px color-mix(in oklab, var(--glow) 60%, transparent));
 }
-@keyframes holo-icon-spin {
+@keyframes holo-j-spin {
   from { transform: rotateY(0deg); }
   to   { transform: rotateY(360deg); }
 }
-@keyframes holo-icon-float {
+@keyframes holo-j-float {
   0%, 100% { translate: 0 0; }
   50%      { translate: 0 -3px; }
 }
-@keyframes holo-icon-base-pulse {
-  0%, 100% { opacity: 0.45; }
-  50%      { opacity: 0.85; }
+
+.holo-j-scan {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  top: 50%;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in oklab, var(--glow) 95%, transparent),
+    transparent);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--glow) 90%, transparent);
+  opacity: 0.85;
+  animation: holo-j-scan-sweep 2.6s ease-in-out infinite;
 }
-.hud-card:hover .holo-icon-spin {
-  animation-duration: 2.2s, 3.4s;
+@keyframes holo-j-scan-sweep {
+  0%   { top: 12%; opacity: 0; }
+  10%  { opacity: 0.9; }
+  50%  { top: 88%; opacity: 0.9; }
+  60%  { opacity: 0; }
+  100% { top: 12%; opacity: 0; }
 }
-.hud-card:hover .holo-icon-svg {
+
+/* hover boost */
+.hud-card:hover .holo-j-spin {
+  animation-duration: 3s, 3.4s;
+}
+.hud-card:hover .holo-j-orbit--1 { animation-duration: 4s; }
+.hud-card:hover .holo-j-orbit--2 { animation-duration: 5s; }
+.hud-card:hover .holo-j-orbit--3 { animation-duration: 6s; }
+.hud-card:hover .holo-j-scan { animation-duration: 1.2s; }
+.hud-card:hover .holo-j-svg {
   filter:
-    drop-shadow(0 0 6px color-mix(in oklab, var(--glow) 100%, transparent))
-    drop-shadow(0 0 16px color-mix(in oklab, var(--glow) 80%, transparent));
+    drop-shadow(0 0 5px color-mix(in oklab, var(--glow) 100%, transparent))
+    drop-shadow(0 0 14px color-mix(in oklab, var(--glow) 85%, transparent));
 }
+.hud-card:hover .holo-j-node {
+  animation-duration: 0.9s;
+}
+

@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import {
   Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Plus, ChevronRight, X,
-  Coins, BookOpen, Lightbulb, CandlestickChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkline } from "./Sparkline";
 import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
-import { HoloIcon } from "./HoloIcon";
+import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
   todayDate, type Meal, type Hobby,
@@ -26,11 +25,11 @@ function formatMoney(n: number) {
 }
 
 function Card({
-  icon: Icon, holoIcon, number, title, href, children,
-}: { icon: LucideIcon; holoIcon: LucideIcon; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
+  icon: Icon, variant, number, title, href, children,
+}: { icon: LucideIcon; variant: HoloVariant; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
   return (
     <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors relative">
-      <HoloIcon icon={holoIcon} />
+      <HoloIcon variant={variant} />
       <Link to={href} className="flex items-center gap-3 mb-4 group/header">
         <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
              style={{
@@ -67,7 +66,7 @@ export function WealthCard() {
   };
 
   return (
-    <Card icon={Wallet} holoIcon={Coins} number="01" title="Wealth" href="/wealth">
+    <Card icon={Wallet} variant="wealth" number="01" title="Wealth" href="/wealth">
       <div className="hud-label text-[10px] text-muted-foreground">Net Worth</div>
       <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(netWorth)}</div>
       <div className="hud-label text-[10px] text-primary/80">
@@ -97,7 +96,7 @@ export function NutritionCard() {
   };
 
   return (
-    <Card icon={Apple} holoIcon={Apple} number="02" title="Nutrition" href="/nutrition">
+    <Card icon={Apple} variant="nutrition" number="02" title="Nutrition" href="/nutrition">
       <div className="hud-label text-[10px] text-muted-foreground">Daily Calories</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">
         {sum.calories.toLocaleString()} / {sum.target.toLocaleString()}
@@ -150,7 +149,7 @@ export function FitnessCard() {
   };
 
   return (
-    <Card icon={Dumbbell} holoIcon={Dumbbell} number="03" title="Fitness" href="/fitness">
+    <Card icon={Dumbbell} variant="fitness" number="03" title="Fitness" href="/fitness">
       <div className="hud-label text-[10px] text-muted-foreground">Weekly Sessions</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">{fit.daysHit} / {fit.target}</div>
       <div className="mt-2">
@@ -184,7 +183,7 @@ export function JournalCard() {
   };
 
   return (
-    <Card icon={FileText} holoIcon={BookOpen} number="04" title="Journal" href="/journal">
+    <Card icon={FileText} variant="journal" number="04" title="Journal" href="/journal">
       <div className="hud-label text-[10px] text-muted-foreground">Latest Entry</div>
       <p className="text-xs italic text-foreground/90 mt-1 leading-relaxed line-clamp-3">
         "{latest?.text ?? "No entries yet."}"
@@ -211,7 +210,7 @@ export function NotesCard() {
   const remove = (i: number) => mutate((prev) => ({ notes: prev.notes.filter((_, idx) => idx !== i) }));
 
   return (
-    <Card icon={NotebookPen} holoIcon={Lightbulb} number="05" title="Notes" href="/notes">
+    <Card icon={NotebookPen} variant="notes" number="05" title="Notes" href="/notes">
       <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32">
         {data.notes.map((n, i) => (
           <li key={i} className="flex items-start gap-2 text-xs text-foreground/90 group">
@@ -251,7 +250,7 @@ export function InvestingCard() {
   };
 
   return (
-    <Card icon={TrendingUp} holoIcon={CandlestickChart} number="06" title="Investing" href="/investing">
+    <Card icon={TrendingUp} variant="investing" number="06" title="Investing" href="/investing">
       <div className="hud-label text-[10px] text-muted-foreground">Portfolio</div>
       <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(inv.current)}</div>
       <div className="hud-label text-[10px] text-primary">
@@ -281,7 +280,7 @@ export function InvestingCard() {
 
 export function BusinessCard() {
   return (
-    <Card icon={Briefcase} holoIcon={Briefcase} number="07" title="Business" href="/business">
+    <Card icon={Briefcase} variant="business" number="07" title="Business" href="/business">
       <div className="hud-label text-[10px] text-muted-foreground">Active Projects</div>
       <div className="hud-label text-3xl text-primary hud-glow my-1">7</div>
       <div className="flex items-center gap-4 mt-3">
@@ -301,7 +300,7 @@ export function HobbyCard() {
   const hobbies: Hobby[] = ["Cars", "Guitar", "Travel"];
 
   return (
-    <Card icon={Star} holoIcon={Star} number="08" title="Hobby" href="/hobby">
+    <Card icon={Star} variant="hobby" number="08" title="Hobby" href="/hobby">
       <div className="hud-label text-[10px] text-muted-foreground">Current Focus</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">{data.hobby.current}</div>
       <div className="hud-label text-[10px] text-muted-foreground mt-2">Time Invested</div>
