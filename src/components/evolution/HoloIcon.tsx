@@ -114,37 +114,43 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "fitness":
-      // Detailed flexed bicep arm
+      // Classic flexing bicep — horizontal upper arm, forearm bent straight up, fist on top
       return (
         <svg {...common}>
-          {/* upper arm / shoulder (deltoid) */}
-          <path d="M18 70 Q14 56 22 46 Q30 36 42 38 Q50 40 52 50" />
-          {/* deltoid cap detail */}
-          <path d="M22 46 Q28 42 36 44" opacity="0.6" />
-          {/* bicep peak — flexed bulge */}
-          <path d="M30 56 Q34 30 56 32 Q70 34 70 50 Q70 60 58 60 Q44 60 38 66 Q32 64 30 56 Z" />
-          {/* bicep inner contour */}
-          <path d="M40 50 Q50 38 64 44" opacity="0.7" />
-          {/* tricep underline */}
-          <path d="M30 60 Q40 70 56 64" opacity="0.55" />
-          {/* forearm bent up */}
-          <path d="M58 32 Q66 30 72 36 Q78 44 76 56 Q74 66 68 70 Q62 72 58 66 Q56 58 60 50 Q62 42 58 38 Z" />
-          {/* forearm muscle striations */}
-          <path d="M64 38 Q66 48 64 60" opacity="0.5" />
-          <path d="M70 40 Q72 50 70 62" opacity="0.4" />
-          {/* fist */}
-          <circle cx="68" cy="32" r="6" />
-          <path d="M64 30 L72 30 M64 33 L72 33 M64 36 L72 36" opacity="0.6" />
-          {/* glowing peak highlight */}
-          <circle cx="50" cy="42" r="2.4" fill="currentColor" />
-          <circle cx="46" cy="48" r="1.4" fill="currentColor" opacity="0.8" />
-          <circle cx="56" cy="46" r="1.4" fill="currentColor" opacity="0.8" />
-          {/* power lines */}
-          <path d="M14 78 L24 72" opacity="0.5" />
-          <path d="M82 80 L74 72" opacity="0.5" />
-          <path d="M82 24 L74 30" opacity="0.5" />
+          {/* shoulder cap (deltoid) */}
+          <path d="M14 60 Q14 44 28 42 Q40 41 44 50 L44 64 Q30 66 22 66 Q14 66 14 60 Z" />
+          {/* upper arm — horizontal, with bicep bulge on top */}
+          <path d="M22 64 L62 64 L62 78 L22 78 Q16 78 16 72 Q16 64 22 64 Z" />
+          {/* bicep bulge sitting on the upper arm */}
+          <path d="M28 64 Q34 40 50 42 Q60 44 60 56 Q60 64 56 64 Z" />
+          {/* bicep highlight crease */}
+          <path d="M34 58 Q44 50 56 56" opacity="0.7" />
+          {/* elbow joint */}
+          <circle cx="60" cy="70" r="6" opacity="0.85" />
+          {/* forearm bent straight up */}
+          <path d="M52 70 L52 22 Q52 16 60 16 Q68 16 68 22 L68 70 Z" />
+          {/* forearm muscle line */}
+          <path d="M60 24 L60 64" opacity="0.5" />
+          <path d="M55 30 Q52 46 55 62" opacity="0.4" />
+          <path d="M65 30 Q68 46 65 62" opacity="0.4" />
+          {/* fist on top */}
+          <path d="M50 22 Q50 10 60 10 Q70 10 70 22 Z" />
+          {/* knuckle lines */}
+          <path d="M53 14 L67 14" opacity="0.6" />
+          <path d="M54 18 L66 18" opacity="0.6" />
+          {/* thumb */}
+          <path d="M50 18 Q46 18 46 22 Q46 26 50 26" opacity="0.85" />
+          {/* glowing bicep peak node */}
+          <circle cx="44" cy="50" r="2.6" fill="currentColor" />
+          <circle cx="44" cy="50" r="5" fill="currentColor" opacity="0.25" />
+          {/* power flash lines */}
+          <path d="M8 36 L18 42" opacity="0.5" />
+          <path d="M8 50 L16 50" opacity="0.45" />
+          <path d="M82 30 L74 36" opacity="0.5" />
+          <path d="M84 50 L76 50" opacity="0.45" />
         </svg>
       );
+
 
 
     case "journal":
