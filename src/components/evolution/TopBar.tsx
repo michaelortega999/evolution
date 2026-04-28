@@ -45,7 +45,7 @@ export function TopBar() {
         <div className="flex items-center gap-3 px-4 py-2 border border-border rounded-md bg-primary/5">
           <RingProgress value={dailyProgress} size={44} label={`${dailyProgress}%`} />
           <div>
-            <div className="hud-label text-[9px] text-muted-foreground">Daily Progress</div>
+            <div className="hud-label text-[9px] text-muted-foreground">Task Progress</div>
             <div className="hud-label text-xs text-primary">{doneTodos}/{totalTodos} tasks · {progressLabel}</div>
           </div>
         </div>
