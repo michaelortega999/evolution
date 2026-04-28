@@ -28,9 +28,6 @@ export function Onboarding() {
     updateProfile({ ...draft, onboarded: true });
   };
 
-  // Temporarily skipping steps 1-4 — "Begin" activates immediately.
-  const begin = () => updateProfile({ ...draft, onboarded: true });
-
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="hud-card hud-scan p-10 max-w-2xl w-full">
@@ -46,7 +43,7 @@ export function Onboarding() {
             <div className="hud-label text-[10px] text-muted-foreground tracking-[0.4em]">
               DISCIPLINE · FOCUS · CONSISTENCY · FREEDOM
             </div>
-            <Button onClick={begin} className="mt-4 hud-label">Begin</Button>
+            <Button onClick={next} className="mt-4 hud-label">Begin</Button>
           </div>
         )}
 
