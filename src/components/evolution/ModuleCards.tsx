@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Plus, ChevronRight, X,
@@ -14,6 +15,8 @@ import {
   todayDate, type Meal, type Hobby,
 } from "@/lib/evolution-data";
 
+type ModuleHref = "/wealth" | "/nutrition" | "/fitness" | "/journal" | "/notes" | "/investing" | "/business" | "/hobby";
+
 function formatMoney(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
@@ -21,12 +24,12 @@ function formatMoney(n: number) {
 }
 
 function Card({
-  icon: Icon, number, title, children,
-}: { icon: LucideIcon; number: string; title: string; children: React.ReactNode }) {
+  icon: Icon, number, title, href, children,
+}: { icon: LucideIcon; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
   return (
-    <div className="hud-card hud-scan p-5 flex flex-col">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center"
+    <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors">
+      <Link to={href} className="flex items-center gap-3 mb-4 group/header">
+        <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
              style={{
                borderColor: "oklch(0.85 0.15 85)",
                background: "radial-gradient(circle, oklch(0.85 0.15 85 / 0.15), transparent 70%)",
@@ -35,12 +38,12 @@ function Card({
           <Icon className="h-4 w-4" style={{ color: "oklch(0.88 0.15 85)" }} />
         </div>
         <span className="hud-label text-xs text-muted-foreground">{number}</span>
-        <h3 className="hud-label text-sm text-foreground/90">{title}</h3>
-      </div>
+        <h3 className="hud-label text-sm text-foreground/90 group-hover/header:text-primary transition-colors">{title}</h3>
+      </Link>
       <div className="flex-1 flex flex-col">{children}</div>
-      <button className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary">
+      <Link to={href} className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary w-fit">
         View Details <ChevronRight className="h-3 w-3" />
-      </button>
+      </Link>
     </div>
   );
 }
@@ -61,7 +64,7 @@ export function WealthCard() {
   };
 
   return (
-    <Card icon={Wallet} number="01" title="Wealth">
+    <Card icon={Wallet} number="01" title="Wealth" href="/wealth">
       <div className="hud-label text-[10px] text-muted-foreground">Net Worth</div>
       <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(netWorth)}</div>
       <div className="hud-label text-[10px] text-primary/80">
@@ -91,7 +94,7 @@ export function NutritionCard() {
   };
 
   return (
-    <Card icon={Apple} number="02" title="Nutrition">
+    <Card icon={Apple} number="02" title="Nutrition" href="/nutrition">
       <div className="hud-label text-[10px] text-muted-foreground">Daily Calories</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">
         {sum.calories.toLocaleString()} / {sum.target.toLocaleString()}
@@ -144,7 +147,7 @@ export function FitnessCard() {
   };
 
   return (
-    <Card icon={Dumbbell} number="03" title="Fitness">
+    <Card icon={Dumbbell} number="03" title="Fitness" href="/fitness">
       <div className="hud-label text-[10px] text-muted-foreground">Weekly Sessions</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">{fit.daysHit} / {fit.target}</div>
       <div className="mt-2">
@@ -178,7 +181,7 @@ export function JournalCard() {
   };
 
   return (
-    <Card icon={FileText} number="04" title="Journal">
+    <Card icon={FileText} number="04" title="Journal" href="/journal">
       <div className="hud-label text-[10px] text-muted-foreground">Latest Entry</div>
       <p className="text-xs italic text-foreground/90 mt-1 leading-relaxed line-clamp-3">
         "{latest?.text ?? "No entries yet."}"
@@ -205,7 +208,7 @@ export function NotesCard() {
   const remove = (i: number) => mutate((prev) => ({ notes: prev.notes.filter((_, idx) => idx !== i) }));
 
   return (
-    <Card icon={NotebookPen} number="05" title="Notes">
+    <Card icon={NotebookPen} number="05" title="Notes" href="/notes">
       <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32">
         {data.notes.map((n, i) => (
           <li key={i} className="flex items-start gap-2 text-xs text-foreground/90 group">
@@ -245,7 +248,7 @@ export function InvestingCard() {
   };
 
   return (
-    <Card icon={TrendingUp} number="06" title="Investing">
+    <Card icon={TrendingUp} number="06" title="Investing" href="/investing">
       <div className="hud-label text-[10px] text-muted-foreground">Portfolio</div>
       <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(inv.current)}</div>
       <div className="hud-label text-[10px] text-primary">
@@ -275,7 +278,7 @@ export function InvestingCard() {
 
 export function BusinessCard() {
   return (
-    <Card icon={Briefcase} number="07" title="Business">
+    <Card icon={Briefcase} number="07" title="Business" href="/business">
       <div className="hud-label text-[10px] text-muted-foreground">Active Projects</div>
       <div className="hud-label text-3xl text-primary hud-glow my-1">7</div>
       <div className="flex items-center gap-4 mt-3">
@@ -295,7 +298,7 @@ export function HobbyCard() {
   const hobbies: Hobby[] = ["Cars", "Guitar", "Travel"];
 
   return (
-    <Card icon={Star} number="08" title="Hobby">
+    <Card icon={Star} number="08" title="Hobby" href="/hobby">
       <div className="hud-label text-[10px] text-muted-foreground">Current Focus</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">{data.hobby.current}</div>
       <div className="hud-label text-[10px] text-muted-foreground mt-2">Time Invested</div>

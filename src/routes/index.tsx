@@ -8,6 +8,7 @@ import {
   NotesCard, InvestingCard, BusinessCard, HobbyCard,
 } from "@/components/evolution/ModuleCards";
 import { useEvolutionData } from "@/lib/evolution-data";
+import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { data } = useEvolutionData();
+  useKeyboardShortcuts();
 
   if (!data.profile.onboarded) {
     return <Onboarding />;

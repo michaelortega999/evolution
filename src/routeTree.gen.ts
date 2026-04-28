@@ -9,8 +9,56 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WealthRouteImport } from './routes/wealth'
+import { Route as NutritionRouteImport } from './routes/nutrition'
+import { Route as NotesRouteImport } from './routes/notes'
+import { Route as JournalRouteImport } from './routes/journal'
+import { Route as InvestingRouteImport } from './routes/investing'
+import { Route as HobbyRouteImport } from './routes/hobby'
+import { Route as FitnessRouteImport } from './routes/fitness'
+import { Route as BusinessRouteImport } from './routes/business'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WealthRoute = WealthRouteImport.update({
+  id: '/wealth',
+  path: '/wealth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NutritionRoute = NutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvestingRoute = InvestingRouteImport.update({
+  id: '/investing',
+  path: '/investing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HobbyRoute = HobbyRouteImport.update({
+  id: '/hobby',
+  path: '/hobby',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FitnessRoute = FitnessRouteImport.update({
+  id: '/fitness',
+  path: '/fitness',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessRoute = BusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +67,144 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/fitness': typeof FitnessRoute
+  '/hobby': typeof HobbyRoute
+  '/investing': typeof InvestingRoute
+  '/journal': typeof JournalRoute
+  '/notes': typeof NotesRoute
+  '/nutrition': typeof NutritionRoute
+  '/wealth': typeof WealthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/fitness': typeof FitnessRoute
+  '/hobby': typeof HobbyRoute
+  '/investing': typeof InvestingRoute
+  '/journal': typeof JournalRoute
+  '/notes': typeof NotesRoute
+  '/nutrition': typeof NutritionRoute
+  '/wealth': typeof WealthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/fitness': typeof FitnessRoute
+  '/hobby': typeof HobbyRoute
+  '/investing': typeof InvestingRoute
+  '/journal': typeof JournalRoute
+  '/notes': typeof NotesRoute
+  '/nutrition': typeof NutritionRoute
+  '/wealth': typeof WealthRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/business'
+    | '/fitness'
+    | '/hobby'
+    | '/investing'
+    | '/journal'
+    | '/notes'
+    | '/nutrition'
+    | '/wealth'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/business'
+    | '/fitness'
+    | '/hobby'
+    | '/investing'
+    | '/journal'
+    | '/notes'
+    | '/nutrition'
+    | '/wealth'
+  id:
+    | '__root__'
+    | '/'
+    | '/business'
+    | '/fitness'
+    | '/hobby'
+    | '/investing'
+    | '/journal'
+    | '/notes'
+    | '/nutrition'
+    | '/wealth'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BusinessRoute: typeof BusinessRoute
+  FitnessRoute: typeof FitnessRoute
+  HobbyRoute: typeof HobbyRoute
+  InvestingRoute: typeof InvestingRoute
+  JournalRoute: typeof JournalRoute
+  NotesRoute: typeof NotesRoute
+  NutritionRoute: typeof NutritionRoute
+  WealthRoute: typeof WealthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wealth': {
+      id: '/wealth'
+      path: '/wealth'
+      fullPath: '/wealth'
+      preLoaderRoute: typeof WealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nutrition': {
+      id: '/nutrition'
+      path: '/nutrition'
+      fullPath: '/nutrition'
+      preLoaderRoute: typeof NutritionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/investing': {
+      id: '/investing'
+      path: '/investing'
+      fullPath: '/investing'
+      preLoaderRoute: typeof InvestingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hobby': {
+      id: '/hobby'
+      path: '/hobby'
+      fullPath: '/hobby'
+      preLoaderRoute: typeof HobbyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fitness': {
+      id: '/fitness'
+      path: '/fitness'
+      fullPath: '/fitness'
+      preLoaderRoute: typeof FitnessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business': {
+      id: '/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof BusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +217,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BusinessRoute: BusinessRoute,
+  FitnessRoute: FitnessRoute,
+  HobbyRoute: HobbyRoute,
+  InvestingRoute: InvestingRoute,
+  JournalRoute: JournalRoute,
+  NotesRoute: NotesRoute,
+  NutritionRoute: NutritionRoute,
+  WealthRoute: WealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
