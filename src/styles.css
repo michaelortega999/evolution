@@ -558,9 +558,6 @@
 }
 
 /* hover boost */
-.hud-card:hover .holo-j-spin {
-  animation-duration: 3s, 3.4s;
-}
 .hud-card:hover .holo-j-orbit--1 { animation-duration: 4s; }
 .hud-card:hover .holo-j-orbit--2 { animation-duration: 5s; }
 .hud-card:hover .holo-j-orbit--3 { animation-duration: 6s; }
