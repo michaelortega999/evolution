@@ -10,10 +10,11 @@ export function TopBar() {
   const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
-  const NOTES_GOAL = 10;
-  const notesCount = data.notes.length;
-  const dailyProgress = Math.min(100, Math.round((notesCount / NOTES_GOAL) * 100));
-  const progressLabel = dailyProgress >= 100 ? "Complete" : dailyProgress >= 60 ? "On Track" : "Behind";
+  const totalTodos = data.notes.length;
+  const doneTodos = data.notes.filter((n) => n.done).length;
+  const dailyProgress = totalTodos === 0 ? 0 : Math.round((doneTodos / totalTodos) * 100);
+  const progressLabel =
+    totalTodos === 0 ? "No tasks" : dailyProgress >= 100 ? "Complete" : dailyProgress >= 60 ? "On Track" : "Behind";
 
   return (
     <div className="hud-card p-5 flex items-center justify-between gap-6 flex-wrap">
@@ -45,7 +46,7 @@ export function TopBar() {
           <RingProgress value={dailyProgress} size={44} label={`${dailyProgress}%`} />
           <div>
             <div className="hud-label text-[9px] text-muted-foreground">Daily Progress</div>
-            <div className="hud-label text-xs text-primary">{notesCount}/{NOTES_GOAL} notes · {progressLabel}</div>
+            <div className="hud-label text-xs text-primary">{doneTodos}/{totalTodos} tasks · {progressLabel}</div>
           </div>
         </div>
 
