@@ -183,11 +183,16 @@ function StepForm({
 
 function Bonsai() {
   return (
-    <div className="h-20 w-20 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5">
-      <svg viewBox="0 0 24 24" className="h-12 w-12 text-primary" fill="none" stroke="currentColor" strokeWidth="1.3">
-        <path d="M12 2v4M12 6c-3 2-5 5-5 9 0 3 2 5 5 5s5-2 5-5c0-4-2-7-5-9z" strokeLinecap="round" />
-        <path d="M9 20h6" strokeLinecap="round" />
-      </svg>
+    <div className="relative h-40 w-40 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5 overflow-hidden">
+      <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 0 30px oklch(0.78 0.13 85 / 0.35)" }} />
+      <img
+        src={bonsaiImg}
+        alt="Bonsai emblem"
+        width={512}
+        height={512}
+        className="h-32 w-32 object-contain"
+        style={{ filter: "drop-shadow(0 0 10px oklch(0.78 0.13 85 / 0.7))" }}
+      />
     </div>
   );
 }
