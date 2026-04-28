@@ -131,6 +131,12 @@ export const defaultData: EvolutionData = {
   ],
   hobby: { current: "Guitar", hours: 12.4 },
   events: [],
+  goals: [],
+  calendar: [],
+  settings: {
+    theme: "default",
+    notifications: { daily: true, goals: true, journal: false },
+  },
 };
 
 function load(): EvolutionData {
@@ -151,6 +157,9 @@ function load(): EvolutionData {
       journal: parsed.journal?.length ? parsed.journal : defaultData.journal,
       hobby: parsed.hobby ?? defaultData.hobby,
       events: parsed.events ?? [],
+      goals: parsed.goals ?? [],
+      calendar: parsed.calendar ?? [],
+      settings: { ...defaultData.settings, ...(parsed.settings ?? {}) },
     };
   } catch {
     return defaultData;
