@@ -114,60 +114,36 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "fitness":
-      // Bold side-view flexing bicep (matches reference logo)
+      // Dumbbell: center bar with two weight stacks on each end
       return (
         <svg {...common}>
-          {/* main arm silhouette: shoulder → bicep peak → forearm → fist on top */}
-          <path
-            d="
-              M 18 84
-              Q 14 78 16 70
-              Q 18 62 24 58
-              Q 30 54 36 56
-              Q 40 48 46 44
-              Q 54 36 60 38
-              Q 64 30 60 24
-              Q 56 18 50 18
-              Q 44 18 42 24
-              Q 40 30 44 36
-              Q 38 42 36 50
-              Q 32 56 30 64
-              Q 28 72 32 80
-              Q 30 84 26 84
-              Z
-            "
-            fill="currentColor"
-            fillOpacity="0.18"
-          />
-          {/* outline pass for crisp edges */}
-          <path
-            d="
-              M 18 84
-              Q 14 78 16 70
-              Q 18 62 24 58
-              Q 30 54 36 56
-              Q 40 48 46 44
-              Q 54 36 60 38
-              Q 64 30 60 24
-              Q 56 18 50 18
-              Q 44 18 42 24
-              Q 40 30 44 36
-            "
-          />
-          {/* bicep peak crease (top curve of the bulge) */}
-          <path d="M30 60 Q42 40 60 38" opacity="0.85" />
-          {/* inner forearm definition (between bicep and forearm) */}
-          <path d="M44 36 Q40 48 42 58" opacity="0.7" />
-          {/* fist top — knuckles */}
-          <path d="M42 24 Q46 20 50 20 Q54 20 56 24" opacity="0.85" />
-          <line x1="44" y1="22" x2="56" y2="22" opacity="0.5" />
-          {/* thumb on front of fist */}
-          <path d="M58 26 Q62 26 62 30" opacity="0.7" />
-          {/* tricep shadow underneath */}
-          <path d="M22 78 Q30 74 36 76" opacity="0.5" />
-          {/* glowing bicep peak highlight */}
-          <circle cx="44" cy="44" r="3" fill="currentColor" />
-          <circle cx="44" cy="44" r="7" fill="currentColor" opacity="0.2" />
+          {/* center bar */}
+          <line x1="32" y1="50" x2="68" y2="50" strokeWidth={3} />
+          <line x1="32" y1="50" x2="68" y2="50" strokeWidth={1} opacity="0.6" />
+
+          {/* left inner plate */}
+          <rect x="24" y="38" width="8" height="24" rx="1.5" fill="currentColor" fillOpacity="0.18" />
+          {/* left outer plate (larger) */}
+          <rect x="14" y="30" width="10" height="40" rx="2" fill="currentColor" fillOpacity="0.22" />
+          {/* left end cap */}
+          <line x1="12" y1="36" x2="12" y2="64" strokeWidth={2} />
+
+          {/* right inner plate */}
+          <rect x="68" y="38" width="8" height="24" rx="1.5" fill="currentColor" fillOpacity="0.18" />
+          {/* right outer plate (larger) */}
+          <rect x="76" y="30" width="10" height="40" rx="2" fill="currentColor" fillOpacity="0.22" />
+          {/* right end cap */}
+          <line x1="88" y1="36" x2="88" y2="64" strokeWidth={2} />
+
+          {/* grip texture on bar */}
+          <line x1="44" y1="47" x2="44" y2="53" opacity="0.5" />
+          <line x1="48" y1="47" x2="48" y2="53" opacity="0.5" />
+          <line x1="52" y1="47" x2="52" y2="53" opacity="0.5" />
+          <line x1="56" y1="47" x2="56" y2="53" opacity="0.5" />
+
+          {/* glowing center node */}
+          <circle cx="50" cy="50" r="2.5" fill="currentColor" />
+          <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.2" />
         </svg>
       );
 
