@@ -99,13 +99,19 @@ export interface Profile {
   onboarded: boolean;
 }
 
+export interface TodoItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface EvolutionData {
   profile: Profile;
   nutrition: NutritionEntry[];
   fitness: FitnessEntry[];
   investing: InvestingEntry[];
   meals: Meal[]; // meals logged today
-  notes: string[];
+  notes: TodoItem[];
   journal: { date: string; text: string }[];
   hobby: { current: Hobby; hours: number };
   events: { date: string; text: string }[];
@@ -165,7 +171,11 @@ export const defaultData: EvolutionData = {
     { date: "2024-05-17", value: 2640 },
   ],
   meals: [],
-  notes: ["Review Q2 plan", "Call mom", "Book flight"],
+  notes: [
+    { id: "n1", text: "Review Q2 plan", done: false },
+    { id: "n2", text: "Call mom", done: false },
+    { id: "n3", text: "Book flight", done: true },
+  ],
   journal: [
     { date: "2024-05-17", text: "Discipline is choosing between what you want now and what you want most." },
   ],
@@ -195,7 +205,15 @@ function load(): EvolutionData {
       fitness: parsed.fitness?.length ? parsed.fitness : defaultData.fitness,
       investing: parsed.investing?.length ? parsed.investing : defaultData.investing,
       meals: parsed.meals ?? [],
-      notes: parsed.notes ?? defaultData.notes,
+      notes: (() => {
+        const raw = (parsed as { notes?: unknown }).notes;
+        if (!Array.isArray(raw)) return defaultData.notes;
+        return raw.map((n, i) =>
+          typeof n === "string"
+            ? { id: `n-legacy-${i}-${Date.now()}`, text: n, done: false }
+            : (n as TodoItem)
+        );
+      })(),
       journal: parsed.journal?.length ? parsed.journal : defaultData.journal,
       hobby: parsed.hobby ?? defaultData.hobby,
       events: parsed.events ?? [],

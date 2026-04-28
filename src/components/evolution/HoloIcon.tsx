@@ -209,21 +209,28 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "notes":
-      // Thought bubble with idea dots
+      // To-do checklist: stack of square checkboxes (some checked, some unchecked)
       return (
         <svg {...common}>
-          {/* main bubble */}
-          <path d="M30 26 Q22 26 22 36 Q16 40 20 48 Q16 56 26 58 Q30 66 40 62 Q48 70 58 62 Q70 66 74 58 Q84 56 78 46 Q84 38 76 32 Q72 22 60 26 Q50 18 40 24 Q34 22 30 26 Z" />
-          {/* trailing small bubbles */}
-          <circle cx="34" cy="74" r="3.5" />
-          <circle cx="26" cy="82" r="2.2" />
-          <circle cx="20" cy="88" r="1.4" />
-          {/* idea content lines */}
-          <line x1="32" y1="40" x2="60" y2="40" opacity="0.6" />
-          <line x1="32" y1="46" x2="68" y2="46" opacity="0.5" />
-          <line x1="32" y1="52" x2="56" y2="52" opacity="0.4" />
-          {/* glowing idea node */}
-          <circle cx="50" cy="44" r="2.4" fill="currentColor" opacity="0.9" />
+          {/* outer holo glow */}
+          <rect x="14" y="14" width="72" height="72" rx="6" opacity="0.15" />
+
+          {/* row 1 — checked */}
+          <rect x="22" y="24" width="14" height="14" rx="2" />
+          <path d="M25 31 L29 35 L34 27" strokeWidth={2} />
+          <line x1="42" y1="31" x2="76" y2="31" opacity="0.7" />
+
+          {/* row 2 — checked */}
+          <rect x="22" y="44" width="14" height="14" rx="2" />
+          <path d="M25 51 L29 55 L34 47" strokeWidth={2} />
+          <line x1="42" y1="51" x2="72" y2="51" opacity="0.7" />
+
+          {/* row 3 — unchecked */}
+          <rect x="22" y="64" width="14" height="14" rx="2" opacity="0.85" />
+          <line x1="42" y1="71" x2="68" y2="71" opacity="0.5" strokeDasharray="2 2" />
+
+          {/* glowing accent on first checkbox */}
+          <circle cx="29" cy="31" r="9" fill="currentColor" opacity="0.12" />
         </svg>
       );
 
