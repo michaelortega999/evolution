@@ -37,33 +37,33 @@
 
 :root {
   --radius: 0.5rem;
-  /* HUD dark theme — green on near-black */
-  --background: oklch(0.14 0.005 85);
-  --foreground: oklch(0.9 0.08 85);
-  --card: oklch(0.18 0.008 85);
-  --card-foreground: oklch(0.9 0.08 85);
-  --popover: oklch(0.18 0.008 85);
-  --popover-foreground: oklch(0.9 0.08 85);
-  --primary: oklch(0.78 0.13 85);
-  --primary-foreground: oklch(0.12 0.005 85);
-  --secondary: oklch(0.24 0.01 85);
-  --secondary-foreground: oklch(0.9 0.08 85);
-  --muted: oklch(0.22 0.01 85);
-  --muted-foreground: oklch(0.62 0.07 85);
-  --accent: oklch(0.35 0.08 85);
-  --accent-foreground: oklch(0.9 0.08 85);
+  /* HUD dark theme — neon green on deep blue, purple accents */
+  --background: oklch(0.14 0.05 260);
+  --foreground: oklch(0.95 0.18 145);
+  --card: oklch(0.18 0.07 260);
+  --card-foreground: oklch(0.95 0.18 145);
+  --popover: oklch(0.18 0.07 260);
+  --popover-foreground: oklch(0.95 0.18 145);
+  --primary: oklch(0.88 0.28 145);
+  --primary-foreground: oklch(0.12 0.05 260);
+  --secondary: oklch(0.24 0.09 260);
+  --secondary-foreground: oklch(0.95 0.18 145);
+  --muted: oklch(0.22 0.08 260);
+  --muted-foreground: oklch(0.75 0.18 310);
+  --accent: oklch(0.65 0.28 310);
+  --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.65 0.24 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.4 0.1 85 / 0.4);
-  --input: oklch(0.26 0.015 85);
-  --ring: oklch(0.78 0.13 85);
-  --glow: oklch(0.78 0.13 85);
-  --grid-line: oklch(0.4 0.1 85 / 0.15);
+  --border: oklch(0.6 0.2 260 / 0.5);
+  --input: oklch(0.24 0.08 260);
+  --ring: oklch(0.88 0.28 145);
+  --glow: oklch(0.88 0.28 145);
+  --grid-line: oklch(0.6 0.2 260 / 0.18);
 }
 
 .dark {
-  --background: oklch(0.14 0.005 85);
-  --foreground: oklch(0.9 0.08 85);
+  --background: oklch(0.14 0.05 260);
+  --foreground: oklch(0.95 0.18 145);
 }
 
 @layer base {
