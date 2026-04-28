@@ -114,48 +114,63 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "fitness":
-      // Single-silhouette flexing arm (emoji-style)
+      // Bold side-view flexing bicep (matches reference logo)
       return (
         <svg {...common}>
-          {/* one continuous arm outline: shoulder → upper arm → elbow → forearm → fist */}
+          {/* main arm silhouette: shoulder → bicep peak → forearm → fist on top */}
           <path
             d="
-              M 18 78
-              Q 14 64 18 56
-              Q 24 46 36 48
-              Q 46 38 56 46
-              Q 64 52 60 62
-              L 60 70
-              Q 68 70 68 62
-              L 68 28
-              Q 68 18 60 18
-              Q 52 18 52 28
-              L 52 62
-              Q 44 66 36 66
-              L 18 66
+              M 18 84
+              Q 14 78 16 70
+              Q 18 62 24 58
+              Q 30 54 36 56
+              Q 40 48 46 44
+              Q 54 36 60 38
+              Q 64 30 60 24
+              Q 56 18 50 18
+              Q 44 18 42 24
+              Q 40 30 44 36
+              Q 38 42 36 50
+              Q 32 56 30 64
+              Q 28 72 32 80
+              Q 30 84 26 84
               Z
             "
             fill="currentColor"
-            fillOpacity="0.12"
+            fillOpacity="0.18"
           />
-          {/* bicep peak curve (the bulge) */}
-          <path d="M22 60 Q34 38 56 46" />
-          {/* underside of upper arm */}
-          <path d="M18 66 L52 62" opacity="0.7" />
-          {/* forearm sides */}
-          <path d="M52 28 L52 60" opacity="0.85" />
-          <path d="M68 28 L68 60" opacity="0.85" />
-          {/* fist top */}
-          <path d="M52 28 Q52 18 60 18 Q68 18 68 28" />
-          {/* knuckle lines */}
-          <line x1="55" y1="22" x2="65" y2="22" opacity="0.6" />
-          {/* thumb tucked at front */}
-          <path d="M52 26 Q48 28 50 32" opacity="0.7" />
-          {/* glowing bicep peak */}
-          <circle cx="38" cy="48" r="2.6" fill="currentColor" />
-          <circle cx="38" cy="48" r="6" fill="currentColor" opacity="0.18" />
+          {/* outline pass for crisp edges */}
+          <path
+            d="
+              M 18 84
+              Q 14 78 16 70
+              Q 18 62 24 58
+              Q 30 54 36 56
+              Q 40 48 46 44
+              Q 54 36 60 38
+              Q 64 30 60 24
+              Q 56 18 50 18
+              Q 44 18 42 24
+              Q 40 30 44 36
+            "
+          />
+          {/* bicep peak crease (top curve of the bulge) */}
+          <path d="M30 60 Q42 40 60 38" opacity="0.85" />
+          {/* inner forearm definition (between bicep and forearm) */}
+          <path d="M44 36 Q40 48 42 58" opacity="0.7" />
+          {/* fist top — knuckles */}
+          <path d="M42 24 Q46 20 50 20 Q54 20 56 24" opacity="0.85" />
+          <line x1="44" y1="22" x2="56" y2="22" opacity="0.5" />
+          {/* thumb on front of fist */}
+          <path d="M58 26 Q62 26 62 30" opacity="0.7" />
+          {/* tricep shadow underneath */}
+          <path d="M22 78 Q30 74 36 76" opacity="0.5" />
+          {/* glowing bicep peak highlight */}
+          <circle cx="44" cy="44" r="3" fill="currentColor" />
+          <circle cx="44" cy="44" r="7" fill="currentColor" opacity="0.2" />
         </svg>
       );
+
 
 
 
