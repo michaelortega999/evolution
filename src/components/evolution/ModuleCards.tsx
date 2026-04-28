@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Plus, ChevronRight, X,
@@ -14,6 +15,8 @@ import {
   todayDate, type Meal, type Hobby,
 } from "@/lib/evolution-data";
 
+type ModuleHref = "/wealth" | "/nutrition" | "/fitness" | "/journal" | "/notes" | "/investing" | "/business" | "/hobby";
+
 function formatMoney(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
@@ -21,12 +24,12 @@ function formatMoney(n: number) {
 }
 
 function Card({
-  icon: Icon, number, title, children,
-}: { icon: LucideIcon; number: string; title: string; children: React.ReactNode }) {
+  icon: Icon, number, title, href, children,
+}: { icon: LucideIcon; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
   return (
-    <div className="hud-card hud-scan p-5 flex flex-col">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center"
+    <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors">
+      <Link to={href} className="flex items-center gap-3 mb-4 group/header">
+        <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
              style={{
                borderColor: "oklch(0.85 0.15 85)",
                background: "radial-gradient(circle, oklch(0.85 0.15 85 / 0.15), transparent 70%)",
@@ -35,12 +38,12 @@ function Card({
           <Icon className="h-4 w-4" style={{ color: "oklch(0.88 0.15 85)" }} />
         </div>
         <span className="hud-label text-xs text-muted-foreground">{number}</span>
-        <h3 className="hud-label text-sm text-foreground/90">{title}</h3>
-      </div>
+        <h3 className="hud-label text-sm text-foreground/90 group-hover/header:text-primary transition-colors">{title}</h3>
+      </Link>
       <div className="flex-1 flex flex-col">{children}</div>
-      <button className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary">
+      <Link to={href} className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary w-fit">
         View Details <ChevronRight className="h-3 w-3" />
-      </button>
+      </Link>
     </div>
   );
 }
