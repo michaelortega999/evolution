@@ -68,13 +68,26 @@
 
 /* ===== Theme variants ===== */
 .theme-gold {
-  --primary: oklch(0.78 0.15 85);
-  --ring: oklch(0.78 0.15 85);
-  --glow: oklch(0.78 0.15 85);
-  --accent: oklch(0.7 0.18 70);
-  --foreground: oklch(0.92 0.12 90);
-  --border: oklch(0.7 0.15 85 / 0.5);
-  --grid-line: oklch(0.7 0.15 85 / 0.18);
+  /* Pure black background with full gold/amber/orange palette */
+  --background: oklch(0.04 0 0);
+  --foreground: oklch(0.88 0.16 80);
+  --card: oklch(0.08 0.03 70);
+  --card-foreground: oklch(0.9 0.16 85);
+  --popover: oklch(0.08 0.03 70);
+  --popover-foreground: oklch(0.9 0.16 85);
+  --primary: oklch(0.82 0.18 85);
+  --primary-foreground: oklch(0.08 0.02 60);
+  --secondary: oklch(0.18 0.08 65);
+  --secondary-foreground: oklch(0.9 0.16 85);
+  --muted: oklch(0.14 0.06 65);
+  --muted-foreground: oklch(0.78 0.18 70);
+  --accent: oklch(0.72 0.22 55);
+  --accent-foreground: oklch(0.08 0.02 60);
+  --input: oklch(0.14 0.06 65);
+  --ring: oklch(0.82 0.18 85);
+  --glow: oklch(0.82 0.18 85);
+  --border: oklch(0.7 0.18 75 / 0.55);
+  --grid-line: oklch(0.7 0.18 75 / 0.22);
 }
 .theme-green {
   --primary: oklch(0.82 0.21 145);
