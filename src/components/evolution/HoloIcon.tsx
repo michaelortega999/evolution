@@ -71,23 +71,39 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
 
   switch (variant) {
     case "wealth":
-      // Vault / safe with circuit dollar lines
+      // Big bold dollar sign with holo glow
       return (
         <svg {...common}>
-          <rect x="22" y="26" width="56" height="48" rx="3" />
-          <rect x="28" y="32" width="44" height="36" rx="2" opacity="0.6" />
-          <circle cx="50" cy="50" r="10" />
-          <circle cx="50" cy="50" r="6" opacity="0.7" />
-          <line x1="50" y1="36" x2="50" y2="42" />
-          <line x1="50" y1="58" x2="50" y2="64" />
-          <line x1="36" y1="50" x2="42" y2="50" />
-          <line x1="58" y1="50" x2="64" y2="50" />
-          <text x="50" y="54" textAnchor="middle" fontSize="10" fontFamily="monospace" stroke="none" fill="currentColor">$</text>
+          {/* outer glow ring */}
+          <circle cx="50" cy="50" r="32" opacity="0.25" />
+          <circle cx="50" cy="50" r="26" opacity="0.4" />
+
+          {/* vertical bar through the S */}
+          <line x1="50" y1="18" x2="50" y2="82" strokeWidth={2.5} />
+
+          {/* the S curve of the dollar sign */}
+          <path
+            d="M 64 32 Q 58 24 48 24 Q 36 24 36 34 Q 36 42 48 46 Q 64 50 64 60 Q 64 72 50 72 Q 38 72 32 64"
+            strokeWidth={3}
+            fill="none"
+          />
+
+          {/* subtle inner fill highlight */}
+          <path
+            d="M 64 32 Q 58 24 48 24 Q 36 24 36 34 Q 36 42 48 46 Q 64 50 64 60 Q 64 72 50 72 Q 38 72 32 64"
+            strokeWidth={1}
+            opacity="0.5"
+          />
+
+          {/* glowing center node */}
+          <circle cx="50" cy="50" r="2.5" fill="currentColor" />
+          <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.2" />
+
           {/* circuit traces */}
-          <path d="M22 40 H16 V20 H40" opacity="0.5" />
-          <path d="M78 60 H84 V80 H60" opacity="0.5" />
-          <circle cx="16" cy="20" r="1.2" fill="currentColor" />
-          <circle cx="84" cy="80" r="1.2" fill="currentColor" />
+          <path d="M18 30 H10 V14 H30" opacity="0.5" />
+          <path d="M82 70 H90 V86 H70" opacity="0.5" />
+          <circle cx="10" cy="14" r="1.2" fill="currentColor" />
+          <circle cx="90" cy="86" r="1.2" fill="currentColor" />
         </svg>
       );
 
