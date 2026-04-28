@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEvolutionData, type Profile } from "@/lib/evolution-data";
+import bonsaiImg from "@/assets/bonsai.png";
 
 const mirrorQs = [
   "What lie have you been telling yourself?",
@@ -217,27 +218,8 @@ function Bonsai() {
         </>
       )}
 
-      <div className="holo-bonsai-wrap" aria-label="Bonsai emblem" role="img">
-        <svg className="holo-bonsai bonsai-emblem h-48 w-48" viewBox="0 0 512 512" aria-hidden="true">
-          <circle className="bonsai-emblem__halo" cx="256" cy="256" r="206" />
-          <circle className="bonsai-emblem__ring" cx="256" cy="256" r="190" />
-          {Array.from({ length: 16 }, (_, i) => {
-            const angle = (i * 22.5 * Math.PI) / 180;
-            const x1 = 256 + Math.cos(angle) * 174;
-            const y1 = 256 + Math.sin(angle) * 174;
-            const x2 = 256 + Math.cos(angle) * 190;
-            const y2 = 256 + Math.sin(angle) * 190;
-            return <line key={i} className="bonsai-emblem__tick" x1={x1} y1={y1} x2={x2} y2={y2} />;
-          })}
-          <ellipse className="bonsai-emblem__bowl" cx="256" cy="342" rx="88" ry="28" />
-          <path className="bonsai-emblem__bowl" d="M174 342h164l-20 58H194z" />
-          <path className="bonsai-emblem__trunk" d="M250 344c38-42-20-72 25-118 22-22 53-29 66-60-42 19-83 14-112 37-34 27-27 61-2 86 18 19 15 35 5 55" />
-          <path className="bonsai-emblem__root" d="M210 372c18-18 34-25 52-31m-8 35c17-24 36-38 62-50m-85 51c-11-16-22-28-41-36" />
-          <g className="bonsai-emblem__canopy">
-            <path d="M176 201c-19-10-19-39 3-48 3-31 47-36 61-12 17-33 72-22 73 17 33-7 54 31 31 55 19 14 6 45-18 45H187c-34 0-43-42-11-57Z" />
-            <path d="M151 244c-16-7-16-31 1-38 4-24 36-25 45-7 13-17 42-13 48 8 20-5 38 17 25 34 12 11 3 33-15 33h-91c-25 0-33-25-13-30Z" />
-          </g>
-        </svg>
+      <div className="holo-bonsai-wrap">
+        <img src={bonsaiImg} alt="Bonsai" className="holo-bonsai h-48 w-48 object-contain" />
       </div>
 
       {/* Floating particles */}
