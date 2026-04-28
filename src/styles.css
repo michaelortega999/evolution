@@ -384,6 +384,34 @@
     drop-shadow(0 0 20px color-mix(in oklab, var(--glow) 55%, transparent));
   animation: holo-glow 4s ease-in-out infinite;
 }
+.bonsai-emblem {
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bonsai-emblem__halo {
+  fill: color-mix(in oklab, var(--glow) 12%, transparent);
+  stroke: color-mix(in oklab, var(--glow) 25%, transparent);
+  stroke-width: 18;
+}
+.bonsai-emblem__ring,
+.bonsai-emblem__tick,
+.bonsai-emblem__bowl,
+.bonsai-emblem__trunk,
+.bonsai-emblem__root,
+.bonsai-emblem__canopy path {
+  stroke: var(--glow);
+  stroke-width: 9;
+  filter: drop-shadow(0 0 7px color-mix(in oklab, var(--glow) 80%, transparent));
+}
+.bonsai-emblem__tick { stroke-width: 6; }
+.bonsai-emblem__bowl,
+.bonsai-emblem__canopy path {
+  fill: color-mix(in oklab, var(--glow) 18%, transparent);
+}
+.bonsai-emblem__trunk,
+.bonsai-emblem__root { stroke-width: 11; }
 @keyframes holo-float {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-6px); }
