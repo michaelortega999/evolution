@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Calendar as CalIcon, Target, Plus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Calendar as CalIcon, Target, Plus, Play, Pause, RotateCcw } from "lucide-react";
 import { Sparkline } from "./Sparkline";
-import { RingProgress } from "./RingProgress";
 import { Input } from "@/components/ui/input";
 import { useEvolutionData } from "@/lib/evolution-data";
+import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 
 const markets = [
   { name: "S&P 500", change: "+0.85%", data: [10, 12, 11, 14, 13, 16, 17, 19] },
@@ -16,6 +17,7 @@ const markets = [
 export function BottomBar() {
   const { data, mutate } = useEvolutionData();
   const [evt, setEvt] = useState("");
+  const timer = useFocusTimer();
 
   const addEvent = () => {
     const text = evt.trim();
@@ -25,11 +27,8 @@ export function BottomBar() {
     setEvt("");
   };
 
-  // progress = avg of calorie %, workout %, portfolio % toward goal
-  const kcalPct = Math.min(100, ((data.nutrition.at(-1)?.calories ?? 0) / data.profile.calorieTarget) * 100);
-  const fitPct = Math.min(100, (data.fitness.slice(-7).filter(x => x.workouts > 0).length / data.profile.gymSessionsTarget) * 100);
-  const invPct = Math.min(100, ((data.investing.at(-1)?.value ?? 0) / data.profile.goal) * 100);
-  const dailyProgress = Math.round((kcalPct + fitPct + invPct) / 3);
+  const pct = timer.totalMs > 0 ? Math.max(0, Math.min(100, (timer.remainingMs / timer.totalMs) * 100)) : 0;
+  void data;
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-4 gap-6">
