@@ -21,7 +21,7 @@ const mainNav = [
 const secondaryNav = [
   { icon: Calendar, label: "Calendar", to: "/calendar" as const },
   { icon: Target, label: "Goals", to: "/goals" as const },
-  { icon: Zap, label: "Focus", to: "/focus" as const },
+  { icon: FileText, label: "Journal", to: "/journal" as const },
   { icon: BarChart3, label: "Reports", to: "/reports" as const },
   { icon: Settings, label: "Settings", to: "/settings" as const },
 ];
