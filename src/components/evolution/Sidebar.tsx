@@ -1,20 +1,20 @@
 import { cn } from "@/lib/utils";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   Home, Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings,
 } from "lucide-react";
-import { useState } from "react";
 
 const mainNav = [
-  { icon: Home, label: "Dashboard", num: "" },
-  { icon: Wallet, label: "Wealth", num: "1" },
-  { icon: Apple, label: "Nutrition", num: "2" },
-  { icon: Dumbbell, label: "Fitness", num: "3" },
-  { icon: FileText, label: "Journal", num: "4" },
-  { icon: NotebookPen, label: "Notes", num: "5" },
-  { icon: TrendingUp, label: "Investing", num: "6" },
-  { icon: Briefcase, label: "Business", num: "7" },
-  { icon: Star, label: "Hobby", num: "8" },
+  { icon: Home, label: "Dashboard", num: "", to: "/" as const },
+  { icon: Wallet, label: "Wealth", num: "1", to: "/wealth" as const },
+  { icon: Apple, label: "Nutrition", num: "2", to: "/nutrition" as const },
+  { icon: Dumbbell, label: "Fitness", num: "3", to: "/fitness" as const },
+  { icon: FileText, label: "Journal", num: "4", to: "/journal" as const },
+  { icon: NotebookPen, label: "Notes", num: "5", to: "/notes" as const },
+  { icon: TrendingUp, label: "Investing", num: "6", to: "/investing" as const },
+  { icon: Briefcase, label: "Business", num: "7", to: "/business" as const },
+  { icon: Star, label: "Hobby", num: "8", to: "/hobby" as const },
 ];
 
 const secondaryNav = [
@@ -25,7 +25,7 @@ const secondaryNav = [
 ];
 
 export function Sidebar() {
-  const [active, setActive] = useState("Dashboard");
+  const { pathname } = useLocation();
 
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
