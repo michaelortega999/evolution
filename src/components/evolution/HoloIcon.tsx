@@ -108,24 +108,43 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "nutrition":
-      // DNA double helix
+      // Apple with leaf and stem
       return (
         <svg {...common}>
-          {Array.from({ length: 7 }).map((_, i) => {
-            const y = 18 + i * 10;
-            const phase = (i / 7) * Math.PI * 2;
-            const x1 = 50 + Math.sin(phase) * 18;
-            const x2 = 50 - Math.sin(phase) * 18;
-            return (
-              <g key={i}>
-                <line x1={x1} y1={y} x2={x2} y2={y} opacity="0.6" />
-                <circle cx={x1} cy={y} r="1.8" fill="currentColor" />
-                <circle cx={x2} cy={y} r="1.8" fill="currentColor" />
-              </g>
-            );
-          })}
-          <path d="M32 18 Q50 35 68 50 Q50 65 32 82" />
-          <path d="M68 18 Q50 35 32 50 Q50 65 68 82" opacity="0.7" />
+          {/* outer glow ring */}
+          <circle cx="50" cy="56" r="32" opacity="0.2" />
+
+          {/* apple body — two lobes meeting at top dimple */}
+          <path
+            d="M 50 30
+               C 38 26 24 32 24 50
+               C 24 68 36 82 50 82
+               C 64 82 76 68 76 50
+               C 76 32 62 26 50 30 Z"
+            strokeWidth={1.5}
+            fill="currentColor"
+            fillOpacity="0.15"
+          />
+          {/* top dimple where stem meets */}
+          <path d="M 42 32 Q 50 28 58 32" opacity="0.8" />
+
+          {/* stem */}
+          <path d="M 50 30 Q 52 22 56 18" strokeWidth={2} />
+
+          {/* leaf */}
+          <path
+            d="M 56 22 Q 66 18 70 26 Q 64 30 56 26 Z"
+            fill="currentColor"
+            fillOpacity="0.25"
+          />
+          <path d="M 58 24 Q 64 25 68 26" opacity="0.6" />
+
+          {/* highlight shine on apple */}
+          <path d="M 34 44 Q 32 52 36 60" opacity="0.6" />
+
+          {/* glowing core node */}
+          <circle cx="50" cy="56" r="2.5" fill="currentColor" />
+          <circle cx="50" cy="56" r="6" fill="currentColor" opacity="0.2" />
         </svg>
       );
 
