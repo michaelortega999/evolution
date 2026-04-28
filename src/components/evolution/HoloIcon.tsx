@@ -114,25 +114,38 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "fitness":
-      // Human silhouette with muscle highlights
+      // Detailed flexed bicep arm
       return (
         <svg {...common}>
-          <circle cx="50" cy="22" r="8" />
-          <line x1="50" y1="30" x2="50" y2="60" />
-          <line x1="50" y1="38" x2="32" y2="52" />
-          <line x1="50" y1="38" x2="68" y2="52" />
-          <line x1="50" y1="60" x2="38" y2="82" />
-          <line x1="50" y1="60" x2="62" y2="82" />
-          {/* muscle highlight nodes */}
-          <circle cx="40" cy="44" r="2" fill="currentColor" opacity="0.9" />
-          <circle cx="60" cy="44" r="2" fill="currentColor" opacity="0.9" />
-          <circle cx="44" cy="70" r="2" fill="currentColor" opacity="0.9" />
-          <circle cx="56" cy="70" r="2" fill="currentColor" opacity="0.9" />
-          <circle cx="50" cy="48" r="2.5" fill="currentColor" />
-          {/* scanning arc */}
-          <path d="M28 50 A22 22 0 0 0 72 50" opacity="0.4" strokeDasharray="2 2" />
+          {/* upper arm / shoulder (deltoid) */}
+          <path d="M18 70 Q14 56 22 46 Q30 36 42 38 Q50 40 52 50" />
+          {/* deltoid cap detail */}
+          <path d="M22 46 Q28 42 36 44" opacity="0.6" />
+          {/* bicep peak — flexed bulge */}
+          <path d="M30 56 Q34 30 56 32 Q70 34 70 50 Q70 60 58 60 Q44 60 38 66 Q32 64 30 56 Z" />
+          {/* bicep inner contour */}
+          <path d="M40 50 Q50 38 64 44" opacity="0.7" />
+          {/* tricep underline */}
+          <path d="M30 60 Q40 70 56 64" opacity="0.55" />
+          {/* forearm bent up */}
+          <path d="M58 32 Q66 30 72 36 Q78 44 76 56 Q74 66 68 70 Q62 72 58 66 Q56 58 60 50 Q62 42 58 38 Z" />
+          {/* forearm muscle striations */}
+          <path d="M64 38 Q66 48 64 60" opacity="0.5" />
+          <path d="M70 40 Q72 50 70 62" opacity="0.4" />
+          {/* fist */}
+          <circle cx="68" cy="32" r="6" />
+          <path d="M64 30 L72 30 M64 33 L72 33 M64 36 L72 36" opacity="0.6" />
+          {/* glowing peak highlight */}
+          <circle cx="50" cy="42" r="2.4" fill="currentColor" />
+          <circle cx="46" cy="48" r="1.4" fill="currentColor" opacity="0.8" />
+          <circle cx="56" cy="46" r="1.4" fill="currentColor" opacity="0.8" />
+          {/* power lines */}
+          <path d="M14 78 L24 72" opacity="0.5" />
+          <path d="M82 80 L74 72" opacity="0.5" />
+          <path d="M82 24 L74 30" opacity="0.5" />
         </svg>
       );
+
 
     case "journal":
       // Open book with text lines
