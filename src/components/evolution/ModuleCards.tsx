@@ -204,19 +204,34 @@ export function NotesCard() {
   const add = () => {
     const t = text.trim();
     if (!t) return;
-    mutate((prev) => ({ notes: [...prev.notes, t] }));
+    mutate((prev) => ({
+      notes: [...prev.notes, { id: `n${Date.now()}`, text: t, done: false }],
+    }));
     setText("");
   };
-  const remove = (i: number) => mutate((prev) => ({ notes: prev.notes.filter((_, idx) => idx !== i) }));
+  const toggle = (id: string) =>
+    mutate((prev) => ({
+      notes: prev.notes.map((n) => (n.id === id ? { ...n, done: !n.done } : n)),
+    }));
+  const remove = (id: string) =>
+    mutate((prev) => ({ notes: prev.notes.filter((n) => n.id !== id) }));
 
   return (
     <Card icon={NotebookPen} variant="notes" number="05" title="Notes" href="/notes">
       <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32">
-        {data.notes.map((n, i) => (
-          <li key={i} className="flex items-start gap-2 text-xs text-foreground/90 group">
-            <span className="text-primary mt-0.5">▸</span>
-            <span className="flex-1">{n}</span>
-            <button onClick={() => remove(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
+        {data.notes.map((n) => (
+          <li key={n.id} className="flex items-start gap-2 text-xs group">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(n.id); }}
+              className={`mt-0.5 h-3.5 w-3.5 rounded border flex items-center justify-center shrink-0 ${
+                n.done ? "bg-primary border-primary text-primary-foreground" : "border-primary/50 hover:border-primary"
+              }`}
+              aria-label={n.done ? "Mark as not done" : "Mark as done"}
+            >
+              {n.done && <span className="text-[8px] leading-none">✓</span>}
+            </button>
+            <span className={`flex-1 ${n.done ? "line-through text-muted-foreground" : "text-foreground/90"}`}>{n.text}</span>
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); remove(n.id); }} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
               <X className="h-3 w-3" />
             </button>
           </li>
