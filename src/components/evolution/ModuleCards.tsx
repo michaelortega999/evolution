@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import {
   Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Plus, ChevronRight, X,
-  Coins, BookOpen, Lightbulb, CandlestickChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
