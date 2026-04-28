@@ -28,12 +28,12 @@ export function Onboarding() {
     updateProfile({ ...draft, onboarded: true });
   };
 
+  // Temporarily skipping steps 1-4 — "Begin" activates immediately.
+  const begin = () => updateProfile({ ...draft, onboarded: true });
+
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="hud-card hud-scan p-10 max-w-2xl w-full">
-        <div className="hud-label text-[10px] text-muted-foreground mb-6 tracking-[0.4em]">
-          STEP {step + 1} / 5
-        </div>
 
         {step === 0 && (
           <div className="flex flex-col items-center text-center gap-6">
@@ -46,7 +46,7 @@ export function Onboarding() {
             <div className="hud-label text-[10px] text-muted-foreground tracking-[0.4em]">
               DISCIPLINE · FOCUS · CONSISTENCY · FREEDOM
             </div>
-            <Button onClick={next} className="mt-4 hud-label">Begin</Button>
+            <Button onClick={begin} className="mt-4 hud-label">Begin</Button>
           </div>
         )}
 
