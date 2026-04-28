@@ -30,20 +30,20 @@ export function Sidebar() {
 
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
-      <div className="mb-4 flex items-center gap-3 pb-4 border-b border-border">
-        <div className="h-12 w-12 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5">
+      <div className="mb-4 pb-4 border-b border-border flex flex-col items-center text-center gap-3">
+        <div>
+          <div className="hud-label text-primary hud-glow text-sm">Evolution</div>
+          <div className="hud-label text-[8px] text-muted-foreground">Growing today, building forever</div>
+        </div>
+        <div className="rounded-full border border-primary/50 bg-primary/5 flex items-center justify-center" style={{ width: 96, height: 96 }}>
           <img
             src={bonsaiImg}
             alt="Bonsai"
             width={512}
             height={512}
-            className="h-10 w-10 object-contain"
-            style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.8))" }}
+            className="object-contain"
+            style={{ width: 88, height: 88, filter: "drop-shadow(0 0 6px oklch(0.78 0.22 240 / 0.85))" }}
           />
-        </div>
-        <div>
-          <div className="hud-label text-primary hud-glow text-sm">Evolution</div>
-          <div className="hud-label text-[8px] text-muted-foreground">Growing today, building forever</div>
         </div>
       </div>
 
