@@ -44,11 +44,11 @@ export function Sidebar() {
 
       <nav className="flex flex-col gap-1 flex-1">
         {mainNav.map((item) => {
-          const isActive = active === item.label;
+          const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           return (
-            <button
+            <Link
               key={item.label}
-              onClick={() => setActive(item.label)}
+              to={item.to}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive
@@ -59,7 +59,7 @@ export function Sidebar() {
               <item.icon className="h-4 w-4 shrink-0" />
               {item.num && <span className="text-[10px] opacity-60 w-3">{item.num}</span>}
               <span>{item.label}</span>
-            </button>
+            </Link>
           );
         })}
 
@@ -68,13 +68,7 @@ export function Sidebar() {
         {secondaryNav.map((item) => (
           <button
             key={item.label}
-            onClick={() => setActive(item.label)}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border border-transparent",
-              active === item.label
-                ? "bg-primary/10 border-primary/40 text-primary"
-                : "text-foreground/70 hover:bg-primary/5 hover:text-primary"
-            )}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
           >
             <item.icon className="h-4 w-4" />
             <span>{item.label}</span>
