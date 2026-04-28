@@ -10,6 +10,11 @@ export function TopBar() {
   const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
+  const NOTES_GOAL = 10;
+  const notesCount = data.notes.length;
+  const dailyProgress = Math.min(100, Math.round((notesCount / NOTES_GOAL) * 100));
+  const progressLabel = dailyProgress >= 100 ? "Complete" : dailyProgress >= 60 ? "On Track" : "Behind";
+
   return (
     <div className="hud-card p-5 flex items-center justify-between gap-6 flex-wrap">
       <div className="flex-1 min-w-[260px]">
