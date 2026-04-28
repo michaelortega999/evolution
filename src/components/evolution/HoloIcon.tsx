@@ -225,25 +225,37 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "hobby":
-      // Galaxy with orbiting planets
+      // Acoustic guitar with mountains behind
       return (
         <svg {...common}>
-          {/* sun */}
-          <circle cx="50" cy="50" r="6" fill="currentColor" />
-          <circle cx="50" cy="50" r="9" opacity="0.5" />
-          {/* orbits */}
-          <ellipse cx="50" cy="50" rx="20" ry="8" opacity="0.5" />
-          <ellipse cx="50" cy="50" rx="30" ry="12" opacity="0.4" transform="rotate(35 50 50)" />
-          <ellipse cx="50" cy="50" rx="38" ry="16" opacity="0.3" transform="rotate(-25 50 50)" />
-          {/* planets */}
-          <circle cx="70" cy="50" r="3" fill="currentColor" />
-          <circle cx="74" cy="32" r="2.5" fill="currentColor" opacity="0.9" />
-          <circle cx="22" cy="62" r="3.5" fill="currentColor" />
-          {/* stars */}
-          <circle cx="18" cy="22" r="0.8" fill="currentColor" />
-          <circle cx="84" cy="78" r="0.8" fill="currentColor" />
-          <circle cx="84" cy="20" r="0.6" fill="currentColor" />
-          <circle cx="14" cy="80" r="0.6" fill="currentColor" />
+          {/* mountains background */}
+          <path d="M8 78 L26 50 L38 64 L54 38 L72 60 L92 78 Z" opacity="0.45" />
+          <path d="M8 78 L26 50 L38 64 L54 38 L72 60 L92 78" opacity="0.7" />
+          {/* snow caps */}
+          <path d="M50 44 L54 38 L58 44" opacity="0.9" />
+          <path d="M22 56 L26 50 L30 56" opacity="0.8" />
+          {/* sun/moon */}
+          <circle cx="72" cy="24" r="4" opacity="0.6" />
+          {/* ground line */}
+          <line x1="6" y1="78" x2="94" y2="78" opacity="0.5" />
+          {/* guitar body (foreground) */}
+          <ellipse cx="58" cy="68" rx="14" ry="16" />
+          <ellipse cx="58" cy="62" rx="9" ry="9" opacity="0.7" />
+          {/* sound hole */}
+          <circle cx="58" cy="64" r="3.5" fill="currentColor" opacity="0.85" />
+          {/* bridge */}
+          <rect x="54" y="74" width="8" height="2" fill="currentColor" opacity="0.8" />
+          {/* neck */}
+          <rect x="40" y="38" width="6" height="22" transform="rotate(-30 43 49)" />
+          {/* headstock */}
+          <rect x="28" y="26" width="8" height="6" transform="rotate(-30 32 29)" />
+          {/* tuning pegs */}
+          <circle cx="30" cy="28" r="0.9" fill="currentColor" />
+          <circle cx="34" cy="30" r="0.9" fill="currentColor" />
+          {/* strings */}
+          <line x1="34" y1="34" x2="60" y2="72" opacity="0.5" />
+          <line x1="36" y1="33" x2="62" y2="71" opacity="0.5" />
+          <line x1="38" y1="32" x2="64" y2="70" opacity="0.5" />
         </svg>
       );
   }
