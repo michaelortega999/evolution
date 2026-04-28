@@ -1,0 +1,30 @@
+interface BarChartProps {
+  data: number[];
+  labels: string[];
+  height?: number;
+}
+
+export function BarChart({ data, labels, height = 70 }: BarChartProps) {
+  const max = Math.max(...data);
+  return (
+    <div className="w-full">
+      <div className="flex items-end justify-between gap-1" style={{ height }}>
+        {data.map((v, i) => (
+          <div
+            key={i}
+            className="flex-1 rounded-sm"
+            style={{
+              height: `${(v / max) * 100}%`,
+              background: "linear-gradient(180deg, oklch(0.85 0.2 142), oklch(0.55 0.15 142))",
+              boxShadow: "0 0 8px oklch(0.85 0.2 142 / 0.5)",
+              minHeight: 4,
+            }}
+          />
+        ))}
+      </div>
+      <div className="flex justify-between mt-2 text-[9px] hud-label text-muted-foreground">
+        {labels.map((l) => <span key={l} className="flex-1 text-center">{l}</span>)}
+      </div>
+    </div>
+  );
+}
