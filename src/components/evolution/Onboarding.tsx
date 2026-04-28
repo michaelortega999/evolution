@@ -31,6 +31,9 @@ export function Onboarding() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="hud-card hud-scan p-10 max-w-2xl w-full">
+        <div className="hud-label text-[10px] text-muted-foreground mb-6 tracking-[0.4em]">
+          STEP {step + 1} / 5
+        </div>
 
         {step === 0 && (
           <div className="flex flex-col items-center text-center gap-6">
