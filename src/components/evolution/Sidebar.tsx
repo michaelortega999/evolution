@@ -19,10 +19,10 @@ const mainNav = [
 ];
 
 const secondaryNav = [
-  { icon: Calendar, label: "Calendar" },
-  { icon: Target, label: "Goals" },
-  { icon: BarChart3, label: "Reports" },
-  { icon: Settings, label: "Settings" },
+  { icon: Calendar, label: "Calendar", to: "/calendar" as const },
+  { icon: Target, label: "Goals", to: "/goals" as const },
+  { icon: BarChart3, label: "Reports", to: "/reports" as const },
+  { icon: Settings, label: "Settings", to: "/settings" as const },
 ];
 
 export function Sidebar() {
@@ -70,15 +70,24 @@ export function Sidebar() {
 
         <div className="h-px bg-border my-3" />
 
-        {secondaryNav.map((item) => (
-          <button
-            key={item.label}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
-          >
-            <item.icon className="h-4 w-4" />
-            <span>{item.label}</span>
-          </button>
-        ))}
+        {secondaryNav.map((item) => {
+          const isActive = pathname.startsWith(item.to);
+          return (
+            <Link
+              key={item.label}
+              to={item.to}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
+                isActive
+                  ? "bg-primary/10 border-primary/40 text-primary hud-glow"
+                  : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="mt-4 pt-4 border-t border-border flex items-center gap-3">
