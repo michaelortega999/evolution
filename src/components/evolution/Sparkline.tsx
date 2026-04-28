@@ -27,15 +27,12 @@ export function Sparkline({ data, height = 70, labels, fill = true }: SparklineP
         </defs>
         {fill && <path d={area} fill="url(#sparkFill)" />}
         <path
-          className="spark-line"
           d={path}
           fill="none"
           stroke="oklch(0.78 0.22 240)"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          pathLength={1000}
-          style={{ ["--spark-len" as never]: 1000 }}
         />
       </svg>
       {labels && (

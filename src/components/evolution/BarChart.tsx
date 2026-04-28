@@ -12,12 +12,11 @@ export function BarChart({ data, labels, height = 70 }: BarChartProps) {
         {data.map((v, i) => (
           <div
             key={i}
-            className="flex-1 rounded-sm bar-anim"
+            className="flex-1 rounded-sm"
             style={{
               height: `${(v / max) * 100}%`,
               background: "linear-gradient(180deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))",
               minHeight: 4,
-              animationDelay: `${i * 90}ms, ${i * 90 + 900}ms`,
             }}
           />
         ))}
