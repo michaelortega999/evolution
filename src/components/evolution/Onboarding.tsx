@@ -138,7 +138,7 @@ export function Onboarding() {
 
         {step === 4 && (
           <div className="flex flex-col items-center text-center gap-6">
-            <Bonsai />
+            <Bonsai hologram={draft.hologram} />
             <h1 className="hud-label text-3xl text-primary hud-glow">
               Good morning, {draft.name || "Operator"}.
             </h1>
