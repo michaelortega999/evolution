@@ -28,11 +28,15 @@ export interface Goal {
   completed: boolean;
 }
 
+export type ReminderOffset = 0 | 15 | 30 | 60 | 1440; // minutes before; 0 = none
+
 export interface CalendarEvent {
   id: string;
   date: string; // YYYY-MM-DD
-  time: string; // HH:MM
+  time: string; // HH:MM (start)
+  endTime?: string; // HH:MM (end, optional — defaults to start + 60min in views)
   title: string;
+  reminder?: ReminderOffset;
 }
 
 export type ThemeKey = "default" | "gold" | "green" | "red" | "purple" | "white";
