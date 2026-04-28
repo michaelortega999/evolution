@@ -516,8 +516,6 @@
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
-  animation: holo-j-spin 8s linear infinite, holo-j-float 3.4s ease-in-out infinite;
-  will-change: transform;
 }
 .holo-j-svg {
   width: 78%;
