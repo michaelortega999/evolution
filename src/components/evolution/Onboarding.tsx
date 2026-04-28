@@ -21,6 +21,7 @@ export function Onboarding() {
   const { data, updateProfile } = useEvolutionData();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Profile>(data.profile);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const next = () => setStep((s) => s + 1);
   const patch = (p: Partial<Profile>) => setDraft((d) => ({ ...d, ...p }));
@@ -38,7 +39,20 @@ export function Onboarding() {
 
         {step === 0 && (
           <div className="flex flex-col items-center text-center gap-6">
-            <Bonsai />
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="Change hologram"
+            >
+              <Bonsai hologram={draft.hologram} />
+            </button>
+            <HologramPicker
+              open={pickerOpen}
+              onOpenChange={setPickerOpen}
+              value={draft.hologram}
+              onSelect={(h) => patch({ hologram: h })}
+            />
             <h1 className="hud-label text-3xl text-primary hud-glow">Evolution</h1>
             <p className="text-foreground/90 text-lg max-w-md leading-relaxed italic">
               "You are the sum of your decisions.<br />
@@ -182,7 +196,7 @@ function StepForm({
   );
 }
 
-function Bonsai() {
+function Bonsai({ hologram }: { hologram: HologramKey }) {
   const [effectsReady, setEffectsReady] = useState(false);
 
   useEffect(() => {
@@ -220,7 +234,7 @@ function Bonsai() {
       )}
 
       <div className="holo-bonsai-wrap">
-        <img src={bonsaiImg} alt="Bonsai" className="holo-bonsai h-48 w-48 object-contain" />
+        <img src={hologramSrc(hologram)} alt="Hologram" className="holo-bonsai h-48 w-48 object-contain" />
       </div>
 
       {/* Floating particles */}
