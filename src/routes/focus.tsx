@@ -267,7 +267,6 @@ function FocusPage() {
         </main>
       </div>
 
-      <FocusNotification />
     </div>
   );
 }
