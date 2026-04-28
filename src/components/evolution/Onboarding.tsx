@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEvolutionData, type Profile } from "@/lib/evolution-data";
+import bonsaiImg from "@/assets/bonsai.png";
 
 const mirrorQs = [
   "What lie have you been telling yourself?",
