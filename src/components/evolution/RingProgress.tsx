@@ -28,8 +28,13 @@ export function RingProgress({ value, size = 90, label, sublabel }: RingProgress
           }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="hud-label text-primary hud-glow text-lg leading-none">{label ?? `${value}%`}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-1">
+        <span
+          className="hud-label text-primary hud-glow leading-none tabular-nums"
+          style={{ fontSize: Math.max(8, Math.round(size * 0.22)) }}
+        >
+          {label ?? `${value}%`}
+        </span>
         {sublabel && <span className="hud-label text-[9px] text-muted-foreground mt-0.5">{sublabel}</span>}
       </div>
     </div>
