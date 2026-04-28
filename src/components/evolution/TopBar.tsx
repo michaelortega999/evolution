@@ -1,5 +1,6 @@
 import { Bell, Target } from "lucide-react";
 import { RingProgress } from "./RingProgress";
+import { ImportDialog } from "./ImportDialog";
 
 export function TopBar() {
   return (
@@ -12,6 +13,7 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
+        <ImportDialog />
         <div className="flex items-center gap-3 px-4 py-2 border border-border rounded-md bg-primary/5">
           <Target className="h-5 w-5 text-primary" />
           <div>
