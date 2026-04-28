@@ -10,18 +10,32 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WealthRouteImport } from './routes/wealth'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as InvestingRouteImport } from './routes/investing'
 import { Route as HobbyRouteImport } from './routes/hobby'
+import { Route as GoalsRouteImport } from './routes/goals'
 import { Route as FitnessRouteImport } from './routes/fitness'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BusinessRouteImport } from './routes/business'
 import { Route as IndexRouteImport } from './routes/index'
 
 const WealthRoute = WealthRouteImport.update({
   id: '/wealth',
   path: '/wealth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NutritionRoute = NutritionRouteImport.update({
@@ -49,9 +63,19 @@ const HobbyRoute = HobbyRouteImport.update({
   path: '/hobby',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GoalsRoute = GoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FitnessRoute = FitnessRouteImport.update({
   id: '/fitness',
   path: '/fitness',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BusinessRoute = BusinessRouteImport.update({
@@ -68,35 +92,47 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/business': typeof BusinessRoute
+  '/calendar': typeof CalendarRoute
   '/fitness': typeof FitnessRoute
+  '/goals': typeof GoalsRoute
   '/hobby': typeof HobbyRoute
   '/investing': typeof InvestingRoute
   '/journal': typeof JournalRoute
   '/notes': typeof NotesRoute
   '/nutrition': typeof NutritionRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
   '/wealth': typeof WealthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/business': typeof BusinessRoute
+  '/calendar': typeof CalendarRoute
   '/fitness': typeof FitnessRoute
+  '/goals': typeof GoalsRoute
   '/hobby': typeof HobbyRoute
   '/investing': typeof InvestingRoute
   '/journal': typeof JournalRoute
   '/notes': typeof NotesRoute
   '/nutrition': typeof NutritionRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
   '/wealth': typeof WealthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/business': typeof BusinessRoute
+  '/calendar': typeof CalendarRoute
   '/fitness': typeof FitnessRoute
+  '/goals': typeof GoalsRoute
   '/hobby': typeof HobbyRoute
   '/investing': typeof InvestingRoute
   '/journal': typeof JournalRoute
   '/notes': typeof NotesRoute
   '/nutrition': typeof NutritionRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
   '/wealth': typeof WealthRoute
 }
 export interface FileRouteTypes {
@@ -104,46 +140,62 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/business'
+    | '/calendar'
     | '/fitness'
+    | '/goals'
     | '/hobby'
     | '/investing'
     | '/journal'
     | '/notes'
     | '/nutrition'
+    | '/reports'
+    | '/settings'
     | '/wealth'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/business'
+    | '/calendar'
     | '/fitness'
+    | '/goals'
     | '/hobby'
     | '/investing'
     | '/journal'
     | '/notes'
     | '/nutrition'
+    | '/reports'
+    | '/settings'
     | '/wealth'
   id:
     | '__root__'
     | '/'
     | '/business'
+    | '/calendar'
     | '/fitness'
+    | '/goals'
     | '/hobby'
     | '/investing'
     | '/journal'
     | '/notes'
     | '/nutrition'
+    | '/reports'
+    | '/settings'
     | '/wealth'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BusinessRoute: typeof BusinessRoute
+  CalendarRoute: typeof CalendarRoute
   FitnessRoute: typeof FitnessRoute
+  GoalsRoute: typeof GoalsRoute
   HobbyRoute: typeof HobbyRoute
   InvestingRoute: typeof InvestingRoute
   JournalRoute: typeof JournalRoute
   NotesRoute: typeof NotesRoute
   NutritionRoute: typeof NutritionRoute
+  ReportsRoute: typeof ReportsRoute
+  SettingsRoute: typeof SettingsRoute
   WealthRoute: typeof WealthRoute
 }
 
@@ -154,6 +206,20 @@ declare module '@tanstack/react-router' {
       path: '/wealth'
       fullPath: '/wealth'
       preLoaderRoute: typeof WealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nutrition': {
@@ -191,11 +257,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HobbyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/goals': {
+      id: '/goals'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof GoalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fitness': {
       id: '/fitness'
       path: '/fitness'
       fullPath: '/fitness'
       preLoaderRoute: typeof FitnessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/business': {
@@ -218,12 +298,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BusinessRoute: BusinessRoute,
+  CalendarRoute: CalendarRoute,
   FitnessRoute: FitnessRoute,
+  GoalsRoute: GoalsRoute,
   HobbyRoute: HobbyRoute,
   InvestingRoute: InvestingRoute,
   JournalRoute: JournalRoute,
   NotesRoute: NotesRoute,
   NutritionRoute: NutritionRoute,
+  ReportsRoute: ReportsRoute,
+  SettingsRoute: SettingsRoute,
   WealthRoute: WealthRoute,
 }
 export const routeTree = rootRouteImport

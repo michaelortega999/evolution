@@ -16,6 +16,36 @@ export const MEALS: { key: Meal; label: string; kcal: number; p: number; c: numb
 
 export type Hobby = "Cars" | "Guitar" | "Travel";
 
+export type GoalCategory = "Wealth" | "Fitness" | "Trading" | "Business" | "Nutrition" | "Hobby";
+export interface Goal {
+  id: string;
+  title: string;
+  category: GoalCategory;
+  target: number;
+  current: number;
+  deadline: string; // YYYY-MM-DD
+  unit?: string;
+  completed: boolean;
+}
+
+export interface CalendarEvent {
+  id: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
+  title: string;
+}
+
+export type ThemeKey = "default" | "gold" | "green" | "red" | "purple" | "white";
+
+export interface Settings {
+  theme: ThemeKey;
+  notifications: {
+    daily: boolean;
+    goals: boolean;
+    journal: boolean;
+  };
+}
+
 export interface Profile {
   name: string;
   tradingBalance: number;
@@ -41,6 +71,9 @@ export interface EvolutionData {
   journal: { date: string; text: string }[];
   hobby: { current: Hobby; hours: number };
   events: { date: string; text: string }[];
+  goals: Goal[];
+  calendar: CalendarEvent[];
+  settings: Settings;
 }
 
 const STORAGE_KEY = "evolution:data:v2";
@@ -98,6 +131,12 @@ export const defaultData: EvolutionData = {
   ],
   hobby: { current: "Guitar", hours: 12.4 },
   events: [],
+  goals: [],
+  calendar: [],
+  settings: {
+    theme: "default",
+    notifications: { daily: true, goals: true, journal: false },
+  },
 };
 
 function load(): EvolutionData {
@@ -118,6 +157,9 @@ function load(): EvolutionData {
       journal: parsed.journal?.length ? parsed.journal : defaultData.journal,
       hobby: parsed.hobby ?? defaultData.hobby,
       events: parsed.events ?? [],
+      goals: parsed.goals ?? [],
+      calendar: parsed.calendar ?? [],
+      settings: { ...defaultData.settings, ...(parsed.settings ?? {}) },
     };
   } catch {
     return defaultData;
