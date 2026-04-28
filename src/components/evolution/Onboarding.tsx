@@ -182,17 +182,58 @@ function StepForm({
 }
 
 function Bonsai() {
+  // 14 particles with deterministic offsets so SSR/CSR match
+  const particles = Array.from({ length: 14 }, (_, i) => {
+    const left = 15 + ((i * 37) % 70); // 15% - 85%
+    const delay = (i * 0.45) % 6;
+    const duration = 5 + ((i * 1.3) % 4);
+    const size = 2 + (i % 3);
+    return { left, delay, duration, size, i };
+  });
+
   return (
-    <div className="relative h-52 w-52 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5">
-      <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 0 30px oklch(0.78 0.22 240 / 0.35)" }} />
-      <img
-        src={bonsaiImg}
-        alt="Bonsai emblem"
-        width={512}
-        height={512}
-        className="h-44 w-44 object-contain"
-        style={{ filter: "drop-shadow(0 0 10px oklch(0.78 0.22 240 / 0.7))" }}
-      />
+    <div className="holo-stage relative h-72 w-72 flex items-center justify-center">
+      {/* Vertical projector beam */}
+      <div className="holo-beam" aria-hidden />
+
+      {/* Ground ring (pulsing base) */}
+      <div className="holo-base" aria-hidden>
+        <div className="holo-base-ring" />
+        <div className="holo-base-ring holo-base-ring--inner" />
+      </div>
+
+      {/* Concentric orbital rings (armillary) */}
+      <div className="holo-orbit holo-orbit--1" aria-hidden />
+      <div className="holo-orbit holo-orbit--2" aria-hidden />
+      <div className="holo-orbit holo-orbit--3" aria-hidden />
+
+      {/* Rotating bonsai hologram */}
+      <div className="holo-bonsai-wrap">
+        <img
+          src={bonsaiImg}
+          alt="Bonsai emblem"
+          width={512}
+          height={512}
+          className="holo-bonsai h-48 w-48 object-contain"
+        />
+      </div>
+
+      {/* Floating particles */}
+      <div className="holo-particles" aria-hidden>
+        {particles.map((p) => (
+          <span
+            key={p.i}
+            className="holo-particle"
+            style={{
+              left: `${p.left}%`,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
