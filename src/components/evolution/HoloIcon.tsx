@@ -225,37 +225,28 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "hobby":
-      // Acoustic guitar with mountains behind
+      // Mountain range
       return (
         <svg {...common}>
-          {/* mountains background */}
-          <path d="M8 78 L26 50 L38 64 L54 38 L72 60 L92 78 Z" opacity="0.45" />
-          <path d="M8 78 L26 50 L38 64 L54 38 L72 60 L92 78" opacity="0.7" />
+          {/* back ridge */}
+          <path d="M6 78 L24 54 L36 66 L52 42 L70 60 L94 78 Z" opacity="0.45" />
+          <path d="M6 78 L24 54 L36 66 L52 42 L70 60 L94 78" opacity="0.7" />
+          {/* front ridge */}
+          <path d="M14 82 L34 64 L46 74 L62 58 L82 78 L94 82 Z" opacity="0.6" />
+          <path d="M14 82 L34 64 L46 74 L62 58 L82 78" opacity="0.9" />
           {/* snow caps */}
-          <path d="M50 44 L54 38 L58 44" opacity="0.9" />
-          <path d="M22 56 L26 50 L30 56" opacity="0.8" />
+          <path d="M48 48 L52 42 L56 48" opacity="0.95" />
+          <path d="M20 60 L24 54 L28 60" opacity="0.85" />
+          <path d="M58 64 L62 58 L66 64" opacity="0.85" />
           {/* sun/moon */}
-          <circle cx="72" cy="24" r="4" opacity="0.6" />
+          <circle cx="74" cy="24" r="4" opacity="0.6" />
+          <circle cx="74" cy="24" r="6" opacity="0.25" />
           {/* ground line */}
-          <line x1="6" y1="78" x2="94" y2="78" opacity="0.5" />
-          {/* guitar body (foreground) */}
-          <ellipse cx="58" cy="68" rx="14" ry="16" />
-          <ellipse cx="58" cy="62" rx="9" ry="9" opacity="0.7" />
-          {/* sound hole */}
-          <circle cx="58" cy="64" r="3.5" fill="currentColor" opacity="0.85" />
-          {/* bridge */}
-          <rect x="54" y="74" width="8" height="2" fill="currentColor" opacity="0.8" />
-          {/* neck */}
-          <rect x="40" y="38" width="6" height="22" transform="rotate(-30 43 49)" />
-          {/* headstock */}
-          <rect x="28" y="26" width="8" height="6" transform="rotate(-30 32 29)" />
-          {/* tuning pegs */}
-          <circle cx="30" cy="28" r="0.9" fill="currentColor" />
-          <circle cx="34" cy="30" r="0.9" fill="currentColor" />
-          {/* strings */}
-          <line x1="34" y1="34" x2="60" y2="72" opacity="0.5" />
-          <line x1="36" y1="33" x2="62" y2="71" opacity="0.5" />
-          <line x1="38" y1="32" x2="64" y2="70" opacity="0.5" />
+          <line x1="6" y1="82" x2="94" y2="82" opacity="0.5" />
+          {/* small stars */}
+          <circle cx="18" cy="22" r="0.7" fill="currentColor" />
+          <circle cx="86" cy="38" r="0.6" fill="currentColor" />
+          <circle cx="32" cy="30" r="0.5" fill="currentColor" opacity="0.8" />
         </svg>
       );
   }
