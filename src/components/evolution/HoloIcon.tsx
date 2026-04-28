@@ -157,23 +157,24 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "notes":
-      // Brain with neural network
+      // Thought bubble with idea dots
       return (
         <svg {...common}>
-          <path d="M30 50 Q22 36 36 28 Q44 22 50 30 Q56 22 64 28 Q78 36 70 50 Q78 64 64 72 Q56 78 50 70 Q44 78 36 72 Q22 64 30 50 Z" />
-          <path d="M50 30 V70" opacity="0.5" />
-          <path d="M36 36 Q50 44 64 36" opacity="0.4" />
-          <path d="M36 64 Q50 56 64 64" opacity="0.4" />
-          {/* synapse nodes */}
-          <circle cx="38" cy="40" r="1.8" fill="currentColor" />
-          <circle cx="62" cy="40" r="1.8" fill="currentColor" />
-          <circle cx="50" cy="50" r="2.2" fill="currentColor" />
-          <circle cx="38" cy="60" r="1.8" fill="currentColor" />
-          <circle cx="62" cy="60" r="1.8" fill="currentColor" />
-          <circle cx="50" cy="34" r="1.5" fill="currentColor" opacity="0.8" />
-          <circle cx="50" cy="66" r="1.5" fill="currentColor" opacity="0.8" />
+          {/* main bubble */}
+          <path d="M30 26 Q22 26 22 36 Q16 40 20 48 Q16 56 26 58 Q30 66 40 62 Q48 70 58 62 Q70 66 74 58 Q84 56 78 46 Q84 38 76 32 Q72 22 60 26 Q50 18 40 24 Q34 22 30 26 Z" />
+          {/* trailing small bubbles */}
+          <circle cx="34" cy="74" r="3.5" />
+          <circle cx="26" cy="82" r="2.2" />
+          <circle cx="20" cy="88" r="1.4" />
+          {/* idea content lines */}
+          <line x1="32" y1="40" x2="60" y2="40" opacity="0.6" />
+          <line x1="32" y1="46" x2="68" y2="46" opacity="0.5" />
+          <line x1="32" y1="52" x2="56" y2="52" opacity="0.4" />
+          {/* glowing idea node */}
+          <circle cx="50" cy="44" r="2.4" fill="currentColor" opacity="0.9" />
         </svg>
       );
+
 
     case "investing":
       // 3D candlestick chart
