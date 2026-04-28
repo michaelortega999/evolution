@@ -18,6 +18,7 @@ import { Route as JournalRouteImport } from './routes/journal'
 import { Route as InvestingRouteImport } from './routes/investing'
 import { Route as HobbyRouteImport } from './routes/hobby'
 import { Route as GoalsRouteImport } from './routes/goals'
+import { Route as FocusRouteImport } from './routes/focus'
 import { Route as FitnessRouteImport } from './routes/fitness'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BusinessRouteImport } from './routes/business'
@@ -68,6 +69,11 @@ const GoalsRoute = GoalsRouteImport.update({
   path: '/goals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FocusRoute = FocusRouteImport.update({
+  id: '/focus',
+  path: '/focus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FitnessRoute = FitnessRouteImport.update({
   id: '/fitness',
   path: '/fitness',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/business': typeof BusinessRoute
   '/calendar': typeof CalendarRoute
   '/fitness': typeof FitnessRoute
+  '/focus': typeof FocusRoute
   '/goals': typeof GoalsRoute
   '/hobby': typeof HobbyRoute
   '/investing': typeof InvestingRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/business': typeof BusinessRoute
   '/calendar': typeof CalendarRoute
   '/fitness': typeof FitnessRoute
+  '/focus': typeof FocusRoute
   '/goals': typeof GoalsRoute
   '/hobby': typeof HobbyRoute
   '/investing': typeof InvestingRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/business': typeof BusinessRoute
   '/calendar': typeof CalendarRoute
   '/fitness': typeof FitnessRoute
+  '/focus': typeof FocusRoute
   '/goals': typeof GoalsRoute
   '/hobby': typeof HobbyRoute
   '/investing': typeof InvestingRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/business'
     | '/calendar'
     | '/fitness'
+    | '/focus'
     | '/goals'
     | '/hobby'
     | '/investing'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/business'
     | '/calendar'
     | '/fitness'
+    | '/focus'
     | '/goals'
     | '/hobby'
     | '/investing'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/business'
     | '/calendar'
     | '/fitness'
+    | '/focus'
     | '/goals'
     | '/hobby'
     | '/investing'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   BusinessRoute: typeof BusinessRoute
   CalendarRoute: typeof CalendarRoute
   FitnessRoute: typeof FitnessRoute
+  FocusRoute: typeof FocusRoute
   GoalsRoute: typeof GoalsRoute
   HobbyRoute: typeof HobbyRoute
   InvestingRoute: typeof InvestingRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GoalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/focus': {
+      id: '/focus'
+      path: '/focus'
+      fullPath: '/focus'
+      preLoaderRoute: typeof FocusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fitness': {
       id: '/fitness'
       path: '/fitness'
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessRoute: BusinessRoute,
   CalendarRoute: CalendarRoute,
   FitnessRoute: FitnessRoute,
+  FocusRoute: FocusRoute,
   GoalsRoute: GoalsRoute,
   HobbyRoute: HobbyRoute,
   InvestingRoute: InvestingRoute,

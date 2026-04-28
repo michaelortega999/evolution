@@ -50,6 +50,40 @@ export interface Settings {
   };
 }
 
+export type FocusMode = "focus" | "short" | "long";
+export type FocusTag =
+  | "Wealth" | "Nutrition" | "Fitness" | "Journal"
+  | "Notes" | "Investing" | "Business" | "Hobby";
+
+export const FOCUS_TAGS: FocusTag[] = [
+  "Wealth", "Nutrition", "Fitness", "Journal",
+  "Notes", "Investing", "Business", "Hobby",
+];
+
+export interface FocusSession {
+  id: string;
+  startedAt: number;   // epoch ms
+  completedAt: number; // epoch ms
+  durationSec: number; // actual seconds completed
+  mode: FocusMode;
+  task: string;
+  tag?: FocusTag;
+}
+
+export interface FocusSettings {
+  focusMin: number;
+  shortMin: number;
+  longMin: number;
+  longEvery: number; // long break after N focus rounds
+}
+
+export const defaultFocusSettings: FocusSettings = {
+  focusMin: 25,
+  shortMin: 5,
+  longMin: 15,
+  longEvery: 4,
+};
+
 export interface Profile {
   name: string;
   tradingBalance: number;
@@ -78,6 +112,8 @@ export interface EvolutionData {
   goals: Goal[];
   calendar: CalendarEvent[];
   settings: Settings;
+  focusSessions: FocusSession[];
+  focusSettings: FocusSettings;
 }
 
 const STORAGE_KEY = "evolution:data:v2";
@@ -141,6 +177,8 @@ export const defaultData: EvolutionData = {
     theme: "default",
     notifications: { daily: true, goals: true, journal: false },
   },
+  focusSessions: [],
+  focusSettings: defaultFocusSettings,
 };
 
 function load(): EvolutionData {
@@ -164,6 +202,8 @@ function load(): EvolutionData {
       goals: parsed.goals ?? [],
       calendar: parsed.calendar ?? [],
       settings: { ...defaultData.settings, ...(parsed.settings ?? {}) },
+      focusSessions: parsed.focusSessions ?? [],
+      focusSettings: { ...defaultFocusSettings, ...(parsed.focusSettings ?? {}) },
     };
   } catch {
     return defaultData;

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Calendar as CalIcon, Target, Plus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Calendar as CalIcon, Target, Plus, Play, Pause, RotateCcw } from "lucide-react";
 import { Sparkline } from "./Sparkline";
-import { RingProgress } from "./RingProgress";
 import { Input } from "@/components/ui/input";
 import { useEvolutionData } from "@/lib/evolution-data";
+import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 
 const markets = [
   { name: "S&P 500", change: "+0.85%", data: [10, 12, 11, 14, 13, 16, 17, 19] },
@@ -16,6 +17,7 @@ const markets = [
 export function BottomBar() {
   const { data, mutate } = useEvolutionData();
   const [evt, setEvt] = useState("");
+  const timer = useFocusTimer();
 
   const addEvent = () => {
     const text = evt.trim();
@@ -25,11 +27,8 @@ export function BottomBar() {
     setEvt("");
   };
 
-  // progress = avg of calorie %, workout %, portfolio % toward goal
-  const kcalPct = Math.min(100, ((data.nutrition.at(-1)?.calories ?? 0) / data.profile.calorieTarget) * 100);
-  const fitPct = Math.min(100, (data.fitness.slice(-7).filter(x => x.workouts > 0).length / data.profile.gymSessionsTarget) * 100);
-  const invPct = Math.min(100, ((data.investing.at(-1)?.value ?? 0) / data.profile.goal) * 100);
-  const dailyProgress = Math.round((kcalPct + fitPct + invPct) / 3);
+  const pct = timer.totalMs > 0 ? Math.max(0, Math.min(100, (timer.remainingMs / timer.totalMs) * 100)) : 0;
+  void data;
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -71,21 +70,40 @@ export function BottomBar() {
         </div>
       </div>
 
-      <div className="hud-card p-5 flex flex-col gap-3">
+      <Link to="/focus" className="hud-card p-5 flex flex-col gap-3 hover:border-primary/50 transition-colors group">
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" />
           <div className="hud-label text-sm">Focus Mode</div>
         </div>
-        <div className="hud-label text-primary hud-glow text-2xl">ACTIVE</div>
-        <div className="text-xs text-muted-foreground">Eliminate distraction.<br />Maximize execution.</div>
-        <div className="flex items-center gap-4 mt-auto pt-2 border-t border-border">
-          <RingProgress value={dailyProgress} size={60} sublabel="Daily" />
-          <div>
-            <div className="hud-label text-[10px] text-muted-foreground">Daily Progress</div>
-            <div className="hud-label text-xs text-primary">{dailyProgress}% complete</div>
-          </div>
+        <div className="hud-label text-primary hud-glow text-3xl tabular-nums tracking-wider text-center">
+          {formatMmSs(timer.remainingMs)}
         </div>
-      </div>
+        <div className="hud-label text-[10px] text-center text-muted-foreground">
+          {modeLabel(timer.mode)} · Round {timer.round} of {timer.settings.longEvery}
+        </div>
+        {/* progress bar */}
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-[width] duration-300"
+            style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--primary)" }}
+          />
+        </div>
+        <div className="flex gap-2 mt-auto pt-2 border-t border-border">
+          <button
+            onClick={(e) => { e.preventDefault(); timer.running ? timer.pause() : timer.start(); }}
+            className="flex-1 h-8 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10 flex items-center justify-center gap-1.5"
+          >
+            {timer.running ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Start</>}
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); timer.reset(); }}
+            className="h-8 w-8 rounded-md border border-border text-foreground/70 hover:text-primary hover:border-primary/40 flex items-center justify-center"
+            aria-label="Reset"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </Link>
     </section>
   );
 }
