@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import { useTheme } from "@/lib/use-theme";
+import { FocusNotification } from "@/components/evolution/FocusNotification";
 
 function NotFoundComponent() {
   return (
@@ -67,5 +68,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useTheme();
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <FocusNotification />
+    </>
+  );
 }
