@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   Home, Wallet, Apple, Dumbbell, FileText, CheckSquare,
   TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap,
 } from "lucide-react";
-import bonsaiImg from "@/assets/bonsai.png";
+import { useEvolutionData } from "@/lib/evolution-data";
+import { hologramSrc } from "@/lib/holograms";
+import { HologramPicker } from "./HologramPicker";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
@@ -28,6 +31,8 @@ const secondaryNav = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
+  const { data, updateProfile } = useEvolutionData();
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
@@ -36,16 +41,28 @@ export function Sidebar() {
           <div className="hud-label text-primary hud-glow text-sm">Evolution</div>
           <div className="hud-label text-[8px] text-muted-foreground">Growing today, building forever</div>
         </div>
-        <div className="rounded-full border border-primary/50 bg-primary/5 flex items-center justify-center" style={{ width: 96, height: 96 }}>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          aria-label="Change hologram"
+          className="rounded-full border border-primary/50 bg-primary/5 flex items-center justify-center transition-all hover:bg-primary/10 hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          style={{ width: 96, height: 96 }}
+        >
           <img
-            src={bonsaiImg}
-            alt="Bonsai"
+            src={hologramSrc(data.profile.hologram)}
+            alt="Hologram"
             width={512}
             height={512}
             className="object-contain"
             style={{ width: 88, height: 88, filter: "drop-shadow(0 0 6px oklch(0.78 0.22 240 / 0.85))" }}
           />
-        </div>
+        </button>
+        <HologramPicker
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          value={data.profile.hologram}
+          onSelect={(h) => updateProfile({ hologram: h })}
+        />
       </div>
 
       <nav className="flex flex-col gap-1 flex-1">

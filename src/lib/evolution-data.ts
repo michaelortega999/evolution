@@ -97,6 +97,7 @@ export interface Profile {
   mirror: [string, string, string];
   commitment: [string, string, string];
   onboarded: boolean;
+  hologram: "bonsai" | "brain" | "earth";
 }
 
 export interface TodoItem {
@@ -137,6 +138,7 @@ export const defaultProfile: Profile = {
   mirror: ["", "", ""],
   commitment: ["", "", ""],
   onboarded: false,
+  hologram: "bonsai",
 };
 
 export const defaultData: EvolutionData = {
