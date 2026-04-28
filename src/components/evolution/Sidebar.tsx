@@ -31,13 +31,13 @@ export function Sidebar() {
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
       <div className="mb-4 flex items-center gap-3 pb-4 border-b border-border">
-        <div className="h-10 w-10 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5 overflow-hidden">
+        <div className="h-12 w-12 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5">
           <img
             src={bonsaiImg}
             alt="Bonsai"
             width={512}
             height={512}
-            className="h-8 w-8 object-contain"
+            className="h-10 w-10 object-contain"
             style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.8))" }}
           />
         </div>
