@@ -31,11 +31,11 @@ function Card({
       <Link to={href} className="flex items-center gap-3 mb-4 group/header">
         <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
              style={{
-               borderColor: "oklch(0.85 0.15 85)",
-               background: "radial-gradient(circle, oklch(0.85 0.15 85 / 0.15), transparent 70%)",
-               boxShadow: "0 0 10px oklch(0.85 0.15 85 / 0.5)",
+               borderColor: "oklch(0.65 0.28 310)",
+               background: "radial-gradient(circle, oklch(0.65 0.28 310 / 0.15), transparent 70%)",
+               boxShadow: "0 0 10px oklch(0.65 0.28 310 / 0.5)",
              }}>
-          <Icon className="h-4 w-4" style={{ color: "oklch(0.88 0.15 85)" }} />
+          <Icon className="h-4 w-4" style={{ color: "oklch(0.78 0.28 310)" }} />
         </div>
         <span className="hud-label text-xs text-muted-foreground">{number}</span>
         <h3 className="hud-label text-sm text-foreground/90 group-hover/header:text-primary transition-colors">{title}</h3>

@@ -34,12 +34,12 @@ export function ModuleLayout({ number, title, subtitle, icon: Icon, children }: 
             <div
               className="h-12 w-12 rounded-full border-2 flex items-center justify-center"
               style={{
-                borderColor: "oklch(0.85 0.15 85)",
-                background: "radial-gradient(circle, oklch(0.85 0.15 85 / 0.15), transparent 70%)",
-                boxShadow: "0 0 12px oklch(0.85 0.15 85 / 0.5)",
+                borderColor: "oklch(0.65 0.28 310)",
+                background: "radial-gradient(circle, oklch(0.65 0.28 310 / 0.15), transparent 70%)",
+                boxShadow: "0 0 12px oklch(0.65 0.28 310 / 0.5)",
               }}
             >
-              <Icon className="h-5 w-5" style={{ color: "oklch(0.88 0.15 85)" }} />
+              <Icon className="h-5 w-5" style={{ color: "oklch(0.78 0.28 310)" }} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
