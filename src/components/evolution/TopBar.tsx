@@ -1,19 +1,33 @@
-import { Bell, Target } from "lucide-react";
+import { Bell, Target, RotateCcw } from "lucide-react";
 import { RingProgress } from "./RingProgress";
-import { ImportDialog } from "./ImportDialog";
+import { useEvolutionData } from "@/lib/evolution-data";
 
 export function TopBar() {
+  const { data, reset } = useEvolutionData();
+  const name = data.profile.name || "Operator";
+  const now = new Date();
+  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
+  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+
   return (
     <div className="hud-card p-5 flex items-center justify-between gap-6 flex-wrap">
       <div className="flex-1 min-w-[260px]">
-        <h1 className="hud-label text-xl text-foreground hud-glow">Good morning, John.</h1>
+        <h1 className="hud-label text-xl text-foreground hud-glow">Good morning, {name}.</h1>
         <p className="text-sm text-muted-foreground mt-1 tracking-wide">
           Discipline. Focus. Consistency. Freedom.
         </p>
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
-        <ImportDialog />
+        <button
+          onClick={() => { if (confirm("Reset all data and onboarding?")) reset(); }}
+          className="flex items-center gap-2 px-3 py-2 border border-border rounded-md hover:bg-primary/10 text-primary hud-label text-[10px]"
+          title="Reset"
+        >
+          <RotateCcw className="h-3.5 w-3.5" /> Reset
+        </button>
+
         <div className="flex items-center gap-3 px-4 py-2 border border-border rounded-md bg-primary/5">
           <Target className="h-5 w-5 text-primary" />
           <div>
@@ -31,9 +45,9 @@ export function TopBar() {
         </div>
 
         <div className="hidden md:block px-4 py-2 border border-border rounded-md">
-          <div className="hud-label text-[9px] text-muted-foreground">Friday</div>
-          <div className="hud-label text-xs text-foreground">May 17, 2024</div>
-          <div className="hud-label text-[10px] text-primary hud-glow">10:42 AM</div>
+          <div className="hud-label text-[9px] text-muted-foreground">{dayName}</div>
+          <div className="hud-label text-xs text-foreground">{dateStr}</div>
+          <div className="hud-label text-[10px] text-primary hud-glow">{timeStr}</div>
         </div>
 
         <button className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-primary hover:bg-primary/10 transition-colors relative">
