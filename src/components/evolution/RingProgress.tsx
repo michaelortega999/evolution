@@ -14,15 +14,15 @@ export function RingProgress({ value, size = 90, label, sublabel }: RingProgress
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="oklch(0.4 0.1 142 / 0.25)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="oklch(0.4 0.1 85 / 0.25)" strokeWidth={stroke} />
         <circle
           cx={size / 2} cy={size / 2} r={r}
           fill="none"
-          stroke="oklch(0.85 0.2 142)"
+          stroke="oklch(0.85 0.2 85)"
           strokeWidth={stroke}
           strokeDasharray={`${dash} ${c}`}
           strokeLinecap="round"
-          style={{ filter: "drop-shadow(0 0 6px oklch(0.85 0.2 142 / 0.7))" }}
+          style={{ filter: "drop-shadow(0 0 6px oklch(0.85 0.2 85 / 0.7))" }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
