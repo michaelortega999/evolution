@@ -26,7 +26,17 @@ export function Sparkline({ data, height = 70, labels, fill = true }: SparklineP
           </linearGradient>
         </defs>
         {fill && <path d={area} fill="url(#sparkFill)" />}
-        <path d={path} fill="none" stroke="oklch(0.78 0.13 85)" strokeWidth="1.5" style={{ filter: "drop-shadow(0 0 4px oklch(0.85 0.2 85 / 0.6))" }} />
+        <path
+          className="spark-line"
+          d={path}
+          fill="none"
+          stroke="oklch(0.78 0.13 85)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pathLength={1000}
+          style={{ ["--spark-len" as never]: 1000 }}
+        />
       </svg>
       {labels && (
         <div className="flex justify-between mt-1 text-[9px] hud-label text-muted-foreground">
