@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   Home, Wallet, Apple, Dumbbell, FileText, NotebookPen,
-  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings,
+  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap,
 } from "lucide-react";
 import bonsaiImg from "@/assets/bonsai.png";
 
@@ -21,6 +21,7 @@ const mainNav = [
 const secondaryNav = [
   { icon: Calendar, label: "Calendar", to: "/calendar" as const },
   { icon: Target, label: "Goals", to: "/goals" as const },
+  { icon: Zap, label: "Focus", to: "/focus" as const },
   { icon: BarChart3, label: "Reports", to: "/reports" as const },
   { icon: Settings, label: "Settings", to: "/settings" as const },
 ];
