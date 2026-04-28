@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
-  Home, Wallet, Apple, Dumbbell, FileText, NotebookPen,
+  Home, Wallet, Apple, Dumbbell, FileText, CheckSquare,
   TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap,
 } from "lucide-react";
 import bonsaiImg from "@/assets/bonsai.png";
@@ -12,7 +12,7 @@ const mainNav = [
   { icon: Apple, label: "Nutrition", num: "2", to: "/nutrition" as const },
   { icon: Dumbbell, label: "Fitness", num: "3", to: "/fitness" as const },
   { icon: FileText, label: "Journal", num: "4", to: "/journal" as const },
-  { icon: NotebookPen, label: "Notes", num: "5", to: "/notes" as const },
+  { icon: CheckSquare, label: "Notes", num: "5", to: "/notes" as const },
   { icon: TrendingUp, label: "Investing", num: "6", to: "/investing" as const },
   { icon: Briefcase, label: "Business", num: "7", to: "/business" as const },
   { icon: Star, label: "Hobby", num: "8", to: "/hobby" as const },
