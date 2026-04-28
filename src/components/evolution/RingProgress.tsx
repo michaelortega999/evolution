@@ -13,7 +13,7 @@ export function RingProgress({ value, size = 90, label, sublabel }: RingProgress
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90 ring-orbit">
+      <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="oklch(0.5 0.2 240 / 0.25)" strokeWidth={stroke} />
         <circle
           cx={size / 2} cy={size / 2} r={r}
