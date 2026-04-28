@@ -15,7 +15,7 @@ export function BarChart({ data, labels, height = 70 }: BarChartProps) {
             className="flex-1 rounded-sm"
             style={{
               height: `${(v / max) * 100}%`,
-              background: "linear-gradient(180deg, oklch(0.85 0.2 85), oklch(0.55 0.15 85))",
+              background: "linear-gradient(180deg, oklch(0.78 0.13 85), oklch(0.55 0.11 85))",
               boxShadow: "0 0 8px oklch(0.85 0.2 85 / 0.5)",
               minHeight: 4,
             }}

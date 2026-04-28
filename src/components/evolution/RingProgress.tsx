@@ -18,7 +18,7 @@ export function RingProgress({ value, size = 90, label, sublabel }: RingProgress
         <circle
           cx={size / 2} cy={size / 2} r={r}
           fill="none"
-          stroke="oklch(0.85 0.2 85)"
+          stroke="oklch(0.78 0.13 85)"
           strokeWidth={stroke}
           strokeDasharray={`${dash} ${c}`}
           strokeLinecap="round"
