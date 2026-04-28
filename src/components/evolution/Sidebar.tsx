@@ -62,7 +62,7 @@ export function Sidebar() {
                   : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
+              <item.icon className="h-4 w-4 shrink-0" style={{ color: "oklch(0.85 0.28 145)", filter: "drop-shadow(0 0 4px oklch(0.85 0.28 145 / 0.8))" }} />
               {item.num && <span className="text-[10px] opacity-60 w-3">{item.num}</span>}
               <span>{item.label}</span>
             </Link>
@@ -84,7 +84,7 @@ export function Sidebar() {
                   : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-4 w-4" style={{ color: "oklch(0.85 0.28 145)", filter: "drop-shadow(0 0 4px oklch(0.85 0.28 145 / 0.8))" }} />
               <span>{item.label}</span>
             </Link>
           );

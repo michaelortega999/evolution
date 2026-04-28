@@ -409,9 +409,7 @@
   pointer-events: none;
   overflow: visible;
   z-index: 2;
-  /* Neon green override for all module holograms */
-  --glow: oklch(0.85 0.28 145);
-  color: oklch(0.85 0.28 145);
+  color: var(--primary);
 }
 
 .holo-j-base {
