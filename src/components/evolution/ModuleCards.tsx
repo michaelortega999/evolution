@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Plus, ChevronRight, X,
+  Coins, BookOpen, Lightbulb, CandlestickChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkline } from "./Sparkline";
 import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
+import { HoloIcon } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
   todayDate, type Meal, type Hobby,
@@ -24,10 +26,11 @@ function formatMoney(n: number) {
 }
 
 function Card({
-  icon: Icon, number, title, href, children,
-}: { icon: LucideIcon; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
+  icon: Icon, holoIcon, number, title, href, children,
+}: { icon: LucideIcon; holoIcon: LucideIcon; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
   return (
-    <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors">
+    <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors relative">
+      <HoloIcon icon={holoIcon} />
       <Link to={href} className="flex items-center gap-3 mb-4 group/header">
         <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
              style={{
