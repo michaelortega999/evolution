@@ -395,3 +395,68 @@
   15%  { opacity: 1; }
   100% { transform: translateY(-220px) scale(1); opacity: 0; }
 }
+
+/* ===== Module card holographic corner icon ===== */
+.holo-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  perspective: 400px;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  z-index: 2;
+}
+.holo-icon-base {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 28px;
+  height: 6px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    color-mix(in oklab, var(--glow) 60%, transparent) 0%,
+    transparent 70%);
+  filter: blur(2px);
+  opacity: 0.7;
+  animation: holo-icon-base-pulse 3s ease-in-out infinite;
+}
+.holo-icon-spin {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  animation: holo-icon-spin 6s linear infinite, holo-icon-float 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+.holo-icon-svg {
+  color: var(--primary);
+  filter:
+    drop-shadow(0 0 4px color-mix(in oklab, var(--glow) 80%, transparent))
+    drop-shadow(0 0 10px color-mix(in oklab, var(--glow) 50%, transparent));
+  transition: filter 0.3s ease;
+}
+@keyframes holo-icon-spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+@keyframes holo-icon-float {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -3px; }
+}
+@keyframes holo-icon-base-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+.hud-card:hover .holo-icon-spin {
+  animation-duration: 2.2s, 3.4s;
+}
+.hud-card:hover .holo-icon-svg {
+  filter:
+    drop-shadow(0 0 6px color-mix(in oklab, var(--glow) 100%, transparent))
+    drop-shadow(0 0 16px color-mix(in oklab, var(--glow) 80%, transparent));
+}
