@@ -184,14 +184,14 @@ function StepForm({
 function Bonsai() {
   return (
     <div className="relative h-40 w-40 rounded-full border border-primary/50 flex items-center justify-center bg-primary/5 overflow-hidden">
-      <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 0 30px oklch(0.88 0.28 145 / 0.35)" }} />
+      <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 0 30px oklch(0.78 0.22 240 / 0.35)" }} />
       <img
         src={bonsaiImg}
         alt="Bonsai emblem"
         width={512}
         height={512}
         className="h-32 w-32 object-contain"
-        style={{ filter: "drop-shadow(0 0 10px oklch(0.88 0.28 145 / 0.7))" }}
+        style={{ filter: "drop-shadow(0 0 10px oklch(0.78 0.22 240 / 0.7))" }}
       />
     </div>
   );
