@@ -10,9 +10,9 @@ const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
   { icon: Wallet, label: "Wealth", num: "1", to: "/wealth" as const },
   { icon: Apple, label: "Nutrition", num: "2", to: "/nutrition" as const },
-  { icon: Dumbbell, label: "Fitness", num: "3", to: "/fitness" as const },
-  { icon: FileText, label: "Journal", num: "4", to: "/journal" as const },
-  { icon: CheckSquare, label: "Notes", num: "5", to: "/notes" as const },
+  { icon: CheckSquare, label: "Notes", num: "3", to: "/notes" as const },
+  { icon: Zap, label: "Focus", num: "4", to: "/focus" as const },
+  { icon: Dumbbell, label: "Fitness", num: "5", to: "/fitness" as const },
   { icon: TrendingUp, label: "Investing", num: "6", to: "/investing" as const },
   { icon: Briefcase, label: "Business", num: "7", to: "/business" as const },
   { icon: Star, label: "Hobby", num: "8", to: "/hobby" as const },
@@ -21,7 +21,7 @@ const mainNav = [
 const secondaryNav = [
   { icon: Calendar, label: "Calendar", to: "/calendar" as const },
   { icon: Target, label: "Goals", to: "/goals" as const },
-  { icon: Zap, label: "Focus", to: "/focus" as const },
+  { icon: FileText, label: "Journal", to: "/journal" as const },
   { icon: BarChart3, label: "Reports", to: "/reports" as const },
   { icon: Settings, label: "Settings", to: "/settings" as const },
 ];
