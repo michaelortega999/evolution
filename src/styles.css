@@ -382,7 +382,13 @@
   filter:
     drop-shadow(0 0 8px color-mix(in oklab, var(--glow) 80%, transparent))
     drop-shadow(0 0 20px color-mix(in oklab, var(--glow) 55%, transparent));
-  animation: holo-glow 4s ease-in-out infinite;
+  animation: holo-spin 12s linear infinite, holo-glow 4s ease-in-out infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+@keyframes holo-spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
 }
 .bonsai-emblem {
   overflow: visible;
