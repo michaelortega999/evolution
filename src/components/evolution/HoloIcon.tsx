@@ -225,28 +225,28 @@ function HoloFigure({ variant }: { variant: HoloVariant }) {
       );
 
     case "hobby":
-      // Mountain range
+      // Mountain range, vertically centered in the viewBox
       return (
         <svg {...common}>
-          {/* back ridge */}
-          <path d="M6 78 L24 54 L36 66 L52 42 L70 60 L94 78 Z" opacity="0.45" />
-          <path d="M6 78 L24 54 L36 66 L52 42 L70 60 L94 78" opacity="0.7" />
-          {/* front ridge */}
-          <path d="M14 82 L34 64 L46 74 L62 58 L82 78 L94 82 Z" opacity="0.6" />
-          <path d="M14 82 L34 64 L46 74 L62 58 L82 78" opacity="0.9" />
-          {/* snow caps */}
-          <path d="M48 48 L52 42 L56 48" opacity="0.95" />
-          <path d="M20 60 L24 54 L28 60" opacity="0.85" />
-          <path d="M58 64 L62 58 L66 64" opacity="0.85" />
-          {/* sun/moon */}
-          <circle cx="74" cy="24" r="4" opacity="0.6" />
-          <circle cx="74" cy="24" r="6" opacity="0.25" />
-          {/* ground line */}
-          <line x1="6" y1="82" x2="94" y2="82" opacity="0.5" />
+          {/* sun/moon (upper area) */}
+          <circle cx="72" cy="28" r="4" opacity="0.6" />
+          <circle cx="72" cy="28" r="6" opacity="0.25" />
           {/* small stars */}
-          <circle cx="18" cy="22" r="0.7" fill="currentColor" />
-          <circle cx="86" cy="38" r="0.6" fill="currentColor" />
-          <circle cx="32" cy="30" r="0.5" fill="currentColor" opacity="0.8" />
+          <circle cx="20" cy="24" r="0.7" fill="currentColor" />
+          <circle cx="84" cy="42" r="0.6" fill="currentColor" />
+          <circle cx="34" cy="32" r="0.5" fill="currentColor" opacity="0.8" />
+          {/* back ridge */}
+          <path d="M10 66 L28 42 L40 54 L54 30 L70 48 L90 66 Z" opacity="0.45" />
+          <path d="M10 66 L28 42 L40 54 L54 30 L70 48 L90 66" opacity="0.7" />
+          {/* front ridge */}
+          <path d="M14 70 L34 52 L46 62 L62 46 L82 66 L90 70 Z" opacity="0.6" />
+          <path d="M14 70 L34 52 L46 62 L62 46 L82 66" opacity="0.9" />
+          {/* snow caps */}
+          <path d="M50 36 L54 30 L58 36" opacity="0.95" />
+          <path d="M24 48 L28 42 L32 48" opacity="0.85" />
+          <path d="M58 52 L62 46 L66 52" opacity="0.85" />
+          {/* ground line */}
+          <line x1="10" y1="70" x2="90" y2="70" opacity="0.5" />
         </svg>
       );
   }
