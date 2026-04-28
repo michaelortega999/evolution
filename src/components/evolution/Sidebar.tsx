@@ -4,6 +4,7 @@ import {
   Home, Wallet, Apple, Dumbbell, FileText, NotebookPen,
   TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings,
 } from "lucide-react";
+import bonsaiImg from "@/assets/bonsai.png";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
