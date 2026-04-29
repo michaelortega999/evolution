@@ -626,6 +626,20 @@ function CarsSection() {
 
   return (
     <>
+      {/* Hero */}
+      <div className="relative flex items-start justify-between gap-4 rounded-lg border border-border bg-black/40 p-5 overflow-hidden">
+        <div className="flex-1 min-w-0">
+          <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><CarIcon className="h-4 w-4" /> My Garage</h2>
+          <p className="hud-label text-[10px] text-muted-foreground mt-1">Track value, expenses, gas mileage, and meets — synced to Wealth.</p>
+          <div className="grid grid-cols-3 gap-3 mt-4 max-w-md">
+            <div><div className="hud-label text-[10px] text-muted-foreground">Garage</div><div className="hud-label text-lg text-primary tabular-nums">{data.cars.length}</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Expenses</div><div className="hud-label text-lg text-foreground tabular-nums">{data.carExpenses.length}</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Events</div><div className="hud-label text-lg text-foreground tabular-nums">{data.carEvents.length}</div></div>
+          </div>
+        </div>
+        <HoloFloat src={carImg} width={280} height={200} className="shrink-0 hidden sm:block" />
+      </div>
+
       {/* My Cars */}
       <div className="flex items-center justify-between">
         <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><CarIcon className="h-4 w-4" /> My Garage</h2>
