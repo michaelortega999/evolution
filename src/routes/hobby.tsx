@@ -227,6 +227,21 @@ function HobbyPage() {
         <TabsContent value="guitar" className="space-y-6">
           <GuitarSection weeklyGuitarHrs={weeklyGuitarHrs} />
         </TabsContent>
+
+        {/* ============ PHOTOGRAPHY ============ */}
+        <TabsContent value="photography" className="space-y-6">
+          <ComingSoonSection label="Photography" hero={photographyImg} />
+        </TabsContent>
+
+        {/* ============ VIDEOGRAPHY ============ */}
+        <TabsContent value="videography" className="space-y-6">
+          <ComingSoonSection label="Videography" hero={videographyImg} />
+        </TabsContent>
+
+        {/* ============ ART ============ */}
+        <TabsContent value="art" className="space-y-6">
+          <ComingSoonSection label="Art" hero={artImg} />
+        </TabsContent>
       </Tabs>
 
       {/* Add Hobby modal */}
@@ -284,6 +299,20 @@ function HobbyCard({ label, icon: Icon, hero, statValue, statLabel, onOpen }: {
         <div className="hud-label text-[10px] text-primary mt-3 group-hover:underline">Open {label} →</div>
       </div>
     </button>
+  );
+}
+
+function ComingSoonSection({ label, hero }: { label: string; hero: string }) {
+  return (
+    <Panel title={label}>
+      <div className="flex flex-col items-center justify-center py-10 gap-4">
+        <HoloFloat src={hero} width={220} height={180} />
+        <div className="hud-label text-sm text-primary hud-glow">{label.toUpperCase()}</div>
+        <div className="hud-label text-[10px] text-muted-foreground text-center max-w-xs">
+          Tracking for {label} is coming soon. Set it as your current focus from the Dashboard hobby card.
+        </div>
+      </div>
+    </Panel>
   );
 }
 
