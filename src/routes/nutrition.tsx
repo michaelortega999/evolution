@@ -161,6 +161,7 @@ function NutritionPage() {
   const todayWater = data.water.find((w) => w.date === today)?.glasses ?? 0;
   const waterPct = Math.min(100, Math.round((todayWater / waterTarget) * 100));
   const setWater = (delta: number) => {
+    pushSnapshot(delta > 0 ? "Added water" : "Removed water");
     mutate((prev) => {
       const exists = prev.water.find((w) => w.date === today);
       const next = Math.max(0, (exists?.glasses ?? 0) + delta);
