@@ -87,29 +87,9 @@ export function DashboardHologram() {
   const hologram: HologramKey = (data.profile.hologram as HologramKey) ?? "bonsai";
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-4 h-auto lg:h-[380px]">
-      {/* LEFT — System Status */}
-      <div className="hud-card hud-scan p-5 flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="hud-label text-xs text-muted-foreground tracking-[0.25em]">SYSTEM STATUS</h2>
-        </div>
-        <div className="flex items-center gap-2 mb-5">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
-          </span>
-          <span className="hud-label text-sm text-emerald-400 tracking-[0.3em]">OPTIMAL</span>
-        </div>
-        <div className="space-y-3.5 flex-1">
-          <StatusBar label="FOCUS LEVEL"      value={status.focus}      onChange={(v) => updateStatus({ focus: v })} />
-          <StatusBar label="MENTAL ENERGY"    value={status.energy}     onChange={(v) => updateStatus({ energy: v })} />
-          <StatusBar label="DISCIPLINE SCORE" value={status.discipline} onChange={(v) => updateStatus({ discipline: v })} />
-          <StatusBar label="EXECUTION RATE"   value={status.execution}  onChange={(v) => updateStatus({ execution: v })} />
-        </div>
-      </div>
-
+    <section className="h-auto lg:h-[380px]">
       {/* CENTER — Hologram */}
-      <div className="hud-card hud-scan relative overflow-hidden flex items-center justify-center group">
+      <div className="hud-card hud-scan relative overflow-hidden flex items-center justify-center group h-full">
         {/* Choose Image button — visible only on hover */}
         <button
           onClick={() => setPickerOpen(true)}
@@ -184,22 +164,7 @@ export function DashboardHologram() {
         </div>
       </div>
 
-      {/* RIGHT — Core Mindset */}
-      <div className="hud-card hud-scan p-5 flex flex-col">
-        <h2 className="hud-label text-xs text-muted-foreground tracking-[0.25em] mb-4">CORE MINDSET</h2>
-        <blockquote className="italic text-sm leading-relaxed text-foreground/95 flex-1">
-          “You are the sum of your decisions. Today, you stop drifting. Today, you evolve.”
-        </blockquote>
-        <div className="hud-label text-[10px] text-primary tracking-[0.35em] hud-glow mt-4">
-          DISCIPLINE · FOCUS · FREEDOM
-        </div>
-        <div className="mt-4">
-          <Sparkline
-            data={[12, 18, 14, 22, 19, 27, 24, 31, 29, 38, 35, 44, 41, 52]}
-            height={56}
-          />
-        </div>
-      </div>
+
 
       <HologramPicker
         open={pickerOpen}
