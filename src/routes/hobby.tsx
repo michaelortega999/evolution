@@ -302,6 +302,20 @@ function HobbyCard({ label, icon: Icon, hero, statValue, statLabel, onOpen }: {
   );
 }
 
+function ComingSoonSection({ label, hero }: { label: string; hero: string }) {
+  return (
+    <Panel title={label}>
+      <div className="flex flex-col items-center justify-center py-10 gap-4">
+        <HoloFloat src={hero} width={220} height={180} />
+        <div className="hud-label text-sm text-primary hud-glow">{label.toUpperCase()}</div>
+        <div className="hud-label text-[10px] text-muted-foreground text-center max-w-xs">
+          Tracking for {label} is coming soon. Set it as your current focus from the Dashboard hobby card.
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function ProgressBar({ label, current, target }: { label: string; current: number; target: number }) {
   const pct = target ? Math.min(100, Math.round((current / target) * 100)) : 0;
   return (
