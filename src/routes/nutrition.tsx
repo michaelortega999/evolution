@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check } from "lucide-react";
+import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check, Undo2, RotateCcw } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { Input } from "@/components/ui/input";
@@ -93,6 +93,7 @@ function NutritionPage() {
   );
 
   const addQuick = (q: typeof QUICK_FOODS[number]) => {
+    pushSnapshot(`Added ${q.label}`);
     const time = nowTime();
     mutate((prev) => ({
       mealLogs: [...prev.mealLogs, {
@@ -112,6 +113,7 @@ function NutritionPage() {
   const openCustom = () => { setMTime(nowTime()); setMType(categoryFromTime(nowTime())); setMealOpen(true); };
   const submitMeal = () => {
     if (!mName.trim() || !Number(mKcal)) return;
+    pushSnapshot(`Added ${mName.trim()}`);
     mutate((prev) => ({
       mealLogs: [...prev.mealLogs, {
         id: uid(), date: today, name: mName.trim(),
@@ -123,13 +125,43 @@ function NutritionPage() {
     setMName(""); setMKcal(""); setMP(""); setMC(""); setMF("");
     setMealOpen(false);
   };
-  const delMeal = (id: string) =>
+  // ------- Undo stack (in-memory snapshots of today's meals + water) -------
+  type Snapshot = { mealLogs: typeof data.mealLogs; water: typeof data.water; label: string };
+  const [undoStack, setUndoStack] = useState<Snapshot[]>([]);
+  const pushSnapshot = (label: string) => {
+    setUndoStack((s) => [
+      ...s.slice(-19), // keep last 20
+      { mealLogs: data.mealLogs, water: data.water, label },
+    ]);
+  };
+  const undo = () => {
+    if (!undoStack.length) return;
+    const last = undoStack[undoStack.length - 1];
+    mutate(() => ({ mealLogs: last.mealLogs, water: last.water }));
+    setUndoStack((s) => s.slice(0, -1));
+  };
+
+  const delMeal = (id: string) => {
+    pushSnapshot("Deleted meal");
     mutate((prev) => ({ mealLogs: prev.mealLogs.filter((m) => m.id !== id) }));
+  };
+
+  // ------- Reset today -------
+  const [resetOpen, setResetOpen] = useState(false);
+  const resetToday = () => {
+    pushSnapshot("Reset today");
+    mutate((prev) => ({
+      mealLogs: prev.mealLogs.filter((m) => m.date !== today),
+      water: prev.water.filter((w) => w.date !== today),
+    }));
+    setResetOpen(false);
+  };
 
   // ------- Water -------
   const todayWater = data.water.find((w) => w.date === today)?.glasses ?? 0;
   const waterPct = Math.min(100, Math.round((todayWater / waterTarget) * 100));
   const setWater = (delta: number) => {
+    pushSnapshot(delta > 0 ? "Added water" : "Removed water");
     mutate((prev) => {
       const exists = prev.water.find((w) => w.date === today);
       const next = Math.max(0, (exists?.glasses ?? 0) + delta);
@@ -459,9 +491,30 @@ function NutritionPage() {
           </Panel>
 
           <Panel title={`Today's Meals (${todayMeals.length}) · ${t.kcal} kcal`}>
-            <Button onClick={openCustom} size="sm" className="hud-label text-[10px] mb-4">
-              <Plus className="h-3 w-3 mr-1" /> Add Meal
-            </Button>
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <Button onClick={openCustom} size="sm" className="hud-label text-[10px]">
+                <Plus className="h-3 w-3 mr-1" /> Add Meal
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={undo}
+                disabled={!undoStack.length}
+                className="hud-label text-[10px]"
+                title={undoStack.length ? `Undo: ${undoStack[undoStack.length - 1].label}` : "Nothing to undo"}
+              >
+                <Undo2 className="h-3 w-3 mr-1" /> Undo {undoStack.length ? `(${undoStack.length})` : ""}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setResetOpen(true)}
+                disabled={!todayMeals.length && !todayWater}
+                className="hud-label text-[10px] border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <RotateCcw className="h-3 w-3 mr-1" /> Reset Today
+              </Button>
+            </div>
             <ul className="space-y-2">
               {todayMeals.map((m) => (
                 <li key={m.id} className="grid grid-cols-[80px_1fr_auto_auto] items-center gap-3 border border-border rounded-md p-3 group hover:border-primary/40 transition-colors animate-fade-in">
@@ -824,6 +877,29 @@ function NutritionPage() {
             <div className="hud-label text-[10px] text-muted-foreground">Macros: <span className="text-foreground">P{historyTotals.p} · C{historyTotals.c} · F{historyTotals.f}</span></div>
             <div className="hud-label text-[10px] text-muted-foreground col-span-2">Water: <span className="text-primary">{historyWater} glasses</span></div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset today confirmation */}
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent className="hud-card border-destructive/50">
+          <DialogHeader>
+            <DialogTitle className="hud-label text-destructive">Reset Today's Log?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This clears all <span className="text-foreground">{todayMeals.length}</span> meal{todayMeals.length === 1 ? "" : "s"} and{" "}
+            <span className="text-foreground">{todayWater}</span> glass{todayWater === 1 ? "" : "es"} of water for today.
+            You can undo this immediately after.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetOpen(false)} className="hud-label text-[10px]">Cancel</Button>
+            <Button
+              onClick={resetToday}
+              className="hud-label text-[10px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Reset
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </ModuleLayout>
