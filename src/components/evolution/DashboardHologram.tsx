@@ -164,22 +164,7 @@ export function DashboardHologram() {
         </div>
       </div>
 
-      {/* RIGHT — Core Mindset */}
-      <div className="hud-card hud-scan p-5 flex flex-col">
-        <h2 className="hud-label text-xs text-muted-foreground tracking-[0.25em] mb-4">CORE MINDSET</h2>
-        <blockquote className="italic text-sm leading-relaxed text-foreground/95 flex-1">
-          “You are the sum of your decisions. Today, you stop drifting. Today, you evolve.”
-        </blockquote>
-        <div className="hud-label text-[10px] text-primary tracking-[0.35em] hud-glow mt-4">
-          DISCIPLINE · FOCUS · FREEDOM
-        </div>
-        <div className="mt-4">
-          <Sparkline
-            data={[12, 18, 14, 22, 19, 27, 24, 31, 29, 38, 35, 44, 41, 52]}
-            height={56}
-          />
-        </div>
-      </div>
+
 
       <HologramPicker
         open={pickerOpen}
