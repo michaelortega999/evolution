@@ -72,7 +72,28 @@ function WealthPage() {
     <ModuleLayout number="01" title="Wealth" subtitle="Net worth · Assets · Growth" icon={Wallet}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Panel title="Net Worth">
-          <div className="hud-label text-3xl text-primary hud-glow">{formatMoney(netWorth)}</div>
+          {editingNet ? (
+            <Input
+              ref={netInputRef}
+              type="number"
+              value={netInput}
+              onChange={(e) => setNetInput(e.target.value)}
+              onBlur={commitNet}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitNet();
+                if (e.key === "Escape") setEditingNet(false);
+              }}
+              className="h-10 text-3xl text-primary hud-label hud-glow"
+            />
+          ) : (
+            <button
+              onClick={startEditNet}
+              className="hud-label text-3xl text-primary hud-glow text-left hover:opacity-80 transition-opacity cursor-pointer"
+              title="Click to edit"
+            >
+              {formatMoney(netWorth)}
+            </button>
+          )}
           <div className="hud-label text-[10px] text-muted-foreground mt-2">Goal: {formatMoney(data.profile.goal)}</div>
           <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
             <div className="h-full bg-primary rounded-full" style={{ width: `${goalPct}%`, boxShadow: "0 0 8px var(--primary)" }} />
