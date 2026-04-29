@@ -8,85 +8,13 @@ import { HologramPicker } from "./HologramPicker";
 import { Sparkline } from "./Sparkline";
 import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 
-const STATUS_KEY = "evolution:system-status:v1";
-type Status = { focus: number; energy: number; discipline: number; execution: number };
-const DEFAULT_STATUS: Status = { focus: 92, energy: 87, discipline: 94, execution: 91 };
-
-function loadStatus(): Status {
-  if (typeof window === "undefined") return DEFAULT_STATUS;
-  try {
-    const raw = localStorage.getItem(STATUS_KEY);
-    if (!raw) return DEFAULT_STATUS;
-    return { ...DEFAULT_STATUS, ...JSON.parse(raw) };
-  } catch { return DEFAULT_STATUS; }
-}
-
-function StatusBar({
-  label, value, onChange,
-}: { label: string; value: number; onChange: (v: number) => void }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value));
-  useEffect(() => setDraft(String(value)), [value]);
-
-  const commit = () => {
-    const n = Math.max(0, Math.min(100, Math.round(Number(draft) || 0)));
-    onChange(n);
-    setEditing(false);
-  };
-
-  return (
-    <div>
-      <div className="flex justify-between items-center hud-label text-[10px]">
-        <span className="text-muted-foreground tracking-[0.2em]">{label}</span>
-        {editing ? (
-          <input
-            autoFocus
-            type="number"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
-            className="w-12 bg-transparent border-b border-primary text-primary text-right text-xs outline-none"
-          />
-        ) : (
-          <button
-            onClick={() => setEditing(true)}
-            className="text-primary hover:text-primary/80 tabular-nums"
-            title="Click to edit"
-          >
-            {value}%
-          </button>
-        )}
-      </div>
-      <div className="h-1.5 mt-1.5 rounded-full bg-primary/15 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{
-            width: `${value}%`,
-            background:
-              "linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 60%, transparent))",
-            boxShadow: "0 0 8px var(--primary)",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export function DashboardHologram() {
   const { data, updateProfile } = useEvolutionData();
-  const [status, setStatus] = useState<Status>(DEFAULT_STATUS);
   const [pickerOpen, setPickerOpen] = useState(false);
-
-  useEffect(() => { setStatus(loadStatus()); }, []);
-
-  const updateStatus = (patch: Partial<Status>) => {
-    const next = { ...status, ...patch };
-    setStatus(next);
-    try { localStorage.setItem(STATUS_KEY, JSON.stringify(next)); } catch { /* noop */ }
-  };
+  const timer = useFocusTimer();
 
   const hologram: HologramKey = (data.profile.hologram as HologramKey) ?? "bonsai";
+  const pct = timer.totalMs > 0 ? Math.max(0, Math.min(100, (timer.remainingMs / timer.totalMs) * 100)) : 0;
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[280px] lg:items-stretch">
@@ -126,25 +54,40 @@ export function DashboardHologram() {
         <HologramEmblem kind={hologram} size={250} />
       </div>
 
-      {/* RIGHT — System Status */}
-      <div className="hud-card p-5 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="hud-label text-[10px] text-primary tracking-[0.3em]">SYSTEM STATUS</span>
-        </div>
+      {/* RIGHT — Focus Mode */}
+      <Link to="/focus" className="hud-card p-5 flex flex-col gap-3 hover:border-primary/50 transition-colors group">
         <div className="flex items-center gap-2">
-          <span
-            className="h-2 w-2 rounded-full"
-            style={{ background: "#22ff88", boxShadow: "0 0 8px #22ff88" }}
+          <Target className="h-4 w-4 text-primary" />
+          <div className="hud-label text-sm">Focus Mode</div>
+        </div>
+        <div className="hud-label text-primary hud-glow text-3xl tabular-nums tracking-wider text-center">
+          {formatMmSs(timer.remainingMs)}
+        </div>
+        <div className="hud-label text-[10px] text-center text-muted-foreground">
+          {modeLabel(timer.mode)} · Round {timer.round} of {timer.settings.longEvery}
+        </div>
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-[width] duration-300"
+            style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--primary)" }}
           />
-          <span className="hud-label text-[11px] text-[#22ff88] tracking-[0.25em]">OPTIMAL</span>
         </div>
-        <div className="flex flex-col gap-3 mt-1">
-          <StatusBar label="FOCUS LEVEL"   value={status.focus}      onChange={(v) => updateStatus({ focus: v })} />
-          <StatusBar label="MENTAL ENERGY" value={status.energy}     onChange={(v) => updateStatus({ energy: v })} />
-          <StatusBar label="DISCIPLINE"    value={status.discipline} onChange={(v) => updateStatus({ discipline: v })} />
-          <StatusBar label="EXECUTION"     value={status.execution}  onChange={(v) => updateStatus({ execution: v })} />
+        <div className="flex gap-2 mt-auto pt-2 border-t border-border">
+          <button
+            onClick={(e) => { e.preventDefault(); timer.running ? timer.pause() : timer.start(); }}
+            className="flex-1 h-8 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10 flex items-center justify-center gap-1.5"
+          >
+            {timer.running ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Start</>}
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); timer.reset(); }}
+            className="h-8 w-8 rounded-md border border-border text-foreground/70 hover:text-primary hover:border-primary/40 flex items-center justify-center"
+            aria-label="Reset"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
         </div>
-      </div>
+      </Link>
 
       <HologramPicker
         open={pickerOpen}
