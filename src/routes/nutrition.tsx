@@ -113,6 +113,7 @@ function NutritionPage() {
   const openCustom = () => { setMTime(nowTime()); setMType(categoryFromTime(nowTime())); setMealOpen(true); };
   const submitMeal = () => {
     if (!mName.trim() || !Number(mKcal)) return;
+    pushSnapshot(`Added ${mName.trim()}`);
     mutate((prev) => ({
       mealLogs: [...prev.mealLogs, {
         id: uid(), date: today, name: mName.trim(),
