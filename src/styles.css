@@ -727,6 +727,8 @@
   display: block;
   perspective: 1000px;
   animation: holo-flicker 4.2s ease-in-out infinite;
+  background: transparent;
+  background-color: transparent;
 }
 
 .holo-emblem__glow {
@@ -749,12 +751,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: holo-spin 8s ease-in-out infinite;
+  animation: hologram-sway 6s ease-in-out infinite;
   transform-origin: center center;
   z-index: 1;
+  background: transparent;
+  background-color: transparent;
 }
 
 .holo-emblem__img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -768,6 +773,7 @@
   user-select: none;
   -webkit-user-drag: none;
   background: transparent;
+  background-color: transparent;
 }
 
 /* Faint repeating horizontal scanlines */
