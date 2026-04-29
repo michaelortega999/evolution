@@ -1299,13 +1299,13 @@ function InteractiveVehicleHud({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-lg border border-border bg-black select-none"
+      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-lg border border-border bg-black select-none"
       onClick={() => setActive(null)}
     >
       <img
         src={vehicleHud}
         alt="Interactive Vehicle HUD profile"
-        className="w-full h-auto block"
+        className="w-full h-auto block object-contain max-h-[320px] mx-auto"
         style={{ opacity: 0.95 }}
         draggable={false}
       />
