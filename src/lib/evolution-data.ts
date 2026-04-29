@@ -573,6 +573,14 @@ function load(): EvolutionData {
       carMeets: parsed.carMeets ?? [],
       guitarSessions: parsed.guitarSessions ?? [],
       trips: parsed.trips ?? [],
+      cars: parsed.cars ?? [],
+      carExpenses: parsed.carExpenses ?? [],
+      carEvents: parsed.carEvents?.length ? parsed.carEvents : defaultData.carEvents,
+      guitarSkills: parsed.guitarSkills ?? [],
+      guitarSongs: parsed.guitarSongs ?? [],
+      guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
+      customHobbies: parsed.customHobbies ?? [],
+      weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
     };
   } catch {
     return defaultData;
