@@ -1,9 +1,7 @@
-import { useState } from "react";
-import { Calendar as CalIcon, Plus } from "lucide-react";
 import { Sparkline } from "./Sparkline";
-import { Input } from "@/components/ui/input";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { SystemStatus } from "./SystemStatus";
+import { CoreMindset } from "./CoreMindset";
 
 const markets = [
   { name: "S&P 500", change: "+0.85%", data: [10, 12, 11, 14, 13, 16, 17, 19] },
