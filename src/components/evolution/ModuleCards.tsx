@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkline } from "./Sparkline";
 import hobbyHologram from "@/assets/hobby-hologram.png";
+import carImg from "@/assets/car.png";
+import guitarImg from "@/assets/guitar.png";
 import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
@@ -371,11 +373,15 @@ export function BusinessCard() {
 export function HobbyCard() {
   const { data, mutate } = useEvolutionData();
   const hobbies: Hobby[] = ["Cars", "Guitar", "Travel"];
+  const heroSrc =
+    data.hobby.current === "Cars" ? carImg :
+    data.hobby.current === "Guitar" ? guitarImg :
+    hobbyHologram;
 
   return (
     <Card icon={Star} variant="hobby" number="08" title="Hobby" href="/hobby">
       <img
-        src={hobbyHologram}
+        src={heroSrc}
         alt=""
         aria-hidden="true"
         className="hobby-holo-img absolute right-0 top-0 h-full w-auto"

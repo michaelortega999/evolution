@@ -21,8 +21,9 @@ import {
 import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 import hobbyHologram from "@/assets/hobby-hologram.png";
 import earthImg from "@/assets/earth.png";
-import brainImg from "@/assets/brain.png";
-import bonsaiImg from "@/assets/bonsai.png";
+import carImg from "@/assets/car.png";
+import guitarImg from "@/assets/guitar.png";
+import { HoloFloat } from "@/components/evolution/HoloFloat";
 
 export const Route = createFileRoute("/hobby")({
   head: () => ({
@@ -38,8 +39,8 @@ const TRIP_STATUSES: TripStatus[] = ["Planning", "Booked", "In Progress", "Compl
 const RSVP_STATES: CarEventRsvp[] = ["None", "Interested", "Going", "Attended"];
 const HOBBY_HEROS = {
   Travel: earthImg,
-  Cars: brainImg,
-  Guitar: bonsaiImg,
+  Cars: carImg,
+  Guitar: guitarImg,
 } as const;
 
 // ---------- helpers ----------
@@ -237,14 +238,30 @@ function HobbyPage() {
 function HobbyCard({ label, icon: Icon, hero, statValue, statLabel, onOpen }: {
   label: string; icon: typeof Plane; hero: string; statValue: string; statLabel: string; onOpen: () => void;
 }) {
+  const isCover = hero === earthImg; // Travel still uses the cover treatment
   return (
     <button onClick={onOpen}
       className="hud-card hud-scan p-0 overflow-hidden text-left group relative transition-transform hover:-translate-y-0.5">
-      <div className="relative h-32 bg-black overflow-hidden">
-        <img src={hero} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.9 }} />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--card))" }} />
-        <Icon className="absolute top-3 right-3 h-5 w-5 text-primary hud-glow" />
-      </div>
+      {isCover ? (
+        <div className="relative h-32 bg-black overflow-hidden">
+          <img src={hero} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.9 }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--card))" }} />
+          <Icon className="absolute top-3 right-3 h-5 w-5 text-primary hud-glow" />
+        </div>
+      ) : (
+        <div className="relative h-32 bg-black overflow-hidden">
+          <div
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            style={{
+              maskImage: "linear-gradient(to left, black 55%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to left, black 55%, transparent 100%)",
+            }}
+          >
+            <HoloFloat src={hero} width={150} height={120} />
+          </div>
+          <Icon className="absolute top-3 left-3 h-5 w-5 text-primary hud-glow" />
+        </div>
+      )}
       <div className="p-4">
         <div className="hud-label text-lg text-primary hud-glow">{label}</div>
         <div className="hud-label text-2xl text-foreground mt-2 tabular-nums">{statValue}</div>
@@ -609,6 +626,20 @@ function CarsSection() {
 
   return (
     <>
+      {/* Hero */}
+      <div className="relative flex items-start justify-between gap-4 rounded-lg border border-border bg-black/40 p-5 overflow-hidden">
+        <div className="flex-1 min-w-0">
+          <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><CarIcon className="h-4 w-4" /> My Garage</h2>
+          <p className="hud-label text-[10px] text-muted-foreground mt-1">Track value, expenses, gas mileage, and meets — synced to Wealth.</p>
+          <div className="grid grid-cols-3 gap-3 mt-4 max-w-md">
+            <div><div className="hud-label text-[10px] text-muted-foreground">Garage</div><div className="hud-label text-lg text-primary tabular-nums">{data.cars.length}</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Expenses</div><div className="hud-label text-lg text-foreground tabular-nums">{data.carExpenses.length}</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Events</div><div className="hud-label text-lg text-foreground tabular-nums">{data.carEvents.length}</div></div>
+          </div>
+        </div>
+        <HoloFloat src={carImg} width={280} height={200} className="shrink-0 hidden sm:block" />
+      </div>
+
       {/* My Cars */}
       <div className="flex items-center justify-between">
         <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><CarIcon className="h-4 w-4" /> My Garage</h2>
@@ -623,7 +654,7 @@ function CarsSection() {
           return (
             <div key={c.id} className="hud-card p-0 overflow-hidden group relative">
               <div className="relative h-24 bg-black overflow-hidden">
-                <img src={brainImg} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.6 }} />
+                <img src={carImg} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.6 }} />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 30%, var(--card))" }} />
               </div>
               <div className="p-4">
@@ -935,6 +966,20 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
 
   return (
     <>
+      {/* Hero */}
+      <div className="relative flex items-start justify-between gap-4 rounded-lg border border-border bg-black/40 p-5 overflow-hidden">
+        <div className="flex-1 min-w-0">
+          <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><Music className="h-4 w-4" /> Guitar</h2>
+          <p className="hud-label text-[10px] text-muted-foreground mt-1">Practice timer connects to Focus Mode and logs sessions tagged #Guitar.</p>
+          <div className="grid grid-cols-3 gap-3 mt-4 max-w-md">
+            <div><div className="hud-label text-[10px] text-muted-foreground">This Week</div><div className="hud-label text-lg text-primary tabular-nums">{weeklyGuitarHrs.toFixed(1)}h</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Skills</div><div className="hud-label text-lg text-foreground tabular-nums">{data.guitarSkills.length}</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Songs</div><div className="hud-label text-lg text-foreground tabular-nums">{data.guitarSongs.length}</div></div>
+          </div>
+        </div>
+        <HoloFloat src={guitarImg} width={220} height={320} className="shrink-0 hidden sm:block" />
+      </div>
+
       {/* Practice Timer */}
       <Panel title="Practice Timer · Connected to Focus Mode">
         <div className="flex flex-col items-center gap-4 py-4">
