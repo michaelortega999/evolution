@@ -8,16 +8,22 @@ interface Props {
   width: number;
   height: number;
   className?: string;
+  spin?: boolean;
 }
 
-export function HoloFloat({ src, alt = "", width, height, className = "" }: Props) {
+export function HoloFloat({ src, alt = "", width, height, className = "", spin = false }: Props) {
   return (
     <div
       className={`holo-float-wrap ${className}`}
-      style={{ width, height }}
+      style={{ width, height, perspective: spin ? "800px" : undefined }}
       aria-hidden={alt ? undefined : true}
     >
-      <img src={src} alt={alt} draggable={false} className="holo-float-img" />
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        className={`holo-float-img ${spin ? "holo-spin-y" : ""}`}
+      />
       <div className="holo-float-base" />
     </div>
   );
