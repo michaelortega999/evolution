@@ -8,11 +8,14 @@ export type DatasetKey = "nutrition" | "fitness" | "investing";
 
 export type Meal = "ground_beef_rice" | "chicken_rice" | "greek_yogurt" | "broccoli";
 export const MEALS: { key: Meal; label: string; kcal: number; p: number; c: number; f: number }[] = [
-  { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 650, p: 45, c: 70, f: 18 },
-  { key: "chicken_rice", label: "Chicken & Rice", kcal: 550, p: 50, c: 75, f: 8 },
-  { key: "greek_yogurt", label: "Greek Yogurt", kcal: 180, p: 18, c: 12, f: 6 },
-  { key: "broccoli", label: "Broccoli", kcal: 55, p: 4, c: 11, f: 1 },
+  { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 450, p: 35, c: 35, f: 18 },
+  { key: "chicken_rice", label: "Chicken & Rice", kcal: 380, p: 40, c: 38, f: 6 },
+  { key: "greek_yogurt", label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
+  { key: "broccoli", label: "Broccoli", kcal: 150, p: 8, c: 18, f: 2 },
 ];
+
+export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack";
+export const MEAL_TYPES: MealType[] = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
 export type Hobby = "Cars" | "Guitar" | "Travel";
 
