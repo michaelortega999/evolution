@@ -175,6 +175,8 @@ export interface GroceryItem {
   qty: string;
   category: string;
   done: boolean;
+  unit?: string;   // lbs | oz | cups | pieces
+  cost?: number;   // optional estimated cost
 }
 
 export interface WaterEntry {
