@@ -25,23 +25,43 @@ function formatMoney(n: number) {
   return `$${Math.round(n).toLocaleString()}`;
 }
 
+// Per-module accent colors (hex) used for icon ring + title only
+const ACCENT: Record<HoloVariant, string> = {
+  wealth:    "#f59e0b",
+  nutrition: "#22c55e",
+  fitness:   "#f97316",
+  journal:   "#a855f7",
+  notes:     "#eab308",
+  investing: "#06b6d4",
+  business:  "#3b82f6",
+  hobby:     "#ec4899",
+};
+
 function Card({
   icon: Icon, variant, number, title, href, children,
 }: { icon: LucideIcon; variant: HoloVariant; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
+  const accent = ACCENT[variant];
   return (
     <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors relative">
       <HoloIcon variant={variant} />
       <Link to={href} className="flex items-center gap-3 mb-4 group/header">
-        <div className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
-             style={{
-               borderColor: "oklch(0.65 0.28 310)",
-               background: "radial-gradient(circle, oklch(0.65 0.28 310 / 0.15), transparent 70%)",
-               boxShadow: "0 0 10px oklch(0.65 0.28 310 / 0.5)",
-             }}>
-          <Icon className="h-4 w-4" style={{ color: "oklch(0.78 0.28 310)" }} />
+        <div
+          className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
+          style={{
+            borderColor: accent,
+            background: `radial-gradient(circle, ${accent}22, transparent 70%)`,
+            boxShadow: `0 0 10px ${accent}80`,
+          }}
+        >
+          <Icon className="h-4 w-4" style={{ color: accent }} />
         </div>
         <span className="hud-label text-xs text-muted-foreground">{number}</span>
-        <h3 className="hud-label text-sm text-foreground/90 group-hover/header:text-primary transition-colors">{title}</h3>
+        <h3
+          className="hud-label text-sm transition-colors group-hover/header:opacity-100"
+          style={{ color: accent, textShadow: `0 0 10px ${accent}66` }}
+        >
+          {title}
+        </h3>
       </Link>
       <div className="flex-1 flex flex-col">{children}</div>
       <Link to={href} className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary w-fit">
