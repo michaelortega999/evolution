@@ -86,13 +86,47 @@ export function WealthCard() {
   );
 }
 
+// Same quick-add presets as the Nutrition page
+const QUICK_FOODS = [
+  { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 450, p: 35, c: 35, f: 18 },
+  { key: "chicken_rice",     label: "Chicken & Rice",     kcal: 380, p: 40, c: 38, f: 6 },
+  { key: "greek_yogurt",     label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
+  { key: "broccoli",         label: "Broccoli",           kcal: 150, p: 8,  c: 18, f: 2 },
+];
+
+function nowHM() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+function categoryFromTime(time: string): "Breakfast" | "Lunch" | "Dinner" | "Snack" {
+  const h = Number(time.slice(0, 2));
+  if (h < 10) return "Breakfast";
+  if (h < 14) return "Lunch";
+  if (h < 18) return "Dinner";
+  return "Snack";
+}
+
 export function NutritionCard() {
   const { data, mutate } = useEvolutionData();
-  const sum = nutritionSummary(data.nutrition, data.meals, data.profile.calorieTarget);
+  const today = todayDate();
 
-  const toggle = (m: Meal) => {
+  // Live totals from the same source the Nutrition page uses
+  const t = dayTotals(today, data.mealLogs);
+  const calTarget = data.profile.calorieTarget || 2000;
+  const pTarget = data.profile.proteinTarget || 160;
+  const calPct = Math.min(100, Math.round((t.kcal / calTarget) * 100));
+  const streak = nutritionStreak(data.mealLogs, calTarget);
+  const water = data.water.find((w) => w.date === today)?.glasses ?? 0;
+  const waterTarget = data.profile.waterTarget || 8;
+
+  const quickAdd = (q: typeof QUICK_FOODS[number]) => {
+    const time = nowHM();
     mutate((prev) => ({
-      meals: prev.meals.includes(m) ? prev.meals.filter((x) => x !== m) : [...prev.meals, m],
+      mealLogs: [...prev.mealLogs, {
+        id: uid(), date: today, name: q.label,
+        calories: q.kcal, protein: q.p, carbs: q.c, fats: q.f,
+        time, mealType: categoryFromTime(time),
+      }],
     }));
   };
 
@@ -100,33 +134,35 @@ export function NutritionCard() {
     <Card icon={Apple} variant="nutrition" number="02" title="Nutrition" href="/nutrition">
       <div className="hud-label text-[10px] text-muted-foreground">Daily Calories</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">
-        {sum.calories.toLocaleString()} / {sum.target.toLocaleString()}
+        {t.kcal.toLocaleString()} / {calTarget.toLocaleString()}
       </div>
       <div className="flex items-center gap-3 mt-2">
-        <RingProgress value={sum.percent} size={80} label={`${sum.percent}%`} sublabel={sum.percent >= 80 ? "Good" : "Low"} />
+        <RingProgress value={calPct} size={80} label={`${calPct}%`} sublabel={`🔥 ${streak}d`} />
         <div className="flex-1 space-y-1">
           {([
-            ["Protein", sum.protein, data.profile.proteinTarget, "g"],
-            ["Carbs", sum.carbs, null, "g"],
-            ["Fats", sum.fats, null, "g"],
-          ] as const).map(([k, v, t, u]) => (
+            ["Protein", t.p, pTarget, "g"],
+            ["Carbs", t.c, data.profile.carbsTarget || null, "g"],
+            ["Fats", t.f, data.profile.fatsTarget || null, "g"],
+            ["Water", water, waterTarget, ""],
+          ] as const).map(([k, v, tgt, u]) => (
             <div key={k} className="flex justify-between hud-label text-[10px]">
               <span className="text-muted-foreground">{k}</span>
-              <span className="text-primary">{v}{u}{t ? ` / ${t}${u}` : ""}</span>
+              <span className="text-primary">{v}{u}{tgt ? ` / ${tgt}${u}` : ""}</span>
             </div>
           ))}
         </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-1.5">
-        {MEALS.map((m) => {
-          const on = data.meals.includes(m.key);
-          return (
-            <button key={m.key} onClick={() => toggle(m.key)}
-                    className={`text-[10px] hud-label px-2 py-1.5 rounded border text-left transition-colors ${on ? "border-primary/60 bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}>
-              {m.label}
-            </button>
-          );
-        })}
+        {QUICK_FOODS.map((q) => (
+          <button
+            key={q.key}
+            onClick={(e) => { e.preventDefault(); quickAdd(q); }}
+            className="text-[10px] hud-label px-2 py-1.5 rounded border text-left border-border text-foreground/80 hover:border-primary/60 hover:bg-primary/10 hover:text-primary transition-colors"
+            title={`+${q.kcal} kcal · ${q.p}P ${q.c}C ${q.f}F`}
+          >
+            + {q.label}
+          </button>
+        ))}
       </div>
     </Card>
   );
