@@ -227,6 +227,21 @@ function HobbyPage() {
         <TabsContent value="guitar" className="space-y-6">
           <GuitarSection weeklyGuitarHrs={weeklyGuitarHrs} />
         </TabsContent>
+
+        {/* ============ PHOTOGRAPHY ============ */}
+        <TabsContent value="photography" className="space-y-6">
+          <ComingSoonSection label="Photography" hero={photographyImg} />
+        </TabsContent>
+
+        {/* ============ VIDEOGRAPHY ============ */}
+        <TabsContent value="videography" className="space-y-6">
+          <ComingSoonSection label="Videography" hero={videographyImg} />
+        </TabsContent>
+
+        {/* ============ ART ============ */}
+        <TabsContent value="art" className="space-y-6">
+          <ComingSoonSection label="Art" hero={artImg} />
+        </TabsContent>
       </Tabs>
 
       {/* Add Hobby modal */}
