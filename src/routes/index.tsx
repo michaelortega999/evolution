@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/evolution/Sidebar";
 import { TopBar } from "@/components/evolution/TopBar";
 import { BottomBar } from "@/components/evolution/BottomBar";
 import { Onboarding } from "@/components/evolution/Onboarding";
+import { DashboardHologram } from "@/components/evolution/DashboardHologram";
 import {
   WealthCard, NutritionCard, FitnessCard, JournalCard,
   NotesCard, InvestingCard, BusinessCard, HobbyCard,
