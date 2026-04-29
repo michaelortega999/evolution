@@ -156,12 +156,6 @@ export function DashboardHologram() {
           </div>
         </div>
 
-        {/* Label under hologram */}
-        <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
-          <div className="hud-label text-[10px] text-primary/70 tracking-[0.4em]">
-            {hologram.toUpperCase()}
-          </div>
-        </div>
       </div>
 
 
