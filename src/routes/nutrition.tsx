@@ -491,9 +491,30 @@ function NutritionPage() {
           </Panel>
 
           <Panel title={`Today's Meals (${todayMeals.length}) · ${t.kcal} kcal`}>
-            <Button onClick={openCustom} size="sm" className="hud-label text-[10px] mb-4">
-              <Plus className="h-3 w-3 mr-1" /> Add Meal
-            </Button>
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <Button onClick={openCustom} size="sm" className="hud-label text-[10px]">
+                <Plus className="h-3 w-3 mr-1" /> Add Meal
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={undo}
+                disabled={!undoStack.length}
+                className="hud-label text-[10px]"
+                title={undoStack.length ? `Undo: ${undoStack[undoStack.length - 1].label}` : "Nothing to undo"}
+              >
+                <Undo2 className="h-3 w-3 mr-1" /> Undo {undoStack.length ? `(${undoStack.length})` : ""}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setResetOpen(true)}
+                disabled={!todayMeals.length && !todayWater}
+                className="hud-label text-[10px] border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <RotateCcw className="h-3 w-3 mr-1" /> Reset Today
+              </Button>
+            </div>
             <ul className="space-y-2">
               {todayMeals.map((m) => (
                 <li key={m.id} className="grid grid-cols-[80px_1fr_auto_auto] items-center gap-3 border border-border rounded-md p-3 group hover:border-primary/40 transition-colors animate-fade-in">
