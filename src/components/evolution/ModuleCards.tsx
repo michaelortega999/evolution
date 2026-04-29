@@ -13,7 +13,8 @@ import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
-  todayDate, type Meal, type Hobby,
+  todayDate, dayTotals, nutritionStreak, uid,
+  type Meal, type Hobby,
 } from "@/lib/evolution-data";
 
 type ModuleHref = "/wealth" | "/nutrition" | "/fitness" | "/journal" | "/notes" | "/investing" | "/business" | "/hobby";
