@@ -93,6 +93,7 @@ function NutritionPage() {
   );
 
   const addQuick = (q: typeof QUICK_FOODS[number]) => {
+    pushSnapshot(`Added ${q.label}`);
     const time = nowTime();
     mutate((prev) => ({
       mealLogs: [...prev.mealLogs, {
