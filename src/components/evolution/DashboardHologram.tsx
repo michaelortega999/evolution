@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import { ImageIcon } from "lucide-react";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ImageIcon, Target, Play, Pause, RotateCcw } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { type HologramKey } from "@/lib/holograms";
 import { HologramEmblem } from "./HologramEmblem";
 import { HologramPicker } from "./HologramPicker";
 import { Sparkline } from "./Sparkline";
+import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 
 const STATUS_KEY = "evolution:system-status:v1";
 type Status = { focus: number; energy: number; discipline: number; execution: number };
