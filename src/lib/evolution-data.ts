@@ -17,7 +17,7 @@ export const MEALS: { key: Meal; label: string; kcal: number; p: number; c: numb
 export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack";
 export const MEAL_TYPES: MealType[] = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
-export type Hobby = "Cars" | "Guitar" | "Travel";
+export type Hobby = "Cars" | "Guitar" | "Travel" | "Photography" | "Videography" | "Art";
 
 export type GoalCategory = "Wealth" | "Fitness" | "Trading" | "Business" | "Nutrition" | "Hobby";
 export interface Goal {
