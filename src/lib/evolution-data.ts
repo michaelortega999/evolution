@@ -8,11 +8,14 @@ export type DatasetKey = "nutrition" | "fitness" | "investing";
 
 export type Meal = "ground_beef_rice" | "chicken_rice" | "greek_yogurt" | "broccoli";
 export const MEALS: { key: Meal; label: string; kcal: number; p: number; c: number; f: number }[] = [
-  { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 650, p: 45, c: 70, f: 18 },
-  { key: "chicken_rice", label: "Chicken & Rice", kcal: 550, p: 50, c: 75, f: 8 },
-  { key: "greek_yogurt", label: "Greek Yogurt", kcal: 180, p: 18, c: 12, f: 6 },
-  { key: "broccoli", label: "Broccoli", kcal: 55, p: 4, c: 11, f: 1 },
+  { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 450, p: 35, c: 35, f: 18 },
+  { key: "chicken_rice", label: "Chicken & Rice", kcal: 380, p: 40, c: 38, f: 6 },
+  { key: "greek_yogurt", label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
+  { key: "broccoli", label: "Broccoli", kcal: 150, p: 8, c: 18, f: 2 },
 ];
+
+export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack";
+export const MEAL_TYPES: MealType[] = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
 export type Hobby = "Cars" | "Guitar" | "Travel";
 
@@ -94,6 +97,9 @@ export interface Profile {
   squat: number;
   deadlift: number;
   proteinTarget: number;
+  carbsTarget: number;
+  fatsTarget: number;
+  waterTarget: number;
   mirror: [string, string, string];
   commitment: [string, string, string];
   onboarded: boolean;
@@ -159,6 +165,8 @@ export interface MealLog {
   protein: number;
   carbs: number;
   fats: number;
+  time?: string;        // "HH:MM"
+  mealType?: MealType;  // Breakfast | Lunch | Dinner | Snack
 }
 
 export interface GroceryItem {
@@ -328,6 +336,9 @@ export const defaultProfile: Profile = {
   squat: 250,
   deadlift: 280,
   proteinTarget: 160,
+  carbsTarget: 220,
+  fatsTarget: 65,
+  waterTarget: 8,
   mirror: ["", "", ""],
   commitment: ["", "", ""],
   onboarded: false,
@@ -570,3 +581,52 @@ export function investingSummary(rows: InvestingEntry[]) {
 }
 
 export function todayDate() { return today(); }
+
+// ---------- Nutrition helpers ----------
+
+export function dayTotals(date: string, mealLogs: MealLog[]) {
+  const logs = mealLogs.filter((m) => m.date === date);
+  return logs.reduce(
+    (a, m) => ({
+      kcal: a.kcal + m.calories,
+      p: a.p + m.protein,
+      c: a.c + m.carbs,
+      f: a.f + m.fats,
+    }),
+    { kcal: 0, p: 0, c: 0, f: 0 }
+  );
+}
+
+export function nutritionStreak(mealLogs: MealLog[], target: number) {
+  if (!target) return 0;
+  let streak = 0;
+  const d = new Date();
+  // walk back day-by-day; today only counts if hit
+  for (let i = 0; i < 365; i++) {
+    const iso = new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10);
+    const total = dayTotals(iso, mealLogs).kcal;
+    const hit = total > 0 && total <= target * 1.05 && total >= target * 0.85;
+    if (hit) streak++;
+    else if (i > 0) break; // allow today to be in-progress without breaking
+  }
+  return streak;
+}
+
+export function weeklyAverage(mealLogs: MealLog[]) {
+  const days: string[] = [];
+  const d = new Date();
+  for (let i = 6; i >= 0; i--) days.push(new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10));
+  const totals = days.map((iso) => dayTotals(iso, mealLogs).kcal);
+  const logged = totals.filter((t) => t > 0);
+  const avg = logged.length ? Math.round(logged.reduce((a, b) => a + b, 0) / logged.length) : 0;
+  return { days, totals, avg };
+}
+
+export function mostLoggedMeal(mealLogs: MealLog[]) {
+  const counts = new Map<string, number>();
+  for (const m of mealLogs) counts.set(m.name, (counts.get(m.name) ?? 0) + 1);
+  let best = ""; let n = 0;
+  for (const [name, c] of counts) if (c > n) { best = name; n = c; }
+  return best ? { name: best, count: n } : null;
+}
+
