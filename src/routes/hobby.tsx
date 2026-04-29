@@ -671,16 +671,6 @@ function CarsSection() {
 
   return (
     <>
-      {/* Vehicle HUD showcase */}
-      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-black">
-        <img
-          src={vehicleHud}
-          alt="Vehicle HUD profile"
-          className="w-full h-auto block"
-          style={{ opacity: 0.95 }}
-        />
-      </div>
-
       {/* Hero */}
       <div className="relative flex items-start justify-between gap-4 rounded-lg border border-border bg-black/40 p-5 overflow-hidden">
         <div className="flex-1 min-w-0">
@@ -693,6 +683,16 @@ function CarsSection() {
           </div>
         </div>
         <HoloFloat src={carImg} width={280} height={200} className="shrink-0 hidden sm:block" />
+      </div>
+
+      {/* Vehicle HUD showcase */}
+      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-black">
+        <img
+          src={vehicleHud}
+          alt="Vehicle HUD profile"
+          className="w-full h-auto block"
+          style={{ opacity: 0.95 }}
+        />
       </div>
 
       {/* My Cars */}
