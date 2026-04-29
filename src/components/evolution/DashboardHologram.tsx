@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
-import { HOLOGRAMS, type HologramKey } from "@/lib/holograms";
+import { type HologramKey } from "@/lib/holograms";
 import { HologramEmblem } from "./HologramEmblem";
 import { HologramPicker } from "./HologramPicker";
 import { Sparkline } from "./Sparkline";
@@ -61,7 +61,8 @@ function StatusBar({
           className="h-full rounded-full transition-all duration-700"
           style={{
             width: `${value}%`,
-            background: "linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 60%, transparent))",
+            background:
+              "linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 60%, transparent))",
             boxShadow: "0 0 8px var(--primary)",
           }}
         />
@@ -75,7 +76,6 @@ export function DashboardHologram() {
   const [status, setStatus] = useState<Status>(DEFAULT_STATUS);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Lazy-load status from localStorage on mount (avoid SSR mismatch)
   useEffect(() => { setStatus(loadStatus()); }, []);
 
   const updateStatus = (patch: Partial<Status>) => {
@@ -87,10 +87,29 @@ export function DashboardHologram() {
   const hologram: HologramKey = (data.profile.hologram as HologramKey) ?? "bonsai";
 
   return (
-    <section className="h-auto lg:h-[380px]">
+    <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[460px]">
+      {/* LEFT — System Status */}
+      <div className="hud-card p-5 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <span className="hud-label text-[10px] text-primary tracking-[0.3em]">SYSTEM STATUS</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{ background: "#22ff88", boxShadow: "0 0 8px #22ff88" }}
+          />
+          <span className="hud-label text-[11px] text-[#22ff88] tracking-[0.25em]">OPTIMAL</span>
+        </div>
+        <div className="flex flex-col gap-3 mt-1">
+          <StatusBar label="FOCUS LEVEL"   value={status.focus}      onChange={(v) => updateStatus({ focus: v })} />
+          <StatusBar label="MENTAL ENERGY" value={status.energy}     onChange={(v) => updateStatus({ energy: v })} />
+          <StatusBar label="DISCIPLINE"    value={status.discipline} onChange={(v) => updateStatus({ discipline: v })} />
+          <StatusBar label="EXECUTION"     value={status.execution}  onChange={(v) => updateStatus({ execution: v })} />
+        </div>
+      </div>
+
       {/* CENTER — Hologram */}
       <div className="hud-card hud-scan relative overflow-hidden flex items-center justify-center group h-full">
-        {/* Choose Image button — visible only on hover */}
         <button
           onClick={() => setPickerOpen(true)}
           className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-background/60 backdrop-blur text-primary hud-label text-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/15"
@@ -100,7 +119,6 @@ export function DashboardHologram() {
           <ImageIcon className="h-3 w-3" /> Choose Image
         </button>
 
-        {/* Atmospheric backdrop glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -109,56 +127,22 @@ export function DashboardHologram() {
           }}
         />
 
-        {/* Floating particles */}
-        <div className="holo-particles absolute inset-0 pointer-events-none">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <span
-              key={i}
-              className="holo-particle"
-              style={{
-                left: `${(i * 7 + 8) % 96}%`,
-                width: `${2 + (i % 3)}px`,
-                height: `${2 + (i % 3)}px`,
-                animationDuration: `${5 + (i % 5)}s`,
-                animationDelay: `${(i * 0.4) % 6}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Holographic emblem stage */}
-        <div className="holo-stage relative" style={{ width: 320, height: 320 }}>
-          {/* Vertical projector beam */}
-          <div className="holo-beam" />
-
-          {/* Ground projector rings */}
-          <div className="holo-base">
-            <div className="holo-base-ring" />
-            <div className="holo-base-ring holo-base-ring--inner" />
-          </div>
-
-          {/* Concentric orbital rings */}
-          <div className="holo-orbit holo-orbit--1" />
-          <div className="holo-orbit holo-orbit--2" />
-          <div className="holo-orbit holo-orbit--3" />
-
-          {/* Centerpiece */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <HologramEmblem kind={hologram} size={220} />
-          </div>
-
-          {/* Scanning sweep */}
-          <div
-            className="absolute inset-0 pointer-events-none overflow-hidden"
-            style={{ borderRadius: "50%" }}
-          >
-            <div className="holo-scan-sweep" />
-          </div>
-        </div>
-
+        <HologramEmblem kind={hologram} size={400} />
       </div>
 
-
+      {/* RIGHT — Core Mindset */}
+      <div className="hud-card p-5 flex flex-col gap-4">
+        <span className="hud-label text-[10px] text-primary tracking-[0.3em]">CORE MINDSET</span>
+        <p className="italic text-foreground/90 text-sm leading-relaxed">
+          “You are the sum of your decisions. Today, you stop drifting. Today, you evolve.”
+        </p>
+        <div className="hud-label text-[10px] text-muted-foreground tracking-[0.3em]">
+          DISCIPLINE · FOCUS · FREEDOM
+        </div>
+        <div className="mt-auto">
+          <Sparkline data={[12, 18, 15, 22, 28, 24, 31, 29, 36, 34, 42, 48]} height={56} />
+        </div>
+      </div>
 
       <HologramPicker
         open={pickerOpen}
