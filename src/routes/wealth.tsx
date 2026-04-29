@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Wallet } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
