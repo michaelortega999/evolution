@@ -45,11 +45,11 @@ function Index() {
             <NotesCard />
             <NutritionCard />
             <WealthCard />
-            <JournalCard />
+            <FitnessCard />
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <FitnessCard />
+            <JournalCard />
             <InvestingCard />
             <BusinessCard />
             <HobbyCard />
