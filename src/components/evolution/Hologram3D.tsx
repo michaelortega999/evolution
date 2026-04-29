@@ -449,41 +449,47 @@ function BonsaiHologram() {
         </group>
       ))}
 
-      {/* Leaf clusters at tips — dense foliage */}
+      {/* Leaf clusters at tips — dense 2D leaf billboards */}
       {leafClusters.map((p, i) => {
-        // 18 leaves per cluster, randomly distributed in a small sphere around the tip
-        const leaves = Array.from({ length: 18 }, (_, j) => {
-          const seed = i * 97 + j * 13;
+        const leaves = Array.from({ length: 60 }, (_, j) => {
+          const seed = i * 197 + j * 31;
           const rand = (n: number) => {
             const x = Math.sin(seed + n) * 43758.5453;
             return x - Math.floor(x);
           };
-          const radius = 0.08 + rand(1) * 0.1;
+          const radius = 0.05 + rand(1) * 0.18;
           const phi = Math.acos(1 - 2 * rand(2));
           const theta = 2 * Math.PI * rand(3);
-          return [
-            radius * Math.sin(phi) * Math.cos(theta),
-            radius * Math.cos(phi) * 0.8,
-            radius * Math.sin(phi) * Math.sin(theta),
-            0.035 + rand(4) * 0.025,
-          ] as [number, number, number, number];
+          const size = 0.05 + rand(4) * 0.05;
+          const rot: [number, number, number] = [
+            rand(5) * Math.PI * 2,
+            rand(6) * Math.PI * 2,
+            rand(7) * Math.PI * 2,
+          ];
+          return {
+            pos: [
+              radius * Math.sin(phi) * Math.cos(theta),
+              radius * Math.cos(phi) * 0.85,
+              radius * Math.sin(phi) * Math.sin(theta),
+            ] as [number, number, number],
+            rot,
+            size,
+          };
         });
         return (
           <group key={i} position={p}>
-            {/* Outer canopy glow */}
             <mesh>
-              <sphereGeometry args={[0.18, 16, 16]} />
-              <meshBasicMaterial color={COLOR_PRIMARY} transparent opacity={0.12} />
+              <sphereGeometry args={[0.22, 16, 16]} />
+              <meshBasicMaterial color={COLOR_PRIMARY} transparent opacity={0.1} />
             </mesh>
-            {leaves.map(([x, y, z, r], j) => (
-              <mesh key={j} position={[x, y, z]}>
-                <sphereGeometry args={[r, 10, 10]} />
-                <meshPhongMaterial
+            {leaves.map(({ pos, rot, size }, j) => (
+              <mesh key={j} position={pos} rotation={rot}>
+                <planeGeometry args={[size, size * 1.6]} />
+                <meshBasicMaterial
                   color={COLOR_PRIMARY}
-                  emissive={COLOR_PRIMARY}
-                  emissiveIntensity={0.8}
                   transparent
-                  opacity={0.85}
+                  opacity={0.75}
+                  side={THREE.DoubleSide}
                 />
               </mesh>
             ))}
