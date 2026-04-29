@@ -27,6 +27,7 @@ import travelImg from "@/assets/travel.png";
 import photographyImg from "@/assets/photography.png";
 import videographyImg from "@/assets/videography.png";
 import artImg from "@/assets/art.png";
+import vehicleHud from "@/assets/vehicle-hud.png";
 import { HoloFloat } from "@/components/evolution/HoloFloat";
 
 export const Route = createFileRoute("/hobby")({
@@ -682,6 +683,16 @@ function CarsSection() {
           </div>
         </div>
         <HoloFloat src={carImg} width={280} height={200} className="shrink-0 hidden sm:block" />
+      </div>
+
+      {/* Vehicle HUD showcase */}
+      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-black">
+        <img
+          src={vehicleHud}
+          alt="Vehicle HUD profile"
+          className="w-full h-auto block"
+          style={{ opacity: 0.95 }}
+        />
       </div>
 
       {/* My Cars */}
