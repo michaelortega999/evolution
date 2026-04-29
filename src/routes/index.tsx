@@ -8,7 +8,7 @@ import {
   WealthCard, NutritionCard, FitnessCard, JournalCard,
   InvestingCard, BusinessCard, HobbyCard,
 } from "@/components/evolution/ModuleCards";
-import { CoreMindset } from "@/components/evolution/CoreMindset";
+import { CalendarCard } from "@/components/evolution/CalendarCard";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
 
@@ -43,7 +43,7 @@ function Index() {
           <DashboardHologram />
 
           <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <CoreMindset />
+            <CalendarCard />
             <NutritionCard />
             <WealthCard />
             <FitnessCard />
