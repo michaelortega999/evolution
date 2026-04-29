@@ -390,6 +390,16 @@ export interface EvolutionData {
   carMeets: CarMeet[];
   guitarSessions: GuitarSession[];
   trips: Trip[];
+
+  // Hobby hub
+  cars: Car[];
+  carExpenses: CarExpense[];
+  carEvents: CarEvent[];
+  guitarSkills: GuitarSkill[];
+  guitarSongs: GuitarSong[];
+  guitarWeeklyHoursTarget: number;
+  customHobbies: CustomHobby[];
+  weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
 }
 
 const STORAGE_KEY = "evolution:data:v2";
