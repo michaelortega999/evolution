@@ -162,6 +162,8 @@ export interface MealLog {
   protein: number;
   carbs: number;
   fats: number;
+  time?: string;        // "HH:MM"
+  mealType?: MealType;  // Breakfast | Lunch | Dinner | Snack
 }
 
 export interface GroceryItem {
