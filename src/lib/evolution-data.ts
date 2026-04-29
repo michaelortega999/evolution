@@ -23,18 +23,18 @@ export interface Goal {
   category: GoalCategory;
   target: number;
   current: number;
-  deadline: string; // YYYY-MM-DD
+  deadline: string;
   unit?: string;
   completed: boolean;
 }
 
-export type ReminderOffset = 0 | 15 | 30 | 60 | 1440; // minutes before; 0 = none
+export type ReminderOffset = 0 | 15 | 30 | 60 | 1440;
 
 export interface CalendarEvent {
   id: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:MM (start)
-  endTime?: string; // HH:MM (end, optional — defaults to start + 60min in views)
+  date: string;
+  time: string;
+  endTime?: string;
   title: string;
   reminder?: ReminderOffset;
 }
@@ -62,9 +62,9 @@ export const FOCUS_TAGS: FocusTag[] = [
 
 export interface FocusSession {
   id: string;
-  startedAt: number;   // epoch ms
-  completedAt: number; // epoch ms
-  durationSec: number; // actual seconds completed
+  startedAt: number;
+  completedAt: number;
+  durationSec: number;
   mode: FocusMode;
   task: string;
   tag?: FocusTag;
@@ -74,7 +74,7 @@ export interface FocusSettings {
   focusMin: number;
   shortMin: number;
   longMin: number;
-  longEvery: number; // long break after N focus rounds
+  longEvery: number;
 }
 
 export const defaultFocusSettings: FocusSettings = {
@@ -87,7 +87,7 @@ export const defaultFocusSettings: FocusSettings = {
 export interface Profile {
   name: string;
   tradingBalance: number;
-  goal: number; // portfolio goal
+  goal: number;
   calorieTarget: number;
   gymSessionsTarget: number;
   bench: number;
@@ -106,12 +106,184 @@ export interface TodoItem {
   done: boolean;
 }
 
+// ============ NEW INTERACTIVE TYPES ============
+
+export type WorkoutType = "Push" | "Pull" | "Legs" | "Cardio" | "Full Body";
+export interface WorkoutLog {
+  id: string;
+  date: string;
+  type: WorkoutType;
+  durationMin: number;
+  notes?: string;
+}
+
+export type PRLift = "bench" | "squat" | "deadlift";
+export interface PREntry {
+  id: string;
+  date: string;
+  lift: PRLift;
+  weight: number;
+}
+
+export type StressLevel = "Low" | "Medium" | "High";
+export interface RecoveryEntry {
+  id: string;
+  date: string;
+  sleepHours: number;
+  stress: StressLevel;
+}
+
+export type AssetCategory = "Cash" | "Investment" | "Property" | "Other";
+export interface Asset {
+  id: string;
+  name: string;
+  value: number;
+  category: AssetCategory;
+}
+
+export type TxType = "income" | "expense";
+export interface Transaction {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  type: TxType;
+  category: string;
+}
+
+export interface MealLog {
+  id: string;
+  date: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+}
+
+export interface GroceryItem {
+  id: string;
+  name: string;
+  qty: string;
+  category: string;
+  done: boolean;
+}
+
+export interface WaterEntry {
+  date: string;
+  glasses: number;
+}
+
+export type Mood = "Great" | "Good" | "Neutral" | "Struggling" | "Difficult";
+export interface JournalEntry {
+  id: string;
+  date: string;
+  title: string;
+  text: string;
+  mood: Mood;
+  tags: string[];
+}
+
+export interface Reflection {
+  id: string;
+  date: string;
+  wins: string;
+  challenges: string;
+  lessons: string;
+}
+
+export type NoteCategory = "Trading Ideas" | "Business" | "Fitness" | "General" | "YouTube" | "Instagram";
+export const NOTE_CATEGORIES: NoteCategory[] = ["Trading Ideas", "Business", "Fitness", "General", "YouTube", "Instagram"];
+export interface RichNote {
+  id: string;
+  date: string;
+  title: string;
+  body: string;
+  category: NoteCategory;
+}
+
+export type Instrument = "MNQ" | "MES";
+export type TradeDir = "Long" | "Short";
+export interface Trade {
+  id: string;
+  date: string;
+  instrument: Instrument;
+  direction: TradeDir;
+  entry: number;
+  exit: number;
+  contracts: number;
+  pnl: number;
+  notes?: string;
+}
+
+export interface WatchlistItem {
+  id: string;
+  ticker: string;
+  price: number;
+  notes?: string;
+}
+
+export type ProjectStatus = "Planning" | "In Progress" | "On Hold" | "Completed";
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  status: ProjectStatus;
+  progress: number;
+  deadline: string;
+  revenueTarget: number;
+}
+
+export interface RevenueEntry {
+  id: string;
+  date: string;
+  amount: number;
+  source: string;
+  category: string;
+}
+
+export type TaskPriority = "High" | "Medium" | "Low";
+export interface BizTask {
+  id: string;
+  text: string;
+  priority: TaskPriority;
+  due: string;
+  category: string;
+  done: boolean;
+}
+
+export interface CarMeet {
+  id: string;
+  date: string;
+  location: string;
+  cars: string;
+  notes?: string;
+}
+
+export interface GuitarSession {
+  id: string;
+  date: string;
+  durationMin: number;
+  practiced: string;
+}
+
+export type TripStatus = "Planning" | "Booked" | "Completed";
+export interface Trip {
+  id: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  status: TripStatus;
+  packing: { id: string; item: string; done: boolean }[];
+}
+
 export interface EvolutionData {
   profile: Profile;
   nutrition: NutritionEntry[];
   fitness: FitnessEntry[];
   investing: InvestingEntry[];
-  meals: Meal[]; // meals logged today
+  meals: Meal[];
   notes: TodoItem[];
   journal: { date: string; text: string }[];
   hobby: { current: Hobby; hours: number };
@@ -121,12 +293,33 @@ export interface EvolutionData {
   settings: Settings;
   focusSessions: FocusSession[];
   focusSettings: FocusSettings;
+
+  // New
+  workouts: WorkoutLog[];
+  prHistory: PREntry[];
+  recovery: RecoveryEntry[];
+  assets: Asset[];
+  transactions: Transaction[];
+  mealLogs: MealLog[];
+  grocery: GroceryItem[];
+  water: WaterEntry[];
+  journalEntries: JournalEntry[];
+  reflections: Reflection[];
+  richNotes: RichNote[];
+  trades: Trade[];
+  watchlist: WatchlistItem[];
+  projects: Project[];
+  revenue: RevenueEntry[];
+  bizTasks: BizTask[];
+  carMeets: CarMeet[];
+  guitarSessions: GuitarSession[];
+  trips: Trip[];
 }
 
 const STORAGE_KEY = "evolution:data:v2";
 
 export const defaultProfile: Profile = {
-  name: "",
+  name: "Michael",
   tradingBalance: 1100,
   goal: 50000,
   calorieTarget: 2000,
@@ -178,9 +371,7 @@ export const defaultData: EvolutionData = {
     { id: "n2", text: "Call mom", done: false },
     { id: "n3", text: "Book flight", done: true },
   ],
-  journal: [
-    { date: "2024-05-17", text: "Discipline is choosing between what you want now and what you want most." },
-  ],
+  journal: [],
   hobby: { current: "Guitar", hours: 12.4 },
   events: [],
   goals: [],
@@ -191,6 +382,28 @@ export const defaultData: EvolutionData = {
   },
   focusSessions: [],
   focusSettings: defaultFocusSettings,
+
+  workouts: [],
+  prHistory: [],
+  recovery: [],
+  assets: [],
+  transactions: [],
+  mealLogs: [],
+  grocery: [],
+  water: [],
+  journalEntries: [],
+  reflections: [],
+  richNotes: [],
+  trades: [],
+  watchlist: [],
+  projects: [
+    { id: "p1", name: "Evolution Platform", description: "Personal OS", status: "In Progress", progress: 72, deadline: "2025-12-31", revenueTarget: 18200 },
+  ],
+  revenue: [],
+  bizTasks: [],
+  carMeets: [],
+  guitarSessions: [],
+  trips: [],
 };
 
 function load(): EvolutionData {
@@ -208,15 +421,15 @@ function load(): EvolutionData {
       investing: parsed.investing?.length ? parsed.investing : defaultData.investing,
       meals: parsed.meals ?? [],
       notes: (() => {
-        const raw = (parsed as { notes?: unknown }).notes;
-        if (!Array.isArray(raw)) return defaultData.notes;
-        return raw.map((n, i) =>
+        const r = (parsed as { notes?: unknown }).notes;
+        if (!Array.isArray(r)) return defaultData.notes;
+        return r.map((n, i) =>
           typeof n === "string"
             ? { id: `n-legacy-${i}-${Date.now()}`, text: n, done: false }
             : (n as TodoItem)
         );
       })(),
-      journal: parsed.journal?.length ? parsed.journal : defaultData.journal,
+      journal: parsed.journal ?? [],
       hobby: parsed.hobby ?? defaultData.hobby,
       events: parsed.events ?? [],
       goals: parsed.goals ?? [],
@@ -224,6 +437,25 @@ function load(): EvolutionData {
       settings: { ...defaultData.settings, ...(parsed.settings ?? {}) },
       focusSessions: parsed.focusSessions ?? [],
       focusSettings: { ...defaultFocusSettings, ...(parsed.focusSettings ?? {}) },
+      workouts: parsed.workouts ?? [],
+      prHistory: parsed.prHistory ?? [],
+      recovery: parsed.recovery ?? [],
+      assets: parsed.assets ?? [],
+      transactions: parsed.transactions ?? [],
+      mealLogs: parsed.mealLogs ?? [],
+      grocery: parsed.grocery ?? [],
+      water: parsed.water ?? [],
+      journalEntries: parsed.journalEntries ?? [],
+      reflections: parsed.reflections ?? [],
+      richNotes: parsed.richNotes ?? [],
+      trades: parsed.trades ?? [],
+      watchlist: parsed.watchlist ?? [],
+      projects: parsed.projects ?? defaultData.projects,
+      revenue: parsed.revenue ?? [],
+      bizTasks: parsed.bizTasks ?? [],
+      carMeets: parsed.carMeets ?? [],
+      guitarSessions: parsed.guitarSessions ?? [],
+      trips: parsed.trips ?? [],
     };
   } catch {
     return defaultData;
@@ -280,6 +512,10 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+export function uid() {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export function mealTotals(meals: Meal[]) {
   const t = { kcal: 0, p: 0, c: 0, f: 0 };
   for (const m of meals) {
@@ -290,17 +526,25 @@ export function mealTotals(meals: Meal[]) {
   return t;
 }
 
-export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: number) {
-  const logged = mealTotals(meals);
+export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: number, mealLogs: MealLog[] = []) {
+  const today = todayDate();
+  const todayLogs = mealLogs.filter((m) => m.date === today);
+  const loggedQuick = mealTotals(meals);
+  const loggedCustom = todayLogs.reduce((acc, m) => ({
+    kcal: acc.kcal + m.calories, p: acc.p + m.protein, c: acc.c + m.carbs, f: acc.f + m.fats,
+  }), { kcal: 0, p: 0, c: 0, f: 0 });
   const last = rows[rows.length - 1];
-  const kcal = logged.kcal || last?.calories || 0;
+  const kcal = (loggedQuick.kcal + loggedCustom.kcal) || last?.calories || 0;
+  const protein = (loggedQuick.p + loggedCustom.p) || last?.protein || 0;
+  const carbs = (loggedQuick.c + loggedCustom.c) || last?.carbs || 0;
+  const fats = (loggedQuick.f + loggedCustom.f) || last?.fats || 0;
   return {
     last,
     target,
     calories: kcal,
-    protein: logged.p || last?.protein || 0,
-    carbs: logged.c || last?.carbs || 0,
-    fats: logged.f || last?.fats || 0,
+    protein,
+    carbs,
+    fats,
     percent: Math.min(100, Math.round((kcal / target) * 100)),
   };
 }
