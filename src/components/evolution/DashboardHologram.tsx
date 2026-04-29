@@ -87,7 +87,7 @@ export function DashboardHologram() {
   const hologram: HologramKey = (data.profile.hologram as HologramKey) ?? "bonsai";
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[460px]">
+    <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[350px] lg:items-stretch">
       {/* LEFT — System Status */}
       <div className="hud-card p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
