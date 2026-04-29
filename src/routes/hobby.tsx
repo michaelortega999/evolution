@@ -23,6 +23,10 @@ import hobbyHologram from "@/assets/hobby-hologram.png";
 import earthImg from "@/assets/earth.png";
 import carImg from "@/assets/car.png";
 import guitarImg from "@/assets/guitar.png";
+import travelImg from "@/assets/travel.png";
+import photographyImg from "@/assets/photography.png";
+import videographyImg from "@/assets/videography.png";
+import artImg from "@/assets/art.png";
 import { HoloFloat } from "@/components/evolution/HoloFloat";
 
 export const Route = createFileRoute("/hobby")({
@@ -118,8 +122,10 @@ function HobbyPage() {
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="travel">Travel</TabsTrigger>
-          <TabsTrigger value="cars">Cars</TabsTrigger>
+          <TabsTrigger value="photography">Photography</TabsTrigger>
+          <TabsTrigger value="videography">Videography</TabsTrigger>
           <TabsTrigger value="guitar">Guitar</TabsTrigger>
+          <TabsTrigger value="art">Art</TabsTrigger>
         </TabsList>
 
         {/* ============ OVERVIEW ============ */}
@@ -130,16 +136,25 @@ function HobbyPage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <HobbyCard label="Travel" icon={Plane} hero={HOBBY_HEROS.Travel}
-              statValue={`${data.trips.length}`} statLabel="trips planned"
-              onOpen={() => setTab("travel")} />
-            <HobbyCard label="Cars" icon={CarIcon} hero={HOBBY_HEROS.Cars}
-              statValue={`${data.cars.length}`} statLabel="cars in garage"
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
+            <HobbyCard label="Cars" icon={CarIcon} hero={carImg}
+              statValue={`${data.cars.length}`} statLabel="Cars in Garage"
               onOpen={() => setTab("cars")} />
-            <HobbyCard label="Guitar" icon={Music} hero={HOBBY_HEROS.Guitar}
-              statValue={`${weeklyGuitarHrs.toFixed(1)}h`} statLabel="practiced this week"
+            <HobbyCard label="Videography" icon={Music} hero={videographyImg}
+              statValue="0" statLabel="Projects Completed"
+              onOpen={() => setTab("videography")} />
+            <HobbyCard label="Photography" icon={Music} hero={photographyImg}
+              statValue="0" statLabel="Projects Completed"
+              onOpen={() => setTab("photography")} />
+            <HobbyCard label="Travel" icon={Plane} hero={travelImg}
+              statValue={`${data.trips.length}`} statLabel="Trips Planned"
+              onOpen={() => setTab("travel")} />
+            <HobbyCard label="Guitar" icon={Music} hero={guitarImg}
+              statValue={`${weeklyGuitarHrs.toFixed(1)} HRS`} statLabel="Practiced This Week"
               onOpen={() => setTab("guitar")} />
+            <HobbyCard label="Art" icon={Star} hero={artImg}
+              statValue="0" statLabel="Artworks Created"
+              onOpen={() => setTab("art")} />
           </div>
 
           {data.customHobbies.length > 0 && (
