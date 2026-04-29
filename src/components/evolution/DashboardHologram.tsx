@@ -88,23 +88,17 @@ export function DashboardHologram() {
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[280px] lg:items-stretch">
-      {/* LEFT — System Status */}
+      {/* LEFT — Core Mindset */}
       <div className="hud-card p-5 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="hud-label text-[10px] text-primary tracking-[0.3em]">SYSTEM STATUS</span>
+        <span className="hud-label text-[10px] text-primary tracking-[0.3em]">CORE MINDSET</span>
+        <p className="italic text-foreground/90 text-sm leading-relaxed">
+          “You are the sum of your decisions. Today, you stop drifting. Today, you evolve.”
+        </p>
+        <div className="hud-label text-[10px] text-muted-foreground tracking-[0.3em]">
+          DISCIPLINE · FOCUS · FREEDOM
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="h-2 w-2 rounded-full"
-            style={{ background: "#22ff88", boxShadow: "0 0 8px #22ff88" }}
-          />
-          <span className="hud-label text-[11px] text-[#22ff88] tracking-[0.25em]">OPTIMAL</span>
-        </div>
-        <div className="flex flex-col gap-3 mt-1">
-          <StatusBar label="FOCUS LEVEL"   value={status.focus}      onChange={(v) => updateStatus({ focus: v })} />
-          <StatusBar label="MENTAL ENERGY" value={status.energy}     onChange={(v) => updateStatus({ energy: v })} />
-          <StatusBar label="DISCIPLINE"    value={status.discipline} onChange={(v) => updateStatus({ discipline: v })} />
-          <StatusBar label="EXECUTION"     value={status.execution}  onChange={(v) => updateStatus({ execution: v })} />
+        <div className="mt-auto">
+          <Sparkline data={[12, 18, 15, 22, 28, 24, 31, 29, 36, 34, 42, 48]} height={56} />
         </div>
       </div>
 
@@ -130,17 +124,23 @@ export function DashboardHologram() {
         <HologramEmblem kind={hologram} size={250} />
       </div>
 
-      {/* RIGHT — Core Mindset */}
+      {/* RIGHT — System Status */}
       <div className="hud-card p-5 flex flex-col gap-4">
-        <span className="hud-label text-[10px] text-primary tracking-[0.3em]">CORE MINDSET</span>
-        <p className="italic text-foreground/90 text-sm leading-relaxed">
-          “You are the sum of your decisions. Today, you stop drifting. Today, you evolve.”
-        </p>
-        <div className="hud-label text-[10px] text-muted-foreground tracking-[0.3em]">
-          DISCIPLINE · FOCUS · FREEDOM
+        <div className="flex items-center justify-between">
+          <span className="hud-label text-[10px] text-primary tracking-[0.3em]">SYSTEM STATUS</span>
         </div>
-        <div className="mt-auto">
-          <Sparkline data={[12, 18, 15, 22, 28, 24, 31, 29, 36, 34, 42, 48]} height={56} />
+        <div className="flex items-center gap-2">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{ background: "#22ff88", boxShadow: "0 0 8px #22ff88" }}
+          />
+          <span className="hud-label text-[11px] text-[#22ff88] tracking-[0.25em]">OPTIMAL</span>
+        </div>
+        <div className="flex flex-col gap-3 mt-1">
+          <StatusBar label="FOCUS LEVEL"   value={status.focus}      onChange={(v) => updateStatus({ focus: v })} />
+          <StatusBar label="MENTAL ENERGY" value={status.energy}     onChange={(v) => updateStatus({ energy: v })} />
+          <StatusBar label="DISCIPLINE"    value={status.discipline} onChange={(v) => updateStatus({ discipline: v })} />
+          <StatusBar label="EXECUTION"     value={status.execution}  onChange={(v) => updateStatus({ execution: v })} />
         </div>
       </div>
 
