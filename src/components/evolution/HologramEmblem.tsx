@@ -17,9 +17,9 @@ export function HologramEmblem({ kind, size = 192 }: Props) {
       style={{ width: size, height: size }}
       aria-hidden
     >
-      <BonsaiImg />
-      {/* legacy refs kept to avoid unused warnings */}
-      {false && <><EarthSvg /><BrainSvg /></>}
+      {kind === "earth" && <EarthSvg />}
+      {kind === "brain" && <BrainSvg />}
+      {kind === "bonsai" && <BonsaiImg />}
     </div>
   );
 }
