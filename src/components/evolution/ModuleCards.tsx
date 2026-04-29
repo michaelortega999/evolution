@@ -406,6 +406,7 @@ export function HobbyCard() {
               className="mt-2 h-7 text-[10px] hud-label text-primary border border-primary/40 rounded hover:bg-primary/10">
         + 30 min
       </button>
+      </div>
     </Card>
   );
 }
