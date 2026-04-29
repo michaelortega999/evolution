@@ -5,7 +5,7 @@ import { useEvolutionData } from "@/lib/evolution-data";
 import { type HologramKey } from "@/lib/holograms";
 import { HologramEmblem } from "./HologramEmblem";
 import { HologramPicker } from "./HologramPicker";
-import { Sparkline } from "./Sparkline";
+import { NotesCard } from "./ModuleCards";
 import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 
 export function DashboardHologram() {
