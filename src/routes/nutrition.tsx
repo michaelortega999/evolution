@@ -879,6 +879,29 @@ function NutritionPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Reset today confirmation */}
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent className="hud-card border-destructive/50">
+          <DialogHeader>
+            <DialogTitle className="hud-label text-destructive">Reset Today's Log?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This clears all <span className="text-foreground">{todayMeals.length}</span> meal{todayMeals.length === 1 ? "" : "s"} and{" "}
+            <span className="text-foreground">{todayWater}</span> glass{todayWater === 1 ? "" : "es"} of water for today.
+            You can undo this immediately after.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetOpen(false)} className="hud-label text-[10px]">Cancel</Button>
+            <Button
+              onClick={resetToday}
+              className="hud-label text-[10px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Reset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ModuleLayout>
   );
 }
