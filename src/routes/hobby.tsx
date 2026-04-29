@@ -685,6 +685,16 @@ function CarsSection() {
         <HoloFloat src={carImg} width={280} height={200} className="shrink-0 hidden sm:block" />
       </div>
 
+      {/* Vehicle HUD showcase */}
+      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-black">
+        <img
+          src={vehicleHud}
+          alt="Vehicle HUD profile"
+          className="w-full h-auto block"
+          style={{ opacity: 0.95 }}
+        />
+      </div>
+
       {/* My Cars */}
       <div className="flex items-center justify-between">
         <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><CarIcon className="h-4 w-4" /> My Garage</h2>
