@@ -123,8 +123,37 @@ function NutritionPage() {
     setMName(""); setMKcal(""); setMP(""); setMC(""); setMF("");
     setMealOpen(false);
   };
-  const delMeal = (id: string) =>
+  // ------- Undo stack (in-memory snapshots of today's meals + water) -------
+  type Snapshot = { mealLogs: typeof data.mealLogs; water: typeof data.water; label: string };
+  const [undoStack, setUndoStack] = useState<Snapshot[]>([]);
+  const pushSnapshot = (label: string) => {
+    setUndoStack((s) => [
+      ...s.slice(-19), // keep last 20
+      { mealLogs: data.mealLogs, water: data.water, label },
+    ]);
+  };
+  const undo = () => {
+    if (!undoStack.length) return;
+    const last = undoStack[undoStack.length - 1];
+    mutate(() => ({ mealLogs: last.mealLogs, water: last.water }));
+    setUndoStack((s) => s.slice(0, -1));
+  };
+
+  const delMeal = (id: string) => {
+    pushSnapshot("Deleted meal");
     mutate((prev) => ({ mealLogs: prev.mealLogs.filter((m) => m.id !== id) }));
+  };
+
+  // ------- Reset today -------
+  const [resetOpen, setResetOpen] = useState(false);
+  const resetToday = () => {
+    pushSnapshot("Reset today");
+    mutate((prev) => ({
+      mealLogs: prev.mealLogs.filter((m) => m.date !== today),
+      water: prev.water.filter((w) => w.date !== today),
+    }));
+    setResetOpen(false);
+  };
 
   // ------- Water -------
   const todayWater = data.water.find((w) => w.date === today)?.glasses ?? 0;
