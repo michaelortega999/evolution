@@ -56,11 +56,11 @@ export interface Settings {
 export type FocusMode = "focus" | "short" | "long";
 export type FocusTag =
   | "Wealth" | "Nutrition" | "Fitness" | "Journal"
-  | "Notes" | "Investing" | "Business" | "Hobby";
+  | "Notes" | "Investing" | "Business" | "Hobby" | "Guitar";
 
 export const FOCUS_TAGS: FocusTag[] = [
   "Wealth", "Nutrition", "Fitness", "Journal",
-  "Notes", "Investing", "Business", "Hobby",
+  "Notes", "Investing", "Business", "Hobby", "Guitar",
 ];
 
 export interface FocusSession {
@@ -277,7 +277,7 @@ export interface GuitarSession {
   practiced: string;
 }
 
-export type TripStatus = "Planning" | "Booked" | "Completed";
+export type TripStatus = "Planning" | "Booked" | "In Progress" | "Completed";
 export interface Trip {
   id: string;
   destination: string;
@@ -285,7 +285,73 @@ export interface Trip {
   endDate: string;
   budget: number;
   status: TripStatus;
+  notes?: string;
   packing: { id: string; item: string; done: boolean }[];
+}
+
+// ---------- Cars ----------
+export interface Car {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  color: string;
+  purchasePrice: number;
+  currentValue: number;
+}
+
+export type CarExpenseType = "Gas" | "Insurance" | "Maintenance" | "Modification" | "Parking" | "Registration" | "Other";
+export const CAR_EXPENSE_TYPES: CarExpenseType[] = ["Gas", "Insurance", "Maintenance", "Modification", "Parking", "Registration", "Other"];
+export interface CarExpense {
+  id: string;
+  carId: string;
+  date: string;
+  type: CarExpenseType;
+  amount: number;
+  notes?: string;
+  // Gas-specific
+  gallons?: number;
+  pricePerGallon?: number;
+  mileage?: number;
+  // Linked transaction id in wealth
+  txId?: string;
+}
+
+export type CarEventRsvp = "None" | "Interested" | "Going" | "Attended";
+export interface CarEvent {
+  id: string;
+  name: string;
+  date: string;
+  location: string;
+  description?: string;
+  rsvp: CarEventRsvp;
+  seed?: boolean; // built-in seed event
+  calendarId?: string; // linked calendar event id
+}
+
+// ---------- Guitar ----------
+export type SkillLevel = "Beginner" | "Developing" | "Intermediate" | "Advanced" | "Mastered";
+export const SKILL_LEVELS: SkillLevel[] = ["Beginner", "Developing", "Intermediate", "Advanced", "Mastered"];
+export interface GuitarSkill {
+  id: string;
+  name: string;
+  level: SkillLevel;
+}
+export interface GuitarSong {
+  id: string;
+  title: string;
+  artist: string;
+  progress: number; // 0–100
+  targetDate: string;
+}
+
+// ---------- Custom hobbies ----------
+export interface CustomHobby {
+  id: string;
+  name: string;
+  icon: string; // emoji
+  weeklyHoursTarget: number;
+  hours: number;
 }
 
 export interface EvolutionData {
@@ -324,6 +390,16 @@ export interface EvolutionData {
   carMeets: CarMeet[];
   guitarSessions: GuitarSession[];
   trips: Trip[];
+
+  // Hobby hub
+  cars: Car[];
+  carExpenses: CarExpense[];
+  carEvents: CarEvent[];
+  guitarSkills: GuitarSkill[];
+  guitarSongs: GuitarSong[];
+  guitarWeeklyHoursTarget: number;
+  customHobbies: CustomHobby[];
+  weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
 }
 
 const STORAGE_KEY = "evolution:data:v2";
@@ -417,7 +493,35 @@ export const defaultData: EvolutionData = {
   carMeets: [],
   guitarSessions: [],
   trips: [],
+
+  cars: [],
+  carExpenses: [],
+  carEvents: [
+    { id: "ce-seed-1", name: "Cars & Coffee — Downtown", date: nextSatISO(), location: "Main St Plaza", description: "Weekly enthusiast meet, 7–10am.", rsvp: "None", seed: true },
+    { id: "ce-seed-2", name: "Radwood Classic Show", date: futureISO(21), location: "Convention Center", description: "80s & 90s rad-era classics.", rsvp: "None", seed: true },
+    { id: "ce-seed-3", name: "JDM Sunday Drive", date: futureISO(14), location: "Canyon Loop", description: "Spirited drive + breakfast stop.", rsvp: "None", seed: true },
+    { id: "ce-seed-4", name: "Local Auto-X Round", date: futureISO(28), location: "Speedway South Lot", description: "Run what you brung, helmets required.", rsvp: "None", seed: true },
+    { id: "ce-seed-5", name: "Euro Meet", date: futureISO(35), location: "Riverside Park", description: "BMW, Porsche, Audi enthusiasts.", rsvp: "None", seed: true },
+    { id: "ce-seed-6", name: "Track Day — Beginner Friendly", date: futureISO(42), location: "Raceway Park", description: "HPDE, all skill levels welcome.", rsvp: "None", seed: true },
+  ],
+  guitarSkills: [],
+  guitarSongs: [],
+  guitarWeeklyHoursTarget: 5,
+  customHobbies: [],
+  weeklyHobbyTargets: { travel: 2, cars: 3, guitar: 5 },
 };
+
+function futureISO(daysAhead: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+function nextSatISO(): string {
+  const d = new Date();
+  const diff = (6 - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
 
 function load(): EvolutionData {
   if (typeof window === "undefined") return defaultData;
@@ -469,6 +573,14 @@ function load(): EvolutionData {
       carMeets: parsed.carMeets ?? [],
       guitarSessions: parsed.guitarSessions ?? [],
       trips: parsed.trips ?? [],
+      cars: parsed.cars ?? [],
+      carExpenses: parsed.carExpenses ?? [],
+      carEvents: parsed.carEvents?.length ? parsed.carEvents : defaultData.carEvents,
+      guitarSkills: parsed.guitarSkills ?? [],
+      guitarSongs: parsed.guitarSongs ?? [],
+      guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
+      customHobbies: parsed.customHobbies ?? [],
+      weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
     };
   } catch {
     return defaultData;
