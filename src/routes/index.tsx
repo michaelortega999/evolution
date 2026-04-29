@@ -6,8 +6,9 @@ import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
 import {
   WealthCard, NutritionCard, FitnessCard, JournalCard,
-  NotesCard, InvestingCard, BusinessCard, HobbyCard,
+  InvestingCard, BusinessCard, HobbyCard,
 } from "@/components/evolution/ModuleCards";
+import { CoreMindset } from "@/components/evolution/CoreMindset";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
 
@@ -42,7 +43,7 @@ function Index() {
           <DashboardHologram />
 
           <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <NotesCard />
+            <CoreMindset />
             <NutritionCard />
             <WealthCard />
             <FitnessCard />
