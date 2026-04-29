@@ -127,7 +127,7 @@ export function DashboardHologram() {
           }}
         />
 
-        <HologramEmblem kind={hologram} size={400} />
+        <HologramEmblem kind={hologram} size={310} />
       </div>
 
       {/* RIGHT — Core Mindset */}
