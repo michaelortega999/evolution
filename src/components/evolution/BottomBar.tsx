@@ -16,7 +16,7 @@ const markets = [
 export function BottomBar() {
   const { data, mutate } = useEvolutionData();
   const [evt, setEvt] = useState("");
-  const timer = useFocusTimer();
+  
 
   const addEvent = () => {
     const text = evt.trim();
