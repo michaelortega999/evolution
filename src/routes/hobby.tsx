@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEvolutionData, todayDate, uid, type Hobby, type TripStatus } from "@/lib/evolution-data";
+import hobbyHologram from "@/assets/hobby-hologram.png";
 
 export const Route = createFileRoute("/hobby")({
   head: () => ({ meta: [{ title: "Hobby — Evolution" }, { name: "description", content: "Cars, guitar, travel — track time invested in your craft." }] }),
@@ -79,6 +80,22 @@ function HobbyPage() {
 
   return (
     <ModuleLayout number="08" title="Hobby" subtitle="Craft · Time · Mastery" icon={Star}>
+      <div className="relative w-full h-[300px] overflow-hidden rounded-lg border border-border bg-black">
+        <img
+          src={hobbyHologram}
+          alt=""
+          aria-hidden="true"
+          className="hobby-holo-img absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: 0.95 }}
+        />
+        {/* Subtle dark overlay for readability of any future text */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(0,0,0,0.15)" }} />
+        {/* Gradient fade into page background at the bottom */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+          style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }}
+        />
+      </div>
       <Tabs defaultValue="overview">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="overview">Overview</TabsTrigger>
