@@ -581,3 +581,52 @@ export function investingSummary(rows: InvestingEntry[]) {
 }
 
 export function todayDate() { return today(); }
+
+// ---------- Nutrition helpers ----------
+
+export function dayTotals(date: string, mealLogs: MealLog[]) {
+  const logs = mealLogs.filter((m) => m.date === date);
+  return logs.reduce(
+    (a, m) => ({
+      kcal: a.kcal + m.calories,
+      p: a.p + m.protein,
+      c: a.c + m.carbs,
+      f: a.f + m.fats,
+    }),
+    { kcal: 0, p: 0, c: 0, f: 0 }
+  );
+}
+
+export function nutritionStreak(mealLogs: MealLog[], target: number) {
+  if (!target) return 0;
+  let streak = 0;
+  const d = new Date();
+  // walk back day-by-day; today only counts if hit
+  for (let i = 0; i < 365; i++) {
+    const iso = new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10);
+    const total = dayTotals(iso, mealLogs).kcal;
+    const hit = total > 0 && total <= target * 1.05 && total >= target * 0.85;
+    if (hit) streak++;
+    else if (i > 0) break; // allow today to be in-progress without breaking
+  }
+  return streak;
+}
+
+export function weeklyAverage(mealLogs: MealLog[]) {
+  const days: string[] = [];
+  const d = new Date();
+  for (let i = 6; i >= 0; i--) days.push(new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10));
+  const totals = days.map((iso) => dayTotals(iso, mealLogs).kcal);
+  const logged = totals.filter((t) => t > 0);
+  const avg = logged.length ? Math.round(logged.reduce((a, b) => a + b, 0) / logged.length) : 0;
+  return { days, totals, avg };
+}
+
+export function mostLoggedMeal(mealLogs: MealLog[]) {
+  const counts = new Map<string, number>();
+  for (const m of mealLogs) counts.set(m.name, (counts.get(m.name) ?? 0) + 1);
+  let best = ""; let n = 0;
+  for (const [name, c] of counts) if (c > n) { best = name; n = c; }
+  return best ? { name: best, count: n } : null;
+}
+
