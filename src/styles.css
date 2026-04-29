@@ -749,8 +749,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transform-style: preserve-3d;
-  animation: holo-rotate 12s linear infinite;
+  animation: holo-spin 8s ease-in-out infinite;
+  transform-origin: center center;
   z-index: 1;
 }
 
@@ -760,14 +760,14 @@
   object-fit: contain;
   mix-blend-mode: screen;
   filter:
-    brightness(1.15)
-    contrast(1.25)
+    brightness(1.2)
+    contrast(1.1)
     saturate(1.35)
     drop-shadow(0 0 10px rgba(0, 180, 255, 0.6))
     drop-shadow(0 0 22px rgba(0, 130, 255, 0.35));
   user-select: none;
   -webkit-user-drag: none;
-  backface-visibility: visible;
+  background: transparent;
 }
 
 /* Faint repeating horizontal scanlines */
@@ -860,9 +860,12 @@
   z-index: 5;
 }
 
-@keyframes holo-rotate {
-  0%   { transform: perspective(800px) rotateY(0deg); }
-  100% { transform: perspective(800px) rotateY(360deg); }
+@keyframes holo-spin {
+  0%   { transform: perspective(1000px) rotateY(-15deg) rotateX(5deg); }
+  25%  { transform: perspective(1000px) rotateY(5deg)   rotateX(-3deg); }
+  50%  { transform: perspective(1000px) rotateY(15deg)  rotateX(5deg); }
+  75%  { transform: perspective(1000px) rotateY(5deg)   rotateX(-3deg); }
+  100% { transform: perspective(1000px) rotateY(-15deg) rotateX(5deg); }
 }
 
 @keyframes holo-sweep {
