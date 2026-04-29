@@ -966,6 +966,20 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
 
   return (
     <>
+      {/* Hero */}
+      <div className="relative flex items-start justify-between gap-4 rounded-lg border border-border bg-black/40 p-5 overflow-hidden">
+        <div className="flex-1 min-w-0">
+          <h2 className="hud-label text-lg text-primary hud-glow flex items-center gap-2"><Music className="h-4 w-4" /> Guitar</h2>
+          <p className="hud-label text-[10px] text-muted-foreground mt-1">Practice timer connects to Focus Mode and logs sessions tagged #Guitar.</p>
+          <div className="grid grid-cols-3 gap-3 mt-4 max-w-md">
+            <div><div className="hud-label text-[10px] text-muted-foreground">This Week</div><div className="hud-label text-lg text-primary tabular-nums">{weeklyGuitarHrs.toFixed(1)}h</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Skills</div><div className="hud-label text-lg text-foreground tabular-nums">{data.guitarSkills.length}</div></div>
+            <div><div className="hud-label text-[10px] text-muted-foreground">Songs</div><div className="hud-label text-lg text-foreground tabular-nums">{data.guitarSongs.length}</div></div>
+          </div>
+        </div>
+        <HoloFloat src={guitarImg} width={220} height={320} className="shrink-0 hidden sm:block" />
+      </div>
+
       {/* Practice Timer */}
       <Panel title="Practice Timer · Connected to Focus Mode">
         <div className="flex flex-col items-center gap-4 py-4">
