@@ -1238,3 +1238,163 @@ function RingSvg({ pct, size }: { pct: number; size: number }) {
     </svg>
   );
 }
+
+// ============= Interactive Vehicle HUD =============
+type Hotspot = {
+  id: string;
+  label: string;
+  detail: string;
+  // % positions over the image
+  x: number;
+  y: number;
+  action?: () => void;
+  actionLabel?: string;
+  value?: string;
+};
+
+function InteractiveVehicleHud({
+  onAddExpense, onAddCar, onAddEvent,
+  garageCount, monthlySpend, upcomingEvents,
+}: {
+  onAddExpense: () => void;
+  onAddCar: () => void;
+  onAddEvent: () => void;
+  garageCount: number;
+  monthlySpend: number;
+  upcomingEvents: number;
+}) {
+  const [active, setActive] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+
+  const hotspots: Hotspot[] = [
+    {
+      id: "engine", label: "Powertrain", x: 28, y: 42,
+      detail: "Engine telemetry & maintenance log.",
+      value: `${garageCount} vehicle${garageCount === 1 ? "" : "s"}`,
+      actionLabel: "Add Vehicle", action: onAddCar,
+    },
+    {
+      id: "fuel", label: "Fuel / Expenses", x: 52, y: 58,
+      detail: "Log gas, insurance, mods & maintenance.",
+      value: `$${monthlySpend.toFixed(0)} / mo`,
+      actionLabel: "Log Expense", action: onAddExpense,
+    },
+    {
+      id: "events", label: "Meets & Events", x: 76, y: 38,
+      detail: "Plan car meets, shows, track days.",
+      value: `${upcomingEvents} scheduled`,
+      actionLabel: "Add Event", action: onAddEvent,
+    },
+    {
+      id: "wheels", label: "Performance", x: 18, y: 72,
+      detail: "Mileage tracking & MPG analytics.",
+      value: "Live",
+    },
+    {
+      id: "cabin", label: "Cabin Systems", x: 62, y: 28,
+      detail: "Interior, audio & comfort tracking.",
+      value: "Online",
+    },
+  ];
+
+  return (
+    <div
+      className="relative w-full overflow-hidden rounded-lg border border-border bg-black select-none"
+      onClick={() => setActive(null)}
+    >
+      <img
+        src={vehicleHud}
+        alt="Interactive Vehicle HUD profile"
+        className="w-full h-auto block"
+        style={{ opacity: 0.95 }}
+        draggable={false}
+      />
+
+      {/* Scanline overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30 mix-blend-screen"
+        style={{
+          background:
+            "repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in oklab, var(--glow) 8%, transparent) 3px 4px)",
+        }}
+      />
+
+      {/* HUD corner readouts */}
+      <div className="pointer-events-none absolute top-2 left-2 text-[10px] hud-label text-primary/80">
+        ◢ SYS · ONLINE
+      </div>
+      <div className="pointer-events-none absolute top-2 right-2 text-[10px] hud-label text-primary/80 tabular-nums">
+        VHX-{String(garageCount).padStart(2, "0")} · {new Date().toISOString().slice(0,10)}
+      </div>
+      <div className="pointer-events-none absolute bottom-2 left-2 text-[10px] hud-label text-muted-foreground">
+        Tap nodes to interact
+      </div>
+
+      {hotspots.map((h) => {
+        const isActive = active === h.id;
+        const isHover = hover === h.id;
+        return (
+          <div
+            key={h.id}
+            className="absolute"
+            style={{ left: `${h.x}%`, top: `${h.y}%`, transform: "translate(-50%,-50%)" }}
+            onClick={(e) => { e.stopPropagation(); setActive(isActive ? null : h.id); }}
+            onMouseEnter={() => setHover(h.id)}
+            onMouseLeave={() => setHover(null)}
+          >
+            {/* Pulsing ring */}
+            <button
+              type="button"
+              aria-label={h.label}
+              className="relative block h-4 w-4 sm:h-5 sm:w-5 rounded-full focus:outline-none"
+              style={{
+                background: "color-mix(in oklab, var(--glow) 80%, transparent)",
+                boxShadow:
+                  "0 0 0 2px color-mix(in oklab, var(--glow) 40%, transparent), 0 0 18px color-mix(in oklab, var(--glow) 70%, transparent)",
+              }}
+            >
+              <span
+                className="absolute inset-0 rounded-full animate-ping"
+                style={{ background: "color-mix(in oklab, var(--glow) 50%, transparent)" }}
+              />
+            </button>
+
+            {/* Label tag (hover) */}
+            {(isHover && !isActive) && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 -top-7 whitespace-nowrap rounded border border-border bg-black/80 px-2 py-0.5 text-[10px] hud-label text-primary"
+                style={{ boxShadow: "0 0 12px color-mix(in oklab, var(--glow) 40%, transparent)" }}
+              >
+                {h.label}
+              </div>
+            )}
+
+            {/* Active popover */}
+            {isActive && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="absolute left-1/2 -translate-x-1/2 top-5 z-10 w-56 rounded-lg border border-border bg-black/90 p-3 backdrop-blur"
+                style={{ boxShadow: "0 0 24px color-mix(in oklab, var(--glow) 50%, transparent)" }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="hud-label text-xs text-primary">{h.label}</div>
+                  {h.value && <div className="hud-label text-[10px] text-muted-foreground tabular-nums">{h.value}</div>}
+                </div>
+                <p className="mt-1 text-[11px] text-foreground/80 leading-snug">{h.detail}</p>
+                {h.action && h.actionLabel && (
+                  <button
+                    type="button"
+                    onClick={() => { h.action!(); setActive(null); }}
+                    className="mt-2 w-full rounded border border-primary/50 bg-primary/10 px-2 py-1 text-[11px] hud-label text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    {h.actionLabel}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
