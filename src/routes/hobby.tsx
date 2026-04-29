@@ -624,7 +624,7 @@ function CarsSection() {
           return (
             <div key={c.id} className="hud-card p-0 overflow-hidden group relative">
               <div className="relative h-24 bg-black overflow-hidden">
-                <img src={brainImg} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.6 }} />
+                <img src={carImg} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.6 }} />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 30%, var(--card))" }} />
               </div>
               <div className="p-4">
