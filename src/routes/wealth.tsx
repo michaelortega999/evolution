@@ -27,9 +27,16 @@ function WealthPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
   const [amount, setAmount] = useState("");
   const [label, setLabel] = useState("");
+  const [editingNet, setEditingNet] = useState(false);
+  const [netInput, setNetInput] = useState("");
+  const netInputRef = useRef<HTMLInputElement>(null);
   const inv = investingSummary(data.investing);
   const netWorth = inv.current + data.profile.tradingBalance;
   const goalPct = Math.min(100, Math.round((netWorth / data.profile.goal) * 100));
+
+  useEffect(() => {
+    if (editingNet) netInputRef.current?.focus();
+  }, [editingNet]);
 
   const addAsset = () => {
     const n = Number(amount);
@@ -39,6 +46,22 @@ function WealthPage() {
     }));
     setAmount("");
     setLabel("");
+  };
+
+  const startEditNet = () => {
+    setNetInput(String(Math.round(netWorth)));
+    setEditingNet(true);
+  };
+
+  const commitNet = () => {
+    const target = Number(netInput);
+    if (!isNaN(target) && target >= 0) {
+      const newInvesting = Math.max(0, target - data.profile.tradingBalance);
+      mutate((prev) => ({
+        investing: [...prev.investing, { date: todayDate(), value: newInvesting }],
+      }));
+    }
+    setEditingNet(false);
   };
 
   const first = data.investing[0]?.value ?? 0;
