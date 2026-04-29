@@ -493,7 +493,35 @@ export const defaultData: EvolutionData = {
   carMeets: [],
   guitarSessions: [],
   trips: [],
+
+  cars: [],
+  carExpenses: [],
+  carEvents: [
+    { id: "ce-seed-1", name: "Cars & Coffee — Downtown", date: nextSatISO(), location: "Main St Plaza", description: "Weekly enthusiast meet, 7–10am.", rsvp: "None", seed: true },
+    { id: "ce-seed-2", name: "Radwood Classic Show", date: futureISO(21), location: "Convention Center", description: "80s & 90s rad-era classics.", rsvp: "None", seed: true },
+    { id: "ce-seed-3", name: "JDM Sunday Drive", date: futureISO(14), location: "Canyon Loop", description: "Spirited drive + breakfast stop.", rsvp: "None", seed: true },
+    { id: "ce-seed-4", name: "Local Auto-X Round", date: futureISO(28), location: "Speedway South Lot", description: "Run what you brung, helmets required.", rsvp: "None", seed: true },
+    { id: "ce-seed-5", name: "Euro Meet", date: futureISO(35), location: "Riverside Park", description: "BMW, Porsche, Audi enthusiasts.", rsvp: "None", seed: true },
+    { id: "ce-seed-6", name: "Track Day — Beginner Friendly", date: futureISO(42), location: "Raceway Park", description: "HPDE, all skill levels welcome.", rsvp: "None", seed: true },
+  ],
+  guitarSkills: [],
+  guitarSongs: [],
+  guitarWeeklyHoursTarget: 5,
+  customHobbies: [],
+  weeklyHobbyTargets: { travel: 2, cars: 3, guitar: 5 },
 };
+
+function futureISO(daysAhead: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+function nextSatISO(): string {
+  const d = new Date();
+  const diff = (6 - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
 
 function load(): EvolutionData {
   if (typeof window === "undefined") return defaultData;
