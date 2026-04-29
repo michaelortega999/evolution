@@ -899,3 +899,16 @@
   53%             { opacity: 1;    }
   82%             { opacity: 0.97; }
 }
+
+/* Hobby hologram atmospheric image (used in HobbyCard + Hobby page header) */
+.hobby-holo-img {
+  mix-blend-mode: screen;
+  animation: hobby-holo-float 4s ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
+}
+@keyframes hobby-holo-float {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
