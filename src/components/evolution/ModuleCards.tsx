@@ -373,6 +373,10 @@ export function BusinessCard() {
 export function HobbyCard() {
   const { data, mutate } = useEvolutionData();
   const hobbies: Hobby[] = ["Cars", "Guitar", "Travel"];
+  const heroSrc =
+    data.hobby.current === "Cars" ? carImg :
+    data.hobby.current === "Guitar" ? guitarImg :
+    hobbyHologram;
 
   return (
     <Card icon={Star} variant="hobby" number="08" title="Hobby" href="/hobby">
