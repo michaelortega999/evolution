@@ -56,11 +56,11 @@ export interface Settings {
 export type FocusMode = "focus" | "short" | "long";
 export type FocusTag =
   | "Wealth" | "Nutrition" | "Fitness" | "Journal"
-  | "Notes" | "Investing" | "Business" | "Hobby";
+  | "Notes" | "Investing" | "Business" | "Hobby" | "Guitar";
 
 export const FOCUS_TAGS: FocusTag[] = [
   "Wealth", "Nutrition", "Fitness", "Journal",
-  "Notes", "Investing", "Business", "Hobby",
+  "Notes", "Investing", "Business", "Hobby", "Guitar",
 ];
 
 export interface FocusSession {
