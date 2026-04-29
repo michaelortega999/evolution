@@ -449,29 +449,47 @@ function BonsaiHologram() {
         </group>
       ))}
 
-      {/* Leaf clusters at tips */}
-      {leafClusters.map((p, i) => (
-        <group key={i} position={p}>
-          {[
-            [0, 0, 0],
-            [0.04, 0.03, 0.02],
-            [-0.03, 0.02, 0.04],
-            [0.02, -0.02, -0.03],
-            [-0.04, 0.04, -0.02],
-          ].map((offset, j) => (
-            <mesh key={j} position={offset as [number, number, number]}>
-              <sphereGeometry args={[0.045, 10, 10]} />
-              <meshPhongMaterial
-                color={COLOR_PRIMARY}
-                emissive={COLOR_PRIMARY}
-                emissiveIntensity={0.8}
-                transparent
-                opacity={0.8}
-              />
+      {/* Leaf clusters at tips — dense foliage */}
+      {leafClusters.map((p, i) => {
+        // 18 leaves per cluster, randomly distributed in a small sphere around the tip
+        const leaves = Array.from({ length: 18 }, (_, j) => {
+          const seed = i * 97 + j * 13;
+          const rand = (n: number) => {
+            const x = Math.sin(seed + n) * 43758.5453;
+            return x - Math.floor(x);
+          };
+          const radius = 0.08 + rand(1) * 0.1;
+          const phi = Math.acos(1 - 2 * rand(2));
+          const theta = 2 * Math.PI * rand(3);
+          return [
+            radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.cos(phi) * 0.8,
+            radius * Math.sin(phi) * Math.sin(theta),
+            0.035 + rand(4) * 0.025,
+          ] as [number, number, number, number];
+        });
+        return (
+          <group key={i} position={p}>
+            {/* Outer canopy glow */}
+            <mesh>
+              <sphereGeometry args={[0.18, 16, 16]} />
+              <meshBasicMaterial color={COLOR_PRIMARY} transparent opacity={0.12} />
             </mesh>
-          ))}
-        </group>
-      ))}
+            {leaves.map(([x, y, z, r], j) => (
+              <mesh key={j} position={[x, y, z]}>
+                <sphereGeometry args={[r, 10, 10]} />
+                <meshPhongMaterial
+                  color={COLOR_PRIMARY}
+                  emissive={COLOR_PRIMARY}
+                  emissiveIntensity={0.8}
+                  transparent
+                  opacity={0.85}
+                />
+              </mesh>
+            ))}
+          </group>
+        );
+      })}
 
       {/* Base rings on the ground */}
       <mesh ref={ring1} position={[0, -0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
