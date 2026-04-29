@@ -30,19 +30,23 @@ export function HologramEmblem({ kind, size = 320 }: Props) {
   return (
     <div
       className="holo-emblem"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, background: "transparent", backgroundColor: "transparent" }}
       aria-label={`${kind} hologram`}
     >
       {/* Edge glow */}
       <div className="holo-emblem__glow" />
 
       {/* Rotating image */}
-      <div className="holo-emblem__rotor">
+      <div
+        className="holo-emblem__rotor"
+        style={{ background: "transparent", backgroundColor: "transparent" }}
+      >
         <img
           src={src}
           alt=""
           draggable={false}
           className="holo-emblem__img"
+          style={{ mixBlendMode: "screen", display: "block" }}
         />
       </div>
 
@@ -54,9 +58,9 @@ export function HologramEmblem({ kind, size = 320 }: Props) {
 
       {/* Projector base rings */}
       <div className="holo-emblem__base">
-        <div className="holo-emblem__ring" />
-        <div className="holo-emblem__ring holo-emblem__ring--2" />
-        <div className="holo-emblem__ring holo-emblem__ring--3" />
+        <div className="holo-emblem__projection holo-emblem__projection--wide" />
+        <div className="holo-emblem__projection holo-emblem__projection--mid" />
+        <div className="holo-emblem__projection holo-emblem__projection--core" />
       </div>
 
       {/* Floating particles */}
