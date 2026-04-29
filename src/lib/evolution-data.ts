@@ -97,6 +97,9 @@ export interface Profile {
   squat: number;
   deadlift: number;
   proteinTarget: number;
+  carbsTarget: number;
+  fatsTarget: number;
+  waterTarget: number;
   mirror: [string, string, string];
   commitment: [string, string, string];
   onboarded: boolean;
