@@ -537,6 +537,14 @@ interface Hologram3DProps {
 }
 
 export function Hologram3D({ kind, size = 320 }: Hologram3DProps) {
+  // Three.js needs the DOM — render only on the client to avoid SSR crash.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return <div style={{ width: size, height: size }} aria-hidden />;
+  }
+
   return (
     <div style={{ width: size, height: size }} aria-hidden>
       <Canvas
