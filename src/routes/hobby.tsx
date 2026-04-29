@@ -692,7 +692,7 @@ function CarsSection() {
             <div><div className="hud-label text-[10px] text-muted-foreground">Events</div><div className="hud-label text-lg text-foreground tabular-nums">{data.carEvents.length}</div></div>
           </div>
         </div>
-        <HoloFloat src={carImg} width={280} height={200} spin className="shrink-0 hidden sm:block" />
+        <HoloFloat src={carImg} width={180} height={130} spin className="shrink-0 hidden sm:block" />
       </div>
 
       {/* My Cars */}
@@ -1299,13 +1299,13 @@ function InteractiveVehicleHud({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-lg border border-border bg-black select-none"
+      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-lg border border-border bg-black select-none"
       onClick={() => setActive(null)}
     >
       <img
         src={vehicleHud}
         alt="Interactive Vehicle HUD profile"
-        className="w-full h-auto block"
+        className="w-full h-auto block object-contain max-h-[320px] mx-auto"
         style={{ opacity: 0.95 }}
         draggable={false}
       />
