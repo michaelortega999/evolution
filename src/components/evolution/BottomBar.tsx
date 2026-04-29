@@ -68,40 +68,7 @@ export function BottomBar() {
         </div>
       </div>
 
-      <Link to="/focus" className="hud-card p-5 flex flex-col gap-3 hover:border-primary/50 transition-colors group">
-        <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-primary" />
-          <div className="hud-label text-sm">Focus Mode</div>
-        </div>
-        <div className="hud-label text-primary hud-glow text-3xl tabular-nums tracking-wider text-center">
-          {formatMmSs(timer.remainingMs)}
-        </div>
-        <div className="hud-label text-[10px] text-center text-muted-foreground">
-          {modeLabel(timer.mode)} · Round {timer.round} of {timer.settings.longEvery}
-        </div>
-        {/* progress bar */}
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-[width] duration-300"
-            style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--primary)" }}
-          />
-        </div>
-        <div className="flex gap-2 mt-auto pt-2 border-t border-border">
-          <button
-            onClick={(e) => { e.preventDefault(); timer.running ? timer.pause() : timer.start(); }}
-            className="flex-1 h-8 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10 flex items-center justify-center gap-1.5"
-          >
-            {timer.running ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Start</>}
-          </button>
-          <button
-            onClick={(e) => { e.preventDefault(); timer.reset(); }}
-            className="h-8 w-8 rounded-md border border-border text-foreground/70 hover:text-primary hover:border-primary/40 flex items-center justify-center"
-            aria-label="Reset"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </Link>
+      <SystemStatus />
     </section>
   );
 }
