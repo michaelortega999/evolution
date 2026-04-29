@@ -26,7 +26,6 @@ export function BottomBar() {
     setEvt("");
   };
 
-  const pct = timer.totalMs > 0 ? Math.max(0, Math.min(100, (timer.remainingMs / timer.totalMs) * 100)) : 0;
   void data;
 
   return (
