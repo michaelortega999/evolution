@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { HOLOGRAMS, type HologramKey } from "@/lib/holograms";
+import { HologramEmblem } from "./HologramEmblem";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -30,22 +31,9 @@ export function HologramPicker({ open, onOpenChange, value, onSelect }: Props) {
                   onSelect(h.key);
                   onOpenChange(false);
                 }}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-md border transition-all",
-                  active
-                    ? "border-primary bg-primary/10 hud-glow"
-                    : "border-border hover:border-primary/60 hover:bg-primary/5"
-                )}
+                className={cn("holo-option", active && "holo-option--active")}
               >
-                <img
-                  src={h.src}
-                  alt={h.label}
-                  width={512}
-                  height={512}
-                  loading="lazy"
-                  className="h-16 w-16 object-contain"
-                  style={{ filter: "drop-shadow(0 0 6px oklch(0.78 0.22 240 / 0.85))" }}
-                />
+                <HologramEmblem kind={h.key} size={72} />
                 <span className="hud-label text-[10px] text-primary tracking-[0.2em]">
                   {h.label.toUpperCase()}
                 </span>

@@ -6,8 +6,8 @@ import {
   TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap,
 } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
-import { hologramSrc } from "@/lib/holograms";
 import { HologramPicker } from "./HologramPicker";
+import { HologramEmblem } from "./HologramEmblem";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
@@ -48,14 +48,7 @@ export function Sidebar() {
           className="rounded-full border border-primary/50 bg-primary/5 flex items-center justify-center transition-all hover:bg-primary/10 hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           style={{ width: 96, height: 96 }}
         >
-          <img
-            src={hologramSrc(data.profile.hologram)}
-            alt="Hologram"
-            width={512}
-            height={512}
-            className="object-contain"
-            style={{ width: 88, height: 88, filter: "drop-shadow(0 0 6px oklch(0.78 0.22 240 / 0.85))" }}
-          />
+          <HologramEmblem kind={data.profile.hologram} size={84} />
         </button>
         <HologramPicker
           open={pickerOpen}

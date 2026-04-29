@@ -625,3 +625,96 @@
   animation-duration: 0.9s;
 }
 
+
+/* ===== Holographic emblem (Earth / Brain / Bonsai picker) ===== */
+.holo-emblem {
+  position: relative;
+  display: inline-block;
+}
+.holo-emblem-spin {
+  width: 100%;
+  height: 100%;
+  animation: holo-spin 14s linear infinite, holo-glow 4s ease-in-out infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.holo-svg {
+  color: var(--primary);
+  filter:
+    drop-shadow(0 0 6px color-mix(in oklab, var(--glow) 80%, transparent))
+    drop-shadow(0 0 16px color-mix(in oklab, var(--glow) 55%, transparent));
+}
+.holo-svg-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.holo-scan-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 45%,
+    color-mix(in oklab, var(--glow) 50%, transparent) 50%,
+    transparent 55%,
+    transparent 100%
+  );
+  background-size: 100% 240%;
+  animation: holo-scan-vert 3.4s ease-in-out infinite;
+  mask-image: radial-gradient(circle, black 70%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle, black 70%, transparent 100%);
+  opacity: 0.9;
+  mix-blend-mode: screen;
+}
+@keyframes holo-scan-vert {
+  0%   { background-position: 50% 100%; }
+  100% { background-position: 50% -140%; }
+}
+
+/* ===== Hologram option picker (3-up on onboarding) ===== */
+.holo-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 85%, transparent);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.holo-option:hover {
+  border-color: color-mix(in oklab, var(--primary) 70%, transparent);
+  transform: translateY(-2px);
+}
+.holo-option--active {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  box-shadow:
+    0 0 24px color-mix(in oklab, var(--glow) 45%, transparent),
+    inset 0 0 18px color-mix(in oklab, var(--glow) 25%, transparent);
+}
+.holo-option--active .holo-emblem-spin {
+  animation-duration: 8s, 3s;
+}
+.holo-option-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--glow);
+}
