@@ -5,7 +5,7 @@
  * Color palette (holographic blue):
  *   primary glow #00d4ff, secondary #0066ff, ambient rgba(0,180,255,0.3)
  */
-import { Suspense, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { HologramKey } from "@/lib/holograms";
