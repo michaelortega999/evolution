@@ -18,19 +18,8 @@ export function DashboardHologram() {
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[280px] lg:items-stretch">
-      {/* LEFT — Core Mindset */}
-      <div className="hud-card p-5 flex flex-col gap-4">
-        <span className="hud-label text-[10px] text-primary tracking-[0.3em]">CORE MINDSET</span>
-        <p className="italic text-foreground/90 text-sm leading-relaxed">
-          “You are the sum of your decisions. Today, you stop drifting. Today, you evolve.”
-        </p>
-        <div className="hud-label text-[10px] text-muted-foreground tracking-[0.3em]">
-          DISCIPLINE · FOCUS · FREEDOM
-        </div>
-        <div className="mt-auto">
-          <Sparkline data={[12, 18, 15, 22, 28, 24, 31, 29, 36, 34, 42, 48]} height={56} />
-        </div>
-      </div>
+      {/* LEFT — Notes */}
+      <NotesCard />
 
       {/* CENTER — Hologram */}
       <div className="hud-card hud-scan relative overflow-hidden flex items-center justify-center group h-full">
