@@ -27,6 +27,7 @@ import travelImg from "@/assets/travel.png";
 import photographyImg from "@/assets/photography.png";
 import videographyImg from "@/assets/videography.png";
 import artImg from "@/assets/art.png";
+import vehicleHud from "@/assets/vehicle-hud.png";
 import { HoloFloat } from "@/components/evolution/HoloFloat";
 
 export const Route = createFileRoute("/hobby")({
