@@ -238,14 +238,30 @@ function HobbyPage() {
 function HobbyCard({ label, icon: Icon, hero, statValue, statLabel, onOpen }: {
   label: string; icon: typeof Plane; hero: string; statValue: string; statLabel: string; onOpen: () => void;
 }) {
+  const isCover = hero === earthImg; // Travel still uses the cover treatment
   return (
     <button onClick={onOpen}
       className="hud-card hud-scan p-0 overflow-hidden text-left group relative transition-transform hover:-translate-y-0.5">
-      <div className="relative h-32 bg-black overflow-hidden">
-        <img src={hero} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.9 }} />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--card))" }} />
-        <Icon className="absolute top-3 right-3 h-5 w-5 text-primary hud-glow" />
-      </div>
+      {isCover ? (
+        <div className="relative h-32 bg-black overflow-hidden">
+          <img src={hero} alt="" aria-hidden className="hobby-holo-img absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.9 }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 40%, var(--card))" }} />
+          <Icon className="absolute top-3 right-3 h-5 w-5 text-primary hud-glow" />
+        </div>
+      ) : (
+        <div className="relative h-32 bg-black overflow-hidden">
+          <div
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            style={{
+              maskImage: "linear-gradient(to left, black 55%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to left, black 55%, transparent 100%)",
+            }}
+          >
+            <HoloFloat src={hero} width={150} height={120} />
+          </div>
+          <Icon className="absolute top-3 left-3 h-5 w-5 text-primary hud-glow" />
+        </div>
+      )}
       <div className="p-4">
         <div className="hud-label text-lg text-primary hud-glow">{label}</div>
         <div className="hud-label text-2xl text-foreground mt-2 tabular-nums">{statValue}</div>
