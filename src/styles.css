@@ -972,3 +972,16 @@
   animation-delay: 0.6s;
   opacity: 0.7;
 }
+
+/* 360° Y-axis spin combined with the existing float */
+@keyframes holo-spin-y {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+.holo-spin-y {
+  animation:
+    hobby-holo-float 4s ease-in-out infinite,
+    holo-spin-y 6s linear infinite;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+}

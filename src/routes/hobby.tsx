@@ -692,7 +692,7 @@ function CarsSection() {
             <div><div className="hud-label text-[10px] text-muted-foreground">Events</div><div className="hud-label text-lg text-foreground tabular-nums">{data.carEvents.length}</div></div>
           </div>
         </div>
-        <HoloFloat src={carImg} width={280} height={200} className="shrink-0 hidden sm:block" />
+        <HoloFloat src={carImg} width={280} height={200} spin className="shrink-0 hidden sm:block" />
       </div>
 
       {/* My Cars */}
