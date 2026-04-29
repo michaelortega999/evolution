@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkline } from "./Sparkline";
 import hobbyHologram from "@/assets/hobby-hologram.png";
+import carImg from "@/assets/car.png";
+import guitarImg from "@/assets/guitar.png";
 import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
