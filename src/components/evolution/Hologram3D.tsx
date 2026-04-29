@@ -420,8 +420,8 @@ function BonsaiHologram() {
       </mesh>
 
       {/* Pot rim */}
-      <mesh position={[0, 0.005, 0]}>
-        <torusGeometry args={[0.35, 0.012, 8, 32]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[0, 0.005, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.35, 0.012, 8, 32]} />
         <meshBasicMaterial color={COLOR_PRIMARY} transparent opacity={0.8} />
       </mesh>
 
