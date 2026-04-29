@@ -21,8 +21,9 @@ import {
 import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 import hobbyHologram from "@/assets/hobby-hologram.png";
 import earthImg from "@/assets/earth.png";
-import brainImg from "@/assets/brain.png";
-import bonsaiImg from "@/assets/bonsai.png";
+import carImg from "@/assets/car.png";
+import guitarImg from "@/assets/guitar.png";
+import { HoloFloat } from "@/components/evolution/HoloFloat";
 
 export const Route = createFileRoute("/hobby")({
   head: () => ({
@@ -38,8 +39,8 @@ const TRIP_STATUSES: TripStatus[] = ["Planning", "Booked", "In Progress", "Compl
 const RSVP_STATES: CarEventRsvp[] = ["None", "Interested", "Going", "Attended"];
 const HOBBY_HEROS = {
   Travel: earthImg,
-  Cars: brainImg,
-  Guitar: bonsaiImg,
+  Cars: carImg,
+  Guitar: guitarImg,
 } as const;
 
 // ---------- helpers ----------
