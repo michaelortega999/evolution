@@ -8,6 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkline } from "./Sparkline";
+import hobbyHologram from "@/assets/hobby-hologram.png";
 import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
@@ -373,6 +374,19 @@ export function HobbyCard() {
 
   return (
     <Card icon={Star} variant="hobby" number="08" title="Hobby" href="/hobby">
+      <img
+        src={hobbyHologram}
+        alt=""
+        aria-hidden="true"
+        className="hobby-holo-img absolute right-0 top-0 h-full w-auto"
+        style={{
+          opacity: 0.85,
+          maskImage: "linear-gradient(to left, black 30%, transparent 95%)",
+          WebkitMaskImage: "linear-gradient(to left, black 30%, transparent 95%)",
+          zIndex: 0,
+        }}
+      />
+      <div className="relative z-10 flex flex-col flex-1">
       <div className="hud-label text-[10px] text-muted-foreground">Current Focus</div>
       <div className="hud-label text-xl text-primary hud-glow my-1">{data.hobby.current}</div>
       <div className="hud-label text-[10px] text-muted-foreground mt-2">Time Invested</div>
