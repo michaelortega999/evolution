@@ -277,7 +277,7 @@ export interface GuitarSession {
   practiced: string;
 }
 
-export type TripStatus = "Planning" | "Booked" | "Completed";
+export type TripStatus = "Planning" | "Booked" | "In Progress" | "Completed";
 export interface Trip {
   id: string;
   destination: string;
@@ -285,7 +285,73 @@ export interface Trip {
   endDate: string;
   budget: number;
   status: TripStatus;
+  notes?: string;
   packing: { id: string; item: string; done: boolean }[];
+}
+
+// ---------- Cars ----------
+export interface Car {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  color: string;
+  purchasePrice: number;
+  currentValue: number;
+}
+
+export type CarExpenseType = "Gas" | "Insurance" | "Maintenance" | "Modification" | "Parking" | "Registration" | "Other";
+export const CAR_EXPENSE_TYPES: CarExpenseType[] = ["Gas", "Insurance", "Maintenance", "Modification", "Parking", "Registration", "Other"];
+export interface CarExpense {
+  id: string;
+  carId: string;
+  date: string;
+  type: CarExpenseType;
+  amount: number;
+  notes?: string;
+  // Gas-specific
+  gallons?: number;
+  pricePerGallon?: number;
+  mileage?: number;
+  // Linked transaction id in wealth
+  txId?: string;
+}
+
+export type CarEventRsvp = "None" | "Interested" | "Going" | "Attended";
+export interface CarEvent {
+  id: string;
+  name: string;
+  date: string;
+  location: string;
+  description?: string;
+  rsvp: CarEventRsvp;
+  seed?: boolean; // built-in seed event
+  calendarId?: string; // linked calendar event id
+}
+
+// ---------- Guitar ----------
+export type SkillLevel = "Beginner" | "Developing" | "Intermediate" | "Advanced" | "Mastered";
+export const SKILL_LEVELS: SkillLevel[] = ["Beginner", "Developing", "Intermediate", "Advanced", "Mastered"];
+export interface GuitarSkill {
+  id: string;
+  name: string;
+  level: SkillLevel;
+}
+export interface GuitarSong {
+  id: string;
+  title: string;
+  artist: string;
+  progress: number; // 0–100
+  targetDate: string;
+}
+
+// ---------- Custom hobbies ----------
+export interface CustomHobby {
+  id: string;
+  name: string;
+  icon: string; // emoji
+  weeklyHoursTarget: number;
+  hours: number;
 }
 
 export interface EvolutionData {
