@@ -17,9 +17,9 @@ export function HologramEmblem({ kind, size = 192 }: Props) {
       style={{ width: size, height: size }}
       aria-hidden
     >
-      <BonsaiImg />
-      {/* legacy refs kept to avoid unused warnings */}
-      {false && <><EarthSvg /><BrainSvg /></>}
+      {kind === "earth" && <EarthSvg />}
+      {kind === "brain" && <BrainSvg />}
+      {kind === "bonsai" && <BonsaiImg />}
     </div>
   );
 }
@@ -79,51 +79,85 @@ function EarthSvg() {
 }
 
 function BrainSvg() {
-  // Wireframe brain: two hemispheres + nodes + scanning sweep + pulses on synapses
+  // Highly detailed wireframe brain: layered gyri/sulci, hemispheres, cerebellum, brainstem,
+  // dense synapse network with animated pulses, neural connection lines.
   return (
     <div className="holo-svg-stack">
       <svg viewBox="0 0 200 200" className="holo-emblem-spin holo-svg">
-        {/* outer ring */}
-        <circle cx="100" cy="100" r="90" fill="none" stroke="var(--glow)" strokeOpacity="0.3" strokeWidth="0.8" />
+        <defs>
+          <radialGradient id="brain-glow" cx="50%" cy="50%" r="55%">
+            <stop offset="50%" stopColor="var(--glow)" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="var(--glow)" stopOpacity="0" />
+          </radialGradient>
+        </defs>
 
-        {/* left hemisphere */}
+        {/* halo */}
+        <circle cx="100" cy="100" r="92" fill="url(#brain-glow)" />
+        <circle cx="100" cy="100" r="90" fill="none" stroke="var(--glow)" strokeOpacity="0.25" strokeWidth="0.6" />
+        <circle cx="100" cy="100" r="82" fill="none" stroke="var(--glow)" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="2 4" />
+
+        {/* outer cortex outline (left hemisphere) */}
         <path
-          d="M100 50 C70 50 50 75 50 105 C50 130 65 150 90 155 C95 158 100 158 100 150 Z"
-          fill="none"
-          stroke="var(--glow)"
-          strokeWidth="1.4"
-          strokeOpacity="0.9"
+          d="M100 42 C72 42 50 64 46 92 C42 118 56 144 84 154 C92 158 100 158 100 150 Z"
+          fill="none" stroke="var(--glow)" strokeWidth="1.5" strokeOpacity="0.95"
         />
-        {/* right hemisphere */}
+        {/* outer cortex outline (right hemisphere) */}
         <path
-          d="M100 50 C130 50 150 75 150 105 C150 130 135 150 110 155 C105 158 100 158 100 150 Z"
-          fill="none"
-          stroke="var(--glow)"
-          strokeWidth="1.4"
-          strokeOpacity="0.9"
+          d="M100 42 C128 42 150 64 154 92 C158 118 144 144 116 154 C108 158 100 158 100 150 Z"
+          fill="none" stroke="var(--glow)" strokeWidth="1.5" strokeOpacity="0.95"
         />
         {/* central fissure */}
-        <line x1="100" y1="50" x2="100" y2="158" stroke="var(--glow)" strokeOpacity="0.6" strokeWidth="0.8" />
+        <line x1="100" y1="42" x2="100" y2="158" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.7" />
 
-        {/* gyri folds left */}
-        <path d="M62 78 Q72 84 64 96 Q74 102 66 116 Q76 122 68 134" fill="none" stroke="var(--glow)" strokeOpacity="0.6" strokeWidth="0.9" />
-        <path d="M78 64 Q86 72 80 84 Q88 90 82 102 Q90 108 84 120" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
-        {/* gyri folds right */}
-        <path d="M138 78 Q128 84 136 96 Q126 102 134 116 Q124 122 132 134" fill="none" stroke="var(--glow)" strokeOpacity="0.6" strokeWidth="0.9" />
-        <path d="M122 64 Q114 72 120 84 Q112 90 118 102 Q110 108 116 120" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
+        {/* LEFT HEMISPHERE — layered gyri/sulci */}
+        <path d="M58 80 Q70 86 60 98 Q72 104 62 118 Q74 124 64 138" fill="none" stroke="var(--glow)" strokeOpacity="0.7" strokeWidth="1" />
+        <path d="M70 66 Q80 74 72 88 Q82 94 74 108 Q84 114 76 128" fill="none" stroke="var(--glow)" strokeOpacity="0.6" strokeWidth="0.9" />
+        <path d="M84 54 Q92 62 86 76 Q94 82 88 96 Q96 102 90 116" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
+        <path d="M52 100 Q60 104 54 114" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
+        <path d="M62 70 Q72 68 78 60" fill="none" stroke="var(--glow)" strokeOpacity="0.5" strokeWidth="0.7" />
+        <path d="M68 142 Q78 146 86 142" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
 
-        {/* brain stem */}
-        <path d="M94 156 L94 172 Q100 178 106 172 L106 156" fill="none" stroke="var(--glow)" strokeOpacity="0.8" strokeWidth="1.2" />
+        {/* RIGHT HEMISPHERE — mirrored */}
+        <path d="M142 80 Q130 86 140 98 Q128 104 138 118 Q126 124 136 138" fill="none" stroke="var(--glow)" strokeOpacity="0.7" strokeWidth="1" />
+        <path d="M130 66 Q120 74 128 88 Q118 94 126 108 Q116 114 124 128" fill="none" stroke="var(--glow)" strokeOpacity="0.6" strokeWidth="0.9" />
+        <path d="M116 54 Q108 62 114 76 Q106 82 112 96 Q104 102 110 116" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
+        <path d="M148 100 Q140 104 146 114" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
+        <path d="M138 70 Q128 68 122 60" fill="none" stroke="var(--glow)" strokeOpacity="0.5" strokeWidth="0.7" />
+        <path d="M132 142 Q122 146 114 142" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.8" />
 
-        {/* synapse nodes with pulse */}
+        {/* Cerebellum (lower back) */}
+        <path d="M76 150 Q88 162 100 160 Q112 162 124 150" fill="none" stroke="var(--glow)" strokeOpacity="0.85" strokeWidth="1.1" />
+        <path d="M80 154 Q90 160 100 158 Q110 160 120 154" fill="none" stroke="var(--glow)" strokeOpacity="0.55" strokeWidth="0.7" />
+        <path d="M84 158 Q92 162 100 161 Q108 162 116 158" fill="none" stroke="var(--glow)" strokeOpacity="0.4" strokeWidth="0.6" />
+
+        {/* Brain stem */}
+        <path d="M94 160 L94 178 Q100 184 106 178 L106 160" fill="none" stroke="var(--glow)" strokeOpacity="0.85" strokeWidth="1.2" />
+        <line x1="100" y1="162" x2="100" y2="180" stroke="var(--glow)" strokeOpacity="0.5" strokeWidth="0.6" />
+
+        {/* Neural connection lines (synapse network) */}
         {[
-          [70, 90], [82, 110], [120, 88], [128, 116], [100, 75], [92, 130], [110, 140],
+          ["68,92","100,76"], ["100,76","132,92"], ["68,92","82,118"],
+          ["132,92","118,118"], ["82,118","100,130"], ["100,130","118,118"],
+          ["82,118","118,118"], ["100,76","100,130"], ["72,108","128,108"],
+        ].map(([p1, p2], i) => {
+          const [x1, y1] = p1.split(",").map(Number);
+          const [x2, y2] = p2.split(",").map(Number);
+          return (
+            <line key={`con-${i}`} x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke="var(--glow)" strokeOpacity="0.25" strokeWidth="0.5" strokeDasharray="1.5 2.5" />
+          );
+        })}
+
+        {/* Synapse nodes with pulse */}
+        {[
+          [68, 92], [82, 118], [100, 76], [100, 130], [118, 118], [132, 92],
+          [72, 108], [128, 108], [90, 100], [110, 100], [100, 105], [86, 138], [114, 138],
         ].map(([cx, cy], i) => (
           <g key={i}>
-            <circle cx={cx} cy={cy} r="1.8" fill="var(--glow)" />
-            <circle cx={cx} cy={cy} r="4" fill="none" stroke="var(--glow)" strokeWidth="0.6" opacity="0.6">
-              <animate attributeName="r" values="2;7;2" dur={`${1.4 + (i % 3) * 0.5}s`} repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.8;0;0.8" dur={`${1.4 + (i % 3) * 0.5}s`} repeatCount="indefinite" />
+            <circle cx={cx} cy={cy} r="1.6" fill="var(--glow)" />
+            <circle cx={cx} cy={cy} r="3" fill="none" stroke="var(--glow)" strokeWidth="0.5" opacity="0.6">
+              <animate attributeName="r" values="2;7;2" dur={`${1.4 + (i % 4) * 0.4}s`} repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.85;0;0.85" dur={`${1.4 + (i % 4) * 0.4}s`} repeatCount="indefinite" />
             </circle>
           </g>
         ))}
