@@ -671,15 +671,15 @@ function CarsSection() {
 
   return (
     <>
-      {/* Vehicle HUD showcase */}
-      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-black">
-        <img
-          src={vehicleHud}
-          alt="Vehicle HUD profile"
-          className="w-full h-auto block"
-          style={{ opacity: 0.95 }}
-        />
-      </div>
+      {/* Vehicle HUD showcase — interactive */}
+      <InteractiveVehicleHud
+        onAddExpense={() => openExp()}
+        onAddCar={() => { resetCar(); setCarOpen(true); }}
+        onAddEvent={() => setEvOpen(true)}
+        garageCount={data.cars.length}
+        monthlySpend={Object.values(breakdown.by).reduce((a, b) => a + b, 0)}
+        upcomingEvents={data.carEvents.length}
+      />
 
       {/* Hero */}
       <div className="relative flex items-start justify-between gap-4 rounded-lg border border-border bg-black/40 p-5 overflow-hidden">
