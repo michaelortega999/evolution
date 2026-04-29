@@ -103,7 +103,7 @@ export interface Profile {
   mirror: [string, string, string];
   commitment: [string, string, string];
   onboarded: boolean;
-  hologram: "bonsai" | "brain" | "earth";
+  hologram: "bonsai";
 }
 
 export interface TodoItem {
