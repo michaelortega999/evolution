@@ -776,6 +776,17 @@
   background-color: transparent;
 }
 
+/* Green theme — recolor the blue hologram image to green */
+.theme-green .holo-emblem__img {
+  filter:
+    brightness(1.2)
+    contrast(1.1)
+    saturate(1.35)
+    hue-rotate(-110deg)
+    drop-shadow(0 0 10px rgba(0, 255, 140, 0.6))
+    drop-shadow(0 0 22px rgba(0, 220, 120, 0.35));
+}
+
 /* Faint repeating horizontal scanlines */
 .holo-emblem__scanlines {
   position: absolute;
