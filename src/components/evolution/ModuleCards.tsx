@@ -381,7 +381,7 @@ export function HobbyCard() {
   return (
     <Card icon={Star} variant="hobby" number="08" title="Hobby" href="/hobby">
       <img
-        src={hobbyHologram}
+        src={heroSrc}
         alt=""
         aria-hidden="true"
         className="hobby-holo-img absolute right-0 top-0 h-full w-auto"
