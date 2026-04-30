@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ImageIcon, Target, Play, Pause, RotateCcw } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
-import { type HologramKey } from "@/lib/holograms";
+import { hologramSrc, type HologramKey } from "@/lib/holograms";
 import { HologramEmblem } from "./HologramEmblem";
 import { HologramPicker } from "./HologramPicker";
 import { NotesCard } from "./ModuleCards";
@@ -17,12 +17,12 @@ export function DashboardHologram() {
   const pct = timer.totalMs > 0 ? Math.max(0, Math.min(100, (timer.remainingMs / timer.totalMs) * 100)) : 0;
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:h-[280px] lg:items-stretch">
+    <section className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-6 h-auto lg:min-h-[280px] lg:items-stretch">
       {/* LEFT — Notes */}
       <NotesCard />
 
       {/* CENTER — Hologram */}
-      <div className="hud-card hud-scan relative overflow-hidden flex items-center justify-center group h-full">
+      <div className="hud-card hud-scan relative overflow-hidden flex items-center justify-center group h-full min-h-[280px]">
         <button
           onClick={() => setPickerOpen(true)}
           className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-background/60 backdrop-blur text-primary hud-label text-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/15"
@@ -40,7 +40,21 @@ export function DashboardHologram() {
           }}
         />
 
-        <HologramEmblem kind={hologram} size={250} />
+        {hologram === "jarvis" ? (
+          <img
+            src={hologramSrc("jarvis")}
+            alt="J.A.R.V.I.S. — Iron Man hologram"
+            draggable={false}
+            className="relative z-10 w-full h-full object-contain select-none holo-jarvis-img"
+            style={{
+              mixBlendMode: "screen",
+              filter:
+                "brightness(1.15) contrast(1.1) saturate(1.25) drop-shadow(0 0 12px color-mix(in oklab, var(--glow) 70%, transparent)) drop-shadow(0 0 28px color-mix(in oklab, var(--glow) 45%, transparent))",
+            }}
+          />
+        ) : (
+          <HologramEmblem kind={hologram} size={250} />
+        )}
       </div>
 
       {/* RIGHT — Focus Mode */}
