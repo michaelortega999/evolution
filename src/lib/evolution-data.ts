@@ -42,7 +42,7 @@ export interface CalendarEvent {
   reminder?: ReminderOffset;
 }
 
-export type ThemeKey = "default" | "gold" | "green" | "red" | "purple" | "white";
+export type ThemeKey = "default" | "gold" | "orange" | "green" | "red" | "purple" | "white";
 
 export interface Settings {
   theme: ThemeKey;
