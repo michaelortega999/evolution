@@ -42,7 +42,7 @@ export interface CalendarEvent {
   reminder?: ReminderOffset;
 }
 
-export type ThemeKey = "default" | "gold" | "green" | "red" | "purple" | "white";
+export type ThemeKey = "default" | "gold" | "orange" | "green" | "red" | "purple" | "white";
 
 export interface Settings {
   theme: ThemeKey;
@@ -103,7 +103,7 @@ export interface Profile {
   mirror: [string, string, string];
   commitment: [string, string, string];
   onboarded: boolean;
-  hologram: "bonsai" | "brain" | "earth";
+  hologram: "bonsai" | "brain" | "earth" | "jarvis";
 }
 
 export interface TodoItem {

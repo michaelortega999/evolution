@@ -90,6 +90,31 @@
   --border: oklch(0.7 0.18 75 / 0.55);
   --grid-line: oklch(0.7 0.18 75 / 0.22);
 }
+.theme-orange {
+  /* Pure black background with vibrant orange/amber palette — JARVIS HUD */
+  --background: oklch(0 0 0);
+  --foreground: oklch(0.85 0.18 55);
+  --card: oklch(0.06 0.02 50);
+  --card-foreground: oklch(0.88 0.18 55);
+  --popover: oklch(0.06 0.02 50);
+  --popover-foreground: oklch(0.88 0.18 55);
+  --primary: oklch(0.74 0.22 50);
+  --primary-foreground: oklch(0.06 0.02 40);
+  --secondary: oklch(0.16 0.08 45);
+  --secondary-foreground: oklch(0.88 0.18 55);
+  --muted: oklch(0.12 0.06 45);
+  --muted-foreground: oklch(0.72 0.18 50);
+  --accent: oklch(0.7 0.24 40);
+  --accent-foreground: oklch(0.06 0.02 40);
+  --input: oklch(0.12 0.06 45);
+  --ring: oklch(0.74 0.22 50);
+  --glow: oklch(0.74 0.22 50);
+  --border: oklch(0.7 0.22 50 / 0.55);
+  --grid-line: oklch(0.7 0.22 50 / 0.18);
+}
+.theme-orange .hud-card {
+  background: linear-gradient(180deg, oklch(0.06 0.02 50 / 0.95), oklch(0.04 0.015 45 / 0.95));
+}
 .theme-green {
   --primary: oklch(0.82 0.21 145);
   --ring: oklch(0.82 0.21 145);
