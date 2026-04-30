@@ -9,7 +9,7 @@ import { NotesCard } from "./ModuleCards";
 import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 
 export function DashboardHologram() {
-  const { data, updateProfile } = useEvolutionData();
+  const { data, updateProfile, mutate } = useEvolutionData();
   const [pickerOpen, setPickerOpen] = useState(false);
   const timer = useFocusTimer();
 
@@ -82,7 +82,18 @@ export function DashboardHologram() {
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         value={hologram}
-        onSelect={(key) => updateProfile({ hologram: key })}
+        onSelect={(key) => {
+          updateProfile({ hologram: key });
+          // Picking Jarvis auto-applies the orange JARVIS HUD theme
+          if (key === "jarvis") {
+            mutate((prev) => ({
+              settings: {
+                ...prev.settings,
+                theme: "orange",
+              },
+            }));
+          }
+        }}
       />
     </section>
   );
