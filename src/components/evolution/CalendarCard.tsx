@@ -133,7 +133,7 @@ export function CalendarCard() {
               key={c.date + (c.outside ? "o" : "")}
               onClick={() => setSelected(c.date)}
               className={[
-                "relative aspect-square text-[11px] rounded border transition-colors flex items-center justify-center",
+                "relative aspect-square text-[9px] rounded border transition-colors flex items-center justify-center max-h-7",
                 c.outside ? "text-muted-foreground/50 border-transparent" : "text-foreground/90 border-border/40",
                 isSelected
                   ? "bg-primary/20 border-primary text-primary hud-glow"
