@@ -762,8 +762,8 @@
   pointer-events: none;
   background: radial-gradient(
     circle at center,
-    rgba(0, 150, 255, 0.45) 0%,
-    rgba(0, 120, 255, 0.18) 35%,
+    color-mix(in oklab, var(--glow) 45%, transparent) 0%,
+    color-mix(in oklab, var(--glow) 18%, transparent) 35%,
     transparent 70%
   );
   filter: blur(6px);
@@ -793,8 +793,8 @@
     brightness(1.2)
     contrast(1.1)
     saturate(1.35)
-    drop-shadow(0 0 10px rgba(0, 180, 255, 0.6))
-    drop-shadow(0 0 22px rgba(0, 130, 255, 0.35));
+    drop-shadow(0 0 10px color-mix(in oklab, var(--glow) 70%, transparent))
+    drop-shadow(0 0 22px color-mix(in oklab, var(--glow) 45%, transparent));
   user-select: none;
   -webkit-user-drag: none;
   background: transparent;
@@ -812,6 +812,18 @@
     drop-shadow(0 0 22px rgba(0, 220, 120, 0.35));
 }
 
+/* Orange theme — recolor the blue hologram image to orange */
+.theme-orange .holo-emblem__img,
+.theme-gold .holo-emblem__img {
+  filter:
+    brightness(1.2)
+    contrast(1.1)
+    saturate(1.4)
+    hue-rotate(160deg)
+    drop-shadow(0 0 10px color-mix(in oklab, var(--glow) 70%, transparent))
+    drop-shadow(0 0 22px color-mix(in oklab, var(--glow) 45%, transparent));
+}
+
 /* Faint repeating horizontal scanlines */
 .holo-emblem__scanlines {
   position: absolute;
@@ -819,8 +831,8 @@
   pointer-events: none;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(0, 200, 255, 0.05) 0px,
-    rgba(0, 200, 255, 0.05) 1px,
+    color-mix(in oklab, var(--glow) 12%, transparent) 0px,
+    color-mix(in oklab, var(--glow) 12%, transparent) 1px,
     transparent 1px,
     transparent 4px
   );
@@ -839,10 +851,10 @@
   background: linear-gradient(
     to right,
     transparent,
-    rgba(0, 220, 255, 0.85) 50%,
+    color-mix(in oklab, var(--glow) 90%, transparent) 50%,
     transparent
   );
-  box-shadow: 0 0 12px rgba(0, 220, 255, 0.9);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--glow) 90%, transparent);
   animation: holo-sweep 3s linear infinite;
   z-index: 4;
 }
@@ -866,7 +878,7 @@
   transform: translate(-50%, -50%);
   height: 20px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(0, 180, 255, 0.4) 0%, transparent 70%);
+  background: radial-gradient(ellipse, color-mix(in oklab, var(--glow) 45%, transparent) 0%, transparent 70%);
   margin: 0 auto;
   animation: holo-projection-pulse 2s ease-in-out infinite;
 }
@@ -894,9 +906,9 @@
   bottom: 10%;
   width: 2px;
   height: 2px;
-  background: rgba(0, 220, 255, 0.9);
+  background: color-mix(in oklab, var(--glow) 95%, transparent);
   border-radius: 50%;
-  box-shadow: 0 0 4px rgba(0, 220, 255, 0.8);
+  box-shadow: 0 0 4px color-mix(in oklab, var(--glow) 90%, transparent);
   pointer-events: none;
   animation: holo-particle-float linear infinite;
   z-index: 5;
