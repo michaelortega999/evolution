@@ -108,10 +108,6 @@ function BusinessPage() {
       <Tabs defaultValue="overview">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -125,9 +121,8 @@ function BusinessPage() {
               </div>
             </Panel>
           </div>
-        </TabsContent>
 
-        <TabsContent value="projects" className="space-y-6">
+          {/* Projects */}
           <Button onClick={openNewProj} size="sm" className="hud-label text-[10px]">
             <Plus className="h-3 w-3 mr-1" /> Add Project
           </Button>
@@ -158,9 +153,7 @@ function BusinessPage() {
             ))}
             {!data.projects.length && <div className="text-xs text-muted-foreground py-6 text-center col-span-full">No projects yet.</div>}
           </div>
-        </TabsContent>
-
-        <TabsContent value="revenue" className="space-y-6">
+          {/* Revenue */}
           <Panel title="Add Revenue">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <Input type="number" placeholder="Amount" value={rAmt} onChange={(e) => setRAmt(e.target.value)} className="h-9 text-xs" />
@@ -191,9 +184,7 @@ function BusinessPage() {
               {!data.revenue.length && <li className="text-xs text-muted-foreground py-6 text-center">No revenue logged.</li>}
             </ul>
           </Panel>
-        </TabsContent>
-
-        <TabsContent value="tasks" className="space-y-6">
+          {/* Tasks */}
           <Panel title="Add Task">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_120px_140px_140px_auto] gap-3">
               <Input placeholder="Task" value={taskText} onChange={(e) => setTaskText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTask()} className="h-9 text-xs" />
@@ -232,9 +223,7 @@ function BusinessPage() {
               {!visibleTasks.length && <li className="text-xs text-muted-foreground py-4 text-center">No tasks.</li>}
             </ul>
           </Panel>
-        </TabsContent>
-
-        <TabsContent value="goals" className="space-y-6">
+          {/* Goals */}
           <Panel title="Add Business Goal">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <Input placeholder="Title" value={gTitle} onChange={(e) => setGTitle(e.target.value)} className="h-9 text-xs" />
