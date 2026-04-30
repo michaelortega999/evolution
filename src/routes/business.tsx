@@ -108,10 +108,6 @@ function BusinessPage() {
       <Tabs defaultValue="overview">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -125,9 +121,8 @@ function BusinessPage() {
               </div>
             </Panel>
           </div>
-        </TabsContent>
 
-        <TabsContent value="projects" className="space-y-6">
+          {/* Projects */}
           <Button onClick={openNewProj} size="sm" className="hud-label text-[10px]">
             <Plus className="h-3 w-3 mr-1" /> Add Project
           </Button>
