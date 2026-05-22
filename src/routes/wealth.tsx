@@ -507,9 +507,12 @@ function WealthPage() {
                 </ul>
               </div>
             </Panel>
+          </div>
 
-
+          {/* ===== CASH FLOW + FINANCIAL HEALTH ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title="Cash Flow This Month">
+
               <div className="flex items-center gap-4">
                 <Donut
                   data={[
