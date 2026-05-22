@@ -21,6 +21,7 @@ export const Route = createFileRoute("/wealth")({
 });
 
 const ASSET_CATS: AssetCategory[] = ["Cash", "Investment", "Property", "Other"];
+const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 function fmt(n: number) {
   const abs = Math.abs(n);
@@ -185,23 +186,10 @@ function WealthPage() {
       if (t.type === "income") cell.income += t.amount;
       else cell.expense += t.amount;
     }
-    // Cap displayed data at May 2026 with 3400 income; later months stay empty
-    const capMonth = 4; // 0-indexed May
     return Array.from(map.entries()).map(([k, v], idx) => {
-      if (idx === capMonth) {
-        return { key: k, label: "MAY", income: 3400, expense: 0 };
-      }
-      if (idx > capMonth) {
-        return {
-          key: k,
-          label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
-          income: 0,
-          expense: 0,
-        };
-      }
       return {
         key: k,
-        label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
+        label: MONTH_LABELS[idx],
         income: v.income,
         expense: v.expense,
       };
