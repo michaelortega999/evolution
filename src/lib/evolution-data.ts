@@ -410,6 +410,7 @@ export interface EvolutionData {
   guitarWeeklyHoursTarget: number;
   customHobbies: CustomHobby[];
   weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
+  trainingSchedule: TrainingSlot[];
 }
 
 const STORAGE_KEY = "evolution:data:v2";
