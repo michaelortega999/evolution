@@ -3,7 +3,7 @@ import { BarChart3, Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
-import { useEvolutionData } from "@/lib/evolution-data";
+import { useEvolutionData, todayDate, dayTotals } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({ meta: [{ title: "Reports — Evolution" }] }),
@@ -12,48 +12,89 @@ export const Route = createFileRoute("/reports")({
 
 type Range = "week" | "month";
 
+function daysAgoISO(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 function ReportsPage() {
   const { data } = useEvolutionData();
   const [range, setRange] = useState<Range>("week");
   const days = range === "week" ? 7 : 30;
+  const since = daysAgoISO(days - 1);
+  const sinceMs = new Date(since).getTime();
 
-  const nutritionRows = data.nutrition.slice(-days);
-  const fitnessRows = data.fitness.slice(-days);
-  const investingRows = data.investing.slice(-days);
+  // ----- Trading (real trades) -----
+  const trades = data.trades.filter((t) => t.date >= since);
+  const tradePnl = trades.reduce((a, t) => a + t.pnl, 0);
+  const wins = trades.filter((t) => t.pnl > 0).length;
+  const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
+  const pnlByDay = new Map<string, number>();
+  trades.forEach((t) => pnlByDay.set(t.date, (pnlByDay.get(t.date) ?? 0) + t.pnl));
+  let bestDay = 0, worstDay = 0;
+  pnlByDay.forEach((v) => { if (v > bestDay) bestDay = v; if (v < worstDay) worstDay = v; });
+  const tradeSeries = Array.from({ length: days }, (_, i) => pnlByDay.get(daysAgoISO(days - 1 - i)) ?? 0);
 
-  const avgCals = nutritionRows.length
-    ? Math.round(nutritionRows.reduce((s, r) => s + r.calories, 0) / nutritionRows.length) : 0;
-  const avgProt = nutritionRows.length
-    ? Math.round(nutritionRows.reduce((s, r) => s + (r.protein ?? 0), 0) / nutritionRows.length) : 0;
+  // ----- Nutrition (mealLogs) -----
+  const dayKeys = Array.from({ length: days }, (_, i) => daysAgoISO(days - 1 - i));
+  const calsPerDay = dayKeys.map((d) => dayTotals(d, data.mealLogs).kcal);
+  const proteinPerDay = dayKeys.map((d) => dayTotals(d, data.mealLogs).p);
+  const loggedDays = calsPerDay.filter((c) => c > 0);
+  const avgCals = loggedDays.length ? Math.round(loggedDays.reduce((a, b) => a + b, 0) / loggedDays.length) : 0;
+  const avgProt = loggedDays.length ? Math.round(proteinPerDay.filter((_, i) => calsPerDay[i] > 0).reduce((a, b) => a + b, 0) / loggedDays.length) : 0;
+  const calTarget = data.profile.calorieTarget || 2000;
+  const daysHitGoal = calsPerDay.filter((c) => c >= calTarget * 0.85 && c <= calTarget * 1.05).length;
 
-  const sessions = fitnessRows.reduce((s, r) => s + r.workouts, 0);
-  const totalVolume = sessions * 12500; // synthetic estimate
+  // ----- Fitness (workouts + fitness rows) -----
+  const workoutLogs = data.workouts.filter((w) => w.date >= since);
+  const fitnessRows = data.fitness.filter((r) => r.date >= since);
+  const sessions = workoutLogs.length + fitnessRows.reduce((a, r) => a + r.workouts, 0);
+  const totalVolume = workoutLogs.reduce((a, w) => a + w.durationMin * 100, 0);
+  const monthAgo = daysAgoISO(30);
+  const prsThisMonth = data.prHistory.filter((p) => p.date >= monthAgo).length;
 
-  const trades = investingRows.length;
-  const pnl = investingRows.length >= 2
-    ? investingRows[investingRows.length - 1].value - investingRows[0].value : 0;
-  const wins = investingRows.filter((r, i) => i > 0 && r.value > investingRows[i - 1].value).length;
-  const winRate = trades > 1 ? Math.round((wins / (trades - 1)) * 100) : 0;
+  // ----- Journal -----
+  const journalEntries = data.journalEntries.filter((e) => e.date >= since).length
+    + data.journal.filter((e) => e.date >= since).length;
+  const moodCounts: Record<string, number> = {};
+  data.journalEntries.filter((e) => e.date >= since).forEach((e) => { moodCounts[e.mood] = (moodCounts[e.mood] ?? 0) + 1; });
+  const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
-  const journalCount = data.journal.length;
-  const notesCount = data.notes.length;
+  // ----- Focus -----
+  const focus = data.focusSessions.filter((s) => s.completedAt >= sinceMs);
+  const focusHours = Math.round((focus.reduce((a, s) => a + s.durationSec, 0) / 3600) * 10) / 10;
+  const focusCount = focus.length;
+  const focusByDay = new Map<string, number>();
+  focus.forEach((s) => {
+    const k = new Date(s.completedAt).toISOString().slice(0, 10);
+    focusByDay.set(k, (focusByDay.get(k) ?? 0) + s.durationSec);
+  });
+  let mostFocusedDay = "—"; let mostFocusedSec = 0;
+  focusByDay.forEach((v, k) => { if (v > mostFocusedSec) { mostFocusedSec = v; mostFocusedDay = k; } });
+
+  // ----- Business -----
+  const today = todayDate();
+  const monthKey = today.slice(0, 7);
+  const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
+  const projectsCompleted = data.projects.filter((p) => p.status === "Completed").length;
 
   const summary = useMemo(() => ({
-    range,
-    generatedAt: new Date().toISOString(),
-    trading: { trades, pnl, winRate },
-    nutrition: { avgCalories: avgCals, avgProtein: avgProt },
-    fitness: { sessions, totalVolume },
-    journal: { entries: journalCount },
-    notes: { ideas: notesCount },
-  }), [range, trades, pnl, winRate, avgCals, avgProt, sessions, totalVolume, journalCount, notesCount]);
+    range, generatedAt: new Date().toISOString(),
+    trading: { trades: trades.length, pnl: tradePnl, winRate, bestDay, worstDay },
+    nutrition: { avgCalories: avgCals, avgProtein: avgProt, daysHitGoal },
+    fitness: { sessions, totalVolume, prsThisMonth },
+    journal: { entries: journalEntries, topMood },
+    focus: { hours: focusHours, sessions: focusCount, mostFocusedDay },
+    business: { monthRevenue, projectsCompleted },
+  }), [range, trades.length, tradePnl, winRate, bestDay, worstDay, avgCals, avgProt, daysHitGoal, sessions, totalVolume, prsThisMonth, journalEntries, topMood, focusHours, focusCount, mostFocusedDay, monthRevenue, projectsCompleted]);
 
   function exportReport() {
     const blob = new Blob([JSON.stringify(summary, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `evolution-report-${range}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `evolution-report-${range}-${todayDate()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -78,42 +119,54 @@ function ReportsPage() {
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <Panel title="TRADING">
           <div className="grid grid-cols-3 gap-2 mb-3">
-            <Stat label="P&L" value={`${pnl >= 0 ? "+" : ""}$${pnl.toLocaleString()}`} accent={pnl >= 0} />
-            <Stat label="Trades" value={String(trades)} />
+            <Stat label="P&L" value={`${tradePnl >= 0 ? "+" : ""}$${tradePnl.toLocaleString()}`} accent={tradePnl >= 0} />
+            <Stat label="Trades" value={String(trades.length)} />
             <Stat label="Win Rate" value={`${winRate}%`} />
           </div>
-          <Sparkline data={investingRows.map((r) => r.value)} />
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <Stat label="Best Day" value={`+$${bestDay.toLocaleString()}`} />
+            <Stat label="Worst Day" value={`$${worstDay.toLocaleString()}`} />
+          </div>
+          <Sparkline data={tradeSeries.length ? tradeSeries : [0]} />
         </Panel>
 
         <Panel title="NUTRITION">
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <Stat label="Avg Cals" value={`${avgCals}`} />
             <Stat label="Avg Protein" value={`${avgProt}g`} />
+            <Stat label="On Goal" value={`${daysHitGoal}d`} />
           </div>
-          <Sparkline data={nutritionRows.map((r) => r.calories)} />
+          <Sparkline data={calsPerDay.length ? calsPerDay : [0]} />
         </Panel>
 
         <Panel title="FITNESS">
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <Stat label="Sessions" value={String(sessions)} />
             <Stat label="Volume" value={`${(totalVolume / 1000).toFixed(1)}k`} />
+            <Stat label="PRs/mo" value={String(prsThisMonth)} />
           </div>
-          <Sparkline data={fitnessRows.map((r) => r.workouts * 100)} />
         </Panel>
 
         <Panel title="JOURNAL">
-          <Stat label="Entries" value={String(journalCount)} />
-          <p className="text-xs text-muted-foreground mt-3">Total journal entries logged.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label="Entries" value={String(journalEntries)} />
+            <Stat label="Top Mood" value={topMood} />
+          </div>
         </Panel>
 
-        <Panel title="NOTES">
-          <Stat label="Ideas Captured" value={String(notesCount)} />
-          <p className="text-xs text-muted-foreground mt-3">Notes saved on the dashboard.</p>
+        <Panel title="FOCUS">
+          <div className="grid grid-cols-3 gap-2">
+            <Stat label="Hours" value={`${focusHours}h`} />
+            <Stat label="Sessions" value={String(focusCount)} />
+            <Stat label="Best Day" value={mostFocusedDay.slice(5) || "—"} />
+          </div>
         </Panel>
 
-        <Panel title="GOALS">
-          <Stat label="Active" value={String((data.goals ?? []).filter((g) => !g.completed).length)} />
-          <Stat label="Completed" value={String((data.goals ?? []).filter((g) => g.completed).length)} />
+        <Panel title="BUSINESS">
+          <div className="grid grid-cols-2 gap-2">
+            <Stat label="Revenue (mo)" value={`$${monthRevenue.toLocaleString()}`} accent />
+            <Stat label="Completed" value={String(projectsCompleted)} />
+          </div>
         </Panel>
       </section>
     </ModuleLayout>
@@ -124,7 +177,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <div className="border border-border rounded p-3 bg-primary/5">
       <div className="hud-label text-[9px] text-muted-foreground">{label}</div>
-      <div className={`hud-label text-lg ${accent ? "text-primary hud-glow" : "text-foreground"}`}>{value}</div>
+      <div className={`hud-label text-lg ${accent ? "text-primary hud-glow" : "text-foreground"} truncate`}>{value}</div>
     </div>
   );
 }
