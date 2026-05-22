@@ -411,7 +411,15 @@ export interface EvolutionData {
   customHobbies: CustomHobby[];
   weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
   trainingSchedule: TrainingSlot[];
+  netWorthSnapshots: NetWorthSnapshot[];
 }
+
+export interface NetWorthSnapshot {
+  id: string;
+  monthKey: string; // YYYY-MM
+  value: number;
+}
+
 
 const STORAGE_KEY = "evolution:data:v2";
 export const STORAGE_VERSION = 3;
