@@ -334,69 +334,6 @@ function WealthPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* ===== QUICK ADD ROW ===== */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Panel title="Quick Add · Transaction">
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs col-span-2" maxLength={80} />
-                <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs" />
-                <div className="flex gap-1 p-0.5 rounded-md border border-border bg-card/60 h-8">
-                  {(["income", "expense"] as TxType[]).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTType(t)}
-                      className={`hud-label text-[10px] px-2 rounded transition-colors uppercase flex-1 ${
-                        tType === t
-                          ? t === "income"
-                            ? "bg-primary/20 text-primary border border-primary/40"
-                            : "bg-destructive/20 text-destructive border border-destructive/40"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-                <Input placeholder="Category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs" maxLength={40} />
-                <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs" />
-              </div>
-              <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3 w-full">
-                <Plus className="h-3 w-3 mr-1" /> Add {tType === "income" ? "Income" : "Expense"}
-              </Button>
-            </Panel>
-
-            <Panel title="Quick Add · Asset">
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Name (e.g. Chase)" value={aName} onChange={(e) => setAName(e.target.value)} className="h-8 text-xs col-span-2" maxLength={60} />
-                <Input type="number" placeholder="Value $" value={aValue} onChange={(e) => setAValue(e.target.value)} className="h-8 text-xs" />
-                <select value={aCat} onChange={(e) => setACat(e.target.value as AssetCategory)} className="h-8 bg-input border border-border rounded px-2 text-xs">
-                  {ASSET_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <Button
-                onClick={() => { setEditId(null); saveAsset(); }}
-                size="sm"
-                className="hud-label text-[10px] mt-3 w-full"
-              >
-                <Plus className="h-3 w-3 mr-1" /> Add Asset
-              </Button>
-            </Panel>
-
-            <Panel title="Quick Add · Wealth Goal">
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Title" value={gTitle} onChange={(e) => setGTitle(e.target.value)} className="h-8 text-xs col-span-2" maxLength={60} />
-                <Input type="number" placeholder="Target $" value={gTarget} onChange={(e) => setGTarget(e.target.value)} className="h-8 text-xs" />
-                <Input type="number" placeholder="Current $" value={gCurrent} onChange={(e) => setGCurrent(e.target.value)} className="h-8 text-xs" />
-                <Input type="date" value={gDeadline} onChange={(e) => setGDeadline(e.target.value)} className="h-8 text-xs col-span-2" />
-              </div>
-              <Button onClick={addGoal} size="sm" className="hud-label text-[10px] mt-3 w-full">
-                <Plus className="h-3 w-3 mr-1" /> Add Goal
-              </Button>
-            </Panel>
-          </div>
-
-
           {/* ===== KPI ROW ===== */}
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
             {kpis.map((k) => {
@@ -518,18 +455,7 @@ function WealthPage() {
                 </div>
               </div>
 
-              <IncomeExpenseQuickAdd
-                onAdd={(type, amount, description, category, date) =>
-                  mutate((prev) => ({
-                    transactions: [
-                      ...prev.transactions,
-                      { id: uid(), date, description, amount, type, category },
-                    ],
-                  }))
-                }
-              />
             </Panel>
-
 
             <Panel title="Assets Allocation">
               <div className="flex flex-col items-center gap-4">
@@ -719,6 +645,68 @@ function WealthPage() {
                   </p>
                 </div>
               </div>
+            </Panel>
+          </div>
+
+          {/* ===== QUICK ADD SECTIONS (BOTTOM) ===== */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Panel title="Quick Add · Transaction">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs col-span-2" maxLength={80} />
+                <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs" />
+                <div className="flex gap-1 p-0.5 rounded-md border border-border bg-card/60 h-8">
+                  {(["income", "expense"] as TxType[]).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTType(t)}
+                      className={`hud-label text-[10px] px-2 rounded transition-colors uppercase flex-1 ${
+                        tType === t
+                          ? t === "income"
+                            ? "bg-primary/20 text-primary border border-primary/40"
+                            : "bg-destructive/20 text-destructive border border-destructive/40"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <Input placeholder="Category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs" maxLength={40} />
+                <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs" />
+              </div>
+              <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3 w-full">
+                <Plus className="h-3 w-3 mr-1" /> Add {tType === "income" ? "Income" : "Expense"}
+              </Button>
+            </Panel>
+
+            <Panel title="Quick Add · Asset">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Name (e.g. Chase)" value={aName} onChange={(e) => setAName(e.target.value)} className="h-8 text-xs col-span-2" maxLength={60} />
+                <Input type="number" placeholder="Value $" value={aValue} onChange={(e) => setAValue(e.target.value)} className="h-8 text-xs" />
+                <select value={aCat} onChange={(e) => setACat(e.target.value as AssetCategory)} className="h-8 bg-input border border-border rounded px-2 text-xs">
+                  {ASSET_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <Button
+                onClick={() => { setEditId(null); saveAsset(); }}
+                size="sm"
+                className="hud-label text-[10px] mt-3 w-full"
+              >
+                <Plus className="h-3 w-3 mr-1" /> Add Asset
+              </Button>
+            </Panel>
+
+            <Panel title="Quick Add · Wealth Goal">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Title" value={gTitle} onChange={(e) => setGTitle(e.target.value)} className="h-8 text-xs col-span-2" maxLength={60} />
+                <Input type="number" placeholder="Target $" value={gTarget} onChange={(e) => setGTarget(e.target.value)} className="h-8 text-xs" />
+                <Input type="number" placeholder="Current $" value={gCurrent} onChange={(e) => setGCurrent(e.target.value)} className="h-8 text-xs" />
+                <Input type="date" value={gDeadline} onChange={(e) => setGDeadline(e.target.value)} className="h-8 text-xs col-span-2" />
+              </div>
+              <Button onClick={addGoal} size="sm" className="hud-label text-[10px] mt-3 w-full">
+                <Plus className="h-3 w-3 mr-1" /> Add Goal
+              </Button>
             </Panel>
           </div>
         </TabsContent>
@@ -925,69 +913,5 @@ function NetWorthMonthlyPanel({
   );
 }
 
-function IncomeExpenseQuickAdd({
-  onAdd,
-}: {
-  onAdd: (
-    type: TxType,
-    amount: number,
-    description: string,
-    category: string,
-    date: string,
-  ) => void;
-}) {
-  const [type, setType] = useState<TxType>("income");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [date, setDate] = useState(todayDate());
-
-  const submit = () => {
-    const n = Number(amount);
-    if (!Number.isFinite(n) || n <= 0) return;
-    onAdd(
-      type,
-      n,
-      description.trim() || (type === "income" ? "Income" : "Expense"),
-      category.trim() || "Other",
-      date,
-    );
-    setAmount("");
-    setDescription("");
-    setCategory("");
-  };
-
-  return (
-    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-2">
-      <div className="flex gap-1 p-1 rounded-md border border-border bg-card/60 w-fit">
-        {(["income", "expense"] as TxType[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setType(t)}
-            className={`hud-label text-[10px] px-2.5 py-1 rounded transition-colors uppercase ${
-              type === t
-                ? t === "income"
-                  ? "bg-primary/20 text-primary border border-primary/40"
-                  : "bg-destructive/20 text-destructive border border-destructive/40"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Input type="number" placeholder="Amount ($)" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-8 text-xs" />
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-8 text-xs" />
-        <Input placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} className="h-8 text-xs" />
-        <Input placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-8 text-xs" />
-      </div>
-      <Button onClick={submit} size="sm" className="hud-label text-[10px] h-8 w-full">
-        <Plus className="h-3 w-3 mr-1" /> Log {type === "income" ? "Income" : "Expense"}
-      </Button>
-    </div>
-  );
-}
 
 
