@@ -75,14 +75,20 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
     const stepIdx = Math.max(1, Math.floor(count / 8));
     const now = new Date();
     for (let i = 0; i < count; i += stepIdx) {
-      const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
-      out.push({
-        x: padL + i * step,
-        label: d.toLocaleString("en", { month: "short" }).toUpperCase(),
-      });
+      let label: string;
+      if (seriesLabels && seriesLabels[i]) {
+        const [y, m] = seriesLabels[i].split("-").map(Number);
+        const d = new Date(y, (m || 1) - 1, 1);
+        label = d.toLocaleString("en", { month: "short" }).toUpperCase();
+      } else {
+        const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+        label = d.toLocaleString("en", { month: "short" }).toUpperCase();
+      }
+      out.push({ x: padL + i * step, label });
     }
     return out;
-  }, [series, step]);
+  }, [series, step, seriesLabels, padL]);
+
 
   const last = points[points.length - 1];
   const first = points[0];
