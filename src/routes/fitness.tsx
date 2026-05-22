@@ -96,6 +96,65 @@ function FitnessPage() {
     return arr;
   };
 
+  // Weekly training schedule
+  const schedule = data.trainingSchedule ?? [];
+  const [slotDraft, setSlotDraft] = useState<{ dayOfWeek: number; time: string; endTime: string; title: string; type: WorkoutType }>({
+    dayOfWeek: 0, time: "07:00", endTime: "08:00", title: "", type: "Push",
+  });
+  const addSlot = () => {
+    if (!slotDraft.title.trim()) return;
+    const slot: TrainingSlot = { id: uid(), ...slotDraft, title: slotDraft.title.trim() };
+    mutate((prev) => ({ trainingSchedule: [...(prev.trainingSchedule ?? []), slot] }));
+    setSlotDraft((d) => ({ ...d, title: "" }));
+  };
+  const removeSlot = (id: string) => {
+    mutate((prev) => ({ trainingSchedule: (prev.trainingSchedule ?? []).filter((s) => s.id !== id) }));
+  };
+  const syncToCalendar = () => {
+    // Map weekly slots to this week's calendar events (Mon=0..Sun=6)
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun..6=Sat
+    const mondayOffset = (day + 6) % 7;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset);
+    const ymd = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    };
+    mutate((prev) => {
+      const existing = prev.calendar ?? [];
+      // remove previous training events for this week (tagged via id prefix)
+      const weekDates = new Set(
+        Array.from({ length: 7 }, (_, i) => {
+          const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+          return ymd(d);
+        })
+      );
+      const kept = existing.filter((e) => !(e.id.startsWith("train-") && weekDates.has(e.date)));
+      const newEvents: CalendarEvent[] = schedule.map((s) => {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + s.dayOfWeek);
+        return {
+          id: `train-${s.id}-${ymd(d)}`,
+          date: ymd(d),
+          time: s.time,
+          endTime: s.endTime,
+          title: `🏋 ${s.title}`,
+          reminder: 30,
+        };
+      });
+      return { calendar: [...kept, ...newEvents] };
+    });
+  };
+
+  const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const slotsByDay = useMemo(() => {
+    const m: TrainingSlot[][] = [[], [], [], [], [], [], []];
+    schedule.forEach((s) => { if (m[s.dayOfWeek]) m[s.dayOfWeek].push(s); });
+    m.forEach((arr) => arr.sort((a, b) => a.time.localeCompare(b.time)));
+    return m;
+  }, [schedule]);
+
   return (
     <ModuleLayout number="03" title="Fitness" subtitle="Sessions · PRs · Training" icon={Dumbbell}>
       <div className="space-y-6">
