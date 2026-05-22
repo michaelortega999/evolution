@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface SparklineProps {
   data: number[];
   height?: number;
@@ -7,6 +9,8 @@ interface SparklineProps {
 }
 
 export function Sparkline({ data, height = 70, labels, fill = true, color = "var(--primary)" }: SparklineProps) {
+  const rawId = useId();
+  const gid = `sparkFill-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const width = 300;
   const max = Math.max(...data);
   const min = Math.min(...data);
@@ -17,7 +21,7 @@ export function Sparkline({ data, height = 70, labels, fill = true, color = "var
   const points = data.map((v, i) => [i * step, height - ((v - min) / range) * (height - 8) - 4] as const);
   const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
   const area = `${path} L${width},${height} L0,${height} Z`;
-  const gid = `sparkFill-${Math.random().toString(36).slice(2, 8)}`;
+  
 
   return (
     <div className="w-full">
