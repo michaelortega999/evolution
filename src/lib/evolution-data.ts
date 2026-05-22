@@ -619,7 +619,7 @@ function load(): EvolutionData {
 
 function save(data: EvolutionData) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
   window.dispatchEvent(new CustomEvent("evolution:data-updated"));
 }
 
