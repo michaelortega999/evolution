@@ -431,40 +431,6 @@ function WealthPage() {
 
 
 
-            <Panel title="Assets Allocation">
-              <div className="flex flex-col items-center gap-4">
-                {allocByCat.length ? (
-                  <Donut
-                    data={allocByCat}
-                    size={180}
-                    thickness={22}
-                    centerLabel={fmt(assetsTotal)}
-                    centerSub="TOTAL ASSETS"
-                  />
-                ) : (
-                  <div className="h-[180px] flex items-center justify-center text-xs text-muted-foreground">
-                    No assets yet.
-                  </div>
-                )}
-                <ul className="w-full space-y-1.5">
-                  {allocByCat.map((s) => {
-                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
-                    return (
-                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
-                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
-                        <span className="flex-1 text-foreground/80">{s.label}</span>
-                        <span className="text-primary tabular-nums">{fmt(s.value)}</span>
-                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            </Panel>
-          </div>
-
-          {/* ===== INCOME VS EXPENSES + CASH FLOW + FINANCIAL HEALTH ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Panel title="Income vs Expenses">
               <div className="flex items-end gap-1.5 h-[160px]">
                 {monthly.map((m) => (
@@ -499,7 +465,49 @@ function WealthPage() {
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Income</span>
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Expenses</span>
               </div>
+              <IncomeExpenseQuickAdd
+                onAdd={(type, amount, description, category, date) =>
+                  mutate((prev) => ({
+                    transactions: [
+                      ...prev.transactions,
+                      { id: uid(), date, description, amount, type, category },
+                    ],
+                  }))
+                }
+              />
             </Panel>
+
+            <Panel title="Assets Allocation">
+              <div className="flex flex-col items-center gap-4">
+                {allocByCat.length ? (
+                  <Donut
+                    data={allocByCat}
+                    size={180}
+                    thickness={22}
+                    centerLabel={fmt(assetsTotal)}
+                    centerSub="TOTAL ASSETS"
+                  />
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center text-xs text-muted-foreground">
+                    No assets yet.
+                  </div>
+                )}
+                <ul className="w-full space-y-1.5">
+                  {allocByCat.map((s) => {
+                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
+                    return (
+                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span className="flex-1 text-foreground/80">{s.label}</span>
+                        <span className="text-primary tabular-nums">{fmt(s.value)}</span>
+                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </Panel>
+
 
             <Panel title="Cash Flow This Month">
               <div className="flex items-center gap-4">
