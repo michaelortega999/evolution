@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { Dumbbell, Trash2, Plus } from "lucide-react";
+import { Dumbbell, Trash2, Plus, CalendarPlus } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { BarChart } from "@/components/evolution/BarChart";
 import { Sparkline } from "@/components/evolution/Sparkline";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   useEvolutionData, fitnessSummary, todayDate, uid,
-  type WorkoutType, type StressLevel, type PRLift,
+  type WorkoutType, type StressLevel, type PRLift, type TrainingSlot, type CalendarEvent,
 } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/fitness")({
@@ -96,6 +96,65 @@ function FitnessPage() {
     return arr;
   };
 
+  // Weekly training schedule
+  const schedule = data.trainingSchedule ?? [];
+  const [slotDraft, setSlotDraft] = useState<{ dayOfWeek: number; time: string; endTime: string; title: string; type: WorkoutType }>({
+    dayOfWeek: 0, time: "07:00", endTime: "08:00", title: "", type: "Push",
+  });
+  const addSlot = () => {
+    if (!slotDraft.title.trim()) return;
+    const slot: TrainingSlot = { id: uid(), ...slotDraft, title: slotDraft.title.trim() };
+    mutate((prev) => ({ trainingSchedule: [...(prev.trainingSchedule ?? []), slot] }));
+    setSlotDraft((d) => ({ ...d, title: "" }));
+  };
+  const removeSlot = (id: string) => {
+    mutate((prev) => ({ trainingSchedule: (prev.trainingSchedule ?? []).filter((s) => s.id !== id) }));
+  };
+  const syncToCalendar = () => {
+    // Map weekly slots to this week's calendar events (Mon=0..Sun=6)
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun..6=Sat
+    const mondayOffset = (day + 6) % 7;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset);
+    const ymd = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    };
+    mutate((prev) => {
+      const existing = prev.calendar ?? [];
+      // remove previous training events for this week (tagged via id prefix)
+      const weekDates = new Set(
+        Array.from({ length: 7 }, (_, i) => {
+          const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+          return ymd(d);
+        })
+      );
+      const kept = existing.filter((e) => !(e.id.startsWith("train-") && weekDates.has(e.date)));
+      const newEvents: CalendarEvent[] = schedule.map((s) => {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + s.dayOfWeek);
+        return {
+          id: `train-${s.id}-${ymd(d)}`,
+          date: ymd(d),
+          time: s.time,
+          endTime: s.endTime,
+          title: `🏋 ${s.title}`,
+          reminder: 30,
+        };
+      });
+      return { calendar: [...kept, ...newEvents] };
+    });
+  };
+
+  const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const slotsByDay = useMemo(() => {
+    const m: TrainingSlot[][] = [[], [], [], [], [], [], []];
+    schedule.forEach((s) => { if (m[s.dayOfWeek]) m[s.dayOfWeek].push(s); });
+    m.forEach((arr) => arr.sort((a, b) => a.time.localeCompare(b.time)));
+    return m;
+  }, [schedule]);
+
   return (
     <ModuleLayout number="03" title="Fitness" subtitle="Sessions · PRs · Training" icon={Dumbbell}>
       <div className="space-y-6">
@@ -143,6 +202,76 @@ function FitnessPage() {
             </label>
           </div>
         </Panel>
+
+        <Panel title="Weekly Training Schedule">
+          <div className="flex items-center justify-between mb-4">
+            <span className="hud-label text-[10px] text-muted-foreground">
+              Plan your week — sync pushes this week's sessions to your calendar.
+            </span>
+            <Button onClick={syncToCalendar} size="sm" className="hud-label text-[10px]">
+              <CalendarPlus className="h-3 w-3 mr-1" /> Sync to Calendar
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+            {DAYS.map((d, i) => (
+              <div key={d} className="border border-border rounded p-2 min-h-[120px] bg-primary/5">
+                <div className="hud-label text-[10px] text-primary mb-2 text-center">{d}</div>
+                <div className="space-y-2">
+                  {slotsByDay[i].map((s) => (
+                    <div key={s.id} className="bg-background/60 border border-border rounded p-2 group relative">
+                      <div className="hud-label text-[10px] text-primary">{s.time}–{s.endTime}</div>
+                      <div className="text-xs text-foreground/90 mt-1 truncate">{s.title}</div>
+                      <div className="hud-label text-[9px] text-muted-foreground mt-0.5">{s.type}</div>
+                      <button
+                        onClick={() => removeSlot(s.id)}
+                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                        aria-label="Remove"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {slotsByDay[i].length === 0 && (
+                    <div className="hud-label text-[9px] text-muted-foreground/60 text-center py-2">Rest</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-[1fr_120px_110px_110px_140px_auto] gap-2 items-end">
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Title</span>
+              <Input value={slotDraft.title} onChange={(e) => setSlotDraft({ ...slotDraft, title: e.target.value })}
+                placeholder="e.g. Push Day" className="h-9 text-xs mt-1" />
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Day</span>
+              <select value={slotDraft.dayOfWeek} onChange={(e) => setSlotDraft({ ...slotDraft, dayOfWeek: Number(e.target.value) })}
+                className="w-full h-9 text-xs mt-1 bg-transparent border border-input rounded px-2">
+                {DAYS.map((d, i) => <option key={d} value={i}>{d}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Start</span>
+              <Input type="time" value={slotDraft.time} onChange={(e) => setSlotDraft({ ...slotDraft, time: e.target.value })} className="h-9 text-xs mt-1" />
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">End</span>
+              <Input type="time" value={slotDraft.endTime} onChange={(e) => setSlotDraft({ ...slotDraft, endTime: e.target.value })} className="h-9 text-xs mt-1" />
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Type</span>
+              <select value={slotDraft.type} onChange={(e) => setSlotDraft({ ...slotDraft, type: e.target.value as WorkoutType })}
+                className="w-full h-9 text-xs mt-1 bg-transparent border border-input rounded px-2">
+                {WORKOUT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </label>
+            <Button onClick={addSlot} size="sm" className="hud-label text-[10px] h-9">
+              <Plus className="h-3 w-3 mr-1" /> Add
+            </Button>
+          </div>
+        </Panel>
+
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(["bench", "squat", "deadlift"] as const).map((lift) => (
