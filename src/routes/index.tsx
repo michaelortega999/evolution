@@ -8,6 +8,7 @@ import {
   WealthCard, NutritionCard, FitnessCard, JournalCard,
   InvestingCard, BusinessCard, HobbyCard,
 } from "@/components/evolution/ModuleCards";
+import { FocusModeCard } from "@/components/evolution/FocusModeCard";
 import { CalendarCard } from "@/components/evolution/CalendarCard";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
@@ -54,6 +55,10 @@ function Index() {
             <InvestingCard />
             <BusinessCard />
             <HobbyCard />
+          </section>
+
+          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <FocusModeCard />
           </section>
 
           <BottomBar />

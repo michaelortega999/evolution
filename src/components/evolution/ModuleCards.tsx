@@ -358,16 +358,27 @@ export function InvestingCard() {
 }
 
 export function BusinessCard() {
+  const { data } = useEvolutionData();
+  const activeProjects = data.projects.filter((p) => p.status !== "Completed").length;
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const monthRevenue = data.revenue
+    .filter((r) => r.date.startsWith(monthKey))
+    .reduce((a, r) => a + r.amount, 0);
+  const avgProgress = data.projects.length
+    ? Math.round(data.projects.reduce((a, p) => a + p.progress, 0) / data.projects.length)
+    : 0;
+  const fmtRev = monthRevenue >= 1000 ? `$${(monthRevenue / 1000).toFixed(1)}K` : `$${monthRevenue.toLocaleString()}`;
+
   return (
     <Card icon={Briefcase} variant="business" number="07" title="Business" href="/business">
       <div className="hud-label text-[10px] text-muted-foreground">Active Projects</div>
-      <div className="hud-label text-3xl text-primary hud-glow my-1">7</div>
+      <div className="hud-label text-3xl text-primary hud-glow my-1">{activeProjects}</div>
       <div className="flex items-center gap-4 mt-3">
-        <RingProgress value={80} size={72} label="80%" sublabel="On Track" />
+        <RingProgress value={avgProgress} size={72} label={`${avgProgress}%`} sublabel="On Track" />
         <div>
           <div className="hud-label text-[10px] text-muted-foreground">Revenue</div>
-          <div className="hud-label text-sm text-primary">$42.8K</div>
-          <div className="hud-label text-[10px] text-muted-foreground mt-1">This Quarter</div>
+          <div className="hud-label text-sm text-primary">{fmtRev}</div>
+          <div className="hud-label text-[10px] text-muted-foreground mt-1">This Month</div>
         </div>
       </div>
     </Card>
