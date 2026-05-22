@@ -534,6 +534,8 @@ export const defaultData: EvolutionData = {
     { id: "ce-seed-5", name: "Euro Meet", date: futureISO(35), location: "Riverside Park", description: "BMW, Porsche, Audi enthusiasts.", rsvp: "None", seed: true },
     { id: "ce-seed-6", name: "Track Day — Beginner Friendly", date: futureISO(42), location: "Raceway Park", description: "HPDE, all skill levels welcome.", rsvp: "None", seed: true },
   ],
+  netWorthSnapshots: [],
+
   guitarSkills: [],
   guitarSongs: [],
   guitarWeeklyHoursTarget: 5,
