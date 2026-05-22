@@ -155,20 +155,7 @@ function WealthPage() {
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
     .reduce((s, t) => s + t.amount, 0);
 
-  // Net worth monthly series — sourced from user-logged snapshots
-  const netWorthSeries = useMemo(() => {
-    const snaps = [...data.netWorthSnapshots].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-    if (!snaps.length) return [] as number[];
-    return snaps.map((s) => s.value);
-  }, [data.netWorthSnapshots]);
 
-  const netWorthLabels = useMemo(
-    () =>
-      [...data.netWorthSnapshots]
-        .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
-        .map((s) => s.monthKey),
-    [data.netWorthSnapshots],
-  );
 
   // Legacy running balance — still used for other KPI sparklines
   const txSeries = useMemo(() => {
@@ -220,6 +207,16 @@ function WealthPage() {
       };
     });
   }, [data.transactions]);
+
+  // Net worth monthly series — mirrors Income vs Expenses (cumulative net per month)
+  const netWorthSeries = useMemo(() => {
+    let running = 0;
+    return monthly.map((m) => {
+      running += m.income - m.expense;
+      return running;
+    });
+  }, [monthly]);
+  const netWorthLabels = useMemo(() => monthly.map((m) => m.key), [monthly]);
 
 
   // Sparkline series per KPI (12-month rollup)
