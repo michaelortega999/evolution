@@ -172,37 +172,6 @@ function FitnessPage() {
           </Panel>
         </div>
 
-        <Panel title="Weekly Activity">
-          <BarChart data={fit.data.length ? fit.data : [0]} labels={fit.labels} height={200} />
-        </Panel>
-
-        <Panel title="Personal Records">
-          <div className="space-y-4">
-            {(["bench", "squat", "deadlift"] as const).map((lift) => (
-              <div key={lift} className="grid grid-cols-[120px_1fr_auto_auto] items-center gap-3">
-                <span className="hud-label text-xs text-muted-foreground capitalize">{lift}</span>
-                <span className="hud-label text-2xl text-primary hud-glow">{data.profile[lift]} lb</span>
-                <Input
-                  type="number"
-                  placeholder="New PR"
-                  value={prDraft[lift]}
-                  onChange={(e) => setPrDraft((p) => ({ ...p, [lift]: e.target.value }))}
-                  className="h-9 text-xs w-28"
-                />
-                <Button size="sm" onClick={() => updatePR(lift)} className="hud-label text-[10px]">Update PR</Button>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-border">
-            <label className="block">
-              <span className="hud-label text-[10px] text-muted-foreground">Weekly target sessions</span>
-              <Input type="number" value={data.profile.gymSessionsTarget}
-                onChange={(e) => updateProfile({ gymSessionsTarget: Number(e.target.value) || 0 })}
-                className="h-9 text-xs mt-1 w-32" />
-            </label>
-          </div>
-        </Panel>
-
         <Panel title="Weekly Training Schedule">
           <div className="flex items-center justify-between mb-4">
             <span className="hud-label text-[10px] text-muted-foreground">
@@ -270,6 +239,37 @@ function FitnessPage() {
               <Plus className="h-3 w-3 mr-1" /> Add
             </Button>
           </div>
+        </Panel>
+
+        <Panel title="Personal Records">
+          <div className="space-y-4">
+            {(["bench", "squat", "deadlift"] as const).map((lift) => (
+              <div key={lift} className="grid grid-cols-[120px_1fr_auto_auto] items-center gap-3">
+                <span className="hud-label text-xs text-muted-foreground capitalize">{lift}</span>
+                <span className="hud-label text-2xl text-primary hud-glow">{data.profile[lift]} lb</span>
+                <Input
+                  type="number"
+                  placeholder="New PR"
+                  value={prDraft[lift]}
+                  onChange={(e) => setPrDraft((p) => ({ ...p, [lift]: e.target.value }))}
+                  className="h-9 text-xs w-28"
+                />
+                <Button size="sm" onClick={() => updatePR(lift)} className="hud-label text-[10px]">Update PR</Button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Weekly target sessions</span>
+              <Input type="number" value={data.profile.gymSessionsTarget}
+                onChange={(e) => updateProfile({ gymSessionsTarget: Number(e.target.value) || 0 })}
+                className="h-9 text-xs mt-1 w-32" />
+            </label>
+          </div>
+        </Panel>
+
+        <Panel title="Weekly Activity">
+          <BarChart data={fit.data.length ? fit.data : [0]} labels={fit.labels} height={200} />
         </Panel>
 
 
