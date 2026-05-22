@@ -520,6 +520,13 @@ export const defaultData: EvolutionData = {
   guitarWeeklyHoursTarget: 5,
   customHobbies: [],
   weeklyHobbyTargets: { travel: 2, cars: 3, guitar: 5 },
+  trainingSchedule: [
+    { id: "ts-1", dayOfWeek: 0, time: "07:00", endTime: "08:00", title: "Push Day", type: "Push" },
+    { id: "ts-2", dayOfWeek: 1, time: "07:00", endTime: "08:00", title: "Pull Day", type: "Pull" },
+    { id: "ts-3", dayOfWeek: 2, time: "07:00", endTime: "08:00", title: "Leg Day", type: "Legs" },
+    { id: "ts-4", dayOfWeek: 3, time: "18:00", endTime: "18:45", title: "Cardio", type: "Cardio" },
+    { id: "ts-5", dayOfWeek: 4, time: "07:00", endTime: "08:00", title: "Full Body", type: "Full Body" },
+  ],
 };
 
 function futureISO(daysAhead: number): string {
