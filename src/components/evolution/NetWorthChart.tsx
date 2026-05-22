@@ -21,16 +21,23 @@ function fmtCompact(n: number) {
   return `$${Math.round(n)}`;
 }
 
-export function NetWorthChart({ data, height = 280 }: NetWorthChartProps) {
+export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps) {
   const gid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const [range, setRange] = useState<(typeof RANGES)[number]["key"]>("1Y");
   const [hover, setHover] = useState<number | null>(null);
 
-  const series = useMemo(() => {
+  const { series, seriesLabels } = useMemo(() => {
     const r = RANGES.find((x) => x.key === range)!;
-    if (!r.months || data.length <= r.months + 1) return data;
-    return data.slice(-Math.max(2, r.months + 1));
-  }, [data, range]);
+    if (!r.months || data.length <= r.months + 1) {
+      return { series: data, seriesLabels: labels };
+    }
+    const sliceN = Math.max(2, r.months + 1);
+    return {
+      series: data.slice(-sliceN),
+      seriesLabels: labels ? labels.slice(-sliceN) : undefined,
+    };
+  }, [data, range, labels]);
+
 
   const width = 800;
   const padL = 48;
@@ -68,14 +75,20 @@ export function NetWorthChart({ data, height = 280 }: NetWorthChartProps) {
     const stepIdx = Math.max(1, Math.floor(count / 8));
     const now = new Date();
     for (let i = 0; i < count; i += stepIdx) {
-      const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
-      out.push({
-        x: padL + i * step,
-        label: d.toLocaleString("en", { month: "short" }).toUpperCase(),
-      });
+      let label: string;
+      if (seriesLabels && seriesLabels[i]) {
+        const [y, m] = seriesLabels[i].split("-").map(Number);
+        const d = new Date(y, (m || 1) - 1, 1);
+        label = d.toLocaleString("en", { month: "short" }).toUpperCase();
+      } else {
+        const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+        label = d.toLocaleString("en", { month: "short" }).toUpperCase();
+      }
+      out.push({ x: padL + i * step, label });
     }
     return out;
-  }, [series, step]);
+  }, [series, step, seriesLabels, padL]);
+
 
   const last = points[points.length - 1];
   const first = points[0];

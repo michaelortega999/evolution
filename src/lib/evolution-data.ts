@@ -411,7 +411,15 @@ export interface EvolutionData {
   customHobbies: CustomHobby[];
   weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
   trainingSchedule: TrainingSlot[];
+  netWorthSnapshots: NetWorthSnapshot[];
 }
+
+export interface NetWorthSnapshot {
+  id: string;
+  monthKey: string; // YYYY-MM
+  value: number;
+}
+
 
 const STORAGE_KEY = "evolution:data:v2";
 export const STORAGE_VERSION = 3;
@@ -526,6 +534,8 @@ export const defaultData: EvolutionData = {
     { id: "ce-seed-5", name: "Euro Meet", date: futureISO(35), location: "Riverside Park", description: "BMW, Porsche, Audi enthusiasts.", rsvp: "None", seed: true },
     { id: "ce-seed-6", name: "Track Day — Beginner Friendly", date: futureISO(42), location: "Raceway Park", description: "HPDE, all skill levels welcome.", rsvp: "None", seed: true },
   ],
+  netWorthSnapshots: [],
+
   guitarSkills: [],
   guitarSongs: [],
   guitarWeeklyHoursTarget: 5,
@@ -611,6 +621,8 @@ function load(): EvolutionData {
       customHobbies: parsed.customHobbies ?? [],
       weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
       trainingSchedule: parsed.trainingSchedule ?? defaultData.trainingSchedule,
+      netWorthSnapshots: parsed.netWorthSnapshots ?? [],
+
     };
   } catch {
     return defaultData;
