@@ -30,7 +30,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
 
   const { series, seriesLabels } = useMemo(() => {
     const r = RANGES.find((x) => x.key === range)!;
-    if (!r.months || data.length <= r.months + 1) {
+    if (!r.months || data.length <= r.months) {
       return { series: data, seriesLabels: labels };
     }
     const sliceN = Math.max(2, r.months);
