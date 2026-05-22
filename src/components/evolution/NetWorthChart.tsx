@@ -21,16 +21,23 @@ function fmtCompact(n: number) {
   return `$${Math.round(n)}`;
 }
 
-export function NetWorthChart({ data, height = 280 }: NetWorthChartProps) {
+export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps) {
   const gid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const [range, setRange] = useState<(typeof RANGES)[number]["key"]>("1Y");
   const [hover, setHover] = useState<number | null>(null);
 
-  const series = useMemo(() => {
+  const { series, seriesLabels } = useMemo(() => {
     const r = RANGES.find((x) => x.key === range)!;
-    if (!r.months || data.length <= r.months + 1) return data;
-    return data.slice(-Math.max(2, r.months + 1));
-  }, [data, range]);
+    if (!r.months || data.length <= r.months + 1) {
+      return { series: data, seriesLabels: labels };
+    }
+    const sliceN = Math.max(2, r.months + 1);
+    return {
+      series: data.slice(-sliceN),
+      seriesLabels: labels ? labels.slice(-sliceN) : undefined,
+    };
+  }, [data, range, labels]);
+
 
   const width = 800;
   const padL = 48;
