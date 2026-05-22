@@ -139,6 +139,16 @@ export interface RecoveryEntry {
   stress: StressLevel;
 }
 
+// Weekly recurring training schedule (Mon..Sun)
+export interface TrainingSlot {
+  id: string;
+  dayOfWeek: number; // 0=Mon..6=Sun
+  time: string;      // "HH:MM"
+  endTime: string;   // "HH:MM"
+  title: string;     // e.g. "Push Day"
+  type: WorkoutType;
+}
+
 export type AssetCategory = "Cash" | "Investment" | "Property" | "Other";
 export interface Asset {
   id: string;
