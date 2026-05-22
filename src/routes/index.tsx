@@ -57,6 +57,10 @@ function Index() {
             <HobbyCard />
           </section>
 
+          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <FocusModeCard />
+          </section>
+
           <BottomBar />
 
           <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
