@@ -557,7 +557,7 @@ function load(): EvolutionData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData;
-    const parsed = JSON.parse(raw) as Partial<EvolutionData>;
+    const parsed = migrate(JSON.parse(raw) as StoredShape);
     return {
       ...defaultData,
       ...parsed,
