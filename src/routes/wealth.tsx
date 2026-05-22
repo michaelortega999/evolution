@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
+import { NetWorthChart } from "@/components/evolution/NetWorthChart";
 import { Donut } from "@/components/evolution/Donut";
 import { Gauge } from "@/components/evolution/Gauge";
 import { Input } from "@/components/ui/input";
@@ -395,11 +396,9 @@ function WealthPage() {
           {/* ===== NET WORTH OVER TIME + ASSETS ALLOCATION ===== */}
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
             <Panel title="Net Worth Over Time">
-              <Sparkline data={txSeries} height={240} />
-              <div className="hud-label text-[10px] text-muted-foreground mt-2 text-right">
-                Current · <span className="text-primary">{fmt(netWorth)}</span>
-              </div>
+              <NetWorthChart data={txSeries} height={280} />
             </Panel>
+
 
             <Panel title="Assets Allocation">
               <div className="flex flex-col items-center gap-4">
