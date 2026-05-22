@@ -7,7 +7,7 @@ import { Sparkline } from "@/components/evolution/Sparkline";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   useEvolutionData, fitnessSummary, todayDate, uid,
