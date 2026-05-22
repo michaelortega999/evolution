@@ -215,6 +215,21 @@
   filter: sepia(1) hue-rotate(180deg) saturate(3);
 }
 
+/* Recolor any green text/icons to blue in the black theme */
+.theme-black [class*="emerald"],
+.theme-black [class*="green"],
+.theme-black [class*="lime"],
+.theme-black [class*="teal"] {
+  color: oklch(0.7 0.22 250) !important;
+}
+.theme-black [class*="bg-emerald"],
+.theme-black [class*="bg-green"],
+.theme-black [class*="bg-lime"],
+.theme-black [class*="bg-teal"] {
+  background-color: oklch(0.7 0.22 250 / 0.6) !important;
+  border-color: oklch(0.7 0.22 250) !important;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
