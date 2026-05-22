@@ -124,6 +124,28 @@ function GoalsPage() {
         </div>
       </Panel>
 
+      <Panel title="MODULE GOALS · live from your data">
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {moduleGoals.map((g) => {
+            const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+            const display = (n: number) => g.unit === "$" ? `$${n.toLocaleString()}` : `${n}${g.unit ? ` ${g.unit}` : ""}`;
+            return (
+              <li key={g.title} className="p-3 border border-border rounded bg-primary/5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="hud-label text-[10px] text-accent">{g.category}</span>
+                  <span className="hud-label text-[10px] text-primary">{pct}%</span>
+                </div>
+                <div className="hud-label text-sm text-foreground">{g.title}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{display(g.current)} / {display(g.target)}</div>
+                <div className="mt-2 h-2 bg-secondary rounded overflow-hidden">
+                  <div className="h-full bg-primary transition-all" style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--glow)" }} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Panel>
+
       <Panel title={`ACTIVE · ${active.length}`}>
         {active.length === 0 ? (
           <p className="text-sm text-muted-foreground">No active goals yet.</p>
