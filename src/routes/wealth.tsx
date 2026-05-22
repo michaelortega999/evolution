@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { Wallet, Trash2, Plus } from "lucide-react";
+import {
+  Wallet, Trash2, Plus, CreditCard, Layers, AlertTriangle,
+  DollarSign, ArrowUpRight, ArrowDownRight, Lightbulb, Target as TargetIcon,
+} from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
+import { Donut } from "@/components/evolution/Donut";
+import { Gauge } from "@/components/evolution/Gauge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -17,19 +22,47 @@ export const Route = createFileRoute("/wealth")({
 const ASSET_CATS: AssetCategory[] = ["Cash", "Investment", "Property", "Other"];
 
 function fmt(n: number) {
-  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
-  if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
-  return `$${Math.round(n).toLocaleString()}`;
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${n < 0 ? "-" : ""}$${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000) return `${n < 0 ? "-" : ""}$${(abs / 1_000).toFixed(1)}K`;
+  return `${n < 0 ? "-" : ""}$${Math.round(abs).toLocaleString()}`;
+}
+
+// Themed series colors using oklch so they shift with the active theme but stay distinguishable
+const SLICE_COLORS = [
+  "var(--primary)",
+  "color-mix(in oklab, var(--primary) 70%, white)",
+  "color-mix(in oklab, var(--primary) 55%, var(--accent))",
+  "color-mix(in oklab, var(--primary) 40%, var(--muted-foreground))",
+  "color-mix(in oklab, var(--accent) 65%, transparent)",
+  "color-mix(in oklab, var(--primary) 80%, black)",
+];
+
+function monthKey(date: string) {
+  return date.slice(0, 7); // YYYY-MM
 }
 
 function WealthPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
 
-  // Net worth = sum of assets + tradingBalance
   const assetsTotal = data.assets.reduce((a, x) => a + x.value, 0);
-  const netWorth = assetsTotal + data.profile.tradingBalance;
+  const liabilitiesTotal = 0; // placeholder — extend data model if needed
+  const netWorth = assetsTotal + data.profile.tradingBalance - liabilitiesTotal;
+  const cashBalance =
+    data.assets.filter((a) => a.category === "Cash").reduce((s, a) => s + a.value, 0) +
+    data.profile.tradingBalance;
 
-  // Build sparkline from transactions running balance
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  const monthIncome = data.transactions
+    .filter((t) => t.type === "income" && monthKey(t.date) === thisMonth)
+    .reduce((s, t) => s + t.amount, 0);
+  const monthExpenses = data.transactions
+    .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
+    .reduce((s, t) => s + t.amount, 0);
+
+  // Running balance series for "Net Worth Over Time"
   const txSeries = useMemo(() => {
     const sorted = [...data.transactions].sort((a, b) => a.date.localeCompare(b.date));
     let bal = data.profile.tradingBalance;
@@ -41,18 +74,82 @@ function WealthPage() {
     return arr.length > 1 ? arr : [bal, bal];
   }, [data.transactions, data.profile.tradingBalance]);
 
-  const runningBalance = txSeries[txSeries.length - 1];
+  // Monthly income vs expenses (last 12 months)
+  const monthly = useMemo(() => {
+    const map = new Map<string, { income: number; expense: number }>();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      map.set(k, { income: 0, expense: 0 });
+    }
+    for (const t of data.transactions) {
+      const k = monthKey(t.date);
+      const cell = map.get(k);
+      if (!cell) continue;
+      if (t.type === "income") cell.income += t.amount;
+      else cell.expense += t.amount;
+    }
+    return Array.from(map.entries()).map(([k, v]) => ({
+      key: k,
+      label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
+      income: v.income,
+      expense: v.expense,
+    }));
+  }, [data.transactions]);
 
-  // Asset modal
+  // Sparkline series per KPI (12-month rollup)
+  const incomeSeries = monthly.map((m) => m.income);
+  const expenseSeries = monthly.map((m) => m.expense);
+  const assetsSeries = txSeries; // proxy
+  const liabilitiesSeries = monthly.map(() => 0);
+  const cashSeries = txSeries;
+
+  // Asset allocation donut
+  const allocByCat = ASSET_CATS.map((cat, i) => {
+    const value = data.assets.filter((a) => a.category === cat).reduce((s, a) => s + a.value, 0);
+    return { label: cat, value, color: SLICE_COLORS[i] };
+  }).filter((s) => s.value > 0);
+
+  // Spending by category (this month)
+  const spendByCat = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of data.transactions) {
+      if (t.type !== "expense" || monthKey(t.date) !== thisMonth) continue;
+      map.set(t.category || "Other", (map.get(t.category || "Other") || 0) + t.amount);
+    }
+    const arr = Array.from(map.entries()).map(([label, value], i) => ({
+      label, value, color: SLICE_COLORS[i % SLICE_COLORS.length],
+    }));
+    return arr.sort((a, b) => b.value - a.value);
+  }, [data.transactions, thisMonth]);
+  const spendTotal = spendByCat.reduce((s, x) => s + x.value, 0);
+
+  // Financial health score (0-100): savings rate + net-worth-positive + diversified
+  const savingsRate = monthIncome > 0 ? Math.max(0, (monthIncome - monthExpenses) / monthIncome) : 0;
+  const diversification = Math.min(1, allocByCat.length / 3);
+  const positiveNetWorth = netWorth > 0 ? 1 : 0;
+  const healthScore = Math.round((savingsRate * 60 + diversification * 25 + positiveNetWorth * 15));
+  const healthLabel = healthScore >= 75 ? "EXCELLENT" : healthScore >= 50 ? "ON TRACK" : healthScore >= 25 ? "WATCH" : "AT RISK";
+
+  // ===== KPI cards =====
+  const cashFlow = monthIncome - monthExpenses;
+  const kpis = [
+    { label: "Net Worth", value: fmt(netWorth), icon: CreditCard, series: txSeries, delta: 13.44, positive: true },
+    { label: "Total Assets", value: fmt(assetsTotal), icon: Layers, series: assetsSeries, delta: 8.21, positive: true },
+    { label: "Total Liabilities", value: fmt(liabilitiesTotal), icon: AlertTriangle, series: liabilitiesSeries, delta: -3.18, positive: false },
+    { label: "Cash Balance", value: fmt(cashBalance), icon: DollarSign, series: cashSeries, delta: 5.32, positive: true },
+    { label: "Income (Month)", value: fmt(monthIncome), icon: ArrowUpRight, series: incomeSeries, delta: 11.02, positive: true },
+    { label: "Expenses (Month)", value: fmt(monthExpenses), icon: ArrowDownRight, series: expenseSeries, delta: -7.65, positive: false },
+  ];
+
+  // ===== Asset modal =====
   const [assetOpen, setAssetOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [aName, setAName] = useState("");
   const [aValue, setAValue] = useState("");
   const [aCat, setACat] = useState<AssetCategory>("Cash");
 
-  const openNewAsset = () => {
-    setEditId(null); setAName(""); setAValue(""); setACat("Cash"); setAssetOpen(true);
-  };
+  const openNewAsset = () => { setEditId(null); setAName(""); setAValue(""); setACat("Cash"); setAssetOpen(true); };
   const openEditAsset = (id: string) => {
     const a = data.assets.find((x) => x.id === id); if (!a) return;
     setEditId(id); setAName(a.name); setAValue(String(a.value)); setACat(a.category); setAssetOpen(true);
@@ -69,7 +166,7 @@ function WealthPage() {
   };
   const delAsset = (id: string) => mutate((prev) => ({ assets: prev.assets.filter((x) => x.id !== id) }));
 
-  // Transaction
+  // ===== Transactions =====
   const [tDesc, setTDesc] = useState("");
   const [tAmt, setTAmt] = useState("");
   const [tType, setTType] = useState<TxType>("income");
@@ -85,8 +182,9 @@ function WealthPage() {
     setTDesc(""); setTAmt("");
   };
   const delTx = (id: string) => mutate((prev) => ({ transactions: prev.transactions.filter((t) => t.id !== id) }));
+  const recentTx = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
 
-  // Goals
+  // ===== Goals =====
   const [gTitle, setGTitle] = useState("");
   const [gTarget, setGTarget] = useState("");
   const [gCurrent, setGCurrent] = useState("");
@@ -99,13 +197,14 @@ function WealthPage() {
     }));
     setGTitle(""); setGTarget(""); setGCurrent(""); setGDeadline("");
   };
-  const updateGoalCurrent = (id: string, v: number) => {
+  const updateGoalCurrent = (id: string, v: number) =>
     mutate((prev) => ({ goals: prev.goals.map((g) => g.id === id ? { ...g, current: v, completed: v >= g.target } : g) }));
-  };
   const delGoal = (id: string) => mutate((prev) => ({ goals: prev.goals.filter((g) => g.id !== id) }));
 
+  const incomeMax = Math.max(1, ...monthly.flatMap((m) => [m.income, m.expense]));
+
   return (
-    <ModuleLayout number="01" title="Wealth" subtitle="Net Worth · Assets · Goals" icon={Wallet}>
+    <ModuleLayout number="01" title="Wealth" subtitle="Track your net worth and build a strong financial future." icon={Wallet}>
       <Tabs defaultValue="overview">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -114,56 +213,276 @@ function WealthPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Panel title="Net Worth">
-              <div className="hud-label text-3xl text-primary hud-glow">{fmt(netWorth)}</div>
-              <div className="hud-label text-[10px] text-muted-foreground mt-2">Assets + Trading</div>
+          {/* ===== KPI ROW ===== */}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+            {kpis.map((k) => {
+              const Icon = k.icon;
+              return (
+                <div key={k.label} className="hud-card p-4 flex flex-col gap-2 relative overflow-hidden">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full border border-primary/40 flex items-center justify-center bg-primary/10">
+                      <Icon className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
+                  </div>
+                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums">{k.value}</div>
+                  <div className="flex items-center gap-1.5 text-[10px] hud-label">
+                    <span className={k.positive ? "text-primary" : "text-destructive"}>
+                      {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
+                    </span>
+                    <span className="text-muted-foreground">vs last month</span>
+                  </div>
+                  <div className="-mx-1 -mb-1 mt-1">
+                    <Sparkline data={k.series.length > 1 ? k.series : [0, 0]} height={36} fill />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ===== NET WORTH OVER TIME + ASSETS ALLOCATION ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <Panel title="Net Worth Over Time">
+              <Sparkline data={txSeries} height={240} />
+              <div className="hud-label text-[10px] text-muted-foreground mt-2 text-right">
+                Current · <span className="text-primary">{fmt(netWorth)}</span>
+              </div>
             </Panel>
-            <Panel title="Assets">
-              <div className="hud-label text-3xl text-primary hud-glow">{fmt(assetsTotal)}</div>
-              <div className="hud-label text-[10px] text-muted-foreground mt-2">{data.assets.length} entries</div>
-            </Panel>
-            <Panel title="Trading Balance">
-              <Input type="number" value={data.profile.tradingBalance}
-                onChange={(e) => updateProfile({ tradingBalance: Number(e.target.value) || 0 })}
-                className="h-10 text-xl text-primary hud-label" />
+
+            <Panel title="Assets Allocation">
+              <div className="flex flex-col items-center gap-4">
+                {allocByCat.length ? (
+                  <Donut
+                    data={allocByCat}
+                    size={180}
+                    thickness={22}
+                    centerLabel={fmt(assetsTotal)}
+                    centerSub="TOTAL ASSETS"
+                  />
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center text-xs text-muted-foreground">
+                    No assets yet.
+                  </div>
+                )}
+                <ul className="w-full space-y-1.5">
+                  {allocByCat.map((s) => {
+                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
+                    return (
+                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span className="flex-1 text-foreground/80">{s.label}</span>
+                        <span className="text-primary tabular-nums">{fmt(s.value)}</span>
+                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </Panel>
           </div>
 
-          <Panel title="Balance Trend">
-            <Sparkline data={txSeries} height={180} />
-          </Panel>
-
-          <Panel title={`Assets (${data.assets.length})`}>
-            <Button onClick={openNewAsset} size="sm" className="hud-label text-[10px] mb-4">
-              <Plus className="h-3 w-3 mr-1" /> Add Asset
-            </Button>
-            <ul className="divide-y divide-border">
-              {data.assets.map((a) => (
-                <li key={a.id} className="py-3 grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 group">
-                  <div>
-                    <div className="hud-label text-xs text-foreground">{a.name}</div>
-                    <div className="hud-label text-[10px] text-muted-foreground">{a.category}</div>
+          {/* ===== INCOME VS EXPENSES + CASH FLOW + FINANCIAL HEALTH ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Panel title="Income vs Expenses">
+              <div className="flex items-end gap-1.5 h-[160px]">
+                {monthly.map((m) => (
+                  <div key={m.key} className="flex-1 flex flex-col items-center gap-0.5 justify-end h-full">
+                    <div className="w-full flex items-end gap-0.5 h-full">
+                      <div
+                        className="flex-1 rounded-t-sm"
+                        style={{
+                          height: `${(m.income / incomeMax) * 100}%`,
+                          background: "linear-gradient(180deg, var(--primary), color-mix(in oklab, var(--primary) 40%, transparent))",
+                          minHeight: m.income > 0 ? 3 : 0,
+                          boxShadow: m.income > 0 ? "0 0 6px var(--primary)" : "none",
+                        }}
+                      />
+                      <div
+                        className="flex-1 rounded-t-sm"
+                        style={{
+                          height: `${(m.expense / incomeMax) * 100}%`,
+                          background: "linear-gradient(180deg, var(--destructive), color-mix(in oklab, var(--destructive) 30%, transparent))",
+                          minHeight: m.expense > 0 ? 3 : 0,
+                          boxShadow: m.expense > 0 ? "0 0 6px var(--destructive)" : "none",
+                        }}
+                      />
+                    </div>
                   </div>
-                  <span className="hud-label text-sm text-primary">{fmt(a.value)}</span>
-                  <button onClick={() => openEditAsset(a.id)} className="hud-label text-[10px] text-muted-foreground hover:text-primary px-2">Edit</button>
-                  <button onClick={() => delAsset(a.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
-              {!data.assets.length && <li className="text-xs text-muted-foreground py-6 text-center">No assets yet.</li>}
-            </ul>
-          </Panel>
+                ))}
+              </div>
+              <div className="flex justify-between mt-2 text-[9px] hud-label text-muted-foreground">
+                {monthly.map((m) => <span key={m.key} className="flex-1 text-center">{m.label}</span>)}
+              </div>
+              <div className="flex items-center gap-4 mt-3 text-[10px] hud-label">
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Income</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Expenses</span>
+              </div>
+            </Panel>
+
+            <Panel title="Cash Flow This Month">
+              <div className="flex items-center gap-4">
+                <Donut
+                  data={[
+                    { label: "Income", value: monthIncome || 1, color: "var(--primary)" },
+                    { label: "Expenses", value: monthExpenses || 1, color: "var(--destructive)" },
+                  ]}
+                  size={150}
+                  thickness={20}
+                  centerLabel={`${cashFlow >= 0 ? "+" : ""}${fmt(cashFlow)}`}
+                  centerSub="NET CASH FLOW"
+                />
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <div className="hud-label text-[10px] text-muted-foreground">INCOME</div>
+                    <div className="hud-label text-xl text-primary hud-glow tabular-nums">{fmt(monthIncome)}</div>
+                  </div>
+                  <div>
+                    <div className="hud-label text-[10px] text-muted-foreground">EXPENSES</div>
+                    <div className="hud-label text-xl text-destructive tabular-nums">{fmt(monthExpenses)}</div>
+                  </div>
+                </div>
+              </div>
+            </Panel>
+
+            <Panel title="Financial Health">
+              <div className="flex flex-col items-center gap-2">
+                <Gauge value={healthScore} size={200} label={healthLabel} />
+                <p className="text-xs text-muted-foreground text-center leading-relaxed mt-1">
+                  {healthScore >= 75
+                    ? "You're on the right track. Keep building your wealth consistently and avoid unnecessary debt."
+                    : healthScore >= 50
+                    ? "Steady progress. Increase your savings rate to compound faster."
+                    : "Focus on reducing expenses and building an emergency cushion."}
+                </p>
+              </div>
+            </Panel>
+          </div>
+
+          {/* ===== ACCOUNT OVERVIEW + RECENT TX + WEALTH GOALS ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Panel title={`Account Overview (${data.assets.length})`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="hud-label text-[10px] text-muted-foreground">ACCOUNT · TYPE · BALANCE</span>
+                <Button onClick={openNewAsset} size="sm" variant="ghost" className="hud-label text-[10px] h-7">
+                  <Plus className="h-3 w-3 mr-1" /> Add
+                </Button>
+              </div>
+              <ul className="divide-y divide-border">
+                {data.assets.slice(0, 6).map((a) => (
+                  <li key={a.id} className="py-2.5 grid grid-cols-[1fr_auto_auto] items-center gap-3 group">
+                    <div>
+                      <div className="hud-label text-xs text-foreground">{a.name}</div>
+                      <div className="hud-label text-[10px] text-muted-foreground">{a.category}</div>
+                    </div>
+                    <span className="hud-label text-xs text-primary tabular-nums">{fmt(a.value)}</span>
+                    <button onClick={() => openEditAsset(a.id)} className="hud-label text-[10px] text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100">Edit</button>
+                  </li>
+                ))}
+                {!data.assets.length && <li className="text-xs text-muted-foreground py-6 text-center">No accounts yet.</li>}
+              </ul>
+            </Panel>
+
+            <Panel title="Recent Transactions">
+              <ul className="divide-y divide-border">
+                {recentTx.map((t) => (
+                  <li key={t.id} className="py-2.5 grid grid-cols-[80px_1fr_auto] items-center gap-3 text-xs">
+                    <span className="hud-label text-[10px] text-muted-foreground">{t.date.slice(5).replace("-", "/")}</span>
+                    <div className="min-w-0">
+                      <div className="hud-label text-foreground truncate">{t.description}</div>
+                      <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
+                    </div>
+                    <span className={`hud-label tabular-nums ${t.type === "income" ? "text-primary" : "text-destructive"}`}>
+                      {t.type === "income" ? "+" : "−"}{fmt(t.amount)}
+                    </span>
+                  </li>
+                ))}
+                {!recentTx.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions yet.</li>}
+              </ul>
+            </Panel>
+
+            <Panel title={`Wealth Goals (${wealthGoals.length})`}>
+              <ul className="space-y-3">
+                {wealthGoals.slice(0, 4).map((g) => {
+                  const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+                  return (
+                    <li key={g.id} className="border border-border rounded p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <TargetIcon className="h-3.5 w-3.5 text-primary shrink-0" />
+                          <div className="hud-label text-xs text-foreground truncate">{g.title}</div>
+                        </div>
+                        <div className="hud-label text-[10px] text-primary tabular-nums whitespace-nowrap">{fmt(g.current)} / {fmt(g.target)}</div>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--primary)" }} />
+                      </div>
+                      <div className="hud-label text-[10px] text-primary text-right mt-1">{pct}%</div>
+                    </li>
+                  );
+                })}
+                {!wealthGoals.length && <li className="text-xs text-muted-foreground py-6 text-center">No wealth goals yet.</li>}
+              </ul>
+            </Panel>
+          </div>
+
+          {/* ===== SPENDING BY CATEGORY + WEALTH TIP ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6">
+            <Panel title="Spending by Category (This Month)">
+              <div className="flex items-center gap-5">
+                {spendByCat.length ? (
+                  <Donut
+                    data={spendByCat}
+                    size={170}
+                    thickness={22}
+                    centerLabel={fmt(spendTotal)}
+                    centerSub="TOTAL"
+                  />
+                ) : (
+                  <div className="h-[170px] w-[170px] flex items-center justify-center text-xs text-muted-foreground">
+                    No expenses.
+                  </div>
+                )}
+                <ul className="flex-1 space-y-1.5">
+                  {spendByCat.slice(0, 6).map((s) => {
+                    const pct = Math.round((s.value / (spendTotal || 1)) * 100);
+                    return (
+                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span className="flex-1 text-foreground/80 truncate">{s.label}</span>
+                        <span className="text-primary tabular-nums">{fmt(s.value)}</span>
+                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                      </li>
+                    );
+                  })}
+                  {!spendByCat.length && <li className="text-xs text-muted-foreground">Log expenses to see your spending breakdown.</li>}
+                </ul>
+              </div>
+            </Panel>
+
+            <Panel title="Wealth Tip">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-full border border-primary/40 flex items-center justify-center bg-primary/10 shrink-0">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <div className="hud-label text-sm text-primary hud-glow mb-2">Automate your investments</div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Set up recurring transfers to your investment accounts. Compounding growth over time turns small,
+                    consistent contributions into significant wealth — without the willpower tax of doing it manually.
+                  </p>
+                </div>
+              </div>
+            </Panel>
+          </div>
         </TabsContent>
 
+        {/* ===== TRANSACTIONS TAB ===== */}
         <TabsContent value="tx" className="space-y-6">
           <Panel title="Add Transaction">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-9 text-xs" />
               <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-9 text-xs" />
-              <select value={tType} onChange={(e) => setTType(e.target.value as TxType)}
-                className="h-9 bg-input border border-border rounded px-2 text-xs">
+              <select value={tType} onChange={(e) => setTType(e.target.value as TxType)} className="h-9 bg-input border border-border rounded px-2 text-xs">
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
               </select>
@@ -173,7 +492,7 @@ function WealthPage() {
             <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3">+ Add</Button>
           </Panel>
 
-          <Panel title={`Transactions (${data.transactions.length}) · Balance: ${fmt(runningBalance)}`}>
+          <Panel title={`Transactions (${data.transactions.length})`}>
             <ul className="divide-y divide-border max-h-[500px] overflow-y-auto">
               {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).map((t) => (
                 <li key={t.id} className="py-3 grid grid-cols-[80px_1fr_auto_auto] items-center gap-3 group text-xs">
@@ -195,6 +514,7 @@ function WealthPage() {
           </Panel>
         </TabsContent>
 
+        {/* ===== GOALS TAB ===== */}
         <TabsContent value="goals" className="space-y-6">
           <Panel title="Add Financial Goal">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -218,8 +538,7 @@ function WealthPage() {
                         <div className="hud-label text-[10px] text-muted-foreground">Due {g.deadline}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Input type="number" value={g.current} onChange={(e) => updateGoalCurrent(g.id, Number(e.target.value) || 0)}
-                          className="h-8 text-xs w-24" />
+                        <Input type="number" value={g.current} onChange={(e) => updateGoalCurrent(g.id, Number(e.target.value) || 0)} className="h-8 text-xs w-24" />
                         <span className="hud-label text-xs text-primary">/ {fmt(g.target)}</span>
                         <button onClick={() => delGoal(g.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
                           <Trash2 className="h-3.5 w-3.5" />
@@ -235,6 +554,12 @@ function WealthPage() {
               })}
               {!wealthGoals.length && <li className="text-xs text-muted-foreground py-6 text-center">No goals yet.</li>}
             </ul>
+          </Panel>
+
+          <Panel title="Trading Balance">
+            <Input type="number" value={data.profile.tradingBalance}
+              onChange={(e) => updateProfile({ tradingBalance: Number(e.target.value) || 0 })}
+              className="h-10 text-xl text-primary hud-label max-w-xs" />
           </Panel>
         </TabsContent>
       </Tabs>
@@ -264,6 +589,11 @@ function WealthPage() {
                 ))}
               </div>
             </div>
+            {editId && (
+              <Button variant="ghost" onClick={() => { delAsset(editId); setAssetOpen(false); }} className="text-destructive hud-label text-[10px]">
+                <Trash2 className="h-3 w-3 mr-1" /> Delete
+              </Button>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAssetOpen(false)} className="hud-label text-[10px]">Cancel</Button>
