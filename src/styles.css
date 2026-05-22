@@ -840,7 +840,7 @@
     contrast(1.1)
     saturate(1.35)
     hue-rotate(-110deg)
-    drop-shadow(0 0 10px rgba(80, 160, 255, 0.6))
+    drop-shadow(0 0 10px rgba(0, 255, 140, 0.6))
     drop-shadow(0 0 22px rgba(0, 220, 120, 0.35));
 }
 
