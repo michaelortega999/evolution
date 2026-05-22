@@ -599,6 +599,7 @@ function load(): EvolutionData {
       guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
       customHobbies: parsed.customHobbies ?? [],
       weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
+      trainingSchedule: parsed.trainingSchedule ?? defaultData.trainingSchedule,
     };
   } catch {
     return defaultData;
