@@ -455,18 +455,7 @@ function WealthPage() {
                 </div>
               </div>
 
-              <IncomeExpenseQuickAdd
-                onAdd={(type, amount, description, category, date) =>
-                  mutate((prev) => ({
-                    transactions: [
-                      ...prev.transactions,
-                      { id: uid(), date, description, amount, type, category },
-                    ],
-                  }))
-                }
-              />
             </Panel>
-
 
             <Panel title="Assets Allocation">
               <div className="flex flex-col items-center gap-4">
