@@ -203,6 +203,76 @@ function FitnessPage() {
           </div>
         </Panel>
 
+        <Panel title="Weekly Training Schedule">
+          <div className="flex items-center justify-between mb-4">
+            <span className="hud-label text-[10px] text-muted-foreground">
+              Plan your week — sync pushes this week's sessions to your calendar.
+            </span>
+            <Button onClick={syncToCalendar} size="sm" className="hud-label text-[10px]">
+              <CalendarPlus className="h-3 w-3 mr-1" /> Sync to Calendar
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+            {DAYS.map((d, i) => (
+              <div key={d} className="border border-border rounded p-2 min-h-[120px] bg-primary/5">
+                <div className="hud-label text-[10px] text-primary mb-2 text-center">{d}</div>
+                <div className="space-y-2">
+                  {slotsByDay[i].map((s) => (
+                    <div key={s.id} className="bg-background/60 border border-border rounded p-2 group relative">
+                      <div className="hud-label text-[10px] text-primary">{s.time}–{s.endTime}</div>
+                      <div className="text-xs text-foreground/90 mt-1 truncate">{s.title}</div>
+                      <div className="hud-label text-[9px] text-muted-foreground mt-0.5">{s.type}</div>
+                      <button
+                        onClick={() => removeSlot(s.id)}
+                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                        aria-label="Remove"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {slotsByDay[i].length === 0 && (
+                    <div className="hud-label text-[9px] text-muted-foreground/60 text-center py-2">Rest</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-[1fr_120px_110px_110px_140px_auto] gap-2 items-end">
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Title</span>
+              <Input value={slotDraft.title} onChange={(e) => setSlotDraft({ ...slotDraft, title: e.target.value })}
+                placeholder="e.g. Push Day" className="h-9 text-xs mt-1" />
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Day</span>
+              <select value={slotDraft.dayOfWeek} onChange={(e) => setSlotDraft({ ...slotDraft, dayOfWeek: Number(e.target.value) })}
+                className="w-full h-9 text-xs mt-1 bg-transparent border border-input rounded px-2">
+                {DAYS.map((d, i) => <option key={d} value={i}>{d}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Start</span>
+              <Input type="time" value={slotDraft.time} onChange={(e) => setSlotDraft({ ...slotDraft, time: e.target.value })} className="h-9 text-xs mt-1" />
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">End</span>
+              <Input type="time" value={slotDraft.endTime} onChange={(e) => setSlotDraft({ ...slotDraft, endTime: e.target.value })} className="h-9 text-xs mt-1" />
+            </label>
+            <label className="block">
+              <span className="hud-label text-[10px] text-muted-foreground">Type</span>
+              <select value={slotDraft.type} onChange={(e) => setSlotDraft({ ...slotDraft, type: e.target.value as WorkoutType })}
+                className="w-full h-9 text-xs mt-1 bg-transparent border border-input rounded px-2">
+                {WORKOUT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </label>
+            <Button onClick={addSlot} size="sm" className="hud-label text-[10px] h-9">
+              <Plus className="h-3 w-3 mr-1" /> Add
+            </Button>
+          </div>
+        </Panel>
+
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(["bench", "squat", "deadlift"] as const).map((lift) => (
             <Panel key={lift} title={`${lift.charAt(0).toUpperCase() + lift.slice(1)} Progress`}>
