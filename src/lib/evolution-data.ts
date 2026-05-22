@@ -414,6 +414,17 @@ export interface EvolutionData {
 }
 
 const STORAGE_KEY = "evolution:data:v2";
+export const STORAGE_VERSION = 3;
+
+type StoredShape = Partial<EvolutionData> & { _version?: number };
+
+// Future migrations: add cases as the schema evolves.
+function migrate(parsed: StoredShape): StoredShape {
+  const v = parsed._version ?? 1;
+  if (v === STORAGE_VERSION) return parsed;
+  // v1/v2 → v3: no destructive changes yet, just stamp the version.
+  return { ...parsed, _version: STORAGE_VERSION };
+}
 
 export const defaultProfile: Profile = {
   name: "Michael",
