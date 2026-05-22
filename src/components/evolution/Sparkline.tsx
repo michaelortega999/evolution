@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface SparklineProps {
   data: number[];
   height?: number;
@@ -7,6 +9,8 @@ interface SparklineProps {
 }
 
 export function Sparkline({ data, height = 70, labels, fill = true, color = "var(--primary)" }: SparklineProps) {
+  const rawId = useId();
+  const gid = `sparkFill-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const width = 300;
   const max = Math.max(...data);
   const min = Math.min(...data);
