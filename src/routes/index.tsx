@@ -8,6 +8,7 @@ import {
   WealthCard, NutritionCard, FitnessCard, JournalCard,
   InvestingCard, BusinessCard, HobbyCard,
 } from "@/components/evolution/ModuleCards";
+import { FocusModeCard } from "@/components/evolution/FocusModeCard";
 import { CalendarCard } from "@/components/evolution/CalendarCard";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
