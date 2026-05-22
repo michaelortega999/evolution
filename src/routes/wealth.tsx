@@ -786,3 +786,85 @@ function WealthPage() {
     </ModuleLayout>
   );
 }
+
+function currentMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function NetWorthMonthlyPanel({
+  series,
+  labels,
+  currentNetWorth,
+  onAdd,
+  onReset,
+}: {
+  series: number[];
+  labels: string[];
+  currentNetWorth: number;
+  onAdd: (monthKey: string, value: number) => void;
+  onReset: () => void;
+}) {
+  const [month, setMonth] = useState(currentMonthKey());
+  const [value, setValue] = useState("");
+
+  const submit = () => {
+    const n = Number(value);
+    if (!month || !Number.isFinite(n)) return;
+    onAdd(month, n);
+    setValue("");
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      {series.length >= 2 ? (
+        <NetWorthChart data={series} labels={labels} height={260} />
+      ) : (
+        <div className="h-[200px] flex flex-col items-center justify-center text-center gap-2 border border-dashed border-border rounded-md">
+          <div className="hud-label text-[11px] text-muted-foreground tracking-widest">
+            NO NET WORTH HISTORY
+          </div>
+          <div className="text-xs text-muted-foreground max-w-xs">
+            Log at least two monthly snapshots below to draw the chart.
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-end gap-2 pt-2 border-t border-border">
+        <label className="flex flex-col gap-1">
+          <span className="hud-label text-[10px] text-muted-foreground">Month</span>
+          <Input
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="h-9 text-xs w-[150px]"
+          />
+        </label>
+        <label className="flex flex-col gap-1 flex-1 min-w-[140px]">
+          <span className="hud-label text-[10px] text-muted-foreground">Net Worth ($)</span>
+          <Input
+            type="number"
+            placeholder={String(Math.round(currentNetWorth))}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="h-9 text-xs"
+          />
+        </label>
+        <Button onClick={submit} className="hud-label text-[10px] h-9">
+          <Plus className="h-3 w-3 mr-1" /> Log
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (typeof window !== "undefined" && !window.confirm("Reset all net worth history?")) return;
+            onReset();
+          }}
+          className="hud-label text-[10px] h-9"
+        >
+          <Trash2 className="h-3 w-3 mr-1" /> Reset
+        </Button>
+      </div>
+    </div>
+  );
+}
+
