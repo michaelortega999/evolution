@@ -21,6 +21,7 @@ export const Route = createFileRoute("/wealth")({
 });
 
 const ASSET_CATS: AssetCategory[] = ["Cash", "Investment", "Property", "Other"];
+const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 function fmt(n: number) {
   const abs = Math.abs(n);
@@ -185,23 +186,10 @@ function WealthPage() {
       if (t.type === "income") cell.income += t.amount;
       else cell.expense += t.amount;
     }
-    // Cap displayed data at May 2026 with 3400 income; later months stay empty
-    const capMonth = 4; // 0-indexed May
     return Array.from(map.entries()).map(([k, v], idx) => {
-      if (idx === capMonth) {
-        return { key: k, label: "MAY", income: 3400, expense: 0 };
-      }
-      if (idx > capMonth) {
-        return {
-          key: k,
-          label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
-          income: 0,
-          expense: 0,
-        };
-      }
       return {
         key: k,
-        label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
+        label: MONTH_LABELS[idx],
         income: v.income,
         expense: v.expense,
       };
@@ -442,17 +430,6 @@ function WealthPage() {
               <NetWorthMonthlyPanel
                 series={netWorthSeries}
                 labels={netWorthLabels}
-                currentNetWorth={netWorth}
-                onAdd={(monthKey, value) =>
-                  mutate((prev) => {
-                    const existing = prev.netWorthSnapshots.findIndex((s) => s.monthKey === monthKey);
-                    const next = [...prev.netWorthSnapshots];
-                    if (existing >= 0) next[existing] = { ...next[existing], value };
-                    else next.push({ id: uid(), monthKey, value });
-                    return { netWorthSnapshots: next };
-                  })
-                }
-                onReset={() => mutate(() => ({ netWorthSnapshots: [] }))}
               />
             </Panel>
 
@@ -888,34 +865,13 @@ function WealthPage() {
   );
 }
 
-function currentMonthKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
 function NetWorthMonthlyPanel({
   series,
   labels,
-  currentNetWorth,
-  onAdd,
-  onReset,
 }: {
   series: number[];
   labels: string[];
-  currentNetWorth: number;
-  onAdd: (monthKey: string, value: number) => void;
-  onReset: () => void;
 }) {
-  const [month, setMonth] = useState(currentMonthKey());
-  const [value, setValue] = useState("");
-
-  const submit = () => {
-    const n = Number(value);
-    if (!month || !Number.isFinite(n)) return;
-    onAdd(month, n);
-    setValue("");
-  };
-
   return (
     <div className="flex flex-col gap-4">
       {series.length >= 2 ? (
@@ -930,41 +886,6 @@ function NetWorthMonthlyPanel({
           </div>
         </div>
       )}
-
-      <div className="flex flex-wrap items-end gap-2 pt-2 border-t border-border">
-        <label className="flex flex-col gap-1">
-          <span className="hud-label text-[10px] text-muted-foreground">Month</span>
-          <Input
-            type="month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="h-9 text-xs w-[150px]"
-          />
-        </label>
-        <label className="flex flex-col gap-1 flex-1 min-w-[140px]">
-          <span className="hud-label text-[10px] text-muted-foreground">Net Worth ($)</span>
-          <Input
-            type="number"
-            placeholder={String(Math.round(currentNetWorth))}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="h-9 text-xs"
-          />
-        </label>
-        <Button onClick={submit} className="hud-label text-[10px] h-9">
-          <Plus className="h-3 w-3 mr-1" /> Log
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            if (typeof window !== "undefined" && !window.confirm("Reset all net worth history?")) return;
-            onReset();
-          }}
-          className="hud-label text-[10px] h-9"
-        >
-          <Trash2 className="h-3 w-3 mr-1" /> Reset
-        </Button>
-      </div>
     </div>
   );
 }

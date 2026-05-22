@@ -14,6 +14,8 @@ const RANGES = [
   { key: "ALL", months: 0 },
 ] as const;
 
+const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
 function fmtCompact(n: number) {
   const abs = Math.abs(n);
   if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -28,10 +30,10 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
 
   const { series, seriesLabels } = useMemo(() => {
     const r = RANGES.find((x) => x.key === range)!;
-    if (!r.months || data.length <= r.months + 1) {
+    if (!r.months || data.length <= r.months) {
       return { series: data, seriesLabels: labels };
     }
-    const sliceN = Math.max(2, r.months + 1);
+    const sliceN = Math.max(2, r.months);
     return {
       series: data.slice(-sliceN),
       seriesLabels: labels ? labels.slice(-sliceN) : undefined,
@@ -72,17 +74,16 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
   const monthLabels = useMemo(() => {
     const out: { x: number; label: string }[] = [];
     const count = series.length;
-    const stepIdx = Math.max(1, Math.ceil(count / 6));
+    const stepIdx = Math.max(1, Math.ceil(count / 12));
     const now = new Date();
     for (let i = 0; i < count; i += stepIdx) {
       let label: string;
       if (seriesLabels && seriesLabels[i]) {
         const [y, m] = seriesLabels[i].split("-").map(Number);
-        const d = new Date(y, (m || 1) - 1, 1);
-        label = d.toLocaleString("en", { month: "short" }).toUpperCase();
+        label = MONTH_LABELS[Math.max(0, Math.min(11, (m || 1) - 1))];
       } else {
         const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
-        label = d.toLocaleString("en", { month: "short" }).toUpperCase();
+        label = MONTH_LABELS[d.getMonth()];
       }
       out.push({ x: padL + i * step, label });
     }
