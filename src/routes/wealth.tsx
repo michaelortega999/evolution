@@ -412,8 +412,23 @@ function WealthPage() {
           {/* ===== NET WORTH OVER TIME + ASSETS ALLOCATION ===== */}
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
             <Panel title="Net Worth Over Time">
-              <NetWorthChart data={txSeries} height={280} />
+              <NetWorthMonthlyPanel
+                series={netWorthSeries}
+                labels={netWorthLabels}
+                currentNetWorth={netWorth}
+                onAdd={(monthKey, value) =>
+                  mutate((prev) => {
+                    const existing = prev.netWorthSnapshots.findIndex((s) => s.monthKey === monthKey);
+                    const next = [...prev.netWorthSnapshots];
+                    if (existing >= 0) next[existing] = { ...next[existing], value };
+                    else next.push({ id: uid(), monthKey, value });
+                    return { netWorthSnapshots: next };
+                  })
+                }
+                onReset={() => mutate(() => ({ netWorthSnapshots: [] }))}
+              />
             </Panel>
+
 
 
             <Panel title="Assets Allocation">
