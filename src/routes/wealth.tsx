@@ -155,16 +155,6 @@ function WealthPage() {
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
     .reduce((s, t) => s + t.amount, 0);
 
-  // Net worth monthly series — mirrors Income vs Expenses (cumulative net per month)
-  const netWorthSeries = useMemo(() => {
-    let running = 0;
-    return monthly.map((m) => {
-      running += m.income - m.expense;
-      return running;
-    });
-  }, [monthly]);
-
-  const netWorthLabels = useMemo(() => monthly.map((m) => m.key), [monthly]);
 
 
   // Legacy running balance — still used for other KPI sparklines
