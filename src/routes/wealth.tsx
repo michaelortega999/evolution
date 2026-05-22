@@ -430,6 +430,7 @@ function WealthPage() {
               <NetWorthMonthlyPanel
                 series={netWorthSeries}
                 labels={netWorthLabels}
+                monthly={monthly}
               />
             </Panel>
 
