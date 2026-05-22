@@ -183,12 +183,12 @@ function WealthPage() {
   }, [data.transactions, data.profile.tradingBalance]);
 
 
-  // Monthly income vs expenses (last 12 months)
+  // Monthly income vs expenses — January of current year through current month
   const monthly = useMemo(() => {
     const map = new Map<string, { income: number; expense: number }>();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const year = now.getFullYear();
+    for (let m = 0; m <= now.getMonth(); m++) {
+      const k = `${year}-${String(m + 1).padStart(2, "0")}`;
       map.set(k, { income: 0, expense: 0 });
     }
     for (const t of data.transactions) {
@@ -204,7 +204,8 @@ function WealthPage() {
       income: v.income,
       expense: v.expense,
     }));
-  }, [data.transactions]);
+  }, [data.transactions, now]);
+
 
   // Sparkline series per KPI (12-month rollup)
   const incomeSeries = monthly.map((m) => m.income);
