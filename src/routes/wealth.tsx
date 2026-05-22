@@ -208,6 +208,16 @@ function WealthPage() {
     });
   }, [data.transactions]);
 
+  // Net worth monthly series — mirrors Income vs Expenses (cumulative net per month)
+  const netWorthSeries = useMemo(() => {
+    let running = 0;
+    return monthly.map((m) => {
+      running += m.income - m.expense;
+      return running;
+    });
+  }, [monthly]);
+  const netWorthLabels = useMemo(() => monthly.map((m) => m.key), [monthly]);
+
 
   // Sparkline series per KPI (12-month rollup)
   const incomeSeries = monthly.map((m) => m.income);
