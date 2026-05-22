@@ -430,6 +430,7 @@ function WealthPage() {
               <NetWorthMonthlyPanel
                 series={netWorthSeries}
                 labels={netWorthLabels}
+                monthly={monthly}
               />
             </Panel>
 
@@ -868,10 +869,20 @@ function WealthPage() {
 function NetWorthMonthlyPanel({
   series,
   labels,
+  monthly,
 }: {
   series: number[];
   labels: string[];
+  monthly: { key: string; label: string; income: number; expense: number }[];
 }) {
+  let running = 0;
+  const rows = monthly.map((m) => {
+    const net = m.income - m.expense;
+    running += net;
+    return { ...m, net, cumulative: running };
+  });
+  const fmt = (n: number) =>
+    `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   return (
     <div className="flex flex-col gap-4">
       {series.length >= 2 ? (
@@ -882,10 +893,34 @@ function NetWorthMonthlyPanel({
             NO NET WORTH HISTORY
           </div>
           <div className="text-xs text-muted-foreground max-w-xs">
-            Log at least two monthly snapshots below to draw the chart.
+            Log income or expenses to draw the chart.
           </div>
         </div>
       )}
+      <div className="overflow-x-auto border border-border rounded-md">
+        <table className="w-full text-[11px]">
+          <thead className="hud-label text-[10px] text-muted-foreground bg-muted/30">
+            <tr>
+              <th className="text-left px-2 py-1.5">MONTH</th>
+              <th className="text-right px-2 py-1.5">INCOME</th>
+              <th className="text-right px-2 py-1.5">EXPENSE</th>
+              <th className="text-right px-2 py-1.5">NET</th>
+              <th className="text-right px-2 py-1.5">NET WORTH</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.key} className="border-t border-border/50">
+                <td className="px-2 py-1 hud-label text-[10px]">{r.label}</td>
+                <td className="px-2 py-1 text-right text-primary">{fmt(r.income)}</td>
+                <td className="px-2 py-1 text-right text-destructive">{fmt(r.expense)}</td>
+                <td className={`px-2 py-1 text-right ${r.net >= 0 ? "text-primary" : "text-destructive"}`}>{fmt(r.net)}</td>
+                <td className={`px-2 py-1 text-right font-medium ${r.cumulative >= 0 ? "text-foreground" : "text-destructive"}`}>{fmt(r.cumulative)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
