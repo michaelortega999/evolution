@@ -64,6 +64,7 @@ function FitnessPage() {
   };
 
   // PRs
+  const liftLabel = (l: string) => (l === "backrow" ? "Back Row" : l.charAt(0).toUpperCase() + l.slice(1));
   const [prDraft, setPrDraft] = useState({ bench: "", squat: "", backrow: "" });
   const updatePR = (lift: PRLift) => {
     const v = Number(prDraft[lift]);
@@ -245,7 +246,7 @@ function FitnessPage() {
           <div className="space-y-4">
             {(["bench", "squat", "backrow"] as const).map((lift) => (
               <div key={lift} className="grid grid-cols-[120px_1fr_auto_auto] items-center gap-3">
-                <span className="hud-label text-xs text-muted-foreground capitalize">{lift}</span>
+                <span className="hud-label text-xs text-muted-foreground capitalize">{liftLabel(lift)}</span>
                 <span className="hud-label text-2xl text-primary hud-glow">{data.profile[lift]} lb</span>
                 <Input
                   type="number"
@@ -275,7 +276,7 @@ function FitnessPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(["bench", "squat", "backrow"] as const).map((lift) => (
-            <Panel key={lift} title={`${lift.charAt(0).toUpperCase() + lift.slice(1)} Progress`}>
+            <Panel key={lift} title={`${liftLabel(lift)} Progress`}>
               <Sparkline data={prSeries(lift)} height={140} />
               <div className="hud-label text-[10px] text-muted-foreground mt-2">
                 Current: <span className="text-primary">{data.profile[lift]} lb</span>
@@ -289,7 +290,7 @@ function FitnessPage() {
             {[...data.prHistory].reverse().map((p) => (
               <li key={p.id} className="flex items-center justify-between py-2 text-xs">
                 <span className="hud-label text-muted-foreground">{p.date}</span>
-                <span className="hud-label capitalize text-foreground/80">{p.lift}</span>
+                <span className="hud-label capitalize text-foreground/80">{liftLabel(p.lift)}</span>
                 <span className="hud-label text-primary">{p.weight} lb</span>
               </li>
             ))}
