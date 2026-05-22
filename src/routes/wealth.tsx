@@ -462,10 +462,58 @@ function WealthPage() {
               <div className="flex justify-between mt-2 text-[9px] hud-label text-muted-foreground">
                 {monthly.map((m) => <span key={m.key} className="flex-1 text-center">{m.label}</span>)}
               </div>
-              <div className="flex items-center gap-4 mt-3 text-[10px] hud-label">
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Income</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Expenses</span>
+              <div className="flex items-center justify-between gap-4 mt-3 text-[10px] hud-label">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Income</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Expenses</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hud-label text-[10px] h-7"
+                  onClick={() => {
+                    if (typeof window !== "undefined" && !window.confirm("Reset all income & expense entries?")) return;
+                    mutate((prev) => ({
+                      transactions: prev.transactions.filter((t) => t.type !== "income" && t.type !== "expense"),
+                    }));
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" /> Reset
+                </Button>
               </div>
+
+              {/* Monthly breakdown table */}
+              <div className="mt-4 border-t border-border pt-3">
+                <div className="hud-label text-[10px] text-muted-foreground mb-2 tracking-widest">MONTHLY BREAKDOWN</div>
+                <div className="max-h-[220px] overflow-y-auto">
+                  <table className="w-full text-xs hud-label">
+                    <thead className="sticky top-0 bg-card">
+                      <tr className="text-[10px] text-muted-foreground border-b border-border">
+                        <th className="text-left py-1.5">Month</th>
+                        <th className="text-right py-1.5">Income</th>
+                        <th className="text-right py-1.5">Expenses</th>
+                        <th className="text-right py-1.5">Net</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monthly.map((m) => {
+                        const net = m.income - m.expense;
+                        return (
+                          <tr key={m.key} className="border-b border-border/40">
+                            <td className="py-1.5 text-foreground/80">{m.label}</td>
+                            <td className="py-1.5 text-right text-primary tabular-nums">{fmt(m.income)}</td>
+                            <td className="py-1.5 text-right text-destructive tabular-nums">{fmt(m.expense)}</td>
+                            <td className={`py-1.5 text-right tabular-nums ${net >= 0 ? "text-primary" : "text-destructive"}`}>
+                              {net >= 0 ? "+" : ""}{fmt(net)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               <IncomeExpenseQuickAdd
                 onAdd={(type, amount, description, category, date) =>
                   mutate((prev) => ({
@@ -477,6 +525,7 @@ function WealthPage() {
                 }
               />
             </Panel>
+
 
             <Panel title="Assets Allocation">
               <div className="flex flex-col items-center gap-4">
