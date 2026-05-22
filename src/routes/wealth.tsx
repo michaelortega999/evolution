@@ -431,40 +431,6 @@ function WealthPage() {
 
 
 
-            <Panel title="Assets Allocation">
-              <div className="flex flex-col items-center gap-4">
-                {allocByCat.length ? (
-                  <Donut
-                    data={allocByCat}
-                    size={180}
-                    thickness={22}
-                    centerLabel={fmt(assetsTotal)}
-                    centerSub="TOTAL ASSETS"
-                  />
-                ) : (
-                  <div className="h-[180px] flex items-center justify-center text-xs text-muted-foreground">
-                    No assets yet.
-                  </div>
-                )}
-                <ul className="w-full space-y-1.5">
-                  {allocByCat.map((s) => {
-                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
-                    return (
-                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
-                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
-                        <span className="flex-1 text-foreground/80">{s.label}</span>
-                        <span className="text-primary tabular-nums">{fmt(s.value)}</span>
-                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            </Panel>
-          </div>
-
-          {/* ===== INCOME VS EXPENSES + CASH FLOW + FINANCIAL HEALTH ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Panel title="Income vs Expenses">
               <div className="flex items-end gap-1.5 h-[160px]">
                 {monthly.map((m) => (
@@ -499,9 +465,54 @@ function WealthPage() {
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Income</span>
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Expenses</span>
               </div>
+              <IncomeExpenseQuickAdd
+                onAdd={(type, amount, description, category, date) =>
+                  mutate((prev) => ({
+                    transactions: [
+                      ...prev.transactions,
+                      { id: uid(), date, description, amount, type, category },
+                    ],
+                  }))
+                }
+              />
             </Panel>
 
+            <Panel title="Assets Allocation">
+              <div className="flex flex-col items-center gap-4">
+                {allocByCat.length ? (
+                  <Donut
+                    data={allocByCat}
+                    size={180}
+                    thickness={22}
+                    centerLabel={fmt(assetsTotal)}
+                    centerSub="TOTAL ASSETS"
+                  />
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center text-xs text-muted-foreground">
+                    No assets yet.
+                  </div>
+                )}
+                <ul className="w-full space-y-1.5">
+                  {allocByCat.map((s) => {
+                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
+                    return (
+                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span className="flex-1 text-foreground/80">{s.label}</span>
+                        <span className="text-primary tabular-nums">{fmt(s.value)}</span>
+                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </Panel>
+          </div>
+
+          {/* ===== CASH FLOW + FINANCIAL HEALTH ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title="Cash Flow This Month">
+
               <div className="flex items-center gap-4">
                 <Donut
                   data={[
@@ -867,4 +878,70 @@ function NetWorthMonthlyPanel({
     </div>
   );
 }
+
+function IncomeExpenseQuickAdd({
+  onAdd,
+}: {
+  onAdd: (
+    type: TxType,
+    amount: number,
+    description: string,
+    category: string,
+    date: string,
+  ) => void;
+}) {
+  const [type, setType] = useState<TxType>("income");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [date, setDate] = useState(todayDate());
+
+  const submit = () => {
+    const n = Number(amount);
+    if (!Number.isFinite(n) || n <= 0) return;
+    onAdd(
+      type,
+      n,
+      description.trim() || (type === "income" ? "Income" : "Expense"),
+      category.trim() || "Other",
+      date,
+    );
+    setAmount("");
+    setDescription("");
+    setCategory("");
+  };
+
+  return (
+    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-2">
+      <div className="flex gap-1 p-1 rounded-md border border-border bg-card/60 w-fit">
+        {(["income", "expense"] as TxType[]).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setType(t)}
+            className={`hud-label text-[10px] px-2.5 py-1 rounded transition-colors uppercase ${
+              type === t
+                ? t === "income"
+                  ? "bg-primary/20 text-primary border border-primary/40"
+                  : "bg-destructive/20 text-destructive border border-destructive/40"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Input type="number" placeholder="Amount ($)" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-8 text-xs" />
+        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-8 text-xs" />
+        <Input placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} className="h-8 text-xs" />
+        <Input placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-8 text-xs" />
+      </div>
+      <Button onClick={submit} size="sm" className="hud-label text-[10px] h-8 w-full">
+        <Plus className="h-3 w-3 mr-1" /> Log {type === "income" ? "Income" : "Expense"}
+      </Button>
+    </div>
+  );
+}
+
 
