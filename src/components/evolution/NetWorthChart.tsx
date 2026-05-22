@@ -72,7 +72,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
   const monthLabels = useMemo(() => {
     const out: { x: number; label: string }[] = [];
     const count = series.length;
-    const stepIdx = Math.max(1, Math.floor(count / 8));
+    const stepIdx = Math.max(1, Math.ceil(count / 6));
     const now = new Date();
     for (let i = 0; i < count; i += stepIdx) {
       let label: string;
