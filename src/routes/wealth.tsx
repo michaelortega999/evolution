@@ -295,6 +295,17 @@ function WealthPage() {
 
   const incomeMax = Math.max(1, ...monthly.flatMap((m) => [m.income, m.expense]));
 
+  // Avoid SSR/CSR hydration mismatch from Date()-derived labels + freshly-seeded data
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) {
+    return (
+      <ModuleLayout number="01" title="Wealth" subtitle="Track your net worth and build a strong financial future." icon={Wallet}>
+        <div className="hud-card p-10 text-center hud-label text-xs text-muted-foreground">Loading dashboard…</div>
+      </ModuleLayout>
+    );
+  }
+
   return (
     <ModuleLayout number="01" title="Wealth" subtitle="Track your net worth and build a strong financial future." icon={Wallet}>
       <Tabs defaultValue="overview">
@@ -305,6 +316,55 @@ function WealthPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* ===== QUICK ADD ROW ===== */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Panel title="Quick Add · Transaction">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs col-span-2" maxLength={80} />
+                <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs" />
+                <select value={tType} onChange={(e) => setTType(e.target.value as TxType)} className="h-8 bg-input border border-border rounded px-2 text-xs">
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
+                <Input placeholder="Category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs" maxLength={40} />
+                <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs" />
+              </div>
+              <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3 w-full">
+                <Plus className="h-3 w-3 mr-1" /> Add Transaction
+              </Button>
+            </Panel>
+
+            <Panel title="Quick Add · Asset">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Name (e.g. Chase)" value={aName} onChange={(e) => setAName(e.target.value)} className="h-8 text-xs col-span-2" maxLength={60} />
+                <Input type="number" placeholder="Value $" value={aValue} onChange={(e) => setAValue(e.target.value)} className="h-8 text-xs" />
+                <select value={aCat} onChange={(e) => setACat(e.target.value as AssetCategory)} className="h-8 bg-input border border-border rounded px-2 text-xs">
+                  {ASSET_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <Button
+                onClick={() => { setEditId(null); saveAsset(); }}
+                size="sm"
+                className="hud-label text-[10px] mt-3 w-full"
+              >
+                <Plus className="h-3 w-3 mr-1" /> Add Asset
+              </Button>
+            </Panel>
+
+            <Panel title="Quick Add · Wealth Goal">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Title" value={gTitle} onChange={(e) => setGTitle(e.target.value)} className="h-8 text-xs col-span-2" maxLength={60} />
+                <Input type="number" placeholder="Target $" value={gTarget} onChange={(e) => setGTarget(e.target.value)} className="h-8 text-xs" />
+                <Input type="number" placeholder="Current $" value={gCurrent} onChange={(e) => setGCurrent(e.target.value)} className="h-8 text-xs" />
+                <Input type="date" value={gDeadline} onChange={(e) => setGDeadline(e.target.value)} className="h-8 text-xs col-span-2" />
+              </div>
+              <Button onClick={addGoal} size="sm" className="hud-label text-[10px] mt-3 w-full">
+                <Plus className="h-3 w-3 mr-1" /> Add Goal
+              </Button>
+            </Panel>
+          </div>
+
+
           {/* ===== KPI ROW ===== */}
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
             {kpis.map((k) => {
