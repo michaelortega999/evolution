@@ -217,10 +217,7 @@
   }
   body {
     background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
       radial-gradient(ellipse at 50% 0%, oklch(0.4 0.2 260 / 0.25), transparent 60%);
-    background-size: 40px 40px, 40px 40px, 100% 100%;
   }
 }
 
