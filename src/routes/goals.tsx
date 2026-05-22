@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Target, Plus, Trash2, Check } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
-import { useEvolutionData, type Goal, type GoalCategory } from "@/lib/evolution-data";
+import { useEvolutionData, type Goal, type GoalCategory, todayDate, dayTotals } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/goals")({
   head: () => ({ meta: [{ title: "Goals — Evolution" }] }),
@@ -11,9 +11,39 @@ export const Route = createFileRoute("/goals")({
 
 const CATEGORIES: GoalCategory[] = ["Wealth", "Fitness", "Trading", "Business", "Nutrition", "Hobby"];
 
+function isThisWeek(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay());
+  start.setHours(0, 0, 0, 0);
+  return d >= start && d <= now;
+}
+
 function GoalsPage() {
   const { data, mutate } = useEvolutionData();
   const goals = data.goals ?? [];
+
+  const moduleGoals = useMemo(() => {
+    const today = todayDate();
+    const investingCurrent = data.investing.at(-1)?.value ?? 0;
+    const weeklySessions = data.fitness.filter((f) => isThisWeek(f.date)).reduce((a, f) => a + f.workouts, 0)
+      + data.workouts.filter((w) => isThisWeek(w.date)).length;
+    const todayCalories = dayTotals(today, data.mealLogs).kcal;
+    const monthKey = today.slice(0, 7);
+    const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
+    const weeklyHobbyHours = data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0) / 60
+      + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(new Date(s.completedAt).toISOString().slice(0, 10))).reduce((a, s) => a + s.durationSec / 3600, 0);
+
+    return [
+      { category: "Investing", title: "Portfolio Goal", current: investingCurrent, target: data.profile.goal || 50000, unit: "$" },
+      { category: "Fitness", title: "Weekly Sessions", current: weeklySessions, target: data.profile.gymSessionsTarget || 4, unit: "" },
+      { category: "Nutrition", title: "Daily Calories", current: todayCalories, target: data.profile.calorieTarget || 2000, unit: "kcal" },
+      { category: "Business", title: "Monthly Revenue", current: monthRevenue, target: 10000, unit: "$" },
+      { category: "Hobby", title: "Weekly Guitar Hours", current: Math.round(weeklyHobbyHours * 10) / 10, target: data.guitarWeeklyHoursTarget || 5, unit: "h" },
+    ];
+  }, [data]);
+
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<GoalCategory>("Wealth");
