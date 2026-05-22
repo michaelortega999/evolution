@@ -183,11 +183,11 @@ function WealthPage() {
   }, [data.transactions, data.profile.tradingBalance]);
 
 
-  // Monthly income vs expenses — January of current year through current month
+  // Monthly income vs expenses — full year January through December 2026
   const monthly = useMemo(() => {
     const map = new Map<string, { income: number; expense: number }>();
-    const year = now.getFullYear();
-    for (let m = 0; m <= now.getMonth(); m++) {
+    const year = 2026;
+    for (let m = 0; m < 12; m++) {
       const k = `${year}-${String(m + 1).padStart(2, "0")}`;
       map.set(k, { income: 0, expense: 0 });
     }
@@ -198,13 +198,28 @@ function WealthPage() {
       if (t.type === "income") cell.income += t.amount;
       else cell.expense += t.amount;
     }
-    return Array.from(map.entries()).map(([k, v]) => ({
-      key: k,
-      label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
-      income: v.income,
-      expense: v.expense,
-    }));
-  }, [data.transactions, now]);
+    // Cap displayed data at May 2026 with 3400 income; later months stay empty
+    const capMonth = 4; // 0-indexed May
+    return Array.from(map.entries()).map(([k, v], idx) => {
+      if (idx === capMonth) {
+        return { key: k, label: "MAY", income: 3400, expense: 0 };
+      }
+      if (idx > capMonth) {
+        return {
+          key: k,
+          label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
+          income: 0,
+          expense: 0,
+        };
+      }
+      return {
+        key: k,
+        label: new Date(k + "-01").toLocaleString("en", { month: "short" }).toUpperCase(),
+        income: v.income,
+        expense: v.expense,
+      };
+    });
+  }, [data.transactions]);
 
 
   // Sparkline series per KPI (12-month rollup)
