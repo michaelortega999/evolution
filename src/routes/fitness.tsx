@@ -64,7 +64,7 @@ function FitnessPage() {
   };
 
   // PRs
-  const [prDraft, setPrDraft] = useState({ bench: "", squat: "", deadlift: "" });
+  const [prDraft, setPrDraft] = useState({ bench: "", squat: "", backrow: "" });
   const updatePR = (lift: PRLift) => {
     const v = Number(prDraft[lift]);
     if (!v) return;
@@ -243,7 +243,7 @@ function FitnessPage() {
 
         <Panel title="Personal Records">
           <div className="space-y-4">
-            {(["bench", "squat", "deadlift"] as const).map((lift) => (
+            {(["bench", "squat", "backrow"] as const).map((lift) => (
               <div key={lift} className="grid grid-cols-[120px_1fr_auto_auto] items-center gap-3">
                 <span className="hud-label text-xs text-muted-foreground capitalize">{lift}</span>
                 <span className="hud-label text-2xl text-primary hud-glow">{data.profile[lift]} lb</span>
@@ -274,7 +274,7 @@ function FitnessPage() {
 
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(["bench", "squat", "deadlift"] as const).map((lift) => (
+          {(["bench", "squat", "backrow"] as const).map((lift) => (
             <Panel key={lift} title={`${lift.charAt(0).toUpperCase() + lift.slice(1)} Progress`}>
               <Sparkline data={prSeries(lift)} height={140} />
               <div className="hud-label text-[10px] text-muted-foreground mt-2">

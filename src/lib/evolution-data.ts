@@ -95,7 +95,7 @@ export interface Profile {
   gymSessionsTarget: number;
   bench: number;
   squat: number;
-  deadlift: number;
+  backrow: number;
   proteinTarget: number;
   carbsTarget: number;
   fatsTarget: number;
@@ -123,7 +123,7 @@ export interface WorkoutLog {
   notes?: string;
 }
 
-export type PRLift = "bench" | "squat" | "deadlift";
+export type PRLift = "bench" | "squat" | "backrow";
 export interface PREntry {
   id: string;
   date: string;
@@ -423,7 +423,7 @@ export const defaultProfile: Profile = {
   gymSessionsTarget: 4,
   bench: 225,
   squat: 250,
-  deadlift: 280,
+  backrow: 280,
   proteinTarget: 160,
   carbsTarget: 220,
   fatsTarget: 65,

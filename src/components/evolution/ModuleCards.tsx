@@ -220,7 +220,7 @@ export function FitnessCard() {
         <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={50} />
       </div>
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-        {[["Bench", data.profile.bench], ["Squat", data.profile.squat], ["Dead", data.profile.deadlift]].map(([k, v]) => (
+        {[["Bench", data.profile.bench], ["Squat", data.profile.squat], ["Back Row", data.profile.backrow]].map(([k, v]) => (
           <div key={k as string} className="border border-border rounded p-1.5">
             <div className="hud-label text-[9px] text-muted-foreground">{k}</div>
             <div className="hud-label text-xs text-primary">{v}</div>
