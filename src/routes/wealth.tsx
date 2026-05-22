@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Wallet, Trash2, Plus, CreditCard, Layers, AlertTriangle,
   DollarSign, ArrowUpRight, ArrowDownRight, Lightbulb, Target as TargetIcon,
