@@ -340,15 +340,29 @@ function WealthPage() {
               <div className="grid grid-cols-2 gap-2">
                 <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs col-span-2" maxLength={80} />
                 <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs" />
-                <select value={tType} onChange={(e) => setTType(e.target.value as TxType)} className="h-8 bg-input border border-border rounded px-2 text-xs">
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
-                </select>
+                <div className="flex gap-1 p-0.5 rounded-md border border-border bg-card/60 h-8">
+                  {(["income", "expense"] as TxType[]).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTType(t)}
+                      className={`hud-label text-[10px] px-2 rounded transition-colors uppercase flex-1 ${
+                        tType === t
+                          ? t === "income"
+                            ? "bg-primary/20 text-primary border border-primary/40"
+                            : "bg-destructive/20 text-destructive border border-destructive/40"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
                 <Input placeholder="Category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs" maxLength={40} />
                 <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs" />
               </div>
               <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3 w-full">
-                <Plus className="h-3 w-3 mr-1" /> Add Transaction
+                <Plus className="h-3 w-3 mr-1" /> Add {tType === "income" ? "Income" : "Expense"}
               </Button>
             </Panel>
 
@@ -725,14 +739,28 @@ function WealthPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-9 text-xs" />
               <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-9 text-xs" />
-              <select value={tType} onChange={(e) => setTType(e.target.value as TxType)} className="h-9 bg-input border border-border rounded px-2 text-xs">
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
-              </select>
+              <div className="flex gap-1 p-0.5 rounded-md border border-border bg-card/60 h-9">
+                {(["income", "expense"] as TxType[]).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTType(t)}
+                    className={`hud-label text-[10px] px-2 rounded transition-colors uppercase flex-1 ${
+                      tType === t
+                        ? t === "income"
+                          ? "bg-primary/20 text-primary border border-primary/40"
+                          : "bg-destructive/20 text-destructive border border-destructive/40"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
               <Input placeholder="Category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-9 text-xs" />
               <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-9 text-xs" />
             </div>
-            <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3">+ Add</Button>
+            <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3">+ Add {tType === "income" ? "Income" : "Expense"}</Button>
           </Panel>
 
           <Panel title={`Transactions (${data.transactions.length})`}>
