@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { Dumbbell, Trash2, Plus } from "lucide-react";
+import { Dumbbell, Trash2, Plus, CalendarPlus } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { BarChart } from "@/components/evolution/BarChart";
 import { Sparkline } from "@/components/evolution/Sparkline";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   useEvolutionData, fitnessSummary, todayDate, uid,
-  type WorkoutType, type StressLevel, type PRLift,
+  type WorkoutType, type StressLevel, type PRLift, type TrainingSlot, type CalendarEvent,
 } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/fitness")({
