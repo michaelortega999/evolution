@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useEvolutionData, todayDate, uid, type Instrument, type TradeDir } from "@/lib/evolution-data";
+import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/investing")({
   head: () => ({ meta: [{ title: "Investing — Evolution" }, { name: "description", content: "Trades, P&L, watchlist, and goal tracking." }] }),
