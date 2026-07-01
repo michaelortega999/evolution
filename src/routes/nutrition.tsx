@@ -284,18 +284,19 @@ function NutritionPage() {
     return out;
   }, [weeklyAvg, calTarget, pTarget, waterTarget, t.kcal, todayMeals]);
 
-  // ------- History tab -------
+  // ------- History tab (filtered by global selected month) -------
+  const { year: selYear, month: selMonth, key: selMonthKey } = useSelectedMonth();
   const last30 = useMemo(() => {
+    const daysInMonth = new Date(selYear, selMonth + 1, 0).getDate();
     const out: { date: string; kcal: number }[] = [];
-    const d = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const iso = new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = `${selMonthKey}-${String(d).padStart(2, "0")}`;
       out.push({ date: iso, kcal: dayTotals(iso, data.mealLogs).kcal });
     }
     return out;
-  }, [data.mealLogs]);
+  }, [data.mealLogs, selYear, selMonth, selMonthKey]);
 
-  const consistency = Math.round((last30.filter((d) => d.kcal > 0).length / 30) * 100);
+  const consistency = Math.round((last30.filter((d) => d.kcal > 0).length / Math.max(1, last30.length)) * 100);
   const bestDay = useMemo(() => {
     let best: { date: string; score: number } | null = null;
     for (const d of last30) {
