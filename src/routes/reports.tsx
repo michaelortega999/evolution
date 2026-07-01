@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
 import { useEvolutionData, todayDate, dayTotals } from "@/lib/evolution-data";
+import { useSelectedMonth, MONTH_LABELS } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({ meta: [{ title: "Reports — Evolution" }] }),
