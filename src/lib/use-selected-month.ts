@@ -1,0 +1,63 @@
+import { useEffect, useState } from "react";
+
+// Global selected month for cross-module filtering (dashboard MonthSelector).
+// Stored 0-indexed month + year. Persists in localStorage.
+
+const STORAGE_KEY = "evolution:selectedMonth";
+const listeners = new Set<() => void>();
+
+type State = { year: number; month: number };
+
+function todayState(): State {
+  const d = new Date();
+  return { year: d.getFullYear(), month: d.getMonth() };
+}
+
+let current: State = todayState();
+
+if (typeof window !== "undefined") {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as Partial<State>;
+      if (typeof p.year === "number" && typeof p.month === "number") {
+        current = { year: p.year, month: p.month };
+      }
+    }
+  } catch {}
+}
+
+function emit() {
+  listeners.forEach((l) => l());
+}
+
+export function setSelectedMonth(month: number, year?: number) {
+  const y = year ?? current.year;
+  current = { year: y, month };
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+    } catch {}
+  }
+  emit();
+}
+
+export function useSelectedMonth() {
+  const [state, setState] = useState<State>(current);
+  useEffect(() => {
+    const l = () => setState(current);
+    listeners.add(l);
+    return () => {
+      listeners.delete(l);
+    };
+  }, []);
+  const key = `${state.year}-${String(state.month + 1).padStart(2, "0")}`;
+  return {
+    year: state.year,
+    month: state.month,
+    key, // "YYYY-MM"
+    setMonth: (m: number, y?: number) => setSelectedMonth(m, y),
+  };
+}
+
+export const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
