@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useEvolutionData, todayDate, uid, type Mood } from "@/lib/evolution-data";
+import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/journal")({
   head: () => ({ meta: [{ title: "Journal — Evolution" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
