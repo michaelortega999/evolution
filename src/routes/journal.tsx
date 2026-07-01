@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useEvolutionData, todayDate, uid, type Mood } from "@/lib/evolution-data";
+import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/journal")({
   head: () => ({ meta: [{ title: "Journal — Evolution" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
@@ -28,6 +29,11 @@ const PROMPTS = [
 
 function JournalPage() {
   const { data, mutate } = useEvolutionData();
+  const { key: monthKey } = useSelectedMonth();
+  const filteredEntries = useMemo(
+    () => data.journalEntries.filter((e) => e.date.startsWith(monthKey)),
+    [data.journalEntries, monthKey]
+  );
   const [readId, setReadId] = useState<string | null>(null);
 
   // Write
@@ -133,9 +139,9 @@ function JournalPage() {
         </TabsContent>
 
         <TabsContent value="entries">
-          <Panel title={`Entries (${data.journalEntries.length})`}>
+          <Panel title={`Entries (${filteredEntries.length}) · ${monthKey}`}>
             <ul className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
-              {[...data.journalEntries].reverse().map((e) => (
+              {[...filteredEntries].reverse().map((e) => (
                 <li key={e.id} className="border border-border rounded p-4 group cursor-pointer hover:border-primary/40 transition-colors"
                     onClick={() => setReadId(e.id)}>
                   <div className="flex items-center justify-between mb-2">
@@ -155,7 +161,7 @@ function JournalPage() {
                   )}
                 </li>
               ))}
-              {!data.journalEntries.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries yet.</li>}
+              {!filteredEntries.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries in this month.</li>}
             </ul>
           </Panel>
 

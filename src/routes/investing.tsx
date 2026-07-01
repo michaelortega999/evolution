@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useEvolutionData, todayDate, uid, type Instrument, type TradeDir } from "@/lib/evolution-data";
+import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/investing")({
   head: () => ({ meta: [{ title: "Investing — Evolution" }, { name: "description", content: "Trades, P&L, watchlist, and goal tracking." }] }),
@@ -58,8 +59,15 @@ function InvestingPage() {
   const updateTradeNotes = (id: string, notes: string) =>
     mutate((prev) => ({ trades: prev.trades.map((t) => t.id === id ? { ...t, notes } : t) }));
 
-  // Stats
-  const sortedTrades = useMemo(() => [...data.trades].sort((a, b) => a.date.localeCompare(b.date)), [data.trades]);
+  // Month filter for P&L views
+  const { key: monthKey } = useSelectedMonth();
+  const monthTrades = useMemo(
+    () => data.trades.filter((t) => t.date.startsWith(monthKey)),
+    [data.trades, monthKey]
+  );
+
+  // Stats (filtered to selected month)
+  const sortedTrades = useMemo(() => [...monthTrades].sort((a, b) => a.date.localeCompare(b.date)), [monthTrades]);
   const equityCurve = useMemo(() => {
     let bal = data.profile.tradingBalance;
     const arr = [bal];
@@ -67,8 +75,8 @@ function InvestingPage() {
     return arr.length > 1 ? arr : [bal, bal];
   }, [sortedTrades, data.profile.tradingBalance]);
   const portfolio = equityCurve[equityCurve.length - 1];
-  const wins = data.trades.filter((t) => t.pnl > 0).length;
-  const winRate = data.trades.length ? Math.round((wins / data.trades.length) * 100) : 0;
+  const wins = monthTrades.filter((t) => t.pnl > 0).length;
+  const winRate = monthTrades.length ? Math.round((wins / monthTrades.length) * 100) : 0;
   const goalPct = Math.min(100, Math.round((portfolio / data.profile.goal) * 100));
 
   // Daily P&L log
@@ -103,7 +111,7 @@ function InvestingPage() {
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Panel title="Portfolio"><div className="hud-label text-2xl text-primary hud-glow">{fmt(portfolio)}</div></Panel>
-            <Panel title="Win Rate"><div className="hud-label text-2xl text-primary hud-glow">{winRate}%</div><div className="hud-label text-[10px] text-muted-foreground mt-1">{data.trades.length} trades</div></Panel>
+            <Panel title="Win Rate"><div className="hud-label text-2xl text-primary hud-glow">{winRate}%</div><div className="hud-label text-[10px] text-muted-foreground mt-1">{monthTrades.length} trades · {monthKey}</div></Panel>
             <Panel title="Goal Progress">
               <div className="hud-label text-2xl text-primary hud-glow">{goalPct}%</div>
               <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
@@ -148,7 +156,7 @@ function InvestingPage() {
             </div>
           </Panel>
 
-          <Panel title={`Trade Log (${data.trades.length})`}>
+          <Panel title={`Trade Log (${monthTrades.length}) · ${monthKey}`}>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
@@ -178,7 +186,7 @@ function InvestingPage() {
                   })()}
                 </tbody>
               </table>
-              {!data.trades.length && <div className="text-xs text-muted-foreground py-6 text-center">No trades logged.</div>}
+              {!monthTrades.length && <div className="text-xs text-muted-foreground py-6 text-center">No trades in this month.</div>}
             </div>
           </Panel>
         </TabsContent>
@@ -213,7 +221,7 @@ function InvestingPage() {
           <Panel title="Trade Journal">
             <div className="hud-label text-[10px] text-muted-foreground mb-4">Click a trade's notes to update what worked / what didn't.</div>
             <ul className="space-y-3 max-h-[600px] overflow-y-auto">
-              {[...data.trades].reverse().map((t) => (
+              {[...monthTrades].reverse().map((t) => (
                 <li key={t.id} className="border border-border rounded p-3">
                   <div className="flex items-center gap-3 mb-2 text-xs">
                     <span className="hud-label text-muted-foreground">{t.date}</span>
@@ -225,7 +233,7 @@ function InvestingPage() {
                     className="w-full bg-transparent border border-border rounded p-2 text-xs resize-none focus:outline-none focus:border-primary/50" />
                 </li>
               ))}
-              {!data.trades.length && <li className="text-xs text-muted-foreground py-6 text-center">Log trades first.</li>}
+              {!monthTrades.length && <li className="text-xs text-muted-foreground py-6 text-center">No trades in this month.</li>}
             </ul>
           </Panel>
         </TabsContent>
