@@ -29,6 +29,11 @@ const PROMPTS = [
 
 function JournalPage() {
   const { data, mutate } = useEvolutionData();
+  const { key: monthKey } = useSelectedMonth();
+  const filteredEntries = useMemo(
+    () => data.journalEntries.filter((e) => e.date.startsWith(monthKey)),
+    [data.journalEntries, monthKey]
+  );
   const [readId, setReadId] = useState<string | null>(null);
 
   // Write
