@@ -111,7 +111,7 @@ function InvestingPage() {
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Panel title="Portfolio"><div className="hud-label text-2xl text-primary hud-glow">{fmt(portfolio)}</div></Panel>
-            <Panel title="Win Rate"><div className="hud-label text-2xl text-primary hud-glow">{winRate}%</div><div className="hud-label text-[10px] text-muted-foreground mt-1">{data.trades.length} trades</div></Panel>
+            <Panel title="Win Rate"><div className="hud-label text-2xl text-primary hud-glow">{winRate}%</div><div className="hud-label text-[10px] text-muted-foreground mt-1">{monthTrades.length} trades · {monthKey}</div></Panel>
             <Panel title="Goal Progress">
               <div className="hud-label text-2xl text-primary hud-glow">{goalPct}%</div>
               <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
