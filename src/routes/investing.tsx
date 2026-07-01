@@ -17,7 +17,7 @@ import {
 
 export const Route = createFileRoute("/investing")({
   head: () => ({ meta: [
-    { title: "Trading — Evolution" },
+    { title: "INVESTING — Evolution" },
     { name: "description", content: "Strategy builder, trade journal, and performance analytics." },
   ] }),
   component: InvestingPage,
@@ -421,7 +421,7 @@ function InvestingPage() {
   const gradeTotal = perf.gradeCount["A+"] + perf.gradeCount["B+"] + perf.gradeCount["C-"] + perf.gradeCount["F"] || 1;
 
   return (
-    <ModuleLayout number="06" title="Trading" subtitle="Strategy · Journal · Performance" icon={TrendingUp}>
+    <ModuleLayout number="06" title="INVESTING" subtitle="Strategy · Journal · Performance" icon={TrendingUp}>
       <Tabs defaultValue="strategy">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="strategy">Strategy Builder</TabsTrigger>
