@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff } from "lucide-react";
+import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import {
@@ -8,6 +8,7 @@ import {
   type ReminderOffset,
 } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
+import mountainImg from "@/assets/calendar-mountain.jpg";
 
 export const Route = createFileRoute("/calendar")({
   head: () => ({ meta: [{ title: "Calendar — Evolution" }] }),
@@ -109,9 +110,55 @@ function CalendarPage() {
     mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== id) }));
   }
 
+  // Month overview stats derived from cursor month
+  const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+  const monthEvents = useMemo(
+    () => events.filter((e) => e.date.startsWith(monthKey)),
+    [events, monthKey],
+  );
+  const tradingDays = new Set(
+    monthEvents.filter((e) => /trad|market|backtest/i.test(e.title)).map((e) => e.date),
+  ).size;
+  const reviewDays = new Set(
+    monthEvents.filter((e) => /review|journal|reflect/i.test(e.title)).map((e) => e.date),
+  ).size;
+  const goals = data.goals ?? [];
+  const goalCompletion = goals.length
+    ? Math.round(
+        (goals.reduce((s, g) => s + Math.min(1, g.current / Math.max(1, g.target)), 0) /
+          goals.length) *
+          100,
+      )
+    : 0;
+  const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
   return (
     <ModuleLayout number="" title="Calendar" subtitle="Schedule and events" icon={CalIcon}>
       <ReminderEngine events={events} />
+
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-lg border border-border mb-3">
+        <img
+          src={mountainImg}
+          alt=""
+          width={1024}
+          height={768}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
+        <div className="relative p-6 md:p-8">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+            Calendar
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Plan your days. Stay consistent. Win the month.
+          </p>
+          <div className="hud-label text-[11px] text-primary mt-3 hud-glow">
+            {monthLabel.toUpperCase()}
+          </div>
+        </div>
+      </div>
 
       {/* View toggle */}
       <div className="flex items-center gap-2 mb-2">
@@ -122,6 +169,7 @@ function CalendarPage() {
           Weekly View
         </ViewToggleButton>
       </div>
+
 
       <div key={view} className="animate-in fade-in duration-300">
         {view === "month" ? (
@@ -246,9 +294,57 @@ function CalendarPage() {
           </ul>
         )}
       </Panel>
+
+      {/* Month Overview + Focus */}
+      <div className="grid gap-3 md:grid-cols-2">
+        <Panel title="MONTH OVERVIEW">
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { icon: CalIcon, value: monthEvents.length, label: "Total Events" },
+              { icon: TrendingUp, value: tradingDays, label: "Trading Days" },
+              { icon: Eye, value: reviewDays, label: "Review Days" },
+              { icon: Target, value: `${goalCompletion}%`, label: "Goal Completion" },
+            ].map((s, i) => (
+              <div key={i} className="flex flex-col items-center text-center gap-1 p-2">
+                <s.icon className="h-4 w-4 text-primary" />
+                <div className="text-2xl font-semibold text-foreground">{s.value}</div>
+                <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="FOCUS THIS MONTH">
+          <div className="flex gap-3">
+            <Quote className="h-6 w-6 text-primary shrink-0" />
+            <div>
+              <p className="text-sm text-foreground italic">
+                Discipline is doing what needs to be done, even when you don't feel like doing it.
+              </p>
+              <p className="hud-label text-[10px] text-primary mt-2">— STAY CONSISTENT</p>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      {/* Category legend */}
+      <div className="flex flex-wrap gap-4 pt-2 pb-1 px-1">
+        {[
+          { label: "Trading", color: "hsl(var(--primary))" },
+          { label: "Planning", color: "#60a5fa" },
+          { label: "Personal", color: "#f59e0b" },
+          { label: "Review", color: "#a78bfa" },
+        ].map((c) => (
+          <div key={c.label} className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
+            <span className="hud-label text-[10px] text-muted-foreground">{c.label}</span>
+          </div>
+        ))}
+      </div>
     </ModuleLayout>
   );
 }
+
 
 // ---------- view toggle button ----------
 function ViewToggleButton({
