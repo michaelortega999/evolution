@@ -359,17 +359,20 @@ function WealthPage() {
               ].map((k) => {
                 const Icon = k.icon;
                 const isCash = k.label === "Cash Balance";
+                const isAssets = k.label === "Total Assets";
+                const isLiabilities = k.label === "Total Liabilities";
+                const accent = isCash ? "#39ff14" : isAssets ? "#00f0ff" : isLiabilities ? "#ff1a1a" : undefined;
                 return (
-                  <div key={k.label} className={`hud-card p-4 flex flex-col gap-2 ${isCash ? "border-[#39ff14]/40 shadow-[0_0_12px_rgba(57,255,20,0.15)]" : ""}`}>
+                  <div key={k.label} className={`hud-card p-4 flex flex-col gap-2 ${accent ? `border-[${accent}]/40 shadow-[0_0_12px_${accent}25]` : ""}`}>
                     <div className="flex items-center gap-2">
-                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center ${isCash ? "border-[#39ff14]/60 bg-[#39ff14]/10" : "border-primary/40 bg-primary/10"}`}>
-                        <Icon className={`h-3.5 w-3.5 ${isCash ? "text-[#39ff14]" : "text-primary"}`} />
+                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center ${accent ? `border-[${accent}]/60 bg-[${accent}]/10` : "border-primary/40 bg-primary/10"}`}>
+                        <Icon className={`h-3.5 w-3.5 ${accent ? `text-[${accent}]` : "text-primary"}`} />
                       </div>
                       <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
                     </div>
-                    <div className={`hud-label text-2xl hud-glow tabular-nums ${isCash ? "text-[#39ff14]" : "text-primary"}`}>{k.value}</div>
+                    <div className={`hud-label text-2xl hud-glow tabular-nums ${accent ? `text-[${accent}]` : "text-primary"}`}>{k.value}</div>
                     <div className="text-[10px] hud-label">
-                      <span className={isCash ? "text-[#39ff14]" : k.positive ? "text-primary" : "text-destructive"}>
+                      <span className={accent ? `text-[${accent}]` : k.positive ? "text-primary" : "text-destructive"}>
                         {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
                       </span>
                       <span className="text-muted-foreground ml-1">vs last month</span>
