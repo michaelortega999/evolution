@@ -110,12 +110,12 @@ function ReportsPage() {
     <ModuleLayout number="" title="Reports" subtitle="Performance summary across modules" icon={BarChart3}>
       <Panel title="RANGE">
         <div className="flex items-center gap-2 flex-wrap">
-          {(["week", "month"] as Range[]).map((r) => (
-            <button key={r} onClick={() => setRange(r)}
-              className={`px-4 py-2 hud-label text-[10px] border rounded ${range === r ? "border-primary text-primary bg-primary/15 hud-glow" : "border-border text-foreground/70 hover:bg-primary/5"}`}>
-              {r === "week" ? "Last 7 Days" : "Last 30 Days"}
-            </button>
-          ))}
+          <div className="px-4 py-2 hud-label text-[10px] border border-primary text-primary bg-primary/15 hud-glow rounded">
+            {MONTH_LABELS[selMonth]} {selYear} · {daysInMonth} DAYS
+          </div>
+          <div className="hud-label text-[10px] text-muted-foreground">
+            Change month on the dashboard selector
+          </div>
           <button onClick={exportReport}
             className="ml-auto flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-[10px] rounded hover:bg-primary/25">
             <Download className="h-4 w-4" /> Export Report
