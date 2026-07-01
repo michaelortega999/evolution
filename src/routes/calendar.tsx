@@ -110,9 +110,55 @@ function CalendarPage() {
     mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== id) }));
   }
 
+  // Month overview stats derived from cursor month
+  const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+  const monthEvents = useMemo(
+    () => events.filter((e) => e.date.startsWith(monthKey)),
+    [events, monthKey],
+  );
+  const tradingDays = new Set(
+    monthEvents.filter((e) => /trad|market|backtest/i.test(e.title)).map((e) => e.date),
+  ).size;
+  const reviewDays = new Set(
+    monthEvents.filter((e) => /review|journal|reflect/i.test(e.title)).map((e) => e.date),
+  ).size;
+  const goals = data.goals ?? [];
+  const goalCompletion = goals.length
+    ? Math.round(
+        (goals.reduce((s, g) => s + Math.min(1, g.current / Math.max(1, g.target)), 0) /
+          goals.length) *
+          100,
+      )
+    : 0;
+  const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
   return (
     <ModuleLayout number="" title="Calendar" subtitle="Schedule and events" icon={CalIcon}>
       <ReminderEngine events={events} />
+
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-lg border border-border mb-3">
+        <img
+          src={mountainImg}
+          alt=""
+          width={1024}
+          height={768}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
+        <div className="relative p-6 md:p-8">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+            Calendar
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Plan your days. Stay consistent. Win the month.
+          </p>
+          <div className="hud-label text-[11px] text-primary mt-3 hud-glow">
+            {monthLabel.toUpperCase()}
+          </div>
+        </div>
+      </div>
 
       {/* View toggle */}
       <div className="flex items-center gap-2 mb-2">
@@ -123,6 +169,7 @@ function CalendarPage() {
           Weekly View
         </ViewToggleButton>
       </div>
+
 
       <div key={view} className="animate-in fade-in duration-300">
         {view === "month" ? (
