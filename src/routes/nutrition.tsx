@@ -12,6 +12,7 @@ import {
   dayTotals, nutritionStreak,
   type MealType, type GroceryItem,
 } from "@/lib/evolution-data";
+import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/nutrition")({
   head: () => ({ meta: [{ title: "Nutrition — Evolution" }, { name: "description", content: "Daily calories, macros, meals, water, grocery, history." }] }),
