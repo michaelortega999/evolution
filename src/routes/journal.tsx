@@ -139,9 +139,9 @@ function JournalPage() {
         </TabsContent>
 
         <TabsContent value="entries">
-          <Panel title={`Entries (${data.journalEntries.length})`}>
+          <Panel title={`Entries (${filteredEntries.length}) · ${monthKey}`}>
             <ul className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
-              {[...data.journalEntries].reverse().map((e) => (
+              {[...filteredEntries].reverse().map((e) => (
                 <li key={e.id} className="border border-border rounded p-4 group cursor-pointer hover:border-primary/40 transition-colors"
                     onClick={() => setReadId(e.id)}>
                   <div className="flex items-center justify-between mb-2">
@@ -161,7 +161,7 @@ function JournalPage() {
                   )}
                 </li>
               ))}
-              {!data.journalEntries.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries yet.</li>}
+              {!filteredEntries.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries in this month.</li>}
             </ul>
           </Panel>
 
