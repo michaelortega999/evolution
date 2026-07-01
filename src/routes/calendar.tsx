@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff } from "lucide-react";
+import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import {
@@ -8,6 +8,7 @@ import {
   type ReminderOffset,
 } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
+import mountainImg from "@/assets/calendar-mountain.jpg";
 
 export const Route = createFileRoute("/calendar")({
   head: () => ({ meta: [{ title: "Calendar — Evolution" }] }),
