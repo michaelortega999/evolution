@@ -224,9 +224,12 @@ export interface RichNote {
 
 export type Instrument = "MNQ" | "MES";
 export type TradeDir = "Long" | "Short";
+export type TradeGrade = "A+" | "B+" | "C-" | "F";
+export const TRADE_GRADES: TradeGrade[] = ["A+", "B+", "C-", "F"];
 export interface Trade {
   id: string;
   date: string;
+  time?: string;
   instrument: Instrument;
   direction: TradeDir;
   entry: number;
@@ -234,7 +237,40 @@ export interface Trade {
   contracts: number;
   pnl: number;
   notes?: string;
+  strategyId?: string;
+  grade?: TradeGrade;
+  screenshot?: string;
 }
+
+export type StrategyStatus = "Active" | "In Development" | "Backtesting" | "Retired";
+export const STRATEGY_STATUSES: StrategyStatus[] = ["Active", "In Development", "Backtesting", "Retired"];
+export type StrategySession = "Asia" | "London" | "New York AM" | "Other";
+export const STRATEGY_SESSIONS: StrategySession[] = ["Asia", "London", "New York AM", "Other"];
+export interface TradeStrategy {
+  id: string;
+  number: string;           // "001"
+  name: string;             // "Asia Sweep"
+  status: StrategyStatus;
+  session: StrategySession;
+  entryTrigger: string;
+  target: string;
+  maxRisk: number;
+  dailyLossLimit: number;
+  weeklyLossLimit: number;
+  timeExit: string;
+  instruments: "MNQ" | "MES" | "Both";
+  notes: string;
+  grades: Record<TradeGrade, string>;
+  backtest: {
+    netProfitPct: number;
+    winRate: number;
+    totalTrades: number;
+    sharpe: number;
+    maxDrawdown: number;
+  };
+}
+
+export const TRADING_START_BALANCE = 835;
 
 export interface WatchlistItem {
   id: string;
@@ -393,6 +429,7 @@ export interface EvolutionData {
   reflections: Reflection[];
   richNotes: RichNote[];
   trades: Trade[];
+  strategies: TradeStrategy[];
   watchlist: WatchlistItem[];
   projects: Project[];
   revenue: RevenueEntry[];
@@ -514,6 +551,30 @@ export const defaultData: EvolutionData = {
   reflections: [],
   richNotes: [],
   trades: [],
+  strategies: [
+    {
+      id: "strat-001",
+      number: "001",
+      name: "Asia Sweep",
+      status: "Active",
+      session: "Asia",
+      entryTrigger: "Price sweeps Asia high or low by 2+ points, enters immediately in opposing direction",
+      target: "Opposite Asia level (full range)",
+      maxRisk: 100,
+      dailyLossLimit: 200,
+      weeklyLossLimit: 600,
+      timeExit: "11:30",
+      instruments: "Both",
+      notes: "Asia (7 PM CT — 1 AM CT) + London open. MNQ + MES, 1 contract each, independent.",
+      grades: {
+        "A+": "Sharp fast sweep, price runs immediately with conviction before 10 AM CT, under 1 hour",
+        "B+": "Price sweeps, hovers and retests the level but holds, eventually runs to target",
+        "C-": "Price takes too long, doesn't reach opposing liquidity until next session",
+        "F": "Price completely ignores opposing liquidity, trends away in sweep direction",
+      },
+      backtest: { netProfitPct: 0, winRate: 0, totalTrades: 0, sharpe: 0, maxDrawdown: 0 },
+    },
+  ],
   watchlist: [],
   projects: [
     { id: "p1", name: "Evolution Platform", description: "Personal OS", status: "In Progress", progress: 72, deadline: "2025-12-31", revenueTarget: 18200 },
@@ -605,6 +666,7 @@ function load(): EvolutionData {
       reflections: parsed.reflections ?? [],
       richNotes: parsed.richNotes ?? [],
       trades: parsed.trades ?? [],
+      strategies: parsed.strategies?.length ? parsed.strategies : defaultData.strategies,
       watchlist: parsed.watchlist ?? [],
       projects: parsed.projects ?? defaultData.projects,
       revenue: parsed.revenue ?? [],
