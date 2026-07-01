@@ -47,7 +47,7 @@ function ReportsPage() {
   const tradeSeries = Array.from({ length: days }, (_, i) => pnlByDay.get(dayIso(i)) ?? 0);
 
   // ----- Nutrition (mealLogs) -----
-  const dayKeys = Array.from({ length: days }, (_, i) => daysAgoISO(days - 1 - i));
+  const dayKeys = Array.from({ length: days }, (_, i) => dayIso(i));
   const calsPerDay = dayKeys.map((d) => dayTotals(d, data.mealLogs).kcal);
   const proteinPerDay = dayKeys.map((d) => dayTotals(d, data.mealLogs).p);
   const loggedDays = calsPerDay.filter((c) => c > 0);
@@ -57,22 +57,21 @@ function ReportsPage() {
   const daysHitGoal = calsPerDay.filter((c) => c >= calTarget * 0.85 && c <= calTarget * 1.05).length;
 
   // ----- Fitness (workouts + fitness rows) -----
-  const workoutLogs = data.workouts.filter((w) => w.date >= since);
-  const fitnessRows = data.fitness.filter((r) => r.date >= since);
+  const workoutLogs = data.workouts.filter((w) => inMonth(w.date));
+  const fitnessRows = data.fitness.filter((r) => inMonth(r.date));
   const sessions = workoutLogs.length + fitnessRows.reduce((a, r) => a + r.workouts, 0);
   const totalVolume = workoutLogs.reduce((a, w) => a + w.durationMin * 100, 0);
-  const monthAgo = daysAgoISO(30);
-  const prsThisMonth = data.prHistory.filter((p) => p.date >= monthAgo).length;
+  const prsThisMonth = data.prHistory.filter((p) => inMonth(p.date)).length;
 
   // ----- Journal -----
-  const journalEntries = data.journalEntries.filter((e) => e.date >= since).length
-    + data.journal.filter((e) => e.date >= since).length;
+  const journalEntries = data.journalEntries.filter((e) => inMonth(e.date)).length
+    + data.journal.filter((e) => inMonth(e.date)).length;
   const moodCounts: Record<string, number> = {};
-  data.journalEntries.filter((e) => e.date >= since).forEach((e) => { moodCounts[e.mood] = (moodCounts[e.mood] ?? 0) + 1; });
+  data.journalEntries.filter((e) => inMonth(e.date)).forEach((e) => { moodCounts[e.mood] = (moodCounts[e.mood] ?? 0) + 1; });
   const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
   // ----- Focus -----
-  const focus = data.focusSessions.filter((s) => s.completedAt >= sinceMs);
+  const focus = data.focusSessions.filter((s) => s.completedAt >= sinceMs && s.completedAt < untilMs);
   const focusHours = Math.round((focus.reduce((a, s) => a + s.durationSec, 0) / 3600) * 10) / 10;
   const focusCount = focus.length;
   const focusByDay = new Map<string, number>();
@@ -84,9 +83,7 @@ function ReportsPage() {
   focusByDay.forEach((v, k) => { if (v > mostFocusedSec) { mostFocusedSec = v; mostFocusedDay = k; } });
 
   // ----- Business -----
-  const today = todayDate();
-  const monthKey = today.slice(0, 7);
-  const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
+  const monthRevenue = data.revenue.filter((r) => r.date.startsWith(selMonthKey)).reduce((a, r) => a + r.amount, 0);
   const projectsCompleted = data.projects.filter((p) => p.status === "Completed").length;
 
   const summary = useMemo(() => ({
