@@ -361,18 +361,47 @@ function WealthPage() {
                 const isCash = k.label === "Cash Balance";
                 const isAssets = k.label === "Total Assets";
                 const isLiabilities = k.label === "Total Liabilities";
-                const accent = isCash ? "#39ff14" : isAssets ? "#00f0ff" : isLiabilities ? "#ff1a1a" : undefined;
+                let cardClass = "hud-card p-4 flex flex-col gap-2";
+                let ringClass = "h-8 w-8 rounded-full border flex items-center justify-center";
+                let iconClass = "h-3.5 w-3.5";
+                let valueClass = "hud-label text-2xl hud-glow tabular-nums";
+                let deltaClass = "";
+                if (isCash) {
+                  cardClass += " border-[#39ff14]/40 shadow-[0_0_12px_rgba(57,255,20,0.15)]";
+                  ringClass += " border-[#39ff14]/60 bg-[#39ff14]/10";
+                  iconClass += " text-[#39ff14]";
+                  valueClass += " text-[#39ff14]";
+                  deltaClass = "text-[#39ff14]";
+                } else if (isAssets) {
+                  cardClass += " border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]";
+                  ringClass += " border-[#00f0ff]/60 bg-[#00f0ff]/10";
+                  iconClass += " text-[#00f0ff]";
+                  valueClass += " text-[#00f0ff]";
+                  deltaClass = "text-[#00f0ff]";
+                } else if (isLiabilities) {
+                  cardClass += " border-[#ff1a1a]/40 shadow-[0_0_12px_rgba(255,26,26,0.15)]";
+                  ringClass += " border-[#ff1a1a]/60 bg-[#ff1a1a]/10";
+                  iconClass += " text-[#ff1a1a]";
+                  valueClass += " text-[#ff1a1a]";
+                  deltaClass = "text-[#ff1a1a]";
+                } else {
+                  cardClass += "";
+                  ringClass += " border-primary/40 bg-primary/10";
+                  iconClass += " text-primary";
+                  valueClass += " text-primary";
+                  deltaClass = k.positive ? "text-primary" : "text-destructive";
+                }
                 return (
-                  <div key={k.label} className={`hud-card p-4 flex flex-col gap-2 ${accent ? `border-[${accent}]/40 shadow-[0_0_12px_${accent}25]` : ""}`}>
+                  <div key={k.label} className={cardClass}>
                     <div className="flex items-center gap-2">
-                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center ${accent ? `border-[${accent}]/60 bg-[${accent}]/10` : "border-primary/40 bg-primary/10"}`}>
-                        <Icon className={`h-3.5 w-3.5 ${accent ? `text-[${accent}]` : "text-primary"}`} />
+                      <div className={ringClass}>
+                        <Icon className={iconClass} />
                       </div>
                       <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
                     </div>
-                    <div className={`hud-label text-2xl hud-glow tabular-nums ${accent ? `text-[${accent}]` : "text-primary"}`}>{k.value}</div>
+                    <div className={valueClass}>{k.value}</div>
                     <div className="text-[10px] hud-label">
-                      <span className={accent ? `text-[${accent}]` : k.positive ? "text-primary" : "text-destructive"}>
+                      <span className={deltaClass}>
                         {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
                       </span>
                       <span className="text-muted-foreground ml-1">vs last month</span>
