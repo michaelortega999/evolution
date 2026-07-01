@@ -186,7 +186,7 @@ function InvestingPage() {
                   })()}
                 </tbody>
               </table>
-              {!data.trades.length && <div className="text-xs text-muted-foreground py-6 text-center">No trades logged.</div>}
+              {!monthTrades.length && <div className="text-xs text-muted-foreground py-6 text-center">No trades in this month.</div>}
             </div>
           </Panel>
         </TabsContent>
