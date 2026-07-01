@@ -224,9 +224,12 @@ export interface RichNote {
 
 export type Instrument = "MNQ" | "MES";
 export type TradeDir = "Long" | "Short";
+export type TradeGrade = "A+" | "B+" | "C-" | "F";
+export const TRADE_GRADES: TradeGrade[] = ["A+", "B+", "C-", "F"];
 export interface Trade {
   id: string;
   date: string;
+  time?: string;
   instrument: Instrument;
   direction: TradeDir;
   entry: number;
@@ -234,7 +237,40 @@ export interface Trade {
   contracts: number;
   pnl: number;
   notes?: string;
+  strategyId?: string;
+  grade?: TradeGrade;
+  screenshot?: string;
 }
+
+export type StrategyStatus = "Active" | "In Development" | "Backtesting" | "Retired";
+export const STRATEGY_STATUSES: StrategyStatus[] = ["Active", "In Development", "Backtesting", "Retired"];
+export type StrategySession = "Asia" | "London" | "New York AM" | "Other";
+export const STRATEGY_SESSIONS: StrategySession[] = ["Asia", "London", "New York AM", "Other"];
+export interface TradeStrategy {
+  id: string;
+  number: string;           // "001"
+  name: string;             // "Asia Sweep"
+  status: StrategyStatus;
+  session: StrategySession;
+  entryTrigger: string;
+  target: string;
+  maxRisk: number;
+  dailyLossLimit: number;
+  weeklyLossLimit: number;
+  timeExit: string;
+  instruments: "MNQ" | "MES" | "Both";
+  notes: string;
+  grades: Record<TradeGrade, string>;
+  backtest: {
+    netProfitPct: number;
+    winRate: number;
+    totalTrades: number;
+    sharpe: number;
+    maxDrawdown: number;
+  };
+}
+
+export const TRADING_START_BALANCE = 835;
 
 export interface WatchlistItem {
   id: string;
