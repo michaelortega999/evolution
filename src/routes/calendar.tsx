@@ -294,9 +294,57 @@ function CalendarPage() {
           </ul>
         )}
       </Panel>
+
+      {/* Month Overview + Focus */}
+      <div className="grid gap-3 md:grid-cols-2">
+        <Panel title="MONTH OVERVIEW">
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { icon: CalIcon, value: monthEvents.length, label: "Total Events" },
+              { icon: TrendingUp, value: tradingDays, label: "Trading Days" },
+              { icon: Eye, value: reviewDays, label: "Review Days" },
+              { icon: Target, value: `${goalCompletion}%`, label: "Goal Completion" },
+            ].map((s, i) => (
+              <div key={i} className="flex flex-col items-center text-center gap-1 p-2">
+                <s.icon className="h-4 w-4 text-primary" />
+                <div className="text-2xl font-semibold text-foreground">{s.value}</div>
+                <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="FOCUS THIS MONTH">
+          <div className="flex gap-3">
+            <Quote className="h-6 w-6 text-primary shrink-0" />
+            <div>
+              <p className="text-sm text-foreground italic">
+                Discipline is doing what needs to be done, even when you don't feel like doing it.
+              </p>
+              <p className="hud-label text-[10px] text-primary mt-2">— STAY CONSISTENT</p>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      {/* Category legend */}
+      <div className="flex flex-wrap gap-4 pt-2 pb-1 px-1">
+        {[
+          { label: "Trading", color: "hsl(var(--primary))" },
+          { label: "Planning", color: "#60a5fa" },
+          { label: "Personal", color: "#f59e0b" },
+          { label: "Review", color: "#a78bfa" },
+        ].map((c) => (
+          <div key={c.label} className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
+            <span className="hud-label text-[10px] text-muted-foreground">{c.label}</span>
+          </div>
+        ))}
+      </div>
     </ModuleLayout>
   );
 }
+
 
 // ---------- view toggle button ----------
 function ViewToggleButton({
