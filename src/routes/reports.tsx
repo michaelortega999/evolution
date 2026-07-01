@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, Download } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
 import { useEvolutionData, todayDate, dayTotals } from "@/lib/evolution-data";
@@ -11,18 +11,9 @@ export const Route = createFileRoute("/reports")({
   component: ReportsPage,
 });
 
-type Range = "week" | "month";
-
-function daysAgoISO(n: number) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-}
-
 function ReportsPage() {
   const { data } = useEvolutionData();
   const { year: selYear, month: selMonth, key: selMonthKey } = useSelectedMonth();
-  const [range, setRange] = useState<Range>("month");
 
   // Selected month bounds
   const daysInMonth = new Date(selYear, selMonth + 1, 0).getDate();
