@@ -5,12 +5,12 @@ export function MonthSelector() {
 
   return (
     <div
-      className="w-full rounded-md border border-border bg-background/80 backdrop-blur px-4 py-4 md:py-5 relative overflow-hidden"
+      className="w-full rounded-md border border-border bg-background/80 backdrop-blur px-3 py-2.5 md:py-3.5 relative overflow-hidden"
       style={{
-        boxShadow: "inset 0 0 24px color-mix(in oklab, var(--primary) 8%, transparent)",
+        boxShadow: "inset 0 0 18px color-mix(in oklab, var(--primary) 8%, transparent)",
       }}
     >
-      <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-4 relative">
+      <div className="flex items-center justify-between gap-1 sm:gap-1.5 md:gap-2.5 relative">
         {MONTH_LABELS.map((label, i) => {
           const active = i === month;
           return (
@@ -21,15 +21,15 @@ export function MonthSelector() {
               aria-pressed={active}
             >
               {/* Triangle indicator above active month */}
-              <div className="h-3 mb-1 flex items-center justify-center">
+              <div className="h-2.5 mb-0.5 flex items-center justify-center">
                 {active && (
                   <div
                     className="w-0 h-0"
                     style={{
-                      borderLeft: "6px solid transparent",
-                      borderRight: "6px solid transparent",
-                      borderTop: "8px solid var(--primary)",
-                      filter: "drop-shadow(0 0 6px var(--primary))",
+                      borderLeft: "4.5px solid transparent",
+                      borderRight: "4.5px solid transparent",
+                      borderTop: "6px solid var(--primary)",
+                      filter: "drop-shadow(0 0 4px var(--primary))",
                     }}
                   />
                 )}
@@ -37,8 +37,8 @@ export function MonthSelector() {
               <span
                 className={`hud-label font-mono tracking-widest transition-all ${
                   active
-                    ? "text-primary hud-glow text-sm md:text-base font-bold"
-                    : "text-primary/40 text-xs md:text-sm hover:text-primary/70"
+                    ? "text-primary hud-glow text-[10px] md:text-sm font-bold"
+                    : "text-primary/40 text-[9px] md:text-xs hover:text-primary/70"
                 }`}
               >
                 {label}
