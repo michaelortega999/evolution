@@ -156,7 +156,7 @@ function InvestingPage() {
             </div>
           </Panel>
 
-          <Panel title={`Trade Log (${data.trades.length})`}>
+          <Panel title={`Trade Log (${monthTrades.length}) · ${monthKey}`}>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
