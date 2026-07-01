@@ -78,21 +78,21 @@ function ReportsPage() {
   const projectsCompleted = data.projects.filter((p) => p.status === "Completed").length;
 
   const summary = useMemo(() => ({
-    range, generatedAt: new Date().toISOString(),
+    month: selMonthKey, generatedAt: new Date().toISOString(),
     trading: { trades: trades.length, pnl: tradePnl, winRate, bestDay, worstDay },
     nutrition: { avgCalories: avgCals, avgProtein: avgProt, daysHitGoal },
     fitness: { sessions, totalVolume, prsThisMonth },
     journal: { entries: journalEntries, topMood },
     focus: { hours: focusHours, sessions: focusCount, mostFocusedDay },
     business: { monthRevenue, projectsCompleted },
-  }), [range, trades.length, tradePnl, winRate, bestDay, worstDay, avgCals, avgProt, daysHitGoal, sessions, totalVolume, prsThisMonth, journalEntries, topMood, focusHours, focusCount, mostFocusedDay, monthRevenue, projectsCompleted]);
+  }), [selMonthKey, trades.length, tradePnl, winRate, bestDay, worstDay, avgCals, avgProt, daysHitGoal, sessions, totalVolume, prsThisMonth, journalEntries, topMood, focusHours, focusCount, mostFocusedDay, monthRevenue, projectsCompleted]);
 
   function exportReport() {
     const blob = new Blob([JSON.stringify(summary, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `evolution-report-${range}-${todayDate()}.json`;
+    a.download = `evolution-report-${selMonthKey}-${todayDate()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
