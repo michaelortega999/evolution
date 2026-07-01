@@ -292,7 +292,6 @@ function WealthPage() {
     setTDesc(""); setTAmt("");
   };
   const delTx = (id: string) => mutate((prev) => ({ transactions: prev.transactions.filter((t) => t.id !== id) }));
-  const recentTx = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
 
   // ===== Goals =====
   const [gTitle, setGTitle] = useState("");
