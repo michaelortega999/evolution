@@ -221,7 +221,7 @@ function InvestingPage() {
           <Panel title="Trade Journal">
             <div className="hud-label text-[10px] text-muted-foreground mb-4">Click a trade's notes to update what worked / what didn't.</div>
             <ul className="space-y-3 max-h-[600px] overflow-y-auto">
-              {[...data.trades].reverse().map((t) => (
+              {[...monthTrades].reverse().map((t) => (
                 <li key={t.id} className="border border-border rounded p-3">
                   <div className="flex items-center gap-3 mb-2 text-xs">
                     <span className="hud-label text-muted-foreground">{t.date}</span>
@@ -233,7 +233,7 @@ function InvestingPage() {
                     className="w-full bg-transparent border border-border rounded p-2 text-xs resize-none focus:outline-none focus:border-primary/50" />
                 </li>
               ))}
-              {!data.trades.length && <li className="text-xs text-muted-foreground py-6 text-center">Log trades first.</li>}
+              {!monthTrades.length && <li className="text-xs text-muted-foreground py-6 text-center">No trades in this month.</li>}
             </ul>
           </Panel>
         </TabsContent>
