@@ -429,6 +429,7 @@ export interface EvolutionData {
   reflections: Reflection[];
   richNotes: RichNote[];
   trades: Trade[];
+  strategies: TradeStrategy[];
   watchlist: WatchlistItem[];
   projects: Project[];
   revenue: RevenueEntry[];
