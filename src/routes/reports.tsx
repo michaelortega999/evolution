@@ -21,13 +21,22 @@ function daysAgoISO(n: number) {
 
 function ReportsPage() {
   const { data } = useEvolutionData();
-  const [range, setRange] = useState<Range>("week");
-  const days = range === "week" ? 7 : 30;
-  const since = daysAgoISO(days - 1);
+  const { year: selYear, month: selMonth, key: selMonthKey } = useSelectedMonth();
+  const [range, setRange] = useState<Range>("month");
+
+  // Selected month bounds
+  const daysInMonth = new Date(selYear, selMonth + 1, 0).getDate();
+  const days = daysInMonth;
+  const since = `${selMonthKey}-01`;
+  const until = `${selMonthKey}-${String(daysInMonth).padStart(2, "0")}`;
   const sinceMs = new Date(since).getTime();
+  const untilMs = new Date(until).getTime() + 86_400_000;
+
+  const inMonth = (d: string) => d >= since && d <= until;
+  const dayIso = (i: number) => `${selMonthKey}-${String(i + 1).padStart(2, "0")}`;
 
   // ----- Trading (real trades) -----
-  const trades = data.trades.filter((t) => t.date >= since);
+  const trades = data.trades.filter((t) => inMonth(t.date));
   const tradePnl = trades.reduce((a, t) => a + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
@@ -35,7 +44,7 @@ function ReportsPage() {
   trades.forEach((t) => pnlByDay.set(t.date, (pnlByDay.get(t.date) ?? 0) + t.pnl));
   let bestDay = 0, worstDay = 0;
   pnlByDay.forEach((v) => { if (v > bestDay) bestDay = v; if (v < worstDay) worstDay = v; });
-  const tradeSeries = Array.from({ length: days }, (_, i) => pnlByDay.get(daysAgoISO(days - 1 - i)) ?? 0);
+  const tradeSeries = Array.from({ length: days }, (_, i) => pnlByDay.get(dayIso(i)) ?? 0);
 
   // ----- Nutrition (mealLogs) -----
   const dayKeys = Array.from({ length: days }, (_, i) => daysAgoISO(days - 1 - i));
