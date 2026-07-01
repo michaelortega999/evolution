@@ -17,7 +17,7 @@ import {
 
 export const Route = createFileRoute("/investing")({
   head: () => ({ meta: [
-    { title: "Trading — Evolution" },
+    { title: "INVESTING — Evolution" },
     { name: "description", content: "Strategy builder, trade journal, and performance analytics." },
   ] }),
   component: InvestingPage,
