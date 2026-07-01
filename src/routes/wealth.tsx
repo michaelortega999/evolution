@@ -358,17 +358,18 @@ function WealthPage() {
                 { label: "Cash Balance", value: fmt(cashBalance), icon: DollarSign, delta: 5.32, positive: true },
               ].map((k) => {
                 const Icon = k.icon;
+                const isCash = k.label === "Cash Balance";
                 return (
-                  <div key={k.label} className="hud-card p-4 flex flex-col gap-2">
+                  <div key={k.label} className={`hud-card p-4 flex flex-col gap-2 ${isCash ? "border-[#39ff14]/40 shadow-[0_0_12px_rgba(57,255,20,0.15)]" : ""}`}>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full border border-primary/40 flex items-center justify-center bg-primary/10">
-                        <Icon className="h-3.5 w-3.5 text-primary" />
+                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center ${isCash ? "border-[#39ff14]/60 bg-[#39ff14]/10" : "border-primary/40 bg-primary/10"}`}>
+                        <Icon className={`h-3.5 w-3.5 ${isCash ? "text-[#39ff14]" : "text-primary"}`} />
                       </div>
                       <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
                     </div>
-                    <div className="hud-label text-2xl text-primary hud-glow tabular-nums">{k.value}</div>
+                    <div className={`hud-label text-2xl hud-glow tabular-nums ${isCash ? "text-[#39ff14]" : "text-primary"}`}>{k.value}</div>
                     <div className="text-[10px] hud-label">
-                      <span className={k.positive ? "text-primary" : "text-destructive"}>
+                      <span className={isCash ? "text-[#39ff14]" : k.positive ? "text-primary" : "text-destructive"}>
                         {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
                       </span>
                       <span className="text-muted-foreground ml-1">vs last month</span>
