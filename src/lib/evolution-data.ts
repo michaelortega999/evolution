@@ -666,6 +666,7 @@ function load(): EvolutionData {
       reflections: parsed.reflections ?? [],
       richNotes: parsed.richNotes ?? [],
       trades: parsed.trades ?? [],
+      strategies: parsed.strategies?.length ? parsed.strategies : defaultData.strategies,
       watchlist: parsed.watchlist ?? [],
       projects: parsed.projects ?? defaultData.projects,
       revenue: parsed.revenue ?? [],
