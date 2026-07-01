@@ -292,7 +292,6 @@ function WealthPage() {
     setTDesc(""); setTAmt("");
   };
   const delTx = (id: string) => mutate((prev) => ({ transactions: prev.transactions.filter((t) => t.id !== id) }));
-  const recentTx = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
 
   // ===== Goals =====
   const [gTitle, setGTitle] = useState("");
@@ -531,8 +530,8 @@ function WealthPage() {
             </Panel>
           </div>
 
-          {/* ===== ACCOUNT OVERVIEW + RECENT TX + WEALTH GOALS ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ===== ACCOUNT OVERVIEW + WEALTH GOALS ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title={`Account Overview (${data.assets.length})`}>
               <div className="flex items-center justify-between mb-3">
                 <span className="hud-label text-[10px] text-muted-foreground">ACCOUNT · TYPE · BALANCE</span>
@@ -552,24 +551,6 @@ function WealthPage() {
                   </li>
                 ))}
                 {!data.assets.length && <li className="text-xs text-muted-foreground py-6 text-center">No accounts yet.</li>}
-              </ul>
-            </Panel>
-
-            <Panel title="Recent Transactions">
-              <ul className="divide-y divide-border">
-                {recentTx.map((t) => (
-                  <li key={t.id} className="py-2.5 grid grid-cols-[80px_1fr_auto] items-center gap-3 text-xs">
-                    <span className="hud-label text-[10px] text-muted-foreground">{t.date.slice(5).replace("-", "/")}</span>
-                    <div className="min-w-0">
-                      <div className="hud-label text-foreground truncate">{t.description}</div>
-                      <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
-                    </div>
-                    <span className={`hud-label tabular-nums ${t.type === "income" ? "text-primary" : "text-destructive"}`}>
-                      {t.type === "income" ? "+" : "−"}{fmt(t.amount)}
-                    </span>
-                  </li>
-                ))}
-                {!recentTx.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions yet.</li>}
               </ul>
             </Panel>
 
