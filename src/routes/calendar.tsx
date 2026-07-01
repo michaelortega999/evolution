@@ -171,175 +171,183 @@ function CalendarPage() {
       </div>
 
 
-      <div key={view} className="animate-in fade-in duration-300">
-        {view === "month" ? (
-          <MonthView
-            cursor={cursor}
-            setCursor={setCursor}
-            eventsByDate={eventsByDate}
-            onPickDay={(ds) => openForm(ds)}
-            selected={formDate}
-          />
-        ) : (
-          <WeekView
-            weekCursor={weekCursor}
-            setWeekCursor={setWeekCursor}
-            events={events}
-            onPickSlot={(ds, hm) => openForm(ds, hm)}
-          />
-        )}
-      </div>
-
-      {formDate && (
-        <Panel title={`ADD EVENT · ${formDate}`}>
-          <div className="flex flex-wrap gap-2 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <label className="hud-label text-[10px] text-muted-foreground">Title</label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-                autoFocus
-                className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(260px,1fr)]">
+        {/* LEFT: calendar */}
+        <div className="min-w-0 flex flex-col gap-3">
+          <div key={view} className="animate-in fade-in duration-300">
+            {view === "month" ? (
+              <MonthView
+                cursor={cursor}
+                setCursor={setCursor}
+                eventsByDate={eventsByDate}
+                onPickDay={(ds) => openForm(ds)}
+                selected={formDate}
               />
-            </div>
-            <div>
-              <label className="hud-label text-[10px] text-muted-foreground">Date</label>
-              <input
-                type="date"
-                value={formDate}
-                onChange={(e) => setFormDate(e.target.value || formDate)}
-                className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            ) : (
+              <WeekView
+                weekCursor={weekCursor}
+                setWeekCursor={setWeekCursor}
+                events={events}
+                onPickSlot={(ds, hm) => openForm(ds, hm)}
               />
-            </div>
-            <div>
-              <label className="hud-label text-[10px] text-muted-foreground">Start</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-            <div>
-              <label className="hud-label text-[10px] text-muted-foreground">End</label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-            <div>
-              <label className="hud-label text-[10px] text-muted-foreground">Reminder</label>
-              <select
-                value={reminder}
-                onChange={(e) => setReminder(Number(e.target.value) as ReminderOffset)}
-                className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-              >
-                <option value={0}>None</option>
-                <option value={15}>15 min before</option>
-                <option value={30}>30 min before</option>
-                <option value={60}>1 hour before</option>
-                <option value={1440}>1 day before</option>
-              </select>
-            </div>
-            <button
-              onClick={addEvent}
-              className="flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-xs rounded hover:bg-primary/25"
-            >
-              <Plus className="h-4 w-4" /> Add
-            </button>
-            <button
-              onClick={() => setFormDate(null)}
-              className="p-2 text-muted-foreground hover:text-foreground"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            )}
           </div>
-        </Panel>
-      )}
 
-      <Panel title="UPCOMING">
-        {upcoming.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No upcoming events. Click a day or time slot to add one.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {upcoming.map((e) => (
-              <li
-                key={e.id}
-                className="flex items-center gap-3 p-3 border border-border rounded bg-primary/5"
-              >
-                <div className="hud-label text-[11px] text-primary w-32 shrink-0">
-                  {e.date} · {fmt12(e.time)}
+          {formDate && (
+            <Panel title={`ADD EVENT · ${formDate}`}>
+              <div className="flex flex-wrap gap-2 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="hud-label text-[10px] text-muted-foreground">Title</label>
+                  <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    maxLength={100}
+                    autoFocus
+                    className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+                  />
                 </div>
-                <div className="flex-1 text-sm text-foreground truncate">{e.title}</div>
-                {e.reminder ? (
-                  <Bell className="h-3.5 w-3.5 text-primary" />
-                ) : (
-                  <BellOff className="h-3.5 w-3.5 text-muted-foreground/50" />
-                )}
+                <div>
+                  <label className="hud-label text-[10px] text-muted-foreground">Date</label>
+                  <input
+                    type="date"
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value || formDate)}
+                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+                  />
+                </div>
+                <div>
+                  <label className="hud-label text-[10px] text-muted-foreground">Start</label>
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+                  />
+                </div>
+                <div>
+                  <label className="hud-label text-[10px] text-muted-foreground">End</label>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+                  />
+                </div>
+                <div>
+                  <label className="hud-label text-[10px] text-muted-foreground">Reminder</label>
+                  <select
+                    value={reminder}
+                    onChange={(e) => setReminder(Number(e.target.value) as ReminderOffset)}
+                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+                  >
+                    <option value={0}>None</option>
+                    <option value={15}>15 min before</option>
+                    <option value={30}>30 min before</option>
+                    <option value={60}>1 hour before</option>
+                    <option value={1440}>1 day before</option>
+                  </select>
+                </div>
                 <button
-                  onClick={() => delEvent(e.id)}
-                  className="text-destructive hover:text-destructive/80"
-                  aria-label="Delete"
+                  onClick={addEvent}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-xs rounded hover:bg-primary/25"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Plus className="h-4 w-4" /> Add
                 </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-
-      {/* Month Overview + Focus */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <Panel title="MONTH OVERVIEW">
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { icon: CalIcon, value: monthEvents.length, label: "Total Events" },
-              { icon: TrendingUp, value: tradingDays, label: "Trading Days" },
-              { icon: Eye, value: reviewDays, label: "Review Days" },
-              { icon: Target, value: `${goalCompletion}%`, label: "Goal Completion" },
-            ].map((s, i) => (
-              <div key={i} className="flex flex-col items-center text-center gap-1 p-2">
-                <s.icon className="h-4 w-4 text-primary" />
-                <div className="text-2xl font-semibold text-foreground">{s.value}</div>
-                <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
+                <button
+                  onClick={() => setFormDate(null)}
+                  className="p-2 text-muted-foreground hover:text-foreground"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-            ))}
-          </div>
-        </Panel>
+            </Panel>
+          )}
+        </div>
 
-        <Panel title="FOCUS THIS MONTH">
-          <div className="flex gap-3">
-            <Quote className="h-6 w-6 text-primary shrink-0" />
-            <div>
-              <p className="text-sm text-foreground italic">
-                Discipline is doing what needs to be done, even when you don't feel like doing it.
-              </p>
-              <p className="hud-label text-[10px] text-primary mt-2">— STAY CONSISTENT</p>
+        {/* RIGHT: widgets */}
+        <aside className="flex flex-col gap-3 min-w-0">
+          <Panel title="MONTH OVERVIEW">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { icon: CalIcon, value: monthEvents.length, label: "Total Events" },
+                { icon: TrendingUp, value: tradingDays, label: "Trading Days" },
+                { icon: Eye, value: reviewDays, label: "Review Days" },
+                { icon: Target, value: `${goalCompletion}%`, label: "Goal Completion" },
+              ].map((s, i) => (
+                <div key={i} className="flex flex-col items-center text-center gap-1 p-2 border border-border/50 rounded">
+                  <s.icon className="h-4 w-4 text-primary" />
+                  <div className="text-xl font-semibold text-foreground">{s.value}</div>
+                  <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
+                </div>
+              ))}
             </div>
-          </div>
-        </Panel>
-      </div>
+          </Panel>
 
-      {/* Category legend */}
-      <div className="flex flex-wrap gap-4 pt-2 pb-1 px-1">
-        {[
-          { label: "Trading", color: "hsl(var(--primary))" },
-          { label: "Planning", color: "#60a5fa" },
-          { label: "Personal", color: "#f59e0b" },
-          { label: "Review", color: "#a78bfa" },
-        ].map((c) => (
-          <div key={c.label} className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
-            <span className="hud-label text-[10px] text-muted-foreground">{c.label}</span>
-          </div>
-        ))}
+          <Panel title="FOCUS THIS MONTH">
+            <div className="flex gap-2">
+              <Quote className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <p className="text-xs text-foreground italic leading-relaxed">
+                  Discipline is doing what needs to be done, even when you don't feel like doing it.
+                </p>
+                <p className="hud-label text-[10px] text-primary mt-2">— STAY CONSISTENT</p>
+              </div>
+            </div>
+          </Panel>
+
+          <Panel title="UPCOMING">
+            {upcoming.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No upcoming events. Click a day to add one.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-1.5 max-h-[320px] overflow-y-auto">
+                {upcoming.map((e) => (
+                  <li
+                    key={e.id}
+                    className="flex items-center gap-2 p-2 border border-border rounded bg-primary/5"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="hud-label text-[10px] text-primary truncate">
+                        {e.date} · {fmt12(e.time)}
+                      </div>
+                      <div className="text-xs text-foreground truncate">{e.title}</div>
+                    </div>
+                    {e.reminder ? (
+                      <Bell className="h-3 w-3 text-primary shrink-0" />
+                    ) : (
+                      <BellOff className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                    )}
+                    <button
+                      onClick={() => delEvent(e.id)}
+                      className="text-destructive hover:text-destructive/80 shrink-0"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+
+          <Panel title="CATEGORIES">
+            <div className="flex flex-col gap-2">
+              {[
+                { label: "Trading", color: "hsl(var(--primary))" },
+                { label: "Planning", color: "#60a5fa" },
+                { label: "Personal", color: "#f59e0b" },
+                { label: "Review", color: "#a78bfa" },
+              ].map((c) => (
+                <div key={c.label} className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
+                  <span className="hud-label text-[10px] text-muted-foreground">{c.label}</span>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </aside>
       </div>
     </ModuleLayout>
   );
