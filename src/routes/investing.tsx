@@ -59,8 +59,15 @@ function InvestingPage() {
   const updateTradeNotes = (id: string, notes: string) =>
     mutate((prev) => ({ trades: prev.trades.map((t) => t.id === id ? { ...t, notes } : t) }));
 
-  // Stats
-  const sortedTrades = useMemo(() => [...data.trades].sort((a, b) => a.date.localeCompare(b.date)), [data.trades]);
+  // Month filter for P&L views
+  const { key: monthKey } = useSelectedMonth();
+  const monthTrades = useMemo(
+    () => data.trades.filter((t) => t.date.startsWith(monthKey)),
+    [data.trades, monthKey]
+  );
+
+  // Stats (filtered to selected month)
+  const sortedTrades = useMemo(() => [...monthTrades].sort((a, b) => a.date.localeCompare(b.date)), [monthTrades]);
   const equityCurve = useMemo(() => {
     let bal = data.profile.tradingBalance;
     const arr = [bal];
@@ -68,8 +75,8 @@ function InvestingPage() {
     return arr.length > 1 ? arr : [bal, bal];
   }, [sortedTrades, data.profile.tradingBalance]);
   const portfolio = equityCurve[equityCurve.length - 1];
-  const wins = data.trades.filter((t) => t.pnl > 0).length;
-  const winRate = data.trades.length ? Math.round((wins / data.trades.length) * 100) : 0;
+  const wins = monthTrades.filter((t) => t.pnl > 0).length;
+  const winRate = monthTrades.length ? Math.round((wins / monthTrades.length) * 100) : 0;
   const goalPct = Math.min(100, Math.round((portfolio / data.profile.goal) * 100));
 
   // Daily P&L log
