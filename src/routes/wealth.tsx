@@ -412,7 +412,7 @@ function WealthPage() {
             </div>
           </div>
 
-          {/* ===== ROW 2: NET WORTH OVER TIME + ASSET ALLOCATION ===== */}
+          {/* ===== ROW 2: NET WORTH OVER TIME + QUICK ADD ===== */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title="Net Worth Over Time">
               {netWorthSeries.length >= 2 ? (
@@ -422,82 +422,6 @@ function WealthPage() {
                   Log income or expenses to draw the chart.
                 </div>
               )}
-            </Panel>
-
-            <Panel title="Asset Allocation">
-              <div className="flex items-center gap-5">
-                {allocByCat.length ? (
-                  <Donut
-                    data={allocByCat}
-                    size={200}
-                    thickness={24}
-                    centerLabel={fmt(assetsTotal)}
-                    centerSub="TOTAL ASSETS"
-                  />
-                ) : (
-                  <div className="h-[200px] w-[200px] flex items-center justify-center text-xs text-muted-foreground">
-                    No assets yet.
-                  </div>
-                )}
-                <ul className="flex-1 space-y-2">
-                  {allocByCat.map((s) => {
-                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
-                    return (
-                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
-                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
-                        <span className="flex-1 text-foreground/80">{s.label}</span>
-                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                        <span className="text-primary tabular-nums w-16 text-right">{fmt(s.value)}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-              <button
-                onClick={openNewAsset}
-                className="mt-4 w-full hud-label text-[11px] text-primary border border-primary/40 rounded py-2 hover:bg-primary/10 transition-colors tracking-widest"
-              >
-                VIEW ALL ACCOUNTS
-              </button>
-            </Panel>
-          </div>
-
-          {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH + QUICK ADD ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Panel title="Recent Transactions">
-              <ul className="divide-y divide-border">
-                {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map((t) => {
-                  const isIncome = t.type === "income";
-                  return (
-                    <li key={t.id} className="py-2.5 flex items-center gap-3">
-                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center shrink-0 ${isIncome ? "border-primary/40 bg-primary/10" : "border-destructive/40 bg-destructive/10"}`}>
-                        {isIncome ? <ArrowUpRight className="h-3.5 w-3.5 text-primary" /> : <ArrowDownRight className="h-3.5 w-3.5 text-destructive" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="hud-label text-xs text-foreground truncate">{t.description}</div>
-                        <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
-                      </div>
-                      <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{t.date.slice(5).replace("-", "/")}</div>
-                      <div className={`hud-label text-xs tabular-nums whitespace-nowrap ${isIncome ? "text-primary" : "text-destructive"}`}>
-                        {isIncome ? "+" : "−"}{fmt(t.amount)}
-                      </div>
-                    </li>
-                  );
-                })}
-                {!data.transactions.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions.</li>}
-              </ul>
-              <div className="mt-3 text-center">
-                <span className="hud-label text-[11px] text-primary tracking-widest">VIEW ALL TRANSACTIONS</span>
-              </div>
-            </Panel>
-
-            <Panel title="Financial Health">
-              <div className="flex flex-col items-center gap-2">
-                <Gauge value={healthScore} size={200} label={healthLabel} />
-                <p className="text-xs text-muted-foreground text-center leading-relaxed mt-1">
-                  You're building momentum.<br />Keep executing.
-                </p>
-              </div>
             </Panel>
 
             <Panel title="Quick Add">
@@ -548,6 +472,82 @@ function WealthPage() {
               <Button onClick={addTx} className="hud-label text-[11px] mt-4 w-full tracking-widest">
                 <Plus className="h-3 w-3 mr-1" /> ADD {tType === "income" ? "INCOME" : "EXPENSE"}
               </Button>
+            </Panel>
+          </div>
+
+          {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH + ASSET ALLOCATION ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Panel title="Recent Transactions">
+              <ul className="divide-y divide-border">
+                {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map((t) => {
+                  const isIncome = t.type === "income";
+                  return (
+                    <li key={t.id} className="py-2.5 flex items-center gap-3">
+                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center shrink-0 ${isIncome ? "border-primary/40 bg-primary/10" : "border-destructive/40 bg-destructive/10"}`}>
+                        {isIncome ? <ArrowUpRight className="h-3.5 w-3.5 text-primary" /> : <ArrowDownRight className="h-3.5 w-3.5 text-destructive" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="hud-label text-xs text-foreground truncate">{t.description}</div>
+                        <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
+                      </div>
+                      <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{t.date.slice(5).replace("-", "/")}</div>
+                      <div className={`hud-label text-xs tabular-nums whitespace-nowrap ${isIncome ? "text-primary" : "text-destructive"}`}>
+                        {isIncome ? "+" : "−"}{fmt(t.amount)}
+                      </div>
+                    </li>
+                  );
+                })}
+                {!data.transactions.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions.</li>}
+              </ul>
+              <div className="mt-3 text-center">
+                <span className="hud-label text-[11px] text-primary tracking-widest">VIEW ALL TRANSACTIONS</span>
+              </div>
+            </Panel>
+
+            <Panel title="Financial Health">
+              <div className="flex flex-col items-center gap-2">
+                <Gauge value={healthScore} size={200} label={healthLabel} />
+                <p className="text-xs text-muted-foreground text-center leading-relaxed mt-1">
+                  You're building momentum.<br />Keep executing.
+                </p>
+              </div>
+            </Panel>
+
+            <Panel title="Asset Allocation">
+              <div className="flex items-center gap-5">
+                {allocByCat.length ? (
+                  <Donut
+                    data={allocByCat}
+                    size={200}
+                    thickness={24}
+                    centerLabel={fmt(assetsTotal)}
+                    centerSub="TOTAL ASSETS"
+                  />
+                ) : (
+                  <div className="h-[200px] w-[200px] flex items-center justify-center text-xs text-muted-foreground">
+                    No assets yet.
+                  </div>
+                )}
+                <ul className="flex-1 space-y-2">
+                  {allocByCat.map((s) => {
+                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
+                    return (
+                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span className="flex-1 text-foreground/80">{s.label}</span>
+                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                        <span className="text-primary tabular-nums w-16 text-right">{fmt(s.value)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+              <button
+                onClick={openNewAsset}
+                className="mt-4 w-full hud-label text-[11px] text-primary border border-primary/40 rounded py-2 hover:bg-primary/10 transition-colors tracking-widest"
+              >
+                VIEW ALL ACCOUNTS
+              </button>
             </Panel>
           </div>
         </TabsContent>
