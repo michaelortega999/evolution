@@ -412,67 +412,71 @@ function WealthPage() {
             </div>
           </div>
 
-          {/* ===== ROW 2: NET WORTH OVER TIME (full width) ===== */}
-          <div className="grid grid-cols-1 gap-6">
-            <Panel title="Net Worth Over Time">
-              {netWorthSeries.length >= 2 ? (
-                <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={420} />
-              ) : (
-                <div className="h-[420px] flex items-center justify-center text-xs text-muted-foreground">
-                  Log income or expenses to draw the chart.
-                </div>
-              )}
-            </Panel>
+          {/* ===== ROW 2: NET WORTH OVER TIME + QUICK ADD ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3">
+              <Panel title="Net Worth Over Time">
+                {netWorthSeries.length >= 2 ? (
+                  <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={460} />
+                ) : (
+                  <div className="h-[460px] flex items-center justify-center text-xs text-muted-foreground">
+                    Log income or expenses to draw the chart.
+                  </div>
+                )}
+              </Panel>
+            </div>
 
-            <Panel title="Quick Add">
-              <div className="grid grid-cols-[auto_1fr] gap-3">
-                <div className="flex flex-col gap-2">
-                  {([
-                    { key: "income", label: "INCOME", icon: ArrowDownRight },
-                    { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
-                    { key: "asset", label: "ASSET", icon: Layers },
-                    { key: "goal", label: "GOAL", icon: TargetIcon },
-                  ] as const).map((opt) => {
-                    const Icon = opt.icon;
-                    const active = (opt.key === "income" || opt.key === "expense") && tType === opt.key;
-                    return (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        onClick={() => { if (opt.key === "income" || opt.key === "expense") setTType(opt.key); }}
-                        className={`hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-colors ${
-                          active ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"
-                        }`}
-                      >
-                        <Icon className="h-3 w-3" />
-                        {opt.label}
-                      </button>
-                    );
-                  })}
+            <div className="lg:col-span-2">
+              <Panel title="Quick Add">
+                <div className="grid grid-cols-[auto_1fr] gap-3">
+                  <div className="flex flex-col gap-2">
+                    {([
+                      { key: "income", label: "INCOME", icon: ArrowDownRight },
+                      { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
+                      { key: "asset", label: "ASSET", icon: Layers },
+                      { key: "goal", label: "GOAL", icon: TargetIcon },
+                    ] as const).map((opt) => {
+                      const Icon = opt.icon;
+                      const active = (opt.key === "income" || opt.key === "expense") && tType === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => { if (opt.key === "income" || opt.key === "expense") setTType(opt.key); }}
+                          className={`hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-colors ${
+                            active ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"
+                          }`}
+                        >
+                          <Icon className="h-3 w-3" />
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="block">
+                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
+                      <Input placeholder="e.g. Salary, Freelance, etc." value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
+                    </label>
+                    <label className="block">
+                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">AMOUNT</span>
+                      <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
+                    </label>
+                    <label className="block">
+                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DATE</span>
+                      <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
+                    </label>
+                    <label className="block">
+                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
+                      <Input placeholder="Select category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
+                    </label>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="block">
-                    <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
-                    <Input placeholder="e.g. Salary, Freelance, etc." value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
-                  </label>
-                  <label className="block">
-                    <span className="hud-label text-[9px] text-muted-foreground tracking-widest">AMOUNT</span>
-                    <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
-                  </label>
-                  <label className="block">
-                    <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DATE</span>
-                    <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
-                  </label>
-                  <label className="block">
-                    <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
-                    <Input placeholder="Select category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
-                  </label>
-                </div>
-              </div>
-              <Button onClick={addTx} className="hud-label text-[11px] mt-4 w-full tracking-widest">
-                <Plus className="h-3 w-3 mr-1" /> ADD {tType === "income" ? "INCOME" : "EXPENSE"}
-              </Button>
-            </Panel>
+                <Button onClick={addTx} className="hud-label text-[11px] mt-4 w-full tracking-widest">
+                  <Plus className="h-3 w-3 mr-1" /> ADD {tType === "income" ? "INCOME" : "EXPENSE"}
+                </Button>
+              </Panel>
+            </div>
           </div>
 
           {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH + ASSET ALLOCATION ===== */}
