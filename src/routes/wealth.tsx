@@ -412,7 +412,7 @@ function WealthPage() {
             </div>
           </div>
 
-          {/* ===== ROW 2: NET WORTH OVER TIME + QUICK ADD ===== */}
+          {/* ===== ROW 2: NET WORTH OVER TIME | QUICK ADD + ASSET ALLOCATION ===== */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-3">
               <Panel title="Net Worth Over Time">
@@ -426,7 +426,7 @@ function WealthPage() {
               </Panel>
             </div>
 
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 flex flex-col gap-6">
               <Panel title="Quick Add">
                 <div className="grid grid-cols-[auto_1fr] gap-3">
                   <div className="flex flex-col gap-2">
@@ -476,11 +476,48 @@ function WealthPage() {
                   <Plus className="h-3 w-3 mr-1" /> ADD {tType === "income" ? "INCOME" : "EXPENSE"}
                 </Button>
               </Panel>
+
+              <Panel title="Asset Allocation">
+                <div className="flex items-center gap-5">
+                  {allocByCat.length ? (
+                    <Donut
+                      data={allocByCat}
+                      size={200}
+                      thickness={24}
+                      centerLabel={fmt(assetsTotal)}
+                      centerSub="TOTAL ASSETS"
+                    />
+                  ) : (
+                    <div className="h-[200px] w-[200px] flex items-center justify-center text-xs text-muted-foreground">
+                      No assets yet.
+                    </div>
+                  )}
+                  <ul className="flex-1 space-y-2">
+                    {allocByCat.map((s) => {
+                      const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
+                      return (
+                        <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
+                          <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                          <span className="flex-1 text-foreground/80">{s.label}</span>
+                          <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
+                          <span className="text-primary tabular-nums w-16 text-right">{fmt(s.value)}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <button
+                  onClick={openNewAsset}
+                  className="mt-4 w-full hud-label text-[11px] text-primary border border-primary/40 rounded py-2 hover:bg-primary/10 transition-colors tracking-widest"
+                >
+                  VIEW ALL ACCOUNTS
+                </button>
+              </Panel>
             </div>
           </div>
 
-          {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH + ASSET ALLOCATION ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH ===== */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title="Recent Transactions">
               <ul className="divide-y divide-border">
                 {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map((t) => {
@@ -515,43 +552,6 @@ function WealthPage() {
                   You're building momentum.<br />Keep executing.
                 </p>
               </div>
-            </Panel>
-
-            <Panel title="Asset Allocation">
-              <div className="flex items-center gap-5">
-                {allocByCat.length ? (
-                  <Donut
-                    data={allocByCat}
-                    size={200}
-                    thickness={24}
-                    centerLabel={fmt(assetsTotal)}
-                    centerSub="TOTAL ASSETS"
-                  />
-                ) : (
-                  <div className="h-[200px] w-[200px] flex items-center justify-center text-xs text-muted-foreground">
-                    No assets yet.
-                  </div>
-                )}
-                <ul className="flex-1 space-y-2">
-                  {allocByCat.map((s) => {
-                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
-                    return (
-                      <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
-                        <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
-                        <span className="flex-1 text-foreground/80">{s.label}</span>
-                        <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                        <span className="text-primary tabular-nums w-16 text-right">{fmt(s.value)}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-              <button
-                onClick={openNewAsset}
-                className="mt-4 w-full hud-label text-[11px] text-primary border border-primary/40 rounded py-2 hover:bg-primary/10 transition-colors tracking-widest"
-              >
-                VIEW ALL ACCOUNTS
-              </button>
             </Panel>
           </div>
         </TabsContent>
