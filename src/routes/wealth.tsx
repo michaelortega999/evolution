@@ -412,13 +412,13 @@ function WealthPage() {
             </div>
           </div>
 
-          {/* ===== ROW 2: NET WORTH OVER TIME + QUICK ADD ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* ===== ROW 2: NET WORTH OVER TIME (full width) ===== */}
+          <div className="grid grid-cols-1 gap-6">
             <Panel title="Net Worth Over Time">
               {netWorthSeries.length >= 2 ? (
-                <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={280} />
+                <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={420} />
               ) : (
-                <div className="h-[280px] flex items-center justify-center text-xs text-muted-foreground">
+                <div className="h-[420px] flex items-center justify-center text-xs text-muted-foreground">
                   Log income or expenses to draw the chart.
                 </div>
               )}
