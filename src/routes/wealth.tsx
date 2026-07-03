@@ -47,104 +47,12 @@ function monthKey(date: string) {
 function WealthPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
 
-  // One-shot seed of demo data so the dashboard has texture on first visit
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem("wealth_seeded_v1")) return;
-    if (data.assets.length > 0 || data.transactions.length > 5) {
-      localStorage.setItem("wealth_seeded_v1", "1");
-      return;
-    }
-
-    const seedAssets: { name: string; value: number; category: AssetCategory }[] = [
-      { name: "Chase Checking", value: 1250, category: "Cash" },
-      { name: "Chase Savings", value: 3200, category: "Cash" },
-      { name: "Brokerage Account", value: 4050, category: "Investment" },
-      { name: "Roth IRA", value: 2150, category: "Investment" },
-      { name: "Real Estate Equity", value: 1012, category: "Property" },
-      { name: "Crypto Wallet", value: 473, category: "Other" },
-    ];
-
-    const expenseCats = ["Housing", "Food", "Transport", "Utilities", "Entertainment", "Other"];
-    const incomeCats = ["Salary", "Freelance", "Investment", "Side Hustle"];
-    const now = new Date();
-    const seedTx: { date: string; description: string; amount: number; type: TxType; category: string }[] = [];
-
-    // 12 months of activity
-    for (let m = 11; m >= 0; m--) {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - m, 1);
-      const y = monthDate.getFullYear();
-      const mm = String(monthDate.getMonth() + 1).padStart(2, "0");
-
-      // 1-2 income events
-      const incomes = 1 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < incomes; i++) {
-        const day = String(1 + Math.floor(Math.random() * 27)).padStart(2, "0");
-        const cat = incomeCats[Math.floor(Math.random() * incomeCats.length)];
-        seedTx.push({
-          date: `${y}-${mm}-${day}`,
-          description: cat === "Salary" ? "Salary Deposit" : `${cat} Payment`,
-          amount: Math.round(1500 + Math.random() * 2000),
-          type: "income",
-          category: cat,
-        });
-      }
-      // 6-10 expenses
-      const expenses = 6 + Math.floor(Math.random() * 5);
-      for (let i = 0; i < expenses; i++) {
-        const day = String(1 + Math.floor(Math.random() * 27)).padStart(2, "0");
-        const cat = expenseCats[Math.floor(Math.random() * expenseCats.length)];
-        const descs: Record<string, string[]> = {
-          Housing: ["Rent", "Mortgage", "HOA Fee"],
-          Food: ["Grocery Store", "Restaurant", "Coffee"],
-          Transport: ["Gas Station", "Uber", "Parking"],
-          Utilities: ["Electricity Bill", "Internet", "Water"],
-          Entertainment: ["Netflix", "Movie Night", "Concert"],
-          Other: ["Misc Purchase", "Subscription", "Gift"],
-        };
-        const d = descs[cat][Math.floor(Math.random() * descs[cat].length)];
-        seedTx.push({
-          date: `${y}-${mm}-${day}`,
-          description: d,
-          amount: Math.round(20 + Math.random() * 380),
-          type: "expense",
-          category: cat,
-        });
-      }
-    }
-
-    const seedGoals = [
-      { title: "Emergency Fund", target: 10000, current: 3200, deadline: `${now.getFullYear() + 1}-06-30` },
-      { title: "House Down Payment", target: 50000, current: 12500, deadline: `${now.getFullYear() + 2}-12-31` },
-      { title: "Vacation Fund", target: 5000, current: 1800, deadline: `${now.getFullYear()}-12-15` },
-    ];
-
-    mutate((prev) => ({
-      assets: [
-        ...prev.assets,
-        ...seedAssets.map((a) => ({ id: uid(), ...a })),
-      ],
-      transactions: [
-        ...prev.transactions,
-        ...seedTx.map((t) => ({ id: uid(), ...t })),
-      ],
-      goals: [
-        ...prev.goals,
-        ...seedGoals.map((g) => ({ id: uid(), category: "Wealth" as const, completed: false, ...g })),
-      ],
-      profile: { ...prev.profile, tradingBalance: prev.profile.tradingBalance || 2820 },
-    }));
-    localStorage.setItem("wealth_seeded_v1", "1");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-
-  const assetsTotal = data.assets.reduce((a, x) => a + x.value, 0);
-  const liabilitiesTotal = 0; // placeholder — extend data model if needed
-  const netWorth = assetsTotal + data.profile.tradingBalance - liabilitiesTotal;
-  const cashBalance =
-    data.assets.filter((a) => a.category === "Cash").reduce((s, a) => s + a.value, 0) +
-    data.profile.tradingBalance;
+  // ===== All KPIs derived from Quick Add entries only =====
+  const summary = useMemo(() => wealthSummary(data), [data.assets, data.transactions]);
+  const assetsTotal = summary.assetsTotal;
+  const liabilitiesTotal = summary.liabilities;
+  const netWorth = summary.netWorth;
+  const cashBalance = summary.cash;
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -156,19 +64,8 @@ function WealthPage() {
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
     .reduce((s, t) => s + t.amount, 0);
 
-
-
-  // Legacy running balance — still used for other KPI sparklines
-  const txSeries = useMemo(() => {
-    const sorted = [...data.transactions].sort((a, b) => a.date.localeCompare(b.date));
-    let bal = data.profile.tradingBalance;
-    const arr = [bal];
-    for (const t of sorted) {
-      bal += t.type === "income" ? t.amount : -t.amount;
-      arr.push(bal);
-    }
-    return arr.length > 1 ? arr : [bal, bal];
-  }, [data.transactions, data.profile.tradingBalance]);
+  // Running net worth series in Quick Add chronological order
+  const txSeries = summary.series.length > 1 ? summary.series : [0, 0];
 
 
   // Monthly income vs expenses — full year January through December 2026
