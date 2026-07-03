@@ -491,8 +491,8 @@ function WealthPage() {
                   type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
                   const rows: Row[] = [];
                   for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
-                  for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? today(), kind: "asset", description: a.name, category: a.category, amount: a.value });
-                  for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || today(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                  for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
+                  for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
                   const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
                     income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
                     expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
