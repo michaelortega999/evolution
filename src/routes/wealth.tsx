@@ -174,6 +174,10 @@ function WealthPage() {
   const [tCat, setTCat] = useState("General");
   const [tDate, setTDate] = useState(todayDate());
 
+  // Quick Add entry mode
+  type QaMode = "income" | "expense" | "asset" | "goal";
+  const [qaMode, setQaMode] = useState<QaMode>("income");
+
   const addTx = () => {
     const amt = Number(tAmt);
     if (!amt || !tDesc.trim()) return;
@@ -182,6 +186,34 @@ function WealthPage() {
     }));
     setTDesc(""); setTAmt("");
   };
+
+  const addQuick = () => {
+    const amt = Number(tAmt);
+    if (!amt || !tDesc.trim()) return;
+    if (qaMode === "income" || qaMode === "expense") {
+      mutate((prev) => ({
+        transactions: [...prev.transactions, {
+          id: uid(), date: tDate, description: tDesc.trim(), amount: amt,
+          type: qaMode, category: tCat || "General",
+        }],
+      }));
+    } else if (qaMode === "asset") {
+      const cat = (["Cash", "Investment", "Property", "Other"] as AssetCategory[]).includes(tCat as AssetCategory)
+        ? (tCat as AssetCategory) : "Cash";
+      mutate((prev) => ({
+        assets: [...prev.assets, { id: uid(), name: tDesc.trim(), value: amt, category: cat, date: tDate }],
+      }));
+    } else if (qaMode === "goal") {
+      mutate((prev) => ({
+        goals: [...prev.goals, {
+          id: uid(), title: tDesc.trim(), category: "Wealth", target: amt,
+          current: 0, deadline: tDate, completed: false,
+        }],
+      }));
+    }
+    setTDesc(""); setTAmt("");
+  };
+
   const delTx = (id: string) => mutate((prev) => ({ transactions: prev.transactions.filter((t) => t.id !== id) }));
 
   // ===== Goals =====
