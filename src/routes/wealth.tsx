@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useEvolutionData, todayDate, uid, type AssetCategory, type TxType } from "@/lib/evolution-data";
+import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/wealth")({
   head: () => ({ meta: [{ title: "Wealth — Evolution" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
@@ -47,104 +47,12 @@ function monthKey(date: string) {
 function WealthPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
 
-  // One-shot seed of demo data so the dashboard has texture on first visit
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem("wealth_seeded_v1")) return;
-    if (data.assets.length > 0 || data.transactions.length > 5) {
-      localStorage.setItem("wealth_seeded_v1", "1");
-      return;
-    }
-
-    const seedAssets: { name: string; value: number; category: AssetCategory }[] = [
-      { name: "Chase Checking", value: 1250, category: "Cash" },
-      { name: "Chase Savings", value: 3200, category: "Cash" },
-      { name: "Brokerage Account", value: 4050, category: "Investment" },
-      { name: "Roth IRA", value: 2150, category: "Investment" },
-      { name: "Real Estate Equity", value: 1012, category: "Property" },
-      { name: "Crypto Wallet", value: 473, category: "Other" },
-    ];
-
-    const expenseCats = ["Housing", "Food", "Transport", "Utilities", "Entertainment", "Other"];
-    const incomeCats = ["Salary", "Freelance", "Investment", "Side Hustle"];
-    const now = new Date();
-    const seedTx: { date: string; description: string; amount: number; type: TxType; category: string }[] = [];
-
-    // 12 months of activity
-    for (let m = 11; m >= 0; m--) {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - m, 1);
-      const y = monthDate.getFullYear();
-      const mm = String(monthDate.getMonth() + 1).padStart(2, "0");
-
-      // 1-2 income events
-      const incomes = 1 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < incomes; i++) {
-        const day = String(1 + Math.floor(Math.random() * 27)).padStart(2, "0");
-        const cat = incomeCats[Math.floor(Math.random() * incomeCats.length)];
-        seedTx.push({
-          date: `${y}-${mm}-${day}`,
-          description: cat === "Salary" ? "Salary Deposit" : `${cat} Payment`,
-          amount: Math.round(1500 + Math.random() * 2000),
-          type: "income",
-          category: cat,
-        });
-      }
-      // 6-10 expenses
-      const expenses = 6 + Math.floor(Math.random() * 5);
-      for (let i = 0; i < expenses; i++) {
-        const day = String(1 + Math.floor(Math.random() * 27)).padStart(2, "0");
-        const cat = expenseCats[Math.floor(Math.random() * expenseCats.length)];
-        const descs: Record<string, string[]> = {
-          Housing: ["Rent", "Mortgage", "HOA Fee"],
-          Food: ["Grocery Store", "Restaurant", "Coffee"],
-          Transport: ["Gas Station", "Uber", "Parking"],
-          Utilities: ["Electricity Bill", "Internet", "Water"],
-          Entertainment: ["Netflix", "Movie Night", "Concert"],
-          Other: ["Misc Purchase", "Subscription", "Gift"],
-        };
-        const d = descs[cat][Math.floor(Math.random() * descs[cat].length)];
-        seedTx.push({
-          date: `${y}-${mm}-${day}`,
-          description: d,
-          amount: Math.round(20 + Math.random() * 380),
-          type: "expense",
-          category: cat,
-        });
-      }
-    }
-
-    const seedGoals = [
-      { title: "Emergency Fund", target: 10000, current: 3200, deadline: `${now.getFullYear() + 1}-06-30` },
-      { title: "House Down Payment", target: 50000, current: 12500, deadline: `${now.getFullYear() + 2}-12-31` },
-      { title: "Vacation Fund", target: 5000, current: 1800, deadline: `${now.getFullYear()}-12-15` },
-    ];
-
-    mutate((prev) => ({
-      assets: [
-        ...prev.assets,
-        ...seedAssets.map((a) => ({ id: uid(), ...a })),
-      ],
-      transactions: [
-        ...prev.transactions,
-        ...seedTx.map((t) => ({ id: uid(), ...t })),
-      ],
-      goals: [
-        ...prev.goals,
-        ...seedGoals.map((g) => ({ id: uid(), category: "Wealth" as const, completed: false, ...g })),
-      ],
-      profile: { ...prev.profile, tradingBalance: prev.profile.tradingBalance || 2820 },
-    }));
-    localStorage.setItem("wealth_seeded_v1", "1");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-
-  const assetsTotal = data.assets.reduce((a, x) => a + x.value, 0);
-  const liabilitiesTotal = 0; // placeholder — extend data model if needed
-  const netWorth = assetsTotal + data.profile.tradingBalance - liabilitiesTotal;
-  const cashBalance =
-    data.assets.filter((a) => a.category === "Cash").reduce((s, a) => s + a.value, 0) +
-    data.profile.tradingBalance;
+  // ===== All KPIs derived from Quick Add entries only =====
+  const summary = useMemo(() => wealthSummary(data), [data.assets, data.transactions]);
+  const assetsTotal = summary.assetsTotal;
+  const liabilitiesTotal = summary.liabilities;
+  const netWorth = summary.netWorth;
+  const cashBalance = summary.cash;
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -156,19 +64,8 @@ function WealthPage() {
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
     .reduce((s, t) => s + t.amount, 0);
 
-
-
-  // Legacy running balance — still used for other KPI sparklines
-  const txSeries = useMemo(() => {
-    const sorted = [...data.transactions].sort((a, b) => a.date.localeCompare(b.date));
-    let bal = data.profile.tradingBalance;
-    const arr = [bal];
-    for (const t of sorted) {
-      bal += t.type === "income" ? t.amount : -t.amount;
-      arr.push(bal);
-    }
-    return arr.length > 1 ? arr : [bal, bal];
-  }, [data.transactions, data.profile.tradingBalance]);
+  // Running net worth series in Quick Add chronological order
+  const txSeries = summary.series.length > 1 ? summary.series : [0, 0];
 
 
   // Monthly income vs expenses — full year January through December 2026
@@ -196,15 +93,9 @@ function WealthPage() {
     });
   }, [data.transactions]);
 
-  // Net worth monthly series — mirrors Income vs Expenses (cumulative net per month)
-  const netWorthSeries = useMemo(() => {
-    let running = 0;
-    return monthly.map((m) => {
-      running += m.income - m.expense;
-      return running;
-    });
-  }, [monthly]);
-  const netWorthLabels = useMemo(() => monthly.map((m) => m.key), [monthly]);
+  // Net worth over time — running total after each Quick Add entry
+  const netWorthSeries = txSeries;
+  const netWorthLabels = summary.labels.length > 1 ? summary.labels : ["", ""];
 
 
   // Sparkline series per KPI (12-month rollup)
@@ -283,6 +174,10 @@ function WealthPage() {
   const [tCat, setTCat] = useState("General");
   const [tDate, setTDate] = useState(todayDate());
 
+  // Quick Add entry mode
+  type QaMode = "income" | "expense" | "asset" | "goal";
+  const [qaMode, setQaMode] = useState<QaMode>("income");
+
   const addTx = () => {
     const amt = Number(tAmt);
     if (!amt || !tDesc.trim()) return;
@@ -291,6 +186,34 @@ function WealthPage() {
     }));
     setTDesc(""); setTAmt("");
   };
+
+  const addQuick = () => {
+    const amt = Number(tAmt);
+    if (!amt || !tDesc.trim()) return;
+    if (qaMode === "income" || qaMode === "expense") {
+      mutate((prev) => ({
+        transactions: [...prev.transactions, {
+          id: uid(), date: tDate, description: tDesc.trim(), amount: amt,
+          type: qaMode, category: tCat || "General",
+        }],
+      }));
+    } else if (qaMode === "asset") {
+      const cat = (["Cash", "Investment", "Property", "Other"] as AssetCategory[]).includes(tCat as AssetCategory)
+        ? (tCat as AssetCategory) : "Cash";
+      mutate((prev) => ({
+        assets: [...prev.assets, { id: uid(), name: tDesc.trim(), value: amt, category: cat, date: tDate }],
+      }));
+    } else if (qaMode === "goal") {
+      mutate((prev) => ({
+        goals: [...prev.goals, {
+          id: uid(), title: tDesc.trim(), category: "Wealth", target: amt,
+          current: 0, deadline: tDate, completed: false,
+        }],
+      }));
+    }
+    setTDesc(""); setTAmt("");
+  };
+
   const delTx = (id: string) => mutate((prev) => ({ transactions: prev.transactions.filter((t) => t.id !== id) }));
 
   // ===== Goals =====
@@ -428,54 +351,98 @@ function WealthPage() {
 
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Panel title="Quick Add">
-                <div className="grid grid-cols-[auto_1fr] gap-3">
-                  <div className="flex flex-col gap-2">
-                    {([
-                      { key: "income", label: "INCOME", icon: ArrowDownRight },
-                      { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
-                      { key: "asset", label: "ASSET", icon: Layers },
-                      { key: "goal", label: "GOAL", icon: TargetIcon },
-                    ] as const).map((opt) => {
-                      const Icon = opt.icon;
-                      const active = (opt.key === "income" || opt.key === "expense") && tType === opt.key;
-                      return (
-                        <button
-                          key={opt.key}
-                          type="button"
-                          onClick={() => { if (opt.key === "income" || opt.key === "expense") setTType(opt.key); }}
-                          className={`hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-colors ${
-                            active ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"
-                          }`}
-                        >
-                          <Icon className="h-3 w-3" />
-                          {opt.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
-                      <Input placeholder="e.g. Salary, Freelance, etc." value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
-                    </label>
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">AMOUNT</span>
-                      <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
-                    </label>
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DATE</span>
-                      <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
-                    </label>
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
-                      <Input placeholder="Select category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
-                    </label>
-                  </div>
-                </div>
-                <Button onClick={addTx} className="hud-label text-[11px] mt-4 w-full tracking-widest">
-                  <Plus className="h-3 w-3 mr-1" /> ADD {tType === "income" ? "INCOME" : "EXPENSE"}
-                </Button>
+                {(() => {
+                  const QA_COLORS: Record<"income" | "expense" | "asset" | "goal", string> = {
+                    income: "#00ff88",
+                    expense: "#ff3333",
+                    asset: "#00d4ff",
+                    goal: "#f59e0b",
+                  };
+                  const activeColor = QA_COLORS[qaMode];
+                  const descPh = qaMode === "asset" ? "e.g. Chase Savings" : qaMode === "goal" ? "e.g. Emergency Fund" : "e.g. Salary, Freelance, etc.";
+                  const catPh = qaMode === "asset" ? "Cash | Investment | Property | Other" : qaMode === "goal" ? "Optional tag" : "Category";
+                  const dateLabel = qaMode === "goal" ? "DEADLINE" : "DATE";
+                  const amtLabel = qaMode === "goal" ? "TARGET" : "AMOUNT";
+                  return (
+                    <>
+                      <div className="grid grid-cols-[auto_1fr] gap-3">
+                        <div className="flex flex-col gap-2">
+                          {([
+                            { key: "income", label: "INCOME", icon: ArrowDownRight },
+                            { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
+                            { key: "asset", label: "ASSET", icon: Layers },
+                            { key: "goal", label: "GOAL", icon: TargetIcon },
+                          ] as const).map((opt) => {
+                            const Icon = opt.icon;
+                            const color = QA_COLORS[opt.key];
+                            const active = qaMode === opt.key;
+                            return (
+                              <button
+                                key={opt.key}
+                                type="button"
+                                onClick={() => {
+                                  setQaMode(opt.key);
+                                  if (opt.key === "income" || opt.key === "expense") setTType(opt.key);
+                                }}
+                                className="hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-all"
+                                style={{
+                                  borderColor: active ? color : "var(--border)",
+                                  background: active ? `${color}1a` : "transparent",
+                                  color: active ? color : undefined,
+                                  boxShadow: active ? `0 0 12px ${color}66` : "none",
+                                }}
+                              >
+                                <span
+                                  className="h-7 w-7 rounded-full flex items-center justify-center border shrink-0"
+                                  style={{
+                                    borderColor: color,
+                                    background: `${color}22`,
+                                    boxShadow: `0 0 10px ${color}88, inset 0 0 6px ${color}44`,
+                                  }}
+                                >
+                                  <Icon className="h-4 w-4" style={{ color, filter: `drop-shadow(0 0 4px ${color})` }} />
+                                </span>
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
+                            <Input placeholder={descPh} value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
+                          </label>
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">{amtLabel}</span>
+                            <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
+                          </label>
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">{dateLabel}</span>
+                            <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
+                          </label>
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
+                            <Input placeholder={catPh} value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
+                          </label>
+                        </div>
+                      </div>
+                      <button
+                        onClick={addQuick}
+                        className="hud-label text-[11px] mt-4 w-full tracking-widest rounded-md py-2 flex items-center justify-center transition-all border"
+                        style={{
+                          borderColor: activeColor,
+                          background: `${activeColor}1f`,
+                          color: activeColor,
+                          boxShadow: `0 0 16px ${activeColor}55, inset 0 0 8px ${activeColor}33`,
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> ADD {qaMode.toUpperCase()}
+                      </button>
+                    </>
+                  );
+                })()}
               </Panel>
+
 
               <Panel title="Asset Allocation">
                 <div className="flex items-center gap-5">
@@ -520,30 +487,45 @@ function WealthPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title="Recent Transactions">
               <ul className="divide-y divide-border">
-                {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map((t) => {
-                  const isIncome = t.type === "income";
-                  return (
-                    <li key={t.id} className="py-2.5 flex items-center gap-3">
-                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center shrink-0 ${isIncome ? "border-primary/40 bg-primary/10" : "border-destructive/40 bg-destructive/10"}`}>
-                        {isIncome ? <ArrowUpRight className="h-3.5 w-3.5 text-primary" /> : <ArrowDownRight className="h-3.5 w-3.5 text-destructive" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="hud-label text-xs text-foreground truncate">{t.description}</div>
-                        <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
-                      </div>
-                      <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{t.date.slice(5).replace("-", "/")}</div>
-                      <div className={`hud-label text-xs tabular-nums whitespace-nowrap ${isIncome ? "text-primary" : "text-destructive"}`}>
-                        {isIncome ? "+" : "−"}{fmt(t.amount)}
-                      </div>
-                    </li>
-                  );
-                })}
-                {!data.transactions.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions.</li>}
+                {(() => {
+                  type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
+                  const rows: Row[] = [];
+                  for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
+                  for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
+                  for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                  const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
+                    income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
+                    expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
+                    asset: { color: "#00d4ff", sign: "+", Icon: Layers },
+                    goal: { color: "#f59e0b", sign: "◎", Icon: TargetIcon },
+                  };
+                  return rows.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6).map((r) => {
+                    const s = styles[r.kind];
+                    const Icon = s.Icon;
+                    return (
+                      <li key={`${r.kind}-${r.id}`} className="py-2.5 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}66`, background: `${s.color}1a`, boxShadow: `0 0 8px ${s.color}55` }}>
+                          <Icon className="h-3.5 w-3.5" style={{ color: s.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="hud-label text-xs text-foreground truncate">{r.description || r.kind.toUpperCase()}</div>
+                          <div className="hud-label text-[10px] text-muted-foreground">{r.category || r.kind}</div>
+                        </div>
+                        <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{r.date.slice(5).replace("-", "/")}</div>
+                        <div className="hud-label text-xs tabular-nums whitespace-nowrap" style={{ color: s.color }}>
+                          {s.sign}{fmt(r.amount)}
+                        </div>
+                      </li>
+                    );
+                  });
+                })()}
+                {!data.transactions.length && !data.assets.length && !data.goals.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries yet.</li>}
               </ul>
               <div className="mt-3 text-center">
                 <span className="hud-label text-[11px] text-primary tracking-widest">VIEW ALL TRANSACTIONS</span>
               </div>
             </Panel>
+
 
             <Panel title="Financial Health">
               <div className="flex flex-col items-center gap-2">

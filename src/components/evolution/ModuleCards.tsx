@@ -20,7 +20,7 @@ import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
-  todayDate, dayTotals, nutritionStreak, uid,
+  todayDate, dayTotals, nutritionStreak, uid, wealthSummary,
   type Meal, type Hobby,
 } from "@/lib/evolution-data";
 
@@ -81,14 +81,17 @@ function Card({
 export function WealthCard() {
   const { data, mutate } = useEvolutionData();
   const [amount, setAmount] = useState("");
-  const inv = investingSummary(data.investing);
-  const netWorth = inv.current + data.profile.tradingBalance;
+  const summary = wealthSummary(data);
+  const spark = summary.series.length > 1 ? summary.series : [0, 0];
 
-  const addAsset = () => {
+  const addIncome = () => {
     const n = Number(amount);
     if (!n) return;
     mutate((prev) => ({
-      investing: [...prev.investing, { date: todayDate(), value: (prev.investing.at(-1)?.value ?? 0) + n }],
+      transactions: [...prev.transactions, {
+        id: uid(), date: todayDate(), type: "income" as const,
+        description: "Quick Add", category: "Other", amount: n,
+      }],
     }));
     setAmount("");
   };
@@ -96,22 +99,23 @@ export function WealthCard() {
   return (
     <Card icon={Wallet} variant="wealth" number="01" title="Wealth" href="/wealth">
       <div className="hud-label text-[10px] text-muted-foreground">Net Worth</div>
-      <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(netWorth)}</div>
+      <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(summary.netWorth)}</div>
       <div className="hud-label text-[10px] text-primary/80">
-        {inv.pct >= 0 ? "▲" : "▼"} {Math.abs(inv.pct).toFixed(2)}%
+        {summary.pct >= 0 ? "▲" : "▼"} {Math.abs(summary.pct).toFixed(2)}%
       </div>
       <div className="mt-3">
-        <Sparkline data={inv.data.length ? inv.data : [1]} height={50} />
+        <Sparkline data={spark} height={50} />
       </div>
       <div className="flex gap-2 mt-3">
         <Input value={amount} onChange={(e) => setAmount(e.target.value)}
-               onKeyDown={(e) => e.key === "Enter" && addAsset()}
+               onKeyDown={(e) => e.key === "Enter" && addIncome()}
                placeholder="+$" type="number" className="h-8 text-xs" />
-        <button onClick={addAsset} className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10">Add</button>
+        <button onClick={addIncome} className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10">Add</button>
       </div>
     </Card>
   );
 }
+
 
 // Same quick-add presets as the Nutrition page
 const QUICK_FOODS = [
