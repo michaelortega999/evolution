@@ -487,30 +487,45 @@ function WealthPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Panel title="Recent Transactions">
               <ul className="divide-y divide-border">
-                {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map((t) => {
-                  const isIncome = t.type === "income";
-                  return (
-                    <li key={t.id} className="py-2.5 flex items-center gap-3">
-                      <div className={`h-8 w-8 rounded-full border flex items-center justify-center shrink-0 ${isIncome ? "border-primary/40 bg-primary/10" : "border-destructive/40 bg-destructive/10"}`}>
-                        {isIncome ? <ArrowUpRight className="h-3.5 w-3.5 text-primary" /> : <ArrowDownRight className="h-3.5 w-3.5 text-destructive" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="hud-label text-xs text-foreground truncate">{t.description}</div>
-                        <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
-                      </div>
-                      <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{t.date.slice(5).replace("-", "/")}</div>
-                      <div className={`hud-label text-xs tabular-nums whitespace-nowrap ${isIncome ? "text-primary" : "text-destructive"}`}>
-                        {isIncome ? "+" : "−"}{fmt(t.amount)}
-                      </div>
-                    </li>
-                  );
-                })}
-                {!data.transactions.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions.</li>}
+                {(() => {
+                  type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
+                  const rows: Row[] = [];
+                  for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
+                  for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? today(), kind: "asset", description: a.name, category: a.category, amount: a.value });
+                  for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || today(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                  const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
+                    income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
+                    expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
+                    asset: { color: "#00d4ff", sign: "+", Icon: Layers },
+                    goal: { color: "#f59e0b", sign: "◎", Icon: TargetIcon },
+                  };
+                  return rows.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6).map((r) => {
+                    const s = styles[r.kind];
+                    const Icon = s.Icon;
+                    return (
+                      <li key={`${r.kind}-${r.id}`} className="py-2.5 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}66`, background: `${s.color}1a`, boxShadow: `0 0 8px ${s.color}55` }}>
+                          <Icon className="h-3.5 w-3.5" style={{ color: s.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="hud-label text-xs text-foreground truncate">{r.description || r.kind.toUpperCase()}</div>
+                          <div className="hud-label text-[10px] text-muted-foreground">{r.category || r.kind}</div>
+                        </div>
+                        <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{r.date.slice(5).replace("-", "/")}</div>
+                        <div className="hud-label text-xs tabular-nums whitespace-nowrap" style={{ color: s.color }}>
+                          {s.sign}{fmt(r.amount)}
+                        </div>
+                      </li>
+                    );
+                  });
+                })()}
+                {!data.transactions.length && !data.assets.length && !data.goals.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries yet.</li>}
               </ul>
               <div className="mt-3 text-center">
                 <span className="hud-label text-[11px] text-primary tracking-widest">VIEW ALL TRANSACTIONS</span>
               </div>
             </Panel>
+
 
             <Panel title="Financial Health">
               <div className="flex flex-col items-center gap-2">
