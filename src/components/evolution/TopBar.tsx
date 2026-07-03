@@ -46,7 +46,7 @@ export function TopBar() {
           <RingProgress value={dailyProgress} size={44} label={`${dailyProgress}%`} />
           <div>
             <div className="hud-label text-[9px] text-muted-foreground">Task Progress</div>
-            <div className="hud-label text-xs text-primary">{doneTodos}/{totalTodos} tasks · {progressLabel}</div>
+            <div className="hud-label text-xs text-primary">{doneTodos}/{totalTodos} TASKS&nbsp;</div>
           </div>
         </div>
 
