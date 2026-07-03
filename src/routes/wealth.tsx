@@ -351,54 +351,98 @@ function WealthPage() {
 
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Panel title="Quick Add">
-                <div className="grid grid-cols-[auto_1fr] gap-3">
-                  <div className="flex flex-col gap-2">
-                    {([
-                      { key: "income", label: "INCOME", icon: ArrowDownRight },
-                      { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
-                      { key: "asset", label: "ASSET", icon: Layers },
-                      { key: "goal", label: "GOAL", icon: TargetIcon },
-                    ] as const).map((opt) => {
-                      const Icon = opt.icon;
-                      const active = (opt.key === "income" || opt.key === "expense") && tType === opt.key;
-                      return (
-                        <button
-                          key={opt.key}
-                          type="button"
-                          onClick={() => { if (opt.key === "income" || opt.key === "expense") setTType(opt.key); }}
-                          className={`hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-colors ${
-                            active ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"
-                          }`}
-                        >
-                          <Icon className="h-3 w-3" />
-                          {opt.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
-                      <Input placeholder="e.g. Salary, Freelance, etc." value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
-                    </label>
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">AMOUNT</span>
-                      <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
-                    </label>
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DATE</span>
-                      <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
-                    </label>
-                    <label className="block">
-                      <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
-                      <Input placeholder="Select category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
-                    </label>
-                  </div>
-                </div>
-                <Button onClick={addTx} className="hud-label text-[11px] mt-4 w-full tracking-widest">
-                  <Plus className="h-3 w-3 mr-1" /> ADD {tType === "income" ? "INCOME" : "EXPENSE"}
-                </Button>
+                {(() => {
+                  const QA_COLORS: Record<"income" | "expense" | "asset" | "goal", string> = {
+                    income: "#00ff88",
+                    expense: "#ff3333",
+                    asset: "#00d4ff",
+                    goal: "#f59e0b",
+                  };
+                  const activeColor = QA_COLORS[qaMode];
+                  const descPh = qaMode === "asset" ? "e.g. Chase Savings" : qaMode === "goal" ? "e.g. Emergency Fund" : "e.g. Salary, Freelance, etc.";
+                  const catPh = qaMode === "asset" ? "Cash | Investment | Property | Other" : qaMode === "goal" ? "Optional tag" : "Category";
+                  const dateLabel = qaMode === "goal" ? "DEADLINE" : "DATE";
+                  const amtLabel = qaMode === "goal" ? "TARGET" : "AMOUNT";
+                  return (
+                    <>
+                      <div className="grid grid-cols-[auto_1fr] gap-3">
+                        <div className="flex flex-col gap-2">
+                          {([
+                            { key: "income", label: "INCOME", icon: ArrowDownRight },
+                            { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
+                            { key: "asset", label: "ASSET", icon: Layers },
+                            { key: "goal", label: "GOAL", icon: TargetIcon },
+                          ] as const).map((opt) => {
+                            const Icon = opt.icon;
+                            const color = QA_COLORS[opt.key];
+                            const active = qaMode === opt.key;
+                            return (
+                              <button
+                                key={opt.key}
+                                type="button"
+                                onClick={() => {
+                                  setQaMode(opt.key);
+                                  if (opt.key === "income" || opt.key === "expense") setTType(opt.key);
+                                }}
+                                className="hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-all"
+                                style={{
+                                  borderColor: active ? color : "var(--border)",
+                                  background: active ? `${color}1a` : "transparent",
+                                  color: active ? color : undefined,
+                                  boxShadow: active ? `0 0 12px ${color}66` : "none",
+                                }}
+                              >
+                                <span
+                                  className="h-7 w-7 rounded-full flex items-center justify-center border shrink-0"
+                                  style={{
+                                    borderColor: color,
+                                    background: `${color}22`,
+                                    boxShadow: `0 0 10px ${color}88, inset 0 0 6px ${color}44`,
+                                  }}
+                                >
+                                  <Icon className="h-4 w-4" style={{ color, filter: `drop-shadow(0 0 4px ${color})` }} />
+                                </span>
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
+                            <Input placeholder={descPh} value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
+                          </label>
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">{amtLabel}</span>
+                            <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
+                          </label>
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">{dateLabel}</span>
+                            <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
+                          </label>
+                          <label className="block">
+                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
+                            <Input placeholder={catPh} value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
+                          </label>
+                        </div>
+                      </div>
+                      <button
+                        onClick={addQuick}
+                        className="hud-label text-[11px] mt-4 w-full tracking-widest rounded-md py-2 flex items-center justify-center transition-all border"
+                        style={{
+                          borderColor: activeColor,
+                          background: `${activeColor}1f`,
+                          color: activeColor,
+                          boxShadow: `0 0 16px ${activeColor}55, inset 0 0 8px ${activeColor}33`,
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> ADD {qaMode.toUpperCase()}
+                      </button>
+                    </>
+                  );
+                })()}
               </Panel>
+
 
               <Panel title="Asset Allocation">
                 <div className="flex items-center gap-5">
