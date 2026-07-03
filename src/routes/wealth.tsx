@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useEvolutionData, todayDate, uid, type AssetCategory, type TxType } from "@/lib/evolution-data";
+import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/wealth")({
   head: () => ({ meta: [{ title: "Wealth — Evolution" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
