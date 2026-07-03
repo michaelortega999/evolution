@@ -175,7 +175,7 @@ function WealthPage() {
   const [tDate, setTDate] = useState(todayDate());
 
   // Quick Add entry mode
-  type QaMode = "income" | "expense" | "asset" | "goal";
+  type QaMode = "income" | "expense" | "asset";
   const [qaMode, setQaMode] = useState<QaMode>("income");
 
   const addTx = () => {
@@ -202,13 +202,6 @@ function WealthPage() {
         ? (tCat as AssetCategory) : "Cash";
       mutate((prev) => ({
         assets: [...prev.assets, { id: uid(), name: tDesc.trim(), value: amt, category: cat, date: tDate }],
-      }));
-    } else if (qaMode === "goal") {
-      mutate((prev) => ({
-        goals: [...prev.goals, {
-          id: uid(), title: tDesc.trim(), category: "Wealth", target: amt,
-          current: 0, deadline: tDate, completed: false,
-        }],
       }));
     }
     setTDesc(""); setTAmt("");
@@ -352,17 +345,16 @@ function WealthPage() {
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Panel title="Quick Add">
                 {(() => {
-                  const QA_COLORS: Record<"income" | "expense" | "asset" | "goal", string> = {
+                    const QA_COLORS: Record<QaMode, string> = {
                     income: "#00ff88",
                     expense: "#ff3333",
                     asset: "#00d4ff",
-                    goal: "#f59e0b",
                   };
                   const activeColor = QA_COLORS[qaMode];
-                  const descPh = qaMode === "asset" ? "e.g. Chase Savings" : qaMode === "goal" ? "e.g. Emergency Fund" : "e.g. Salary, Freelance, etc.";
-                  const catPh = qaMode === "asset" ? "Cash | Investment | Property | Other" : qaMode === "goal" ? "Optional tag" : "Category";
-                  const dateLabel = qaMode === "goal" ? "DEADLINE" : "DATE";
-                  const amtLabel = qaMode === "goal" ? "TARGET" : "AMOUNT";
+                  const descPh = qaMode === "asset" ? "e.g. Chase Savings" : "e.g. Salary, Freelance, etc.";
+                  const catPh = qaMode === "asset" ? "Cash | Investment | Property | Other" : "Category";
+                  const dateLabel = "DATE";
+                  const amtLabel = "AMOUNT";
                   return (
                     <>
                       <div className="grid grid-cols-[auto_1fr] gap-3">
@@ -371,7 +363,6 @@ function WealthPage() {
                             { key: "income", label: "INCOME", icon: ArrowDownRight },
                             { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
                             { key: "asset", label: "ASSET", icon: Layers },
-                            { key: "goal", label: "GOAL", icon: TargetIcon },
                           ] as const).map((opt) => {
                             const Icon = opt.icon;
                             const color = QA_COLORS[opt.key];
