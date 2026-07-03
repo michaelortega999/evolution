@@ -93,15 +93,9 @@ function WealthPage() {
     });
   }, [data.transactions]);
 
-  // Net worth monthly series — mirrors Income vs Expenses (cumulative net per month)
-  const netWorthSeries = useMemo(() => {
-    let running = 0;
-    return monthly.map((m) => {
-      running += m.income - m.expense;
-      return running;
-    });
-  }, [monthly]);
-  const netWorthLabels = useMemo(() => monthly.map((m) => m.key), [monthly]);
+  // Net worth over time — running total after each Quick Add entry
+  const netWorthSeries = txSeries;
+  const netWorthLabels = summary.labels.length > 1 ? summary.labels : ["", ""];
 
 
   // Sparkline series per KPI (12-month rollup)
