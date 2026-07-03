@@ -155,6 +155,7 @@ export interface Asset {
   name: string;
   value: number;
   category: AssetCategory;
+  date?: string;
 }
 
 export type TxType = "income" | "expense";
