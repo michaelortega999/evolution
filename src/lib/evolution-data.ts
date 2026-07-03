@@ -460,7 +460,7 @@ export interface NetWorthSnapshot {
 
 
 const STORAGE_KEY = "evolution:data:v2";
-export const STORAGE_VERSION = 3;
+export const STORAGE_VERSION = 4;
 
 type StoredShape = Partial<EvolutionData> & { _version?: number };
 
@@ -468,9 +468,21 @@ type StoredShape = Partial<EvolutionData> & { _version?: number };
 function migrate(parsed: StoredShape): StoredShape {
   const v = parsed._version ?? 1;
   if (v === STORAGE_VERSION) return parsed;
-  // v1/v2 → v3: no destructive changes yet, just stamp the version.
-  return { ...parsed, _version: STORAGE_VERSION };
+  const next: StoredShape = { ...parsed };
+  // v3 → v4: clean-slate wealth data so the user starts from zero everywhere.
+  if (v < 4) {
+    next.transactions = [];
+    next.assets = [];
+    next.netWorthSnapshots = [];
+    next.revenue = [];
+    if (Array.isArray(next.goals)) {
+      next.goals = next.goals.filter((g) => g.category !== "Wealth");
+    }
+  }
+  next._version = STORAGE_VERSION;
+  return next;
 }
+
 
 export const defaultProfile: Profile = {
   name: "Michael",

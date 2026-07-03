@@ -493,8 +493,13 @@ function WealthPage() {
                   return rows.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6).map((r) => {
                     const s = styles[r.kind];
                     const Icon = s.Icon;
+                    const onDelete = () => {
+                      if (r.kind === "income" || r.kind === "expense") delTx(r.id);
+                      else if (r.kind === "asset") delAsset(r.id);
+                      else if (r.kind === "goal") delGoal(r.id);
+                    };
                     return (
-                      <li key={`${r.kind}-${r.id}`} className="py-2.5 flex items-center gap-3">
+                      <li key={`${r.kind}-${r.id}`} className="py-2.5 flex items-center gap-3 group">
                         <div className="h-8 w-8 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}66`, background: `${s.color}1a`, boxShadow: `0 0 8px ${s.color}55` }}>
                           <Icon className="h-3.5 w-3.5" style={{ color: s.color }} />
                         </div>
@@ -506,10 +511,19 @@ function WealthPage() {
                         <div className="hud-label text-xs tabular-nums whitespace-nowrap" style={{ color: s.color }}>
                           {s.sign}{fmt(r.amount)}
                         </div>
+                        <button
+                          type="button"
+                          onClick={onDelete}
+                          aria-label="Delete entry"
+                          className="h-6 w-6 rounded border border-border/60 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/60 hover:bg-destructive/10 transition-colors opacity-60 group-hover:opacity-100"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
                       </li>
                     );
                   });
                 })()}
+
                 {!data.transactions.length && !data.assets.length && !data.goals.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries yet.</li>}
               </ul>
               <div className="mt-3 text-center">
