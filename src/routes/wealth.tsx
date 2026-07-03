@@ -175,7 +175,7 @@ function WealthPage() {
   const [tDate, setTDate] = useState(todayDate());
 
   // Quick Add entry mode
-  type QaMode = "income" | "expense" | "asset" | "goal";
+  type QaMode = "income" | "expense" | "asset";
   const [qaMode, setQaMode] = useState<QaMode>("income");
 
   const addTx = () => {
@@ -202,13 +202,6 @@ function WealthPage() {
         ? (tCat as AssetCategory) : "Cash";
       mutate((prev) => ({
         assets: [...prev.assets, { id: uid(), name: tDesc.trim(), value: amt, category: cat, date: tDate }],
-      }));
-    } else if (qaMode === "goal") {
-      mutate((prev) => ({
-        goals: [...prev.goals, {
-          id: uid(), title: tDesc.trim(), category: "Wealth", target: amt,
-          current: 0, deadline: tDate, completed: false,
-        }],
       }));
     }
     setTDesc(""); setTAmt("");
