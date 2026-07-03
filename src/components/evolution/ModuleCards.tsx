@@ -20,7 +20,7 @@ import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
-  todayDate, dayTotals, nutritionStreak, uid,
+  todayDate, dayTotals, nutritionStreak, uid, wealthSummary,
   type Meal, type Hobby,
 } from "@/lib/evolution-data";
 
