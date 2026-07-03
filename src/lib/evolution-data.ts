@@ -799,6 +799,48 @@ export function investingSummary(rows: InvestingEntry[]) {
   return { data, current, change, pct };
 }
 
+export const LIABILITY_CATEGORIES = new Set([
+  "Rent", "Mortgage", "Car Payment", "Insurance", "Loan", "Credit Card",
+]);
+
+export function wealthSummary(data: { assets: Asset[]; transactions: Transaction[] }) {
+  const assetsTotal = data.assets.reduce((s, a) => s + a.value, 0);
+  const income = data.transactions
+    .filter((t) => t.type === "income")
+    .reduce((s, t) => s + t.amount, 0);
+  const expenses = data.transactions
+    .filter((t) => t.type === "expense")
+    .reduce((s, t) => s + t.amount, 0);
+  const liabilities = data.transactions
+    .filter((t) => t.type === "expense" && LIABILITY_CATEGORIES.has(t.category))
+    .reduce((s, t) => s + t.amount, 0);
+  const cash = income - expenses;
+  const netWorth = assetsTotal + income - expenses;
+
+  type E = { date: string; delta: number };
+  const entries: E[] = [];
+  for (const t of data.transactions) {
+    entries.push({ date: t.date, delta: t.type === "income" ? t.amount : -t.amount });
+  }
+  for (const a of data.assets) {
+    entries.push({ date: a.date ?? today(), delta: a.value });
+  }
+  entries.sort((a, b) => a.date.localeCompare(b.date));
+  const series: number[] = [0];
+  const labels: string[] = [""];
+  let running = 0;
+  for (const e of entries) {
+    running += e.delta;
+    series.push(running);
+    labels.push(e.date);
+  }
+  const first = series[0];
+  const last = series[series.length - 1];
+  const pct = first !== 0 ? ((last - first) / Math.abs(first)) * 100 : (last !== 0 ? 100 : 0);
+
+  return { assetsTotal, income, expenses, liabilities, cash, netWorth, series, labels, pct };
+}
+
 export function todayDate() { return today(); }
 
 // ---------- Nutrition helpers ----------
