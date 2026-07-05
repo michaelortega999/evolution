@@ -652,6 +652,8 @@ export const defaultData: EvolutionData = {
   evoTasks: [],
   habitLog: {},
   customHabits: [],
+  habitOrder: [],
+  hiddenHabits: [],
 };
 
 function futureISO(daysAhead: number): string {
