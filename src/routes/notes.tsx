@@ -95,17 +95,29 @@ function TasksPage() {
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [hName, setHName] = useState("");
   const [hCat, setHCat] = useState<EvoCategory>("Wealth");
+  const [hTrackTime, setHTrackTime] = useState(false);
+  const [hMinutes, setHMinutes] = useState<string>("30");
+  const [hModule, setHModule] = useState<EvoCategory>("Wealth");
+
+  // Time-confirm dialog state
+  const [confirmHabit, setConfirmHabit] = useState<EvoHabit | null>(null);
+  const [confirmMinutes, setConfirmMinutes] = useState<string>("");
 
   function addHabit() {
     const name = hName.trim();
     if (!name) return;
-    const habit = { id: `h-${uid()}`, name, category: hCat };
+    const habit: EvoHabit = { id: `h-${uid()}`, name, category: hCat };
+    if (hTrackTime) {
+      const m = Math.max(1, Math.round(Number(hMinutes) || 0));
+      habit.timeFactor = { minutes: m, module: hModule };
+    }
     mutate((p) => ({
       customHabits: [...(p.customHabits ?? []), habit],
       habitOrder: [...(p.habitOrder ?? []), habit.id],
     }));
-    setHName(""); setShowAddHabit(false);
+    setHName(""); setHTrackTime(false); setHMinutes("30"); setShowAddHabit(false);
   }
+
   function delHabit(id: string) {
     const isCustom = id.startsWith("h-");
     mutate((p) => {
