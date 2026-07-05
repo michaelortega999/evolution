@@ -668,7 +668,9 @@ export const defaultData: EvolutionData = {
   customHabits: [],
   habitOrder: [],
   hiddenHabits: [],
+  timeLogs: [],
 };
+
 
 function futureISO(daysAhead: number): string {
   const d = new Date();
