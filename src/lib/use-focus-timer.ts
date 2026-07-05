@@ -5,7 +5,16 @@ import {
   type FocusTag,
   type FocusSession,
   type FocusSettings,
+  type TimeLog,
+  type EvoCategory,
 } from "./evolution-data";
+
+function tagToModule(tag: FocusTag | null | undefined): EvoCategory {
+  if (!tag) return "Notes";
+  if (tag === "Guitar") return "Hobby";
+  return tag as EvoCategory;
+}
+
 
 const TIMER_KEY = "evolution:focus-timer:v1";
 
