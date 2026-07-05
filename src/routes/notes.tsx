@@ -60,6 +60,8 @@ function TasksPage() {
   const { data, mutate } = useEvolutionData();
   const tasks = data.evoTasks ?? [];
   const habitLog = data.habitLog ?? {};
+  const customHabits = data.customHabits ?? [];
+  const allHabits = useMemo(() => [...DEFAULT_HABITS, ...customHabits], [customHabits]);
 
   const [filter, setFilter] = useState<EvoCategory | "All">("All");
   const [sortPriority, setSortPriority] = useState(false);
@@ -71,6 +73,30 @@ function TasksPage() {
   const [nCat, setNCat] = useState<EvoCategory>("Wealth");
   const [nPri, setNPri] = useState<EvoTaskPriority>("Medium");
   const [nDue, setNDue] = useState(todayDate());
+
+  // Add habit form state
+  const [showAddHabit, setShowAddHabit] = useState(false);
+  const [hName, setHName] = useState("");
+  const [hCat, setHCat] = useState<EvoCategory>("Wealth");
+
+  function addHabit() {
+    const name = hName.trim();
+    if (!name) return;
+    const habit = { id: `h-${uid()}`, name, category: hCat };
+    mutate((p) => ({ customHabits: [...(p.customHabits ?? []), habit] }));
+    setHName(""); setShowAddHabit(false);
+  }
+  function delHabit(id: string) {
+    mutate((p) => {
+      const log = { ...(p.habitLog ?? {}) };
+      delete log[id];
+      return {
+        customHabits: (p.customHabits ?? []).filter((h) => h.id !== id),
+        habitLog: log,
+      };
+    });
+  }
+
 
   const visibleTasks = useMemo(() => {
     let t = tasks.slice();
