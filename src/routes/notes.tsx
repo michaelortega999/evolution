@@ -17,7 +17,7 @@ export const Route = createFileRoute("/notes")({
   component: TasksPage,
 });
 
-const CATEGORY_META: Record<EvoCategory, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
+const CATEGORY_META: Record<EvoCategory, { icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; color: string }> = {
   Wealth:    { icon: Wallet,     color: "#f5c451" },
   Nutrition: { icon: Apple,      color: "#4ade80" },
   Fitness:   { icon: Dumbbell,   color: "#fb923c" },
