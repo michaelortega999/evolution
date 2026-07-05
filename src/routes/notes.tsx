@@ -411,22 +411,48 @@ function TasksPage() {
                 const meta = CATEGORY_META[h.category];
                 const Icon = meta.icon;
                 const done = new Set(habitLog[h.id] ?? []);
-                const isCustom = h.id.startsWith("h-");
+                const isDragging = dragId === h.id;
                 return (
-                  <tr key={h.id} className="border-t border-border/40 group">
+                  <tr
+                    key={h.id}
+                    onDragOver={(e) => { e.preventDefault(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const src = e.dataTransfer.getData("text/plain");
+                      if (src) reorderHabits(src, h.id);
+                      setDragId(null);
+                    }}
+                    className={cn(
+                      "border-t border-border/40 group transition-colors",
+                      isDragging && "opacity-40",
+                      dragId && !isDragging && "hover:bg-primary/5"
+                    )}
+                  >
                     <td className="py-2 sticky left-0 bg-card">
                       <div className="flex items-center gap-2">
+                        <button
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/plain", h.id);
+                            setDragId(h.id);
+                          }}
+                          onDragEnd={() => setDragId(null)}
+                          aria-label="Drag to reorder"
+                          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-primary transition-colors -ml-1"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
                         <div className="h-7 w-7 rounded border flex items-center justify-center"
                              style={{ borderColor: `${meta.color}55` }}>
                           <Icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
                         </div>
                         <span className="hud-label text-[11px] text-foreground/90 uppercase">{h.name}</span>
-                        {isCustom && (
-                          <button onClick={() => delHabit(h.id)}
-                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1">
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        )}
+                        <button onClick={() => delHabit(h.id)}
+                          aria-label={`Delete ${h.name}`}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1 transition-opacity">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
                       </div>
                     </td>
                     {days.map((d) => {
