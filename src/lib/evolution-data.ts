@@ -455,14 +455,28 @@ export interface EvolutionData {
   customHabits: EvoHabit[];
   habitOrder: string[];
   hiddenHabits: string[];
+  timeLogs: TimeLog[];
 }
 
 export interface EvoHabit {
   id: string;
   name: string;
-  category: "Wealth" | "Nutrition" | "Fitness" | "Journal" | "Notes" | "Investing" | "Business" | "Hobby";
+  category: EvoCategory;
   emoji?: string;
+  timeFactor?: { minutes: number; module: EvoCategory };
 }
+
+export interface TimeLog {
+  id: string;
+  date: string;        // YYYY-MM-DD
+  minutes: number;
+  module: EvoCategory;
+  habitId?: string;
+  source: "habit" | "focus";
+  label: string;
+  ts: number;
+}
+
 
 export type EvoCategory =
   | "Wealth" | "Nutrition" | "Fitness" | "Journal"
