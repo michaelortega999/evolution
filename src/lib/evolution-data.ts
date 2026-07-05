@@ -450,6 +450,23 @@ export interface EvolutionData {
   weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
   trainingSchedule: TrainingSlot[];
   netWorthSnapshots: NetWorthSnapshot[];
+  evoTasks: EvoTask[];
+  habitLog: Record<string, string[]>;
+}
+
+export type EvoCategory =
+  | "Wealth" | "Nutrition" | "Fitness" | "Journal"
+  | "Notes" | "Investing" | "Business" | "Hobby";
+
+export type EvoTaskPriority = "High" | "Medium" | "Low";
+export type EvoTaskStatus = "Not Started" | "In Progress" | "Done";
+export interface EvoTask {
+  id: string;
+  text: string;
+  category: EvoCategory;
+  priority: EvoTaskPriority;
+  due: string;
+  status: EvoTaskStatus;
 }
 
 export interface NetWorthSnapshot {
