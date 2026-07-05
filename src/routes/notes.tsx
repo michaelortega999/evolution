@@ -61,11 +61,24 @@ function TasksPage() {
   const tasks = data.evoTasks ?? [];
   const habitLog = data.habitLog ?? {};
   const customHabits = data.customHabits ?? [];
-  const allHabits = useMemo(() => [...DEFAULT_HABITS, ...customHabits], [customHabits]);
+  const habitOrder = data.habitOrder ?? [];
+  const hiddenHabits = data.hiddenHabits ?? [];
+
+  const allHabits = useMemo(() => {
+    const combined = [...DEFAULT_HABITS, ...customHabits].filter((h) => !hiddenHabits.includes(h.id));
+    const byId = new Map(combined.map((h) => [h.id, h]));
+    const ordered: typeof combined = [];
+    for (const id of habitOrder) {
+      const h = byId.get(id);
+      if (h) { ordered.push(h); byId.delete(id); }
+    }
+    return [...ordered, ...byId.values()];
+  }, [customHabits, habitOrder, hiddenHabits]);
 
   const [filter, setFilter] = useState<EvoCategory | "All">("All");
   const [sortPriority, setSortPriority] = useState(false);
   const [sortDue, setSortDue] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
 
   // Add task modal state
   const [showAdd, setShowAdd] = useState(false);
@@ -83,19 +96,38 @@ function TasksPage() {
     const name = hName.trim();
     if (!name) return;
     const habit = { id: `h-${uid()}`, name, category: hCat };
-    mutate((p) => ({ customHabits: [...(p.customHabits ?? []), habit] }));
+    mutate((p) => ({
+      customHabits: [...(p.customHabits ?? []), habit],
+      habitOrder: [...(p.habitOrder ?? []), habit.id],
+    }));
     setHName(""); setShowAddHabit(false);
   }
   function delHabit(id: string) {
+    const isCustom = id.startsWith("h-");
     mutate((p) => {
       const log = { ...(p.habitLog ?? {}) };
       delete log[id];
       return {
-        customHabits: (p.customHabits ?? []).filter((h) => h.id !== id),
+        customHabits: isCustom ? (p.customHabits ?? []).filter((h) => h.id !== id) : (p.customHabits ?? []),
+        hiddenHabits: isCustom ? (p.hiddenHabits ?? []) : [...new Set([...(p.hiddenHabits ?? []), id])],
+        habitOrder: (p.habitOrder ?? []).filter((x) => x !== id),
         habitLog: log,
       };
     });
   }
+
+  function reorderHabits(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const currentIds = allHabits.map((h) => h.id);
+    const from = currentIds.indexOf(sourceId);
+    const to = currentIds.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    const next = currentIds.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    mutate(() => ({ habitOrder: next }));
+  }
+
 
 
   const visibleTasks = useMemo(() => {
