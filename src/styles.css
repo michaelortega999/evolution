@@ -112,7 +112,8 @@
   --grid-line: oklch(0.7 0.22 50 / 0.18);
 }
 .theme-orange .hud-card {
-  background: linear-gradient(180deg, oklch(0.06 0.02 50 / 0.95), oklch(0.04 0.015 45 / 0.95));
+  --hud-fill-a: oklch(0.06 0.02 50 / 0.95);
+  --hud-fill-b: oklch(0.04 0.015 45 / 0.95);
 }
 .theme-green {
   --primary: oklch(0.82 0.21 145);
