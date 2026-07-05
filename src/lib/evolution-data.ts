@@ -727,6 +727,8 @@ function load(): EvolutionData {
       netWorthSnapshots: parsed.netWorthSnapshots ?? [],
       evoTasks: parsed.evoTasks ?? [],
       habitLog: parsed.habitLog ?? {},
+      customHabits: parsed.customHabits ?? [],
+
 
     };
   } catch {
