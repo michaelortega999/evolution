@@ -333,6 +333,30 @@ function TasksPage() {
 
       {/* DAILY HABITS */}
       <Panel title={`DAILY HABITS · ${now.toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()}`}>
+        <div className="flex items-center justify-end mb-3">
+          <button
+            onClick={() => setShowAddHabit((s) => !s)}
+            className="hud-label text-[10px] px-3 py-1.5 rounded border border-primary bg-primary/15 text-primary hover:bg-primary/25 flex items-center gap-1">
+            <Plus className="h-3 w-3" /> ADD DAILY HABIT
+          </button>
+        </div>
+
+        {showAddHabit && (
+          <div className="mb-4 p-3 border border-primary/40 rounded bg-primary/5 grid grid-cols-1 md:grid-cols-6 gap-2">
+            <input autoFocus value={hName} onChange={(e) => setHName(e.target.value)} placeholder="Habit name…"
+              onKeyDown={(e) => e.key === "Enter" && addHabit()}
+              className="md:col-span-3 bg-input border border-border rounded px-2 py-1.5 text-xs" />
+            <select value={hCat} onChange={(e) => setHCat(e.target.value as EvoCategory)}
+              className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
+              {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <div className="flex gap-2">
+              <button onClick={addHabit} className="flex-1 hud-label text-[10px] px-2 py-1.5 rounded border border-primary bg-primary/15 text-primary">SAVE</button>
+              <button onClick={() => setShowAddHabit(false)} className="hud-label text-[10px] px-2 py-1.5 rounded border border-border text-muted-foreground">✕</button>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -351,12 +375,13 @@ function TasksPage() {
               </tr>
             </thead>
             <tbody>
-              {DEFAULT_HABITS.map((h) => {
+              {allHabits.map((h) => {
                 const meta = CATEGORY_META[h.category];
                 const Icon = meta.icon;
                 const done = new Set(habitLog[h.id] ?? []);
+                const isCustom = h.id.startsWith("h-");
                 return (
-                  <tr key={h.id} className="border-t border-border/40">
+                  <tr key={h.id} className="border-t border-border/40 group">
                     <td className="py-2 sticky left-0 bg-card">
                       <div className="flex items-center gap-2">
                         <div className="h-7 w-7 rounded border flex items-center justify-center"
@@ -364,6 +389,12 @@ function TasksPage() {
                           <Icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
                         </div>
                         <span className="hud-label text-[11px] text-foreground/90 uppercase">{h.name}</span>
+                        {isCustom && (
+                          <button onClick={() => delHabit(h.id)}
+                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
                       </div>
                     </td>
                     {days.map((d) => {
@@ -394,6 +425,7 @@ function TasksPage() {
           </table>
         </div>
       </Panel>
+
     </ModuleLayout>
   );
 }
