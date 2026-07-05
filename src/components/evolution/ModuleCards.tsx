@@ -285,7 +285,7 @@ export function NotesCard() {
     mutate((prev) => ({ notes: prev.notes.filter((n) => n.id !== id) }));
 
   return (
-    <Card icon={NotebookPen} variant="notes" number="05" title="TASKS\u00a0" href="/notes">
+    <Card icon={NotebookPen} variant="notes" number="05" title="TASKS" href="/notes">
       <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32">
         {data.notes.map((n) => (
           <li key={n.id} className="flex items-start gap-2 text-xs group">
