@@ -450,6 +450,23 @@ export interface EvolutionData {
   weeklyHobbyTargets: { travel: number; cars: number; guitar: number };
   trainingSchedule: TrainingSlot[];
   netWorthSnapshots: NetWorthSnapshot[];
+  evoTasks: EvoTask[];
+  habitLog: Record<string, string[]>;
+}
+
+export type EvoCategory =
+  | "Wealth" | "Nutrition" | "Fitness" | "Journal"
+  | "Notes" | "Investing" | "Business" | "Hobby";
+
+export type EvoTaskPriority = "High" | "Medium" | "Low";
+export type EvoTaskStatus = "Not Started" | "In Progress" | "Done";
+export interface EvoTask {
+  id: string;
+  text: string;
+  category: EvoCategory;
+  priority: EvoTaskPriority;
+  due: string;
+  status: EvoTaskStatus;
 }
 
 export interface NetWorthSnapshot {
@@ -622,6 +639,8 @@ export const defaultData: EvolutionData = {
     { id: "ts-4", dayOfWeek: 3, time: "18:00", endTime: "18:45", title: "Cardio", type: "Cardio" },
     { id: "ts-5", dayOfWeek: 4, time: "07:00", endTime: "08:00", title: "Full Body", type: "Full Body" },
   ],
+  evoTasks: [],
+  habitLog: {},
 };
 
 function futureISO(daysAhead: number): string {
@@ -697,6 +716,8 @@ function load(): EvolutionData {
       weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
       trainingSchedule: parsed.trainingSchedule ?? defaultData.trainingSchedule,
       netWorthSnapshots: parsed.netWorthSnapshots ?? [],
+      evoTasks: parsed.evoTasks ?? [],
+      habitLog: parsed.habitLog ?? {},
 
     };
   } catch {
