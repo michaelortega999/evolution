@@ -1,15 +1,32 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Play, Pause, RotateCcw, Target,
+  Play, Pause, RotateCcw, Target, Clock,
 } from "lucide-react";
 import { Sidebar } from "@/components/evolution/Sidebar";
 import { Input } from "@/components/ui/input";
-import { useEvolutionData, FOCUS_TAGS, type FocusMode, type FocusTag } from "@/lib/evolution-data";
+import {
+  useEvolutionData, FOCUS_TAGS,
+  weekStartMonday, weekDaysMonSun, weekLogs, formatHm, WEEKDAY_LABELS,
+  type FocusMode, type FocusTag, type EvoCategory,
+} from "@/lib/evolution-data";
 import {
   useFocusTimer, formatMmSs, modeLabel,
   focusStatsToday, focusWeeklyMinutes, focusStreak,
 } from "@/lib/use-focus-timer";
+
+const MODULE_COLORS: Record<EvoCategory, string> = {
+  Wealth:    "#00ff88",
+  Nutrition: "#a3ff5c",
+  Fitness:   "#fb923c",
+  Journal:   "#c084fc",
+  Notes:     "#38bdf8",
+  Investing: "#3b82f6",
+  Business:  "#60a5fa",
+  Hobby:     "#ff2d55",
+};
+const MODULES: EvoCategory[] = ["Wealth", "Nutrition", "Fitness", "Journal", "Notes", "Investing", "Business", "Hobby"];
+
 
 export const Route = createFileRoute("/focus")({
   head: () => ({
