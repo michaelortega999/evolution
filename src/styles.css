@@ -112,7 +112,8 @@
   --grid-line: oklch(0.7 0.22 50 / 0.18);
 }
 .theme-orange .hud-card {
-  background: linear-gradient(180deg, oklch(0.06 0.02 50 / 0.95), oklch(0.04 0.015 45 / 0.95));
+  --hud-fill-a: oklch(0.06 0.02 50 / 0.95);
+  --hud-fill-b: oklch(0.04 0.015 45 / 0.95);
 }
 .theme-green {
   --primary: oklch(0.82 0.21 145);
@@ -176,7 +177,8 @@
   --grid-line: oklch(0.55 0.05 260 / 0.12);
 }
 .theme-white .hud-card {
-  background: linear-gradient(180deg, oklch(0.99 0 0 / 0.9), oklch(0.96 0.005 260 / 0.9));
+  --hud-fill-a: oklch(0.99 0 0 / 0.9);
+  --hud-fill-b: oklch(0.96 0.005 260 / 0.9);
 }
 .theme-black {
   /* Monochrome black/white with blue accents */
@@ -201,7 +203,8 @@
   --grid-line: oklch(0.85 0 0 / 0.12);
 }
 .theme-black .hud-card {
-  background: linear-gradient(180deg, oklch(0.05 0 0 / 0.95), oklch(0.02 0 0 / 0.95));
+  --hud-fill-a: oklch(0.05 0 0 / 0.95);
+  --hud-fill-b: oklch(0.02 0 0 / 0.95);
 }
 .theme-black body {
   background-image:
@@ -246,31 +249,77 @@
 }
 
 @layer components {
+  /* J.A.R.V.I.S.-inspired chamfered HUD frame — applied globally to every card */
   .hud-card {
+    --hud-chamfer: 16px;   /* large chamfer, top-right & bottom-right */
+    --hud-chamfer-sm: 6px; /* small chamfer, top-left & bottom-left */
+    --hud-border: oklch(0.78 0.22 240 / 0.75);
+    --hud-border-soft: oklch(0.78 0.22 240 / 0.28);
+    --hud-fill-a: oklch(0.16 0.05 260 / 0.95);
+    --hud-fill-b: oklch(0.13 0.04 260 / 0.95);
     position: relative;
-    background: linear-gradient(180deg, oklch(0.16 0.05 260 / 0.95), oklch(0.13 0.04 260 / 0.95));
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow:
-      inset 0 0 0 1px oklch(0.65 0.20 250 / 0.08),
-      0 0 24px oklch(0.65 0.20 250 / 0.10);
+    isolation: isolate;
+    border: 0;
+    border-radius: 0;
+    background:
+      linear-gradient(
+        135deg,
+        var(--hud-border) 0%,
+        var(--hud-border-soft) 35%,
+        var(--hud-border-soft) 65%,
+        var(--hud-border) 100%
+      );
+    clip-path: polygon(
+      var(--hud-chamfer-sm) 0,
+      calc(100% - var(--hud-chamfer)) 0,
+      100% var(--hud-chamfer),
+      100% calc(100% - var(--hud-chamfer)),
+      calc(100% - var(--hud-chamfer)) 100%,
+      var(--hud-chamfer-sm) 100%,
+      0 calc(100% - var(--hud-chamfer-sm)),
+      0 var(--hud-chamfer-sm)
+    );
+    filter: drop-shadow(0 0 6px oklch(0.65 0.25 245 / 0.28));
   }
-  .hud-card::before,
+  /* Inner filled panel — inset 1px to reveal the neon frame around it */
+  .hud-card::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--hud-fill-a), var(--hud-fill-b));
+    clip-path: polygon(
+      var(--hud-chamfer-sm) 0,
+      calc(100% - var(--hud-chamfer)) 0,
+      100% var(--hud-chamfer),
+      100% calc(100% - var(--hud-chamfer)),
+      calc(100% - var(--hud-chamfer)) 100%,
+      var(--hud-chamfer-sm) 100%,
+      0 calc(100% - var(--hud-chamfer-sm)),
+      0 var(--hud-chamfer-sm)
+    );
+    box-shadow:
+      inset 0 0 0 1px oklch(0.65 0.20 250 / 0.10),
+      inset 0 0 24px oklch(0.65 0.20 250 / 0.08);
+  }
+  /* Micro HUD detail: thin corner bracket accent on top-right chamfer */
   .hud-card::after {
     content: "";
     position: absolute;
-    width: 10px;
-    height: 10px;
-    border-color: var(--primary);
-    opacity: 0.7;
-  }
-  .hud-card::before {
-    top: -1px; left: -1px;
-    border-top: 1px solid; border-left: 1px solid;
-  }
-  .hud-card::after {
-    bottom: -1px; right: -1px;
-    border-bottom: 1px solid; border-right: 1px solid;
+    top: 2px;
+    right: 2px;
+    width: calc(var(--hud-chamfer) + 6px);
+    height: calc(var(--hud-chamfer) + 6px);
+    pointer-events: none;
+    z-index: 0;
+    background:
+      linear-gradient(45deg, transparent calc(50% - 0.5px), var(--hud-border) 50%, transparent calc(50% + 0.5px)) no-repeat,
+      linear-gradient(45deg, transparent calc(70% - 0.5px), var(--hud-border-soft) 70%, transparent calc(70% + 0.5px)) no-repeat;
+    background-size: 100% 100%, 100% 100%;
+    opacity: 0.85;
+    filter: drop-shadow(0 0 3px oklch(0.78 0.22 240 / 0.6));
+    -webkit-mask: linear-gradient(45deg, transparent 40%, #000 45%, #000 55%, transparent 60%);
+            mask: linear-gradient(45deg, transparent 40%, #000 45%, #000 55%, transparent 60%);
   }
   .hud-label {
     font-family: var(--font-display);
@@ -289,6 +338,28 @@
       oklch(0.78 0.22 240 / 0.03) 2px,
       oklch(0.78 0.22 240 / 0.03) 3px
     );
+  }
+  /* .hud-scan sits on a .hud-card; its background must go on the inner panel */
+  .hud-card.hud-scan {
+    background:
+      linear-gradient(
+        135deg,
+        var(--hud-border) 0%,
+        var(--hud-border-soft) 35%,
+        var(--hud-border-soft) 65%,
+        var(--hud-border) 100%
+      );
+  }
+  .hud-card.hud-scan::before {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 2px,
+        oklch(0.78 0.22 240 / 0.03) 2px,
+        oklch(0.78 0.22 240 / 0.03) 3px
+      ),
+      linear-gradient(180deg, var(--hud-fill-a), var(--hud-fill-b));
   }
 }
 
