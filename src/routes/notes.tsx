@@ -144,6 +144,18 @@ function TasksPage() {
           {GOAL_DEFS.map((g) => {
             const meta = CATEGORY_META[g.category];
             const Icon = meta.icon;
+            const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+            const catHabits = DEFAULT_HABITS.filter((h) => h.category === g.category);
+            let checked = 0;
+            for (const h of catHabits) {
+              const arr = habitLog[h.id] ?? [];
+              checked += arr.filter((iso) => iso.startsWith(monthPrefix)).length;
+            }
+            const denom = catHabits.length * dim;
+            const pct = denom > 0 ? Math.round((checked / denom) * 100) : 0;
+            const label = catHabits.length > 0
+              ? `${checked} / ${denom} days`
+              : "No habit linked";
             return (
               <div key={g.title} className="border border-border rounded p-3 bg-primary/5 hover:border-primary/40 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
@@ -156,16 +168,17 @@ function TasksPage() {
                     <div className="text-[9px] text-muted-foreground truncate">{g.subtitle}</div>
                   </div>
                 </div>
-                <div className="hud-label text-2xl text-foreground">{g.pct}<span className="text-sm text-muted-foreground">%</span></div>
-                <div className="text-[10px] text-muted-foreground mt-1 truncate">{g.label}</div>
+                <div className="hud-label text-2xl text-foreground">{pct}<span className="text-sm text-muted-foreground">%</span></div>
+                <div className="text-[10px] text-muted-foreground mt-1 truncate">{label}</div>
                 <div className="mt-2 h-1.5 bg-secondary rounded overflow-hidden">
-                  <div className="h-full transition-all" style={{ width: `${g.pct}%`, background: meta.color, boxShadow: `0 0 6px ${meta.color}` }} />
+                  <div className="h-full transition-all" style={{ width: `${pct}%`, background: meta.color, boxShadow: pct > 0 ? `0 0 6px ${meta.color}` : undefined }} />
                 </div>
               </div>
             );
           })}
         </div>
       </Panel>
+
 
       {/* TASKS */}
       <Panel title="TASKS / TO-DO LIST">
