@@ -452,6 +452,14 @@ export interface EvolutionData {
   netWorthSnapshots: NetWorthSnapshot[];
   evoTasks: EvoTask[];
   habitLog: Record<string, string[]>;
+  customHabits: EvoHabit[];
+}
+
+export interface EvoHabit {
+  id: string;
+  name: string;
+  category: "Wealth" | "Nutrition" | "Fitness" | "Journal" | "Notes" | "Investing" | "Business" | "Hobby";
+  emoji?: string;
 }
 
 export type EvoCategory =
@@ -641,6 +649,7 @@ export const defaultData: EvolutionData = {
   ],
   evoTasks: [],
   habitLog: {},
+  customHabits: [],
 };
 
 function futureISO(daysAhead: number): string {
@@ -718,6 +727,8 @@ function load(): EvolutionData {
       netWorthSnapshots: parsed.netWorthSnapshots ?? [],
       evoTasks: parsed.evoTasks ?? [],
       habitLog: parsed.habitLog ?? {},
+      customHabits: parsed.customHabits ?? [],
+
 
     };
   } catch {
