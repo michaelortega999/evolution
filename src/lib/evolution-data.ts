@@ -453,6 +453,8 @@ export interface EvolutionData {
   evoTasks: EvoTask[];
   habitLog: Record<string, string[]>;
   customHabits: EvoHabit[];
+  habitOrder: string[];
+  hiddenHabits: string[];
 }
 
 export interface EvoHabit {
