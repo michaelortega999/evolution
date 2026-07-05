@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   CheckSquare, Plus, Trash2, DollarSign, Apple, Dumbbell, FileText,
-  Notebook, TrendingUp, Briefcase, Star, MoreHorizontal,
+  Notebook, TrendingUp, Briefcase, Star, MoreHorizontal, GripVertical,
   ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
@@ -61,11 +61,24 @@ function TasksPage() {
   const tasks = data.evoTasks ?? [];
   const habitLog = data.habitLog ?? {};
   const customHabits = data.customHabits ?? [];
-  const allHabits = useMemo(() => [...DEFAULT_HABITS, ...customHabits], [customHabits]);
+  const habitOrder = data.habitOrder ?? [];
+  const hiddenHabits = data.hiddenHabits ?? [];
+
+  const allHabits = useMemo(() => {
+    const combined = [...DEFAULT_HABITS, ...customHabits].filter((h) => !hiddenHabits.includes(h.id));
+    const byId = new Map(combined.map((h) => [h.id, h]));
+    const ordered: typeof combined = [];
+    for (const id of habitOrder) {
+      const h = byId.get(id);
+      if (h) { ordered.push(h); byId.delete(id); }
+    }
+    return [...ordered, ...byId.values()];
+  }, [customHabits, habitOrder, hiddenHabits]);
 
   const [filter, setFilter] = useState<EvoCategory | "All">("All");
   const [sortPriority, setSortPriority] = useState(false);
   const [sortDue, setSortDue] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
 
   // Add task modal state
   const [showAdd, setShowAdd] = useState(false);
@@ -83,19 +96,38 @@ function TasksPage() {
     const name = hName.trim();
     if (!name) return;
     const habit = { id: `h-${uid()}`, name, category: hCat };
-    mutate((p) => ({ customHabits: [...(p.customHabits ?? []), habit] }));
+    mutate((p) => ({
+      customHabits: [...(p.customHabits ?? []), habit],
+      habitOrder: [...(p.habitOrder ?? []), habit.id],
+    }));
     setHName(""); setShowAddHabit(false);
   }
   function delHabit(id: string) {
+    const isCustom = id.startsWith("h-");
     mutate((p) => {
       const log = { ...(p.habitLog ?? {}) };
       delete log[id];
       return {
-        customHabits: (p.customHabits ?? []).filter((h) => h.id !== id),
+        customHabits: isCustom ? (p.customHabits ?? []).filter((h) => h.id !== id) : (p.customHabits ?? []),
+        hiddenHabits: isCustom ? (p.hiddenHabits ?? []) : [...new Set([...(p.hiddenHabits ?? []), id])],
+        habitOrder: (p.habitOrder ?? []).filter((x) => x !== id),
         habitLog: log,
       };
     });
   }
+
+  function reorderHabits(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const currentIds = allHabits.map((h) => h.id);
+    const from = currentIds.indexOf(sourceId);
+    const to = currentIds.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    const next = currentIds.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    mutate(() => ({ habitOrder: next }));
+  }
+
 
 
   const visibleTasks = useMemo(() => {
@@ -379,22 +411,48 @@ function TasksPage() {
                 const meta = CATEGORY_META[h.category];
                 const Icon = meta.icon;
                 const done = new Set(habitLog[h.id] ?? []);
-                const isCustom = h.id.startsWith("h-");
+                const isDragging = dragId === h.id;
                 return (
-                  <tr key={h.id} className="border-t border-border/40 group">
+                  <tr
+                    key={h.id}
+                    onDragOver={(e) => { e.preventDefault(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const src = e.dataTransfer.getData("text/plain");
+                      if (src) reorderHabits(src, h.id);
+                      setDragId(null);
+                    }}
+                    className={cn(
+                      "border-t border-border/40 group transition-colors",
+                      isDragging && "opacity-40",
+                      dragId && !isDragging && "hover:bg-primary/5"
+                    )}
+                  >
                     <td className="py-2 sticky left-0 bg-card">
                       <div className="flex items-center gap-2">
+                        <button
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/plain", h.id);
+                            setDragId(h.id);
+                          }}
+                          onDragEnd={() => setDragId(null)}
+                          aria-label="Drag to reorder"
+                          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-primary transition-colors -ml-1"
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </button>
                         <div className="h-7 w-7 rounded border flex items-center justify-center"
                              style={{ borderColor: `${meta.color}55` }}>
                           <Icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
                         </div>
                         <span className="hud-label text-[11px] text-foreground/90 uppercase">{h.name}</span>
-                        {isCustom && (
-                          <button onClick={() => delHabit(h.id)}
-                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1">
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        )}
+                        <button onClick={() => delHabit(h.id)}
+                          aria-label={`Delete ${h.name}`}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1 transition-opacity">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
                       </div>
                     </td>
                     {days.map((d) => {

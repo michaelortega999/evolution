@@ -453,6 +453,8 @@ export interface EvolutionData {
   evoTasks: EvoTask[];
   habitLog: Record<string, string[]>;
   customHabits: EvoHabit[];
+  habitOrder: string[];
+  hiddenHabits: string[];
 }
 
 export interface EvoHabit {
@@ -650,6 +652,8 @@ export const defaultData: EvolutionData = {
   evoTasks: [],
   habitLog: {},
   customHabits: [],
+  habitOrder: [],
+  hiddenHabits: [],
 };
 
 function futureISO(daysAhead: number): string {
@@ -728,6 +732,8 @@ function load(): EvolutionData {
       evoTasks: parsed.evoTasks ?? [],
       habitLog: parsed.habitLog ?? {},
       customHabits: parsed.customHabits ?? [],
+      habitOrder: parsed.habitOrder ?? [],
+      hiddenHabits: parsed.hiddenHabits ?? [],
 
 
     };
