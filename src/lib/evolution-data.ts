@@ -639,6 +639,8 @@ export const defaultData: EvolutionData = {
     { id: "ts-4", dayOfWeek: 3, time: "18:00", endTime: "18:45", title: "Cardio", type: "Cardio" },
     { id: "ts-5", dayOfWeek: 4, time: "07:00", endTime: "08:00", title: "Full Body", type: "Full Body" },
   ],
+  evoTasks: [],
+  habitLog: {},
 };
 
 function futureISO(daysAhead: number): string {
