@@ -716,6 +716,8 @@ function load(): EvolutionData {
       weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
       trainingSchedule: parsed.trainingSchedule ?? defaultData.trainingSchedule,
       netWorthSnapshots: parsed.netWorthSnapshots ?? [],
+      evoTasks: parsed.evoTasks ?? [],
+      habitLog: parsed.habitLog ?? {},
 
     };
   } catch {
