@@ -171,7 +171,7 @@ function TasksPage() {
             const meta = CATEGORY_META[g.category];
             const Icon = meta.icon;
             const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
-            const catHabits = DEFAULT_HABITS.filter((h) => h.category === g.category);
+            const catHabits = allHabits.filter((h) => h.category === g.category);
             let checked = 0;
             for (const h of catHabits) {
               const arr = habitLog[h.id] ?? [];
