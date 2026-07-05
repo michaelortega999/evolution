@@ -299,29 +299,30 @@
       inset 0 0 0 1px oklch(0.65 0.20 250 / 0.10),
       inset 0 0 28px oklch(0.65 0.20 250 / 0.10);
   }
-  /* Layered inner bracket ring — a second chamfered 1px stroke that lights
-     up near every corner, giving the frame HUD depth without cluttering edges */
+  /* Detailed HUD corner overlays — draws the offset inner second-line on each
+     large chamfer, a small top-edge tab on the top-right, and micro tick marks,
+     matching the reference JARVIS panel geometry */
   .hud-card::after {
     content: "";
     position: absolute;
-    inset: 5px;
+    inset: 0;
     pointer-events: none;
-    z-index: 0;
-    padding: 1px;
-    background:
-      radial-gradient(circle at 100% 0,    var(--hud-border) 0, transparent 60px),
-      radial-gradient(circle at 100% 100%, var(--hud-border) 0, transparent 60px),
-      radial-gradient(circle at 0 0,       var(--hud-border-mid) 0, transparent 42px),
-      radial-gradient(circle at 0 100%,    var(--hud-border-mid) 0, transparent 42px);
-    background-clip: border-box;
-    clip-path: var(--hud-clip);
-    -webkit-mask:
-      linear-gradient(#000 0 0) padding-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    filter: drop-shadow(0 0 3px oklch(0.78 0.22 240 / 0.6));
+    z-index: 1;
+    background-image:
+      /* TOP-RIGHT (large chamfer): inner double stroke + top-edge tab + ticks */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52' fill='none' stroke='%2380d4ff' stroke-width='1' stroke-linecap='square'><path d='M 0 4.5 L 22 4.5 L 47.5 30 L 47.5 52' opacity='0.9'/><path d='M 20 0 L 20 2.5 L 34 2.5 L 34 0' opacity='0.95'/><rect x='20' y='0.5' width='14' height='2' fill='%2380d4ff' opacity='0.55'/><path d='M 39 9 L 45 9 M 39 12.5 L 45 12.5' opacity='0.75'/><path d='M 8 8 L 12 8' opacity='0.55'/></svg>"),
+      /* BOTTOM-RIGHT (large chamfer): inner double stroke + ticks + bottom-edge marks */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52' fill='none' stroke='%2380d4ff' stroke-width='1' stroke-linecap='square'><path d='M 0 47.5 L 22 47.5 L 47.5 22 L 47.5 0' opacity='0.9'/><path d='M 39 39 L 45 39 M 39 42.5 L 45 42.5' opacity='0.75'/><path d='M 26 50 L 32 50 M 34 50 L 40 50' opacity='0.7'/></svg>"),
+      /* TOP-LEFT (small chamfer): short inner L + small break tick on left edge */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34' fill='none' stroke='%2380d4ff' stroke-width='1' stroke-linecap='square'><path d='M 4.5 32 L 4.5 14 L 14 4.5 L 32 4.5' opacity='0.75'/><path d='M 0 20 L 2.5 20 L 2.5 26 L 0 26' opacity='0.85'/></svg>"),
+      /* BOTTOM-LEFT (small chamfer): short inner L */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34' fill='none' stroke='%2380d4ff' stroke-width='1' stroke-linecap='square'><path d='M 4.5 0 L 4.5 20 L 14 29.5 L 32 29.5' opacity='0.75'/></svg>");
+    background-position: top right, bottom right, top left, bottom left;
+    background-repeat: no-repeat;
+    background-size: 52px 52px, 52px 52px, 34px 34px, 34px 34px;
+    filter: drop-shadow(0 0 3px oklch(0.82 0.22 240 / 0.55));
   }
+
 
   .hud-label {
     font-family: var(--font-display);
