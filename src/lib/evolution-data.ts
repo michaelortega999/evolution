@@ -750,6 +750,8 @@ function load(): EvolutionData {
       customHabits: parsed.customHabits ?? [],
       habitOrder: parsed.habitOrder ?? [],
       hiddenHabits: parsed.hiddenHabits ?? [],
+      timeLogs: parsed.timeLogs ?? [],
+
 
 
     };
