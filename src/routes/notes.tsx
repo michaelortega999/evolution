@@ -3,14 +3,16 @@ import { useMemo, useState } from "react";
 import {
   CheckSquare, Plus, Trash2, DollarSign, Apple, Dumbbell, FileText,
   Notebook, TrendingUp, Briefcase, Star, MoreHorizontal, GripVertical,
-  ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2,
+  ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2, Clock, X,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import {
   useEvolutionData, uid, todayDate,
   type EvoCategory, type EvoTask, type EvoTaskPriority, type EvoTaskStatus,
+  type EvoHabit, type TimeLog,
 } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/notes")({
   head: () => ({ meta: [{ title: "Tasks — Evolution" }, { name: "description", content: "Goals, tasks, and daily habits." }] }),
