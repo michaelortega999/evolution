@@ -199,14 +199,58 @@ function TasksPage() {
 
   function toggleHabit(habitId: string, day: number) {
     const iso = isoFor(day);
+    const isTodayCell = day === todayNum;
+    const habit = allHabits.find((h) => h.id === habitId);
+    const alreadyDone = (habitLog[habitId] ?? []).includes(iso);
+
+    // If turning ON today's cell for a time-tracked habit, open confirm dialog.
+    if (habit?.timeFactor && isTodayCell && !alreadyDone) {
+      setConfirmHabit(habit);
+      setConfirmMinutes(String(habit.timeFactor.minutes));
+      return;
+    }
+
     mutate((p) => {
       const log = { ...(p.habitLog ?? {}) };
       const arr = new Set(log[habitId] ?? []);
       if (arr.has(iso)) arr.delete(iso); else arr.add(iso);
       log[habitId] = [...arr];
-      return { habitLog: log };
+      // If unchecking, also drop any auto time log tied to this habit + date.
+      const timeLogs = (p.timeLogs ?? []).filter(
+        (tl) => !(alreadyDone && tl.habitId === habitId && tl.date === iso && tl.source === "habit"),
+      );
+      return { habitLog: log, timeLogs };
     });
   }
+
+  function confirmLogTime() {
+    if (!confirmHabit || !confirmHabit.timeFactor) return;
+    const iso = isoFor(todayNum);
+    const mins = Math.max(1, Math.round(Number(confirmMinutes) || confirmHabit.timeFactor.minutes));
+    const module = confirmHabit.timeFactor.module;
+    const habitId = confirmHabit.id;
+    const habitName = confirmHabit.name;
+    mutate((p) => {
+      const log = { ...(p.habitLog ?? {}) };
+      const arr = new Set(log[habitId] ?? []);
+      arr.add(iso);
+      log[habitId] = [...arr];
+      const tl: TimeLog = {
+        id: `t-${uid()}`,
+        date: iso,
+        minutes: mins,
+        module,
+        habitId,
+        source: "habit",
+        label: habitName,
+        ts: Date.now(),
+      };
+      return { habitLog: log, timeLogs: [...(p.timeLogs ?? []), tl] };
+    });
+    setConfirmHabit(null);
+  }
+
+
 
   const dateLabel = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
