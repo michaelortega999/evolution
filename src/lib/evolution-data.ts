@@ -732,6 +732,8 @@ function load(): EvolutionData {
       evoTasks: parsed.evoTasks ?? [],
       habitLog: parsed.habitLog ?? {},
       customHabits: parsed.customHabits ?? [],
+      habitOrder: parsed.habitOrder ?? [],
+      hiddenHabits: parsed.hiddenHabits ?? [],
 
 
     };
