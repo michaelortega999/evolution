@@ -598,6 +598,55 @@ function TasksPage() {
         </div>
       </Panel>
 
+      {/* Time-log confirmation dialog */}
+      {confirmHabit && confirmHabit.timeFactor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4"
+             onClick={() => setConfirmHabit(null)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hud-card p-5 w-full max-w-sm flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: CATEGORY_META[confirmHabit.timeFactor.module].color }} />
+                <div>
+                  <div className="hud-label text-xs text-foreground">LOG {confirmHabit.name.toUpperCase()}</div>
+                  <div className="hud-label text-[9px] text-muted-foreground">
+                    {confirmHabit.timeFactor.module}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setConfirmHabit(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="text-sm text-foreground/90">
+              Log <span className="text-primary font-semibold">{confirmMinutes || confirmHabit.timeFactor.minutes}</span> minutes for <span className="text-primary">{confirmHabit.name}</span>?
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number" min={1} autoFocus
+                value={confirmMinutes}
+                onChange={(e) => setConfirmMinutes(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") confirmLogTime(); }}
+                className="flex-1 bg-input border border-border rounded px-2 py-1.5 text-sm tabular-nums"
+              />
+              <span className="hud-label text-[10px] text-muted-foreground">MIN</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={confirmLogTime}
+                className="flex-1 h-9 rounded border border-primary bg-primary/15 text-primary hud-label text-[11px] hover:bg-primary/25">
+                CONFIRM
+              </button>
+              <button onClick={() => setConfirmHabit(null)}
+                className="h-9 px-4 rounded border border-border text-muted-foreground hud-label text-[11px] hover:text-foreground">
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </ModuleLayout>
   );
 }
+
