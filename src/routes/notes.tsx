@@ -434,20 +434,61 @@ function TasksPage() {
         </div>
 
         {showAddHabit && (
-          <div className="mb-4 p-3 border border-primary/40 rounded bg-primary/5 grid grid-cols-1 md:grid-cols-6 gap-2">
-            <input autoFocus value={hName} onChange={(e) => setHName(e.target.value)} placeholder="Habit name…"
-              onKeyDown={(e) => e.key === "Enter" && addHabit()}
-              className="md:col-span-3 bg-input border border-border rounded px-2 py-1.5 text-xs" />
-            <select value={hCat} onChange={(e) => setHCat(e.target.value as EvoCategory)}
-              className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
-              {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <div className="flex gap-2">
-              <button onClick={addHabit} className="flex-1 hud-label text-[10px] px-2 py-1.5 rounded border border-primary bg-primary/15 text-primary">SAVE</button>
-              <button onClick={() => setShowAddHabit(false)} className="hud-label text-[10px] px-2 py-1.5 rounded border border-border text-muted-foreground">✕</button>
+          <div className="mb-4 p-3 border border-primary/40 rounded bg-primary/5 flex flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+              <input autoFocus value={hName} onChange={(e) => setHName(e.target.value)} placeholder="Habit name…"
+                onKeyDown={(e) => e.key === "Enter" && addHabit()}
+                className="md:col-span-3 bg-input border border-border rounded px-2 py-1.5 text-xs" />
+              <select value={hCat} onChange={(e) => {
+                  const v = e.target.value as EvoCategory;
+                  setHCat(v);
+                  if (!hTrackTime) setHModule(v);
+                }}
+                className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
+                {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <div className="flex gap-2">
+                <button onClick={addHabit} className="flex-1 hud-label text-[10px] px-2 py-1.5 rounded border border-primary bg-primary/15 text-primary">SAVE</button>
+                <button onClick={() => setShowAddHabit(false)} className="hud-label text-[10px] px-2 py-1.5 rounded border border-border text-muted-foreground">✕</button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center">
+              <label className="md:col-span-3 flex items-center gap-2 hud-label text-[10px] text-muted-foreground cursor-pointer select-none">
+                <button
+                  type="button"
+                  onClick={() => { setHTrackTime((s) => { const next = !s; if (next) setHModule(hCat); return next; }); }}
+                  aria-pressed={hTrackTime}
+                  className={cn(
+                    "relative h-4 w-8 rounded-full border transition-colors",
+                    hTrackTime ? "bg-primary/40 border-primary" : "bg-muted border-border"
+                  )}>
+                  <span className={cn(
+                    "absolute top-[1px] h-2.5 w-2.5 rounded-full transition-all",
+                    hTrackTime ? "left-[17px] bg-primary shadow-[0_0_6px_var(--primary)]" : "left-[2px] bg-muted-foreground"
+                  )} />
+                </button>
+                <Clock className="h-3 w-3" /> TRACK TIME
+              </label>
+              {hTrackTime && (
+                <>
+                  <div className="md:col-span-1 flex items-center gap-1">
+                    <input
+                      type="number" min={1} value={hMinutes}
+                      onChange={(e) => setHMinutes(e.target.value)}
+                      className="w-full bg-input border border-border rounded px-2 py-1.5 text-xs"
+                    />
+                    <span className="hud-label text-[10px] text-muted-foreground">MIN</span>
+                  </div>
+                  <select value={hModule} onChange={(e) => setHModule(e.target.value as EvoCategory)}
+                    className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
+                    {CATS.map((c) => <option key={c} value={c}>Module: {c}</option>)}
+                  </select>
+                </>
+              )}
             </div>
           </div>
         )}
+
 
         <div className="overflow-x-auto">
           <table className="w-full">
