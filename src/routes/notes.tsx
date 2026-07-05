@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  CheckSquare, Plus, Trash2, Wallet, Apple, Dumbbell, FileText,
+  CheckSquare, Plus, Trash2, DollarSign, Apple, Dumbbell, FileText,
   Notebook, TrendingUp, Briefcase, Star, MoreHorizontal,
   ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2,
 } from "lucide-react";
