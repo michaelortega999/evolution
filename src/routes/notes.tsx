@@ -43,15 +43,17 @@ const GOAL_DEFS: { category: EvoCategory; title: string; subtitle: string; pct: 
   { category: "Notes",     title: "NOTES",     subtitle: "Stay Organized", pct: 90, label: "27 / 30 Days" },
 ];
 
-const DEFAULT_HABITS: { id: string; name: string; category: EvoCategory; emoji: string }[] = [
-  { id: "workout",   name: "Work Out",         category: "Fitness",   emoji: "🏋️" },
+const DEFAULT_HABITS: EvoHabit[] = [
+  { id: "workout",   name: "Work Out",         category: "Fitness",   emoji: "🏋️", timeFactor: { minutes: 60, module: "Fitness" } },
   { id: "deficit",   name: "Eat in a Deficit", category: "Nutrition", emoji: "🍎" },
+  { id: "wealthadv", name: "Do 1 Wealth Advancing Activity", category: "Wealth", emoji: "💵", timeFactor: { minutes: 20, module: "Wealth" } },
   { id: "bible",     name: "Bible Study",      category: "Hobby",     emoji: "📖" },
-  { id: "trade",     name: "Trade Futures",    category: "Investing", emoji: "📈" },
+  { id: "trade",     name: "Trade Futures",    category: "Investing", emoji: "📈", timeFactor: { minutes: 30, module: "Investing" } },
   { id: "coldcall",  name: "Cold Calls",       category: "Business",  emoji: "💰" },
-  { id: "evolution", name: "Build Evolution",  category: "Notes",     emoji: "💻" },
+  { id: "evolution", name: "Build Evolution",  category: "Business",  emoji: "💻", timeFactor: { minutes: 90, module: "Business" } },
   { id: "journal",   name: "Journal",          category: "Journal",   emoji: "✍️" },
 ];
+
 
 function daysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
