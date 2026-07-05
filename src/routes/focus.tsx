@@ -49,7 +49,35 @@ function FocusPage() {
   const streak = focusStreak(data.focusSessions);
   const weeklyMax = Math.max(1, ...weekly.map((w) => w.minutes));
 
+  // ---- Time Invested This Week (combines habit + focus TimeLogs) ----
+  const timeWeek = useMemo(() => {
+    const start = weekStartMonday();
+    const days = weekDaysMonSun(start);
+    const logs = weekLogs(data.timeLogs ?? [], start);
+    const totalMin = logs.reduce((s, l) => s + l.minutes, 0);
+    const byModule: Record<string, number> = {};
+    const byDay: Record<string, number> = {};
+    const byLabel: { label: string; module: EvoCategory; minutes: number; hasTime: boolean }[] = [];
+    const labelIndex = new Map<string, number>();
+    for (const l of logs) {
+      byModule[l.module] = (byModule[l.module] ?? 0) + l.minutes;
+      byDay[l.date] = (byDay[l.date] ?? 0) + l.minutes;
+      const key = `${l.source}::${l.habitId ?? l.label}`;
+      const existing = labelIndex.get(key);
+      if (existing != null) byLabel[existing].minutes += l.minutes;
+      else {
+        labelIndex.set(key, byLabel.length);
+        byLabel.push({ label: l.label, module: l.module, minutes: l.minutes, hasTime: true });
+      }
+    }
+    byLabel.sort((a, b) => b.minutes - a.minutes);
+    const moduleMax = Math.max(1, ...Object.values(byModule));
+    const dayMax = Math.max(1, ...days.map((d) => byDay[d] ?? 0));
+    return { totalMin, byModule, byDay, byLabel, days, moduleMax, dayMax };
+  }, [data.timeLogs]);
+
   const ringPct = timer.totalMs > 0 ? (timer.remainingMs / timer.totalMs) * 100 : 0;
+
 
   const startEdit = (mode: FocusMode) => {
     setEditing(mode);
