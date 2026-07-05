@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  CheckSquare, Plus, Trash2, Wallet, Apple, Dumbbell, FileText,
+  CheckSquare, Plus, Trash2, DollarSign, Apple, Dumbbell, FileText,
   Notebook, TrendingUp, Briefcase, Star, MoreHorizontal,
   ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2,
 } from "lucide-react";
@@ -18,14 +18,14 @@ export const Route = createFileRoute("/notes")({
 });
 
 const CATEGORY_META: Record<EvoCategory, { icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; color: string }> = {
-  Wealth:    { icon: Wallet,     color: "#f5c451" },
-  Nutrition: { icon: Apple,      color: "#4ade80" },
+  Wealth:    { icon: DollarSign, color: "#00ff88" },
+  Nutrition: { icon: Apple,      color: "#a3ff5c" },
   Fitness:   { icon: Dumbbell,   color: "#fb923c" },
   Journal:   { icon: FileText,   color: "#c084fc" },
   Notes:     { icon: Notebook,   color: "#38bdf8" },
   Investing: { icon: TrendingUp, color: "#3b82f6" },
   Business:  { icon: Briefcase,  color: "#60a5fa" },
-  Hobby:     { icon: Star,       color: "#ec4899" },
+  Hobby:     { icon: Star,       color: "#ff2d55" },
 };
 
 const CATS: EvoCategory[] = ["Wealth", "Nutrition", "Fitness", "Journal", "Notes", "Investing", "Business", "Hobby"];
