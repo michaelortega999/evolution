@@ -3,14 +3,16 @@ import { useMemo, useState } from "react";
 import {
   CheckSquare, Plus, Trash2, DollarSign, Apple, Dumbbell, FileText,
   Notebook, TrendingUp, Briefcase, Star, MoreHorizontal, GripVertical,
-  ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2,
+  ArrowUp, ArrowDown, Circle, Loader2, CheckCircle2, Clock, X,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import {
   useEvolutionData, uid, todayDate,
   type EvoCategory, type EvoTask, type EvoTaskPriority, type EvoTaskStatus,
+  type EvoHabit, type TimeLog,
 } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/notes")({
   head: () => ({ meta: [{ title: "Tasks — Evolution" }, { name: "description", content: "Goals, tasks, and daily habits." }] }),
@@ -41,15 +43,17 @@ const GOAL_DEFS: { category: EvoCategory; title: string; subtitle: string; pct: 
   { category: "Notes",     title: "NOTES",     subtitle: "Stay Organized", pct: 90, label: "27 / 30 Days" },
 ];
 
-const DEFAULT_HABITS: { id: string; name: string; category: EvoCategory; emoji: string }[] = [
-  { id: "workout",   name: "Work Out",         category: "Fitness",   emoji: "🏋️" },
+const DEFAULT_HABITS: EvoHabit[] = [
+  { id: "workout",   name: "Work Out",         category: "Fitness",   emoji: "🏋️", timeFactor: { minutes: 60, module: "Fitness" } },
   { id: "deficit",   name: "Eat in a Deficit", category: "Nutrition", emoji: "🍎" },
+  { id: "wealthadv", name: "Do 1 Wealth Advancing Activity", category: "Wealth", emoji: "💵", timeFactor: { minutes: 20, module: "Wealth" } },
   { id: "bible",     name: "Bible Study",      category: "Hobby",     emoji: "📖" },
-  { id: "trade",     name: "Trade Futures",    category: "Investing", emoji: "📈" },
+  { id: "trade",     name: "Trade Futures",    category: "Investing", emoji: "📈", timeFactor: { minutes: 30, module: "Investing" } },
   { id: "coldcall",  name: "Cold Calls",       category: "Business",  emoji: "💰" },
-  { id: "evolution", name: "Build Evolution",  category: "Notes",     emoji: "💻" },
+  { id: "evolution", name: "Build Evolution",  category: "Business",  emoji: "💻", timeFactor: { minutes: 90, module: "Business" } },
   { id: "journal",   name: "Journal",          category: "Journal",   emoji: "✍️" },
 ];
+
 
 function daysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -91,17 +95,29 @@ function TasksPage() {
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [hName, setHName] = useState("");
   const [hCat, setHCat] = useState<EvoCategory>("Wealth");
+  const [hTrackTime, setHTrackTime] = useState(false);
+  const [hMinutes, setHMinutes] = useState<string>("30");
+  const [hModule, setHModule] = useState<EvoCategory>("Wealth");
+
+  // Time-confirm dialog state
+  const [confirmHabit, setConfirmHabit] = useState<EvoHabit | null>(null);
+  const [confirmMinutes, setConfirmMinutes] = useState<string>("");
 
   function addHabit() {
     const name = hName.trim();
     if (!name) return;
-    const habit = { id: `h-${uid()}`, name, category: hCat };
+    const habit: EvoHabit = { id: `h-${uid()}`, name, category: hCat };
+    if (hTrackTime) {
+      const m = Math.max(1, Math.round(Number(hMinutes) || 0));
+      habit.timeFactor = { minutes: m, module: hModule };
+    }
     mutate((p) => ({
       customHabits: [...(p.customHabits ?? []), habit],
       habitOrder: [...(p.habitOrder ?? []), habit.id],
     }));
-    setHName(""); setShowAddHabit(false);
+    setHName(""); setHTrackTime(false); setHMinutes("30"); setShowAddHabit(false);
   }
+
   function delHabit(id: string) {
     const isCustom = id.startsWith("h-");
     mutate((p) => {
@@ -183,14 +199,58 @@ function TasksPage() {
 
   function toggleHabit(habitId: string, day: number) {
     const iso = isoFor(day);
+    const isTodayCell = day === todayNum;
+    const habit = allHabits.find((h) => h.id === habitId);
+    const alreadyDone = (habitLog[habitId] ?? []).includes(iso);
+
+    // If turning ON today's cell for a time-tracked habit, open confirm dialog.
+    if (habit?.timeFactor && isTodayCell && !alreadyDone) {
+      setConfirmHabit(habit);
+      setConfirmMinutes(String(habit.timeFactor.minutes));
+      return;
+    }
+
     mutate((p) => {
       const log = { ...(p.habitLog ?? {}) };
       const arr = new Set(log[habitId] ?? []);
       if (arr.has(iso)) arr.delete(iso); else arr.add(iso);
       log[habitId] = [...arr];
-      return { habitLog: log };
+      // If unchecking, also drop any auto time log tied to this habit + date.
+      const timeLogs = (p.timeLogs ?? []).filter(
+        (tl) => !(alreadyDone && tl.habitId === habitId && tl.date === iso && tl.source === "habit"),
+      );
+      return { habitLog: log, timeLogs };
     });
   }
+
+  function confirmLogTime() {
+    if (!confirmHabit || !confirmHabit.timeFactor) return;
+    const iso = isoFor(todayNum);
+    const mins = Math.max(1, Math.round(Number(confirmMinutes) || confirmHabit.timeFactor.minutes));
+    const module = confirmHabit.timeFactor.module;
+    const habitId = confirmHabit.id;
+    const habitName = confirmHabit.name;
+    mutate((p) => {
+      const log = { ...(p.habitLog ?? {}) };
+      const arr = new Set(log[habitId] ?? []);
+      arr.add(iso);
+      log[habitId] = [...arr];
+      const tl: TimeLog = {
+        id: `t-${uid()}`,
+        date: iso,
+        minutes: mins,
+        module,
+        habitId,
+        source: "habit",
+        label: habitName,
+        ts: Date.now(),
+      };
+      return { habitLog: log, timeLogs: [...(p.timeLogs ?? []), tl] };
+    });
+    setConfirmHabit(null);
+  }
+
+
 
   const dateLabel = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
 
@@ -374,20 +434,61 @@ function TasksPage() {
         </div>
 
         {showAddHabit && (
-          <div className="mb-4 p-3 border border-primary/40 rounded bg-primary/5 grid grid-cols-1 md:grid-cols-6 gap-2">
-            <input autoFocus value={hName} onChange={(e) => setHName(e.target.value)} placeholder="Habit name…"
-              onKeyDown={(e) => e.key === "Enter" && addHabit()}
-              className="md:col-span-3 bg-input border border-border rounded px-2 py-1.5 text-xs" />
-            <select value={hCat} onChange={(e) => setHCat(e.target.value as EvoCategory)}
-              className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
-              {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <div className="flex gap-2">
-              <button onClick={addHabit} className="flex-1 hud-label text-[10px] px-2 py-1.5 rounded border border-primary bg-primary/15 text-primary">SAVE</button>
-              <button onClick={() => setShowAddHabit(false)} className="hud-label text-[10px] px-2 py-1.5 rounded border border-border text-muted-foreground">✕</button>
+          <div className="mb-4 p-3 border border-primary/40 rounded bg-primary/5 flex flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+              <input autoFocus value={hName} onChange={(e) => setHName(e.target.value)} placeholder="Habit name…"
+                onKeyDown={(e) => e.key === "Enter" && addHabit()}
+                className="md:col-span-3 bg-input border border-border rounded px-2 py-1.5 text-xs" />
+              <select value={hCat} onChange={(e) => {
+                  const v = e.target.value as EvoCategory;
+                  setHCat(v);
+                  if (!hTrackTime) setHModule(v);
+                }}
+                className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
+                {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <div className="flex gap-2">
+                <button onClick={addHabit} className="flex-1 hud-label text-[10px] px-2 py-1.5 rounded border border-primary bg-primary/15 text-primary">SAVE</button>
+                <button onClick={() => setShowAddHabit(false)} className="hud-label text-[10px] px-2 py-1.5 rounded border border-border text-muted-foreground">✕</button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center">
+              <label className="md:col-span-3 flex items-center gap-2 hud-label text-[10px] text-muted-foreground cursor-pointer select-none">
+                <button
+                  type="button"
+                  onClick={() => { setHTrackTime((s) => { const next = !s; if (next) setHModule(hCat); return next; }); }}
+                  aria-pressed={hTrackTime}
+                  className={cn(
+                    "relative h-4 w-8 rounded-full border transition-colors",
+                    hTrackTime ? "bg-primary/40 border-primary" : "bg-muted border-border"
+                  )}>
+                  <span className={cn(
+                    "absolute top-[1px] h-2.5 w-2.5 rounded-full transition-all",
+                    hTrackTime ? "left-[17px] bg-primary shadow-[0_0_6px_var(--primary)]" : "left-[2px] bg-muted-foreground"
+                  )} />
+                </button>
+                <Clock className="h-3 w-3" /> TRACK TIME
+              </label>
+              {hTrackTime && (
+                <>
+                  <div className="md:col-span-1 flex items-center gap-1">
+                    <input
+                      type="number" min={1} value={hMinutes}
+                      onChange={(e) => setHMinutes(e.target.value)}
+                      className="w-full bg-input border border-border rounded px-2 py-1.5 text-xs"
+                    />
+                    <span className="hud-label text-[10px] text-muted-foreground">MIN</span>
+                  </div>
+                  <select value={hModule} onChange={(e) => setHModule(e.target.value as EvoCategory)}
+                    className="md:col-span-2 bg-input border border-border rounded px-2 py-1.5 text-xs">
+                    {CATS.map((c) => <option key={c} value={c}>Module: {c}</option>)}
+                  </select>
+                </>
+              )}
             </div>
           </div>
         )}
+
 
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -447,7 +548,20 @@ function TasksPage() {
                              style={{ borderColor: `${meta.color}55` }}>
                           <Icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
                         </div>
-                        <span className="hud-label text-[11px] text-foreground/90 uppercase">{h.name}</span>
+                        <span className="hud-label text-[11px] text-foreground/90 uppercase flex items-center gap-1.5">
+                          {h.name}
+                          {h.timeFactor && (
+                            <span
+                              title={`${h.timeFactor.minutes} min · ${h.timeFactor.module}`}
+                              className="inline-flex items-center gap-0.5"
+                              style={{ color: CATEGORY_META[h.timeFactor.module].color }}
+                            >
+                              <Clock className="h-3 w-3" />
+                              <span className="text-[9px] tabular-nums">{h.timeFactor.minutes}m</span>
+                            </span>
+                          )}
+                        </span>
+
                         <button onClick={() => delHabit(h.id)}
                           aria-label={`Delete ${h.name}`}
                           className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1 transition-opacity">
@@ -484,6 +598,55 @@ function TasksPage() {
         </div>
       </Panel>
 
+      {/* Time-log confirmation dialog */}
+      {confirmHabit && confirmHabit.timeFactor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4"
+             onClick={() => setConfirmHabit(null)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="hud-card p-5 w-full max-w-sm flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: CATEGORY_META[confirmHabit.timeFactor.module].color }} />
+                <div>
+                  <div className="hud-label text-xs text-foreground">LOG {confirmHabit.name.toUpperCase()}</div>
+                  <div className="hud-label text-[9px] text-muted-foreground">
+                    {confirmHabit.timeFactor.module}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setConfirmHabit(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="text-sm text-foreground/90">
+              Log <span className="text-primary font-semibold">{confirmMinutes || confirmHabit.timeFactor.minutes}</span> minutes for <span className="text-primary">{confirmHabit.name}</span>?
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number" min={1} autoFocus
+                value={confirmMinutes}
+                onChange={(e) => setConfirmMinutes(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") confirmLogTime(); }}
+                className="flex-1 bg-input border border-border rounded px-2 py-1.5 text-sm tabular-nums"
+              />
+              <span className="hud-label text-[10px] text-muted-foreground">MIN</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={confirmLogTime}
+                className="flex-1 h-9 rounded border border-primary bg-primary/15 text-primary hud-label text-[11px] hover:bg-primary/25">
+                CONFIRM
+              </button>
+              <button onClick={() => setConfirmHabit(null)}
+                className="h-9 px-4 rounded border border-border text-muted-foreground hud-label text-[11px] hover:text-foreground">
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </ModuleLayout>
   );
 }
+

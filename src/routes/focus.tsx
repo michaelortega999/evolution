@@ -1,15 +1,32 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Play, Pause, RotateCcw, Target,
+  Play, Pause, RotateCcw, Target, Clock,
 } from "lucide-react";
 import { Sidebar } from "@/components/evolution/Sidebar";
 import { Input } from "@/components/ui/input";
-import { useEvolutionData, FOCUS_TAGS, type FocusMode, type FocusTag } from "@/lib/evolution-data";
+import {
+  useEvolutionData, FOCUS_TAGS,
+  weekStartMonday, weekDaysMonSun, weekLogs, formatHm, WEEKDAY_LABELS,
+  type FocusMode, type FocusTag, type EvoCategory,
+} from "@/lib/evolution-data";
 import {
   useFocusTimer, formatMmSs, modeLabel,
   focusStatsToday, focusWeeklyMinutes, focusStreak,
 } from "@/lib/use-focus-timer";
+
+const MODULE_COLORS: Record<EvoCategory, string> = {
+  Wealth:    "#00ff88",
+  Nutrition: "#a3ff5c",
+  Fitness:   "#fb923c",
+  Journal:   "#c084fc",
+  Notes:     "#38bdf8",
+  Investing: "#3b82f6",
+  Business:  "#60a5fa",
+  Hobby:     "#ff2d55",
+};
+const MODULES: EvoCategory[] = ["Wealth", "Nutrition", "Fitness", "Journal", "Notes", "Investing", "Business", "Hobby"];
+
 
 export const Route = createFileRoute("/focus")({
   head: () => ({
@@ -32,7 +49,35 @@ function FocusPage() {
   const streak = focusStreak(data.focusSessions);
   const weeklyMax = Math.max(1, ...weekly.map((w) => w.minutes));
 
+  // ---- Time Invested This Week (combines habit + focus TimeLogs) ----
+  const timeWeek = useMemo(() => {
+    const start = weekStartMonday();
+    const days = weekDaysMonSun(start);
+    const logs = weekLogs(data.timeLogs ?? [], start);
+    const totalMin = logs.reduce((s, l) => s + l.minutes, 0);
+    const byModule: Record<string, number> = {};
+    const byDay: Record<string, number> = {};
+    const byLabel: { label: string; module: EvoCategory; minutes: number; hasTime: boolean }[] = [];
+    const labelIndex = new Map<string, number>();
+    for (const l of logs) {
+      byModule[l.module] = (byModule[l.module] ?? 0) + l.minutes;
+      byDay[l.date] = (byDay[l.date] ?? 0) + l.minutes;
+      const key = `${l.source}::${l.habitId ?? l.label}`;
+      const existing = labelIndex.get(key);
+      if (existing != null) byLabel[existing].minutes += l.minutes;
+      else {
+        labelIndex.set(key, byLabel.length);
+        byLabel.push({ label: l.label, module: l.module, minutes: l.minutes, hasTime: true });
+      }
+    }
+    byLabel.sort((a, b) => b.minutes - a.minutes);
+    const moduleMax = Math.max(1, ...Object.values(byModule));
+    const dayMax = Math.max(1, ...days.map((d) => byDay[d] ?? 0));
+    return { totalMin, byModule, byDay, byLabel, days, moduleMax, dayMax };
+  }, [data.timeLogs]);
+
   const ringPct = timer.totalMs > 0 ? (timer.remainingMs / timer.totalMs) * 100 : 0;
+
 
   const startEdit = (mode: FocusMode) => {
     setEditing(mode);
@@ -241,6 +286,102 @@ function FocusPage() {
               ))}
             </div>
           </section>
+
+          {/* Time Invested This Week */}
+          <section className="hud-card p-5 flex flex-col gap-5">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
+                <div className="hud-label text-xs text-foreground">TIME INVESTED THIS WEEK</div>
+              </div>
+              <div className="hud-label text-2xl text-primary hud-glow tabular-nums">{formatHm(timeWeek.totalMin)}</div>
+            </div>
+
+            {timeWeek.totalMin === 0 ? (
+              <div className="text-sm text-muted-foreground py-6 text-center">
+                No time logged yet — check off a time-tracked habit or finish a Focus session.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Habits list */}
+                <div className="flex flex-col gap-2">
+                  <div className="hud-label text-[10px] text-muted-foreground">BY ACTIVITY</div>
+                  {timeWeek.byLabel.slice(0, 8).map((h) => {
+                    const color = MODULE_COLORS[h.module];
+                    const pct = Math.round((h.minutes / Math.max(1, timeWeek.byLabel[0].minutes)) * 100);
+                    return (
+                      <div key={h.label + h.module} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-foreground/90 truncate mr-2">{h.label}</span>
+                          <span className="hud-label tabular-nums" style={{ color }}>{formatHm(h.minutes)}</span>
+                        </div>
+                        <div className="h-1.5 rounded bg-muted overflow-hidden">
+                          <div className="h-full transition-all"
+                               style={{ width: `${pct}%`, background: color, boxShadow: `0 0 6px ${color}` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Category chart */}
+                <div className="flex flex-col gap-2">
+                  <div className="hud-label text-[10px] text-muted-foreground">BY MODULE</div>
+                  {MODULES.map((m) => {
+                    const mins = timeWeek.byModule[m] ?? 0;
+                    if (mins === 0) return null;
+                    const color = MODULE_COLORS[m];
+                    const pct = Math.round((mins / timeWeek.moduleMax) * 100);
+                    return (
+                      <div key={m} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="hud-label" style={{ color }}>{m}</span>
+                          <span className="hud-label tabular-nums text-foreground/80">{formatHm(mins)}</span>
+                        </div>
+                        <div className="h-2 rounded bg-muted overflow-hidden">
+                          <div className="h-full transition-all"
+                               style={{ width: `${pct}%`, background: color, boxShadow: `0 0 6px ${color}` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Daily breakdown */}
+            <div className="flex flex-col gap-2">
+              <div className="hud-label text-[10px] text-muted-foreground">DAILY</div>
+              <div className="flex items-end justify-between gap-2 h-24">
+                {timeWeek.days.map((d, i) => {
+                  const mins = timeWeek.byDay[d] ?? 0;
+                  const pct = Math.round((mins / timeWeek.dayMax) * 100);
+                  const isToday = d === new Date().toISOString().slice(0, 10);
+                  return (
+                    <div key={d} className="flex-1 flex flex-col items-center gap-1.5">
+                      <div className="hud-label text-[9px] text-primary tabular-nums">{mins > 0 ? formatHm(mins) : "—"}</div>
+                      <div
+                        className="w-full rounded-sm transition-all"
+                        style={{
+                          height: `${pct}%`,
+                          minHeight: 3,
+                          background: mins > 0
+                            ? "linear-gradient(180deg, var(--primary), color-mix(in oklab, var(--primary) 40%, transparent))"
+                            : "color-mix(in oklab, var(--primary) 15%, transparent)",
+                          boxShadow: mins > 0 ? "0 0 8px color-mix(in oklab, var(--glow) 60%, transparent)" : undefined,
+                        }}
+                      />
+                      <div className={`hud-label text-[9px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                        {WEEKDAY_LABELS[i]}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+
 
           {/* Session log */}
           <section className="hud-card p-5">

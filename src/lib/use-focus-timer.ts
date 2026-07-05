@@ -5,7 +5,16 @@ import {
   type FocusTag,
   type FocusSession,
   type FocusSettings,
+  type TimeLog,
+  type EvoCategory,
 } from "./evolution-data";
+
+function tagToModule(tag: FocusTag | null | undefined): EvoCategory {
+  if (!tag) return "Notes";
+  if (tag === "Guitar") return "Hobby";
+  return tag as EvoCategory;
+}
+
 
 const TIMER_KEY = "evolution:focus-timer:v1";
 
@@ -127,8 +136,21 @@ export function useFocusTimer(): UseFocusTimer {
         task: state.task || "Untitled session",
         tag: state.tag ?? undefined,
       };
-      mutate((prev) => ({ focusSessions: [...prev.focusSessions, session] }));
+      const timeLog: TimeLog = {
+        id: crypto.randomUUID(),
+        date: new Date(completedAt).toISOString().slice(0, 10),
+        minutes: Math.max(1, Math.round(totalMs / 60000)),
+        module: tagToModule(state.tag),
+        source: "focus",
+        label: state.task || "Focus session",
+        ts: completedAt,
+      };
+      mutate((prev) => ({
+        focusSessions: [...prev.focusSessions, session],
+        timeLogs: [...(prev.timeLogs ?? []), timeLog],
+      }));
     }
+
 
     // Decide next mode
     const nextRound = finishedMode === "focus" ? state.round + 1 : state.round;

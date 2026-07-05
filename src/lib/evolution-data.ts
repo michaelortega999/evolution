@@ -455,14 +455,28 @@ export interface EvolutionData {
   customHabits: EvoHabit[];
   habitOrder: string[];
   hiddenHabits: string[];
+  timeLogs: TimeLog[];
 }
 
 export interface EvoHabit {
   id: string;
   name: string;
-  category: "Wealth" | "Nutrition" | "Fitness" | "Journal" | "Notes" | "Investing" | "Business" | "Hobby";
+  category: EvoCategory;
   emoji?: string;
+  timeFactor?: { minutes: number; module: EvoCategory };
 }
+
+export interface TimeLog {
+  id: string;
+  date: string;        // YYYY-MM-DD
+  minutes: number;
+  module: EvoCategory;
+  habitId?: string;
+  source: "habit" | "focus";
+  label: string;
+  ts: number;
+}
+
 
 export type EvoCategory =
   | "Wealth" | "Nutrition" | "Fitness" | "Journal"
@@ -654,7 +668,9 @@ export const defaultData: EvolutionData = {
   customHabits: [],
   habitOrder: [],
   hiddenHabits: [],
+  timeLogs: [],
 };
+
 
 function futureISO(daysAhead: number): string {
   const d = new Date();
@@ -734,6 +750,8 @@ function load(): EvolutionData {
       customHabits: parsed.customHabits ?? [],
       habitOrder: parsed.habitOrder ?? [],
       hiddenHabits: parsed.hiddenHabits ?? [],
+      timeLogs: parsed.timeLogs ?? [],
+
 
 
     };
@@ -939,5 +957,52 @@ export function mostLoggedMeal(mealLogs: MealLog[]) {
   let best = ""; let n = 0;
   for (const [name, c] of counts) if (c > n) { best = name; n = c; }
   return best ? { name: best, count: n } : null;
+}
+
+// ---------- Time-log helpers (Time Factor feature) ----------
+
+export const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
+
+export function weekStartMonday(d: Date = new Date()): Date {
+  const out = new Date(d);
+  const day = out.getDay(); // 0=Sun..6=Sat
+  const diff = day === 0 ? -6 : 1 - day;
+  out.setDate(out.getDate() + diff);
+  out.setHours(0, 0, 0, 0);
+  return out;
+}
+
+export function weekDaysMonSun(start: Date = weekStartMonday()): string[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d.toISOString().slice(0, 10);
+  });
+}
+
+export function weekLogs(logs: TimeLog[], start: Date = weekStartMonday()): TimeLog[] {
+  const days = new Set(weekDaysMonSun(start));
+  return logs.filter((l) => days.has(l.date));
+}
+
+export function groupMinutesBy<T extends string>(
+  logs: TimeLog[],
+  key: (l: TimeLog) => T,
+): Record<T, number> {
+  const out = {} as Record<T, number>;
+  for (const l of logs) {
+    const k = key(l);
+    out[k] = (out[k] ?? 0) + l.minutes;
+  }
+  return out;
+}
+
+export function formatHm(mins: number): string {
+  if (mins <= 0) return "0m";
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
 }
 
