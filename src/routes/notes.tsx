@@ -548,7 +548,20 @@ function TasksPage() {
                              style={{ borderColor: `${meta.color}55` }}>
                           <Icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
                         </div>
-                        <span className="hud-label text-[11px] text-foreground/90 uppercase">{h.name}</span>
+                        <span className="hud-label text-[11px] text-foreground/90 uppercase flex items-center gap-1.5">
+                          {h.name}
+                          {h.timeFactor && (
+                            <span
+                              title={`${h.timeFactor.minutes} min · ${h.timeFactor.module}`}
+                              className="inline-flex items-center gap-0.5"
+                              style={{ color: CATEGORY_META[h.timeFactor.module].color }}
+                            >
+                              <Clock className="h-3 w-3" />
+                              <span className="text-[9px] tabular-nums">{h.timeFactor.minutes}m</span>
+                            </span>
+                          )}
+                        </span>
+
                         <button onClick={() => delHabit(h.id)}
                           aria-label={`Delete ${h.name}`}
                           className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1 transition-opacity">
