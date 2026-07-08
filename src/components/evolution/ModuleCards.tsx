@@ -19,7 +19,7 @@ import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
-  useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
+  useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary, tradingTotals,
   todayDate, dayTotals, nutritionStreak, uid, wealthSummary,
   type Meal, type Hobby,
 } from "@/lib/evolution-data";
