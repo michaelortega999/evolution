@@ -562,14 +562,48 @@ function InvestingPage() {
                 </label>
               </div>
               <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="hud-label text-[9px] text-muted-foreground">TRADE REVIEW</div>
+                  <button
+                    type="button"
+                    onClick={() => openReview(txDate)}
+                    className="hud-label text-[9px] text-primary hud-glow hover:underline flex items-center gap-1"
+                    title="Open the full trade review for this date"
+                  >
+                    <BookOpen className="h-3 w-3" /> OPEN FULL REVIEW
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <label className="block">
+                    <div className="hud-label text-[9px] text-muted-foreground mb-1">SESSION</div>
+                    <select
+                      value={txSession}
+                      onChange={(e) => setTxSession(e.target.value as TradingSessionKind)}
+                      className="h-9 w-full bg-input border border-border rounded px-2 text-xs"
+                    >
+                      {TRADING_SESSIONS.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </label>
+                  <div className="flex items-end">
+                    <div className="text-[9px] hud-label text-muted-foreground leading-tight">
+                      Saved to <span className="text-primary">Strategy Journal</span> &amp; <span className="text-primary">Monthly Calendar</span> for {txDate}.
+                    </div>
+                  </div>
+                </div>
                 <label className="block mb-3 flex-1">
-                  <div className="hud-label text-[9px] text-muted-foreground mb-1">NOTES (OPTIONAL)</div>
-                  <Textarea rows={8} placeholder="Add notes..." value={txNotes} onChange={(e) => setTxNotes(e.target.value)} className="text-xs h-full" />
+                  <Textarea
+                    rows={6}
+                    placeholder="Setup, execution, emotions, mistakes, lessons... This posts to the day's Trade Review."
+                    value={txReview}
+                    onChange={(e) => setTxReview(e.target.value)}
+                    className="text-xs h-full"
+                  />
                 </label>
                 <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
                   {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
                 </Button>
               </div>
+
             </div>
           </Panel>
         </div>
