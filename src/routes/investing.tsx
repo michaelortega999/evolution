@@ -301,7 +301,21 @@ function InvestingPage() {
         </div>
       </div>
 
-      {/* ============ MAIN GRID: CALENDAR + ACCOUNTS | TX | JOURNAL ============ */}
+      {reviewDate ? (
+        <JournalReviewView
+          onBack={closeReview}
+          onSave={submitJournal}
+          onDelete={journalEditing ? () => { deleteJournal(journalEditing.id); closeReview(); } : undefined}
+          isNew={!journalEditing}
+          jDate={jDate} setJDate={setJDate}
+          jSession={jSession} setJSession={setJSession}
+          jReview={jReview} setJReview={setJReview}
+          jTags={jTags} setJTags={setJTags}
+          jPnl={jPnl} setJPnl={setJPnl}
+        />
+      ) : (
+      <>
+      {/* ============ MAIN GRID: CALENDAR | ACCOUNTS + JOURNAL ============ */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
         {/* Calendar — left / larger */}
         <div className="xl:col-span-8">
@@ -310,10 +324,7 @@ function InvestingPage() {
               <div />
               <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
             </div>
-            <div className="flex items-center justify-between -mt-8 mb-3">
-              <div />
-              <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
-            </div>
+
             <div className="flex items-center justify-center gap-4 mb-3">
               <button onClick={() => shiftMonth(-1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronLeft className="h-4 w-4" /></button>
               <div className="hud-label text-sm text-primary hud-glow">{monthLabel}</div>
