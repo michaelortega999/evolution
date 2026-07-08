@@ -520,12 +520,8 @@ function InvestingPage() {
               )}
             </div>
 
-            {/* Compact totals — P/L on top row, Total P/L (All Accounts) below */}
+            {/* Compact totals — Total P/L (All Accounts) on top, P/L row below */}
             <div className="mt-3 pt-3 border-t border-border space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <FooterStat label="P/L TODAY" value={fmtMoney(totals.todayPnl, { sign: true })} valueClass={pnlClass(totals.todayPnl)} />
-                <FooterStat label="P/L MONTH" value={fmtMoney(totals.monthPnl, { sign: true })} valueClass={pnlClass(totals.monthPnl)} />
-              </div>
               <div className="border border-primary/40 bg-primary/5 rounded p-3 flex items-center gap-3">
                 <div className="h-9 w-9 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
                   <TrendingUp className="h-4 w-4 text-primary" />
@@ -534,6 +530,10 @@ function InvestingPage() {
                   <div className="hud-label text-[9px] text-muted-foreground">TOTAL P/L (ALL ACCOUNTS)</div>
                   <div className={`hud-label text-xl hud-glow tabular-nums truncate ${pnlClass(totalPnl)}`}>{fmtMoney(totalPnl, { sign: totalPnl > 0 })}</div>
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <FooterStat label="P/L TODAY" value={fmtMoney(totals.todayPnl, { sign: true })} valueClass={pnlClass(totals.todayPnl)} />
+                <FooterStat label="P/L MONTH" value={fmtMoney(totals.monthPnl, { sign: true })} valueClass={pnlClass(totals.monthPnl)} />
               </div>
             </div>
 
