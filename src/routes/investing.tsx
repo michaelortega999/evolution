@@ -443,65 +443,20 @@ function InvestingPage() {
               ↻ Auto-synced to Wealth
             </div>
           </Panel>
-        </div>
 
-        {/* Add Transaction - left */}
-        <div className="xl:col-span-6">
-          <Panel title="ADD TRANSACTION">
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <button
-                onClick={() => setTxTab("profit")}
-                className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
-              >
-                ADD PROFIT
-              </button>
-              <button
-                onClick={() => setTxTab("loss")}
-                className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "loss" ? "bg-red-500/15 border-red-400/60 text-red-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
-              >
-                ADD LOSS
-              </button>
-            </div>
-
-            <label className="block mb-2">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">ACCOUNT</div>
-              <select value={txAcc} onChange={(e) => setTxAcc(e.target.value)}
-                className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
-                {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
-            </label>
-            <label className="block mb-2">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">AMOUNT ($)</div>
-              <Input type="number" step="0.01" placeholder="Enter amount" value={txAmt} onChange={(e) => setTxAmt(e.target.value)} className="h-9 text-xs" />
-            </label>
-            <label className="block mb-2">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
-              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9 text-xs" />
-            </label>
-            <label className="block mb-3">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">NOTES (OPTIONAL)</div>
-              <Textarea rows={2} placeholder="Add notes..." value={txNotes} onChange={(e) => setTxNotes(e.target.value)} className="text-xs" />
-            </label>
-            <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
-              {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
-            </Button>
-          </Panel>
-        </div>
-
-        {/* Strategy Journal - right */}
-        <div className="xl:col-span-6">
+          {/* Strategy Journal — below Accounts */}
           <Panel title="STRATEGY JOURNAL">
             <div className="flex items-center justify-end -mt-8 mb-3">
               <Button onClick={() => openNewJournal()} size="sm" variant="outline" className="hud-label text-[10px]">
                 <Plus className="h-3 w-3 mr-1" /> NEW ENTRY
               </Button>
             </div>
-            <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
               {journal.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">No entries yet.</div>
               )}
               {[...journal].sort((a, b) => b.date.localeCompare(a.date)).map((e) => (
-                <div key={e.id} className="border border-border rounded p-3 hover:border-primary/40 transition-colors group">
+                <div key={e.id} className="border border-border rounded p-2.5 hover:border-primary/40 transition-colors group">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="hud-label text-[10px] text-primary">{new Date(e.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</div>
@@ -511,8 +466,8 @@ function InvestingPage() {
                       <X className="h-3 w-3" />
                     </button>
                   </div>
-                  <button onClick={() => openEditJournal(e)} className="block text-left w-full mt-2">
-                    <div className="text-xs text-foreground/85 leading-snug">{e.review}</div>
+                  <button onClick={() => openReview(e.date)} className="block text-left w-full mt-2">
+                    <div className="text-xs text-foreground/85 leading-snug line-clamp-2">{e.review}</div>
                     <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
                       <div className="flex flex-wrap gap-1">
                         {e.tags.map((t) => (
@@ -527,7 +482,56 @@ function InvestingPage() {
             </div>
           </Panel>
         </div>
+
+        {/* Add Transaction — full width */}
+        <div className="xl:col-span-12">
+          <Panel title="ADD TRANSACTION">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    onClick={() => setTxTab("profit")}
+                    className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
+                  >
+                    ADD PROFIT
+                  </button>
+                  <button
+                    onClick={() => setTxTab("loss")}
+                    className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "loss" ? "bg-red-500/15 border-red-400/60 text-red-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
+                  >
+                    ADD LOSS
+                  </button>
+                </div>
+                <label className="block mb-2">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">ACCOUNT</div>
+                  <select value={txAcc} onChange={(e) => setTxAcc(e.target.value)}
+                    className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
+                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </label>
+                <label className="block mb-2">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">AMOUNT ($)</div>
+                  <Input type="number" step="0.01" placeholder="Enter amount" value={txAmt} onChange={(e) => setTxAmt(e.target.value)} className="h-9 text-xs" />
+                </label>
+                <label className="block">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
+                  <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9 text-xs" />
+                </label>
+              </div>
+              <div className="flex flex-col">
+                <label className="block mb-3 flex-1">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">NOTES (OPTIONAL)</div>
+                  <Textarea rows={8} placeholder="Add notes..." value={txNotes} onChange={(e) => setTxNotes(e.target.value)} className="text-xs h-full" />
+                </label>
+                <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
+                  {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
+                </Button>
+              </div>
+            </div>
+          </Panel>
+        </div>
       </div>
+
 
       {/* ============ TRANSACTION HISTORY ============ */}
       <Panel title="TRANSACTION HISTORY">
