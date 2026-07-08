@@ -75,10 +75,11 @@ function InvestingPage() {
   const allTx = useMemo(() => [...txns].sort((a, b) => (b.date + (b.time ?? "")).localeCompare(a.date + (a.time ?? ""))), [txns]);
 
   // ---- top stats ----
-  const now = new Date();
-  const dayStr = now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase();
-  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase();
-  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  const nowIso = useClientNow();
+  const now = nowIso ? new Date(nowIso) : null;
+  const dayStr = now ? now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase() : "—";
+  const dateStr = now ? now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase() : "—";
+  const timeStr = now ? now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "—";
 
   const totalPnl = useMemo(() =>
     txns.reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0),
