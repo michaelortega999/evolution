@@ -536,7 +536,7 @@ export interface NetWorthSnapshot {
 
 
 const STORAGE_KEY = "evolution:data:v2";
-export const STORAGE_VERSION = 5;
+export const STORAGE_VERSION = 6;
 
 type StoredShape = Partial<EvolutionData> & { _version?: number };
 
@@ -560,6 +560,15 @@ function migrate(parsed: StoredShape): StoredShape {
     next.tradingAccounts = undefined;
     next.tradingTxns = undefined;
     next.tradeJournal = undefined;
+    if (Array.isArray(next.assets)) {
+      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
+    }
+  }
+  // v5 → v6: reset to a single TradeDay Funded account at zero and wipe all trading transactions/journal.
+  if (v < 6) {
+    next.tradingAccounts = seedTradingAccounts();
+    next.tradingTxns = [];
+    next.tradeJournal = [];
     if (Array.isArray(next.assets)) {
       next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
     }
