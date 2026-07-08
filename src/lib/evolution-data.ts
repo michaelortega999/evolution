@@ -1093,3 +1093,47 @@ export function formatHm(mins: number): string {
   return `${h}h ${m}m`;
 }
 
+// ---------- Trading account balance + Wealth sync ----------
+
+export function accountBalance(accountId: string, accounts: TradingAccount[], txns: TradingTx[]): number {
+  const acc = accounts.find((a) => a.id === accountId);
+  if (!acc) return 0;
+  return acc.startingBalance + txns
+    .filter((t) => t.accountId === accountId)
+    .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
+}
+
+export function tradingTotals(accounts: TradingAccount[], txns: TradingTx[]) {
+  const today = todayDate();
+  const monthKey = today.slice(0, 7);
+  let balance = 0, todayPnl = 0, monthPnl = 0;
+  const perAccount: Record<string, { balance: number; today: number; month: number }> = {};
+  for (const acc of accounts) {
+    let b = acc.startingBalance, tP = 0, mP = 0;
+    for (const t of txns.filter((x) => x.accountId === acc.id)) {
+      const signed = t.type === "profit" ? t.amount : -t.amount;
+      b += signed;
+      if (t.date === today) tP += signed;
+      if (t.date.startsWith(monthKey)) mP += signed;
+    }
+    perAccount[acc.id] = { balance: b, today: tP, month: mP };
+    balance += b; todayPnl += tP; monthPnl += mP;
+  }
+  return { balance, todayPnl, monthPnl, perAccount };
+}
+
+/** Rebuild `assets` so every trading account is mirrored as an Investment asset (`trading-{id}`). */
+export function syncTradingAssets(next: EvolutionData): EvolutionData {
+  const { perAccount } = tradingTotals(next.tradingAccounts, next.tradingTxns);
+  const nonTrading = next.assets.filter((a) => !a.id.startsWith("trading-"));
+  const tradingAssets: Asset[] = next.tradingAccounts.map((acc) => ({
+    id: `trading-${acc.id}`,
+    name: acc.name,
+    value: Math.max(0, Math.round(perAccount[acc.id]?.balance ?? acc.startingBalance)),
+    category: "Investment",
+    date: acc.createdDate,
+  }));
+  return { ...next, assets: [...nonTrading, ...tradingAssets] };
+}
+
+
