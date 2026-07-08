@@ -488,6 +488,9 @@ export interface EvolutionData {
   habitOrder: string[];
   hiddenHabits: string[];
   timeLogs: TimeLog[];
+  tradingAccounts: TradingAccount[];
+  tradingTxns: TradingTx[];
+  tradeJournal: TradeJournalEntry[];
 }
 
 export interface EvoHabit {
