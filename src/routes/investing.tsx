@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   TrendingUp, Plus, Trash2, BookOpen, ChevronLeft, ChevronRight,
-  Download, X, Building2, ArrowLeft,
+  Download, X, Building2, ArrowLeft, Layers,
 } from "lucide-react";
+
 
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Input } from "@/components/ui/input";
@@ -350,11 +351,12 @@ function InvestingPage() {
                       <span className={`hud-label ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
                       <button
                         onClick={() => openReview(cell.date!)}
-                        className={`h-4 w-4 rounded flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
+                        className={`h-6 w-6 rounded-md flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
                         title={hasJournal ? "Open trade review" : "Add trade review"}
                       >
-                        <BookOpen className="h-2.5 w-2.5" />
+                        <BookOpen className="h-3.5 w-3.5" />
                       </button>
+
 
                     </div>
                     {pnl !== 0 && (
@@ -433,12 +435,23 @@ function InvestingPage() {
               )}
             </div>
 
-            {/* Compact totals */}
-            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border">
-              <FooterStat label="TOTAL ASSETS" value={fmtBig(totals.balance)} />
-              <FooterStat label="P/L TODAY" value={fmtMoney(totals.todayPnl, { sign: true })} valueClass={pnlClass(totals.todayPnl)} />
-              <FooterStat label="P/L MONTH" value={fmtMoney(totals.monthPnl, { sign: true })} valueClass={pnlClass(totals.monthPnl)} />
+            {/* Compact totals — P/L on top row, Total Assets below (shared w/ Wealth) */}
+            <div className="mt-3 pt-3 border-t border-border space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <FooterStat label="P/L TODAY" value={fmtMoney(totals.todayPnl, { sign: true })} valueClass={pnlClass(totals.todayPnl)} />
+                <FooterStat label="P/L MONTH" value={fmtMoney(totals.monthPnl, { sign: true })} valueClass={pnlClass(totals.monthPnl)} />
+              </div>
+              <div className="border border-primary/40 bg-primary/5 rounded p-3 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
+                  <Layers className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="hud-label text-[9px] text-muted-foreground">TOTAL ASSETS</div>
+                  <div className="hud-label text-xl text-primary hud-glow tabular-nums truncate">{fmtBig(totals.balance)}</div>
+                </div>
+              </div>
             </div>
+
             <div className="mt-1.5 text-[9px] hud-label text-muted-foreground text-right">
               ↻ Auto-synced to Wealth
             </div>
