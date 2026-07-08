@@ -466,7 +466,7 @@ function InvestingPage() {
         </div>
 
         {/* Strategy Journal - right */}
-        <div className="xl:col-span-3">
+        <div className="xl:col-span-6">
           <Panel title="STRATEGY JOURNAL">
             <div className="flex items-center justify-end -mt-8 mb-3">
               <Button onClick={() => openNewJournal()} size="sm" variant="outline" className="hud-label text-[10px]">
