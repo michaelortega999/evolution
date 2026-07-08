@@ -598,8 +598,11 @@ function InvestingPage() {
           )}
         </div>
       </Panel>
+      </>
+      )}
 
       {/* ============ MODALS ============ */}
+
       <Dialog open={addAccOpen} onOpenChange={setAddAccOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle className="hud-label text-primary flex items-center gap-2"><Building2 className="h-4 w-4" /> Add Trading Account</DialogTitle></DialogHeader>
