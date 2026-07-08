@@ -527,7 +527,7 @@ function InvestingPage() {
 
         {/* Add Transaction — full width */}
         <div className="xl:col-span-12">
-          <Panel title="ADD TRANSACTION">
+          <Panel title="ADD TRANSACTION · TRADE REVIEW">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <div className="grid grid-cols-2 gap-2 mb-3">
