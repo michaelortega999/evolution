@@ -377,7 +377,15 @@ function InvestingPage() {
     <ModuleLayout number="06" title="INVESTING" subtitle="Track performance. Refine strategy. Build freedom." icon={TrendingUp}>
       {/* ============ TOP STATS BAR ============ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Assets" value={fmtBig(totals.balance)} icon={Layers} iconRight />
+        <div className="hud-card p-4 flex flex-col gap-2 border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
+              <Layers className="h-3.5 w-3.5 text-[#00f0ff]" />
+            </div>
+            <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">Total Assets</span>
+          </div>
+          <div className="hud-label text-2xl text-[#00f0ff] hud-glow tabular-nums">{fmtBig(totals.balance)}</div>
+        </div>
         <StatCard label="Win Rate" value={`${winRate}%`} valueClass="text-primary" />
         <StatCard label="Best Day" value={fmtMoney(bestDay.pnl, { sign: true })} valueClass="text-emerald-400" />
         <div className="hud-card p-4">
