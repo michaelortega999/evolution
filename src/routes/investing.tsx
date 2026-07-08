@@ -41,6 +41,13 @@ function pnlClass(n: number) {
   if (n < 0) return "text-red-400";
   return "text-muted-foreground";
 }
+const JOURNAL_DAILY_TX_PREFIX = "journal-daily-";
+function journalDailyTxId(date: string) {
+  return `${JOURNAL_DAILY_TX_PREFIX}${date}`;
+}
+function signedTxAmount(t: TradingTx) {
+  return t.type === "profit" ? Math.abs(t.amount) : -Math.abs(t.amount);
+}
 
 function useClientNow() {
   const [now, setNow] = useState<string | null>(null);
@@ -136,16 +143,24 @@ function InvestingPage() {
   const [txReview, setTxReview] = useState("");
   const [txSession, setTxSession] = useState<TradingSessionKind>("New York");
 
+  useEffect(() => {
+    if (!accounts.length) {
+      if (txAcc) setTxAcc("");
+      return;
+    }
+    if (!accounts.some((a) => a.id === txAcc)) setTxAcc(accounts[0].id);
+  }, [accounts, txAcc]);
+
   const submitTx = () => {
     const amt = Number(txAmt);
     const accId = txAcc || accounts[0]?.id;
-    if (!amt || !accId) return;
-    const signed = txTab === "profit" ? Math.abs(amt) : -Math.abs(amt);
+    if (!Number.isFinite(amt) || amt === 0 || !accId) return;
+    const resolvedType: TradingTxType = amt < 0 ? "loss" : txTab;
     const newTx: TradingTx = {
       id: uid(),
       accountId: accId,
       date: txDate,
-      type: txTab,
+      type: resolvedType,
       amount: Math.abs(amt),
       notes: txReview.trim() || undefined,
     };
@@ -158,7 +173,7 @@ function InvestingPage() {
         const dayPnl =
           nextTxns
             .filter((t) => t.date === txDate)
-            .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
+            .reduce((s, t) => s + signedTxAmount(t), 0);
         if (existing) {
           const mergedReview = txReview.trim()
             ? (existing.review ? `${existing.review}\n\n${txReview.trim()}` : txReview.trim())
@@ -215,16 +230,57 @@ function InvestingPage() {
     openReview(entry.date);
   };
   const submitJournal = () => {
-    if (!jReview.trim()) return;
+    if (!jReview.trim() && !jPnl.trim()) return;
     const tags = jTags.split(",").map((s) => s.trim()).filter(Boolean);
     const pnlN = Number(jPnl) || 0;
     if (journalEditing) {
       const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
-      mutateTrading((prev) => ({ tradeJournal: prev.tradeJournal.map((e) => e.id === updated.id ? updated : e) }));
+      mutateTrading((prev) => {
+        const replacingIds = new Set([journalDailyTxId(jDate), journalDailyTxId(journalEditing.date)]);
+        const hasPnlInput = jPnl.trim() !== "" && Number.isFinite(Number(jPnl));
+        let nextTxns = prev.tradingTxns.filter((t) => !replacingIds.has(t.id));
+        if (hasPnlInput && prev.tradingAccounts[0]) {
+          const manualPnl = nextTxns
+            .filter((t) => t.date === jDate)
+            .reduce((s, t) => s + signedTxAmount(t), 0);
+          const delta = pnlN - manualPnl;
+          if (delta !== 0) {
+            nextTxns = [...nextTxns, {
+              id: journalDailyTxId(jDate),
+              accountId: prev.tradingAccounts[0].id,
+              date: jDate,
+              type: delta > 0 ? "profit" : "loss",
+              amount: Math.abs(delta),
+              notes: `Trade review daily P/L${jReview.trim() ? `: ${jReview.trim()}` : ""}`,
+            }];
+          }
+        }
+        return { tradeJournal: prev.tradeJournal.map((e) => e.id === updated.id ? updated : e), tradingTxns: nextTxns };
+      });
       setJournalEditing(updated);
     } else {
       const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
-      mutateTrading((prev) => ({ tradeJournal: [fresh, ...prev.tradeJournal] }));
+      mutateTrading((prev) => {
+        const hasPnlInput = jPnl.trim() !== "" && Number.isFinite(Number(jPnl));
+        let nextTxns = prev.tradingTxns.filter((t) => t.id !== journalDailyTxId(jDate));
+        if (hasPnlInput && prev.tradingAccounts[0]) {
+          const manualPnl = nextTxns
+            .filter((t) => t.date === jDate)
+            .reduce((s, t) => s + signedTxAmount(t), 0);
+          const delta = pnlN - manualPnl;
+          if (delta !== 0) {
+            nextTxns = [...nextTxns, {
+              id: journalDailyTxId(jDate),
+              accountId: prev.tradingAccounts[0].id,
+              date: jDate,
+              type: delta > 0 ? "profit" : "loss",
+              amount: Math.abs(delta),
+              notes: `Trade review daily P/L${jReview.trim() ? `: ${jReview.trim()}` : ""}`,
+            }];
+          }
+        }
+        return { tradeJournal: [fresh, ...prev.tradeJournal], tradingTxns: nextTxns };
+      });
       setJournalEditing(fresh);
     }
     setJournalOpen(false);

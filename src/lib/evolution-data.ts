@@ -768,7 +768,7 @@ function load(): EvolutionData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData;
     const parsed = migrate(JSON.parse(raw) as StoredShape);
-    return {
+    const loaded: EvolutionData = {
       ...defaultData,
       ...parsed,
       profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
@@ -836,6 +836,7 @@ function load(): EvolutionData {
 
 
     };
+    return syncTradingAssets(loaded);
   } catch {
     return defaultData;
   }
@@ -1092,8 +1093,10 @@ export function formatHm(mins: number): string {
 export function accountBalance(accountId: string, accounts: TradingAccount[], txns: TradingTx[]): number {
   const acc = accounts.find((a) => a.id === accountId);
   if (!acc) return 0;
+  const accountIds = new Set(accounts.map((a) => a.id));
+  const primaryId = accounts[0]?.id;
   return acc.startingBalance + txns
-    .filter((t) => t.accountId === accountId)
+    .filter((t) => t.accountId === accountId || (accountId === primaryId && !accountIds.has(t.accountId)))
     .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
 }
 
@@ -1102,9 +1105,11 @@ export function tradingTotals(accounts: TradingAccount[], txns: TradingTx[]) {
   const monthKey = today.slice(0, 7);
   let balance = 0, todayPnl = 0, monthPnl = 0;
   const perAccount: Record<string, { balance: number; today: number; month: number }> = {};
+  const accountIds = new Set(accounts.map((a) => a.id));
+  const primaryId = accounts[0]?.id;
   for (const acc of accounts) {
     let b = acc.startingBalance, tP = 0, mP = 0;
-    for (const t of txns.filter((x) => x.accountId === acc.id)) {
+    for (const t of txns.filter((x) => x.accountId === acc.id || (acc.id === primaryId && !accountIds.has(x.accountId)))) {
       const signed = t.type === "profit" ? t.amount : -t.amount;
       b += signed;
       if (t.date === today) tP += signed;
