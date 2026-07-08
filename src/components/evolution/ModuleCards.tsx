@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Wallet, Apple, Dumbbell, FileText, NotebookPen,
@@ -19,7 +19,7 @@ import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
-  useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary,
+  useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary, tradingTotals,
   todayDate, dayTotals, nutritionStreak, uid, wealthSummary,
   type Meal, type Hobby,
 } from "@/lib/evolution-data";
@@ -321,7 +321,23 @@ export function InvestingCard() {
   const { data, mutate } = useEvolutionData();
   const [pnl, setPnl] = useState("");
   const inv = investingSummary(data.investing);
-  const goalPct = Math.min(100, Math.round((inv.current / data.profile.goal) * 100));
+  const trading = tradingTotals(data.tradingAccounts, data.tradingTxns);
+  const totalAssets = trading.balance;
+  const startingBalance = data.tradingAccounts.reduce((s, a) => s + a.startingBalance, 0);
+  const pct = startingBalance > 0 ? ((totalAssets - startingBalance) / startingBalance) * 100 : 0;
+  const goalPct = Math.min(100, Math.round((totalAssets / data.profile.goal) * 100));
+
+  // Sparkline from cumulative trading balance over time
+  const sparkData = useMemo(() => {
+    const asc = [...data.tradingTxns].sort((a, b) => (a.date + (a.time ?? "")).localeCompare(b.date + (b.time ?? "")));
+    let running = startingBalance;
+    const pts = [running];
+    for (const t of asc) {
+      running += t.type === "profit" ? t.amount : -t.amount;
+      pts.push(running);
+    }
+    return pts.length > 1 ? pts : (inv.data.length ? inv.data : [1]);
+  }, [data.tradingTxns, startingBalance, inv.data]);
 
   const logPnL = () => {
     const n = Number(pnl);
@@ -334,14 +350,15 @@ export function InvestingCard() {
 
   return (
     <Card icon={TrendingUp} variant="investing" number="06" title="Investing" href="/investing">
-      <div className="hud-label text-[10px] text-muted-foreground">Portfolio</div>
-      <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(inv.current)}</div>
+      <div className="hud-label text-[10px] text-muted-foreground">Total Assets</div>
+      <div className="hud-label text-2xl text-primary hud-glow my-1">{formatMoney(totalAssets)}</div>
       <div className="hud-label text-[10px] text-primary">
-        {inv.pct >= 0 ? "▲" : "▼"} {Math.abs(inv.pct).toFixed(2)}%
+        {pct >= 0 ? "▲" : "▼"} {Math.abs(pct).toFixed(2)}%
       </div>
       <div className="mt-2">
-        <Sparkline data={inv.data.length ? inv.data : [1]} height={40} />
+        <Sparkline data={sparkData} height={40} />
       </div>
+
       <div className="mt-2">
         <div className="flex justify-between hud-label text-[9px] text-muted-foreground">
           <span>Goal</span><span>{formatMoney(data.profile.goal)}</span>
