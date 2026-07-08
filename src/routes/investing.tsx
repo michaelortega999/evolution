@@ -41,6 +41,17 @@ function pnlClass(n: number) {
   return "text-muted-foreground";
 }
 
+function useClientNow() {
+  const [now, setNow] = useState<string | null>(null);
+  useEffect(() => {
+    const tick = () => setNow(new Date().toISOString());
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
 function InvestingPage() {
   const { data, mutate } = useEvolutionData();
 
