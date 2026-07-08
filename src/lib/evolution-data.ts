@@ -536,7 +536,7 @@ export interface NetWorthSnapshot {
 
 
 const STORAGE_KEY = "evolution:data:v2";
-export const STORAGE_VERSION = 5;
+export const STORAGE_VERSION = 6;
 
 type StoredShape = Partial<EvolutionData> & { _version?: number };
 
@@ -560,6 +560,15 @@ function migrate(parsed: StoredShape): StoredShape {
     next.tradingAccounts = undefined;
     next.tradingTxns = undefined;
     next.tradeJournal = undefined;
+    if (Array.isArray(next.assets)) {
+      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
+    }
+  }
+  // v5 → v6: reset to a single TradeDay Funded account at zero and wipe all trading transactions/journal.
+  if (v < 6) {
+    next.tradingAccounts = seedTradingAccounts();
+    next.tradingTxns = [];
+    next.tradeJournal = [];
     if (Array.isArray(next.assets)) {
       next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
     }
@@ -730,29 +739,14 @@ function _midMonth(): string {
 
 function seedTradingAccounts(): TradingAccount[] {
   return [
-    { id: "acc-tradeday", name: "TradeDay Funded", company: "TD", size: 50000, startingBalance: 50472, createdDate: _firstOfMonth() },
-    { id: "acc-lucid",    name: "Lucid Futures Funded", company: "LF", size: 100000, startingBalance: 102531, createdDate: _firstOfMonth() },
-    { id: "acc-topstep",  name: "TopStep X", company: "TS", size: 75000, startingBalance: 75955, createdDate: _firstOfMonth() },
+    { id: "acc-tradeday", name: "TradeDay Funded", company: "TD", size: 50000, startingBalance: 50000, createdDate: _firstOfMonth() },
   ];
 }
 function seedTradingTxns(): TradingTx[] {
-  const t = _today(); const m = _midMonth();
-  return [
-    { id: "ttx-1", accountId: "acc-tradeday", date: t, type: "profit", amount: 312.50, notes: "London session long" },
-    { id: "ttx-2", accountId: "acc-tradeday", date: m, type: "profit", amount: 1530.25, notes: "Prior wins this month" },
-    { id: "ttx-3", accountId: "acc-lucid",    date: t, type: "loss",   amount: 125.00, notes: "Stopped out - news spike" },
-    { id: "ttx-4", accountId: "acc-lucid",    date: m, type: "profit", amount: 1279.20, notes: "Prior wins this month" },
-    { id: "ttx-5", accountId: "acc-topstep",  date: t, type: "profit", amount: 89.00,  notes: "Asia session scalp" },
-    { id: "ttx-6", accountId: "acc-topstep",  date: m, type: "profit", amount: 161.30, notes: "Prior wins this month" },
-  ];
+  return [];
 }
 function seedTradeJournal(): TradeJournalEntry[] {
-  const t = _today();
-  return [
-    { id: "tj-1", date: t, session: "London", review: "Clean break of structure on 15m. Waited for retest of imbalance and took long with tight stop below liquidity. Targets hit.", tags: ["ICT", "Liquidity", "Break of Structure"], pnl: 312.50 },
-    { id: "tj-2", date: _midMonth(), session: "Asia", review: "Choppy session. Market lacked direction after news. Took 2 small scalps and called it a day.", tags: ["Patience", "Discipline"], pnl: 89.00 },
-    { id: "tj-3", date: _firstOfMonth(), session: "London", review: "Took a short on highs into premium. Good reaction off daily resistance. Partial profits at 1R, trailed rest.", tags: ["ICT", "Levels", "Execution"], pnl: 245.00 },
-  ];
+  return [];
 }
 
 
