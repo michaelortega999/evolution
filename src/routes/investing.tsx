@@ -379,8 +379,8 @@ function InvestingPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="hud-card p-4 flex flex-col gap-2 border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
-              <Layers className="h-3.5 w-3.5 text-[#00f0ff]" />
+            <div className="h-10 w-10 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
+              <Layers className="h-5 w-5 text-[#00f0ff]" />
             </div>
             <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">Total Assets</span>
           </div>
