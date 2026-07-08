@@ -381,8 +381,9 @@ function InvestingPage() {
           </Panel>
         </div>
 
-        {/* Accounts — right / compact */}
-        <div className="xl:col-span-4">
+        {/* Accounts + Strategy Journal — right / compact stack */}
+        <div className="xl:col-span-4 space-y-4">
+
           <Panel title="ACCOUNTS">
             <div className="flex items-center justify-end -mt-8 mb-3">
               <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
