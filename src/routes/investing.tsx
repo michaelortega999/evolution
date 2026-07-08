@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   TrendingUp, Plus, Trash2, BookOpen, ChevronLeft, ChevronRight,
-  Download, X, Building2,
+  Download, X, Building2, ArrowLeft,
 } from "lucide-react";
+
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
