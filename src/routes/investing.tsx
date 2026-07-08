@@ -179,8 +179,7 @@ function InvestingPage() {
   };
   const deleteTx = (id: string) =>
     mutateTrading((prev) => ({ tradingTxns: prev.tradingTxns.filter((t) => t.id !== id) }));
-  void 0; // keep hook signature; signed captured above intentionally
-  void 0;
+
 
 
   // ---- Journal ----
