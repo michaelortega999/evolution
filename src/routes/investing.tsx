@@ -133,25 +133,54 @@ function InvestingPage() {
   const [txAcc, setTxAcc] = useState<string>(accounts[0]?.id ?? "");
   const [txAmt, setTxAmt] = useState("");
   const [txDate, setTxDate] = useState(todayDate());
-  const [txNotes, setTxNotes] = useState("");
+  const [txReview, setTxReview] = useState("");
+  const [txSession, setTxSession] = useState<TradingSessionKind>("New York");
 
   const submitTx = () => {
     const amt = Number(txAmt);
     const accId = txAcc || accounts[0]?.id;
     if (!amt || !accId) return;
+    const signed = txTab === "profit" ? Math.abs(amt) : -Math.abs(amt);
     const newTx: TradingTx = {
       id: uid(),
       accountId: accId,
       date: txDate,
       type: txTab,
       amount: Math.abs(amt),
-      notes: txNotes.trim() || undefined,
+      notes: txReview.trim() || undefined,
     };
-    mutateTrading((prev) => ({ tradingTxns: [...prev.tradingTxns, newTx] }));
-    setTxAmt(""); setTxNotes("");
+    mutateTrading((prev) => {
+      const nextTxns = [...prev.tradingTxns, newTx];
+      // Upsert a trade-review journal entry for this date so calendar + strategy journal stay in sync.
+      const existing = prev.tradeJournal.find((e) => e.date === txDate);
+      let nextJournal = prev.tradeJournal;
+      if (txReview.trim() || existing) {
+        const dayPnl =
+          nextTxns
+            .filter((t) => t.date === txDate)
+            .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
+        if (existing) {
+          const mergedReview = txReview.trim()
+            ? (existing.review ? `${existing.review}\n\n${txReview.trim()}` : txReview.trim())
+            : existing.review;
+          nextJournal = prev.tradeJournal.map((e) =>
+            e.id === existing.id ? { ...e, review: mergedReview, pnl: dayPnl, session: txSession } : e,
+          );
+        } else {
+          nextJournal = [
+            { id: uid(), date: txDate, session: txSession, review: txReview.trim(), tags: [], pnl: dayPnl },
+            ...prev.tradeJournal,
+          ];
+        }
+      }
+      return { tradingTxns: nextTxns, tradeJournal: nextJournal };
+    });
+    setTxAmt(""); setTxReview("");
   };
   const deleteTx = (id: string) =>
     mutateTrading((prev) => ({ tradingTxns: prev.tradingTxns.filter((t) => t.id !== id) }));
+
+
 
   // ---- Journal ----
   const [journalOpen, setJournalOpen] = useState(false);
@@ -498,7 +527,7 @@ function InvestingPage() {
 
         {/* Add Transaction — full width */}
         <div className="xl:col-span-12">
-          <Panel title="ADD TRANSACTION">
+          <Panel title="ADD TRANSACTION · TRADE REVIEW">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <div className="grid grid-cols-2 gap-2 mb-3">
@@ -532,14 +561,48 @@ function InvestingPage() {
                 </label>
               </div>
               <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="hud-label text-[9px] text-muted-foreground">TRADE REVIEW</div>
+                  <button
+                    type="button"
+                    onClick={() => openReview(txDate)}
+                    className="hud-label text-[9px] text-primary hud-glow hover:underline flex items-center gap-1"
+                    title="Open the full trade review for this date"
+                  >
+                    <BookOpen className="h-3 w-3" /> OPEN FULL REVIEW
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <label className="block">
+                    <div className="hud-label text-[9px] text-muted-foreground mb-1">SESSION</div>
+                    <select
+                      value={txSession}
+                      onChange={(e) => setTxSession(e.target.value as TradingSessionKind)}
+                      className="h-9 w-full bg-input border border-border rounded px-2 text-xs"
+                    >
+                      {TRADING_SESSIONS.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </label>
+                  <div className="flex items-end">
+                    <div className="text-[9px] hud-label text-muted-foreground leading-tight">
+                      Saved to <span className="text-primary">Strategy Journal</span> &amp; <span className="text-primary">Monthly Calendar</span> for {txDate}.
+                    </div>
+                  </div>
+                </div>
                 <label className="block mb-3 flex-1">
-                  <div className="hud-label text-[9px] text-muted-foreground mb-1">NOTES (OPTIONAL)</div>
-                  <Textarea rows={8} placeholder="Add notes..." value={txNotes} onChange={(e) => setTxNotes(e.target.value)} className="text-xs h-full" />
+                  <Textarea
+                    rows={6}
+                    placeholder="Setup, execution, emotions, mistakes, lessons... This posts to the day's Trade Review."
+                    value={txReview}
+                    onChange={(e) => setTxReview(e.target.value)}
+                    className="text-xs h-full"
+                  />
                 </label>
                 <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
                   {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
                 </Button>
               </div>
+
             </div>
           </Panel>
         </div>
