@@ -762,5 +762,3 @@ function JournalReviewView(props: {
     </Panel>
   );
 }
-
-}
