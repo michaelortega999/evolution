@@ -425,7 +425,6 @@ function InvestingPage() {
         {/* Add Transaction - left */}
         <div className="xl:col-span-6">
           <Panel title="ADD TRANSACTION">
-          <Panel title="ADD TRANSACTION">
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
                 onClick={() => setTxTab("profit")}
