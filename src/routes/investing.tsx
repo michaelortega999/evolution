@@ -161,18 +161,28 @@ function InvestingPage() {
   const [jTags, setJTags] = useState("");
   const [jPnl, setJPnl] = useState("");
 
+  // ---- In-page Journal Review view ----
+  const [reviewDate, setReviewDate] = useState<string | null>(null);
+  const openReview = (date: string) => {
+    const entry = journal.find((e) => e.date === date);
+    if (entry) {
+      setJournalEditing(entry);
+      setJDate(entry.date); setJSession(entry.session); setJReview(entry.review);
+      setJTags(entry.tags.join(", ")); setJPnl(String(entry.pnl));
+    } else {
+      setJournalEditing(null);
+      setJDate(date); setJSession("New York");
+      setJReview(""); setJTags(""); setJPnl(String(dayMap.get(date) ?? ""));
+    }
+    setReviewDate(date);
+  };
+  const closeReview = () => setReviewDate(null);
+
   const openNewJournal = (date?: string) => {
-    setJournalEditing(null);
-    setJDate(date ?? todayDate());
-    setJSession("New York");
-    setJReview(""); setJTags(""); setJPnl(String(date ? (dayMap.get(date) ?? 0) : ""));
-    setJournalOpen(true);
+    openReview(date ?? todayDate());
   };
   const openEditJournal = (entry: TradeJournalEntry) => {
-    setJournalEditing(entry);
-    setJDate(entry.date); setJSession(entry.session); setJReview(entry.review);
-    setJTags(entry.tags.join(", ")); setJPnl(String(entry.pnl));
-    setJournalOpen(true);
+    openReview(entry.date);
   };
   const submitJournal = () => {
     if (!jReview.trim()) return;
@@ -181,14 +191,17 @@ function InvestingPage() {
     if (journalEditing) {
       const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
       mutateTrading((prev) => ({ tradeJournal: prev.tradeJournal.map((e) => e.id === updated.id ? updated : e) }));
+      setJournalEditing(updated);
     } else {
       const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
       mutateTrading((prev) => ({ tradeJournal: [fresh, ...prev.tradeJournal] }));
+      setJournalEditing(fresh);
     }
     setJournalOpen(false);
   };
   const deleteJournal = (id: string) =>
     mutateTrading((prev) => ({ tradeJournal: prev.tradeJournal.filter((e) => e.id !== id) }));
+
 
   const journalByDate = useMemo(() => {
     const m = new Map<string, TradeJournalEntry>();
