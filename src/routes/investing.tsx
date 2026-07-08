@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   TrendingUp, Plus, Trash2, BookOpen, ChevronLeft, ChevronRight,
-  Download, X, Building2,
+  Download, X, Building2, ArrowLeft,
 } from "lucide-react";
+
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -160,18 +161,28 @@ function InvestingPage() {
   const [jTags, setJTags] = useState("");
   const [jPnl, setJPnl] = useState("");
 
+  // ---- In-page Journal Review view ----
+  const [reviewDate, setReviewDate] = useState<string | null>(null);
+  const openReview = (date: string) => {
+    const entry = journal.find((e) => e.date === date);
+    if (entry) {
+      setJournalEditing(entry);
+      setJDate(entry.date); setJSession(entry.session); setJReview(entry.review);
+      setJTags(entry.tags.join(", ")); setJPnl(String(entry.pnl));
+    } else {
+      setJournalEditing(null);
+      setJDate(date); setJSession("New York");
+      setJReview(""); setJTags(""); setJPnl(String(dayMap.get(date) ?? ""));
+    }
+    setReviewDate(date);
+  };
+  const closeReview = () => setReviewDate(null);
+
   const openNewJournal = (date?: string) => {
-    setJournalEditing(null);
-    setJDate(date ?? todayDate());
-    setJSession("New York");
-    setJReview(""); setJTags(""); setJPnl(String(date ? (dayMap.get(date) ?? 0) : ""));
-    setJournalOpen(true);
+    openReview(date ?? todayDate());
   };
   const openEditJournal = (entry: TradeJournalEntry) => {
-    setJournalEditing(entry);
-    setJDate(entry.date); setJSession(entry.session); setJReview(entry.review);
-    setJTags(entry.tags.join(", ")); setJPnl(String(entry.pnl));
-    setJournalOpen(true);
+    openReview(entry.date);
   };
   const submitJournal = () => {
     if (!jReview.trim()) return;
@@ -180,14 +191,17 @@ function InvestingPage() {
     if (journalEditing) {
       const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
       mutateTrading((prev) => ({ tradeJournal: prev.tradeJournal.map((e) => e.id === updated.id ? updated : e) }));
+      setJournalEditing(updated);
     } else {
       const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
       mutateTrading((prev) => ({ tradeJournal: [fresh, ...prev.tradeJournal] }));
+      setJournalEditing(fresh);
     }
     setJournalOpen(false);
   };
   const deleteJournal = (id: string) =>
     mutateTrading((prev) => ({ tradeJournal: prev.tradeJournal.filter((e) => e.id !== id) }));
+
 
   const journalByDate = useMemo(() => {
     const m = new Map<string, TradeJournalEntry>();
@@ -287,7 +301,21 @@ function InvestingPage() {
         </div>
       </div>
 
-      {/* ============ MAIN GRID: CALENDAR + ACCOUNTS | TX | JOURNAL ============ */}
+      {reviewDate ? (
+        <JournalReviewView
+          onBack={closeReview}
+          onSave={submitJournal}
+          onDelete={journalEditing ? () => { deleteJournal(journalEditing.id); closeReview(); } : undefined}
+          isNew={!journalEditing}
+          jDate={jDate} setJDate={setJDate}
+          jSession={jSession} setJSession={setJSession}
+          jReview={jReview} setJReview={setJReview}
+          jTags={jTags} setJTags={setJTags}
+          jPnl={jPnl} setJPnl={setJPnl}
+        />
+      ) : (
+      <>
+      {/* ============ MAIN GRID: CALENDAR | ACCOUNTS + JOURNAL ============ */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
         {/* Calendar — left / larger */}
         <div className="xl:col-span-8">
@@ -296,10 +324,7 @@ function InvestingPage() {
               <div />
               <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
             </div>
-            <div className="flex items-center justify-between -mt-8 mb-3">
-              <div />
-              <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
-            </div>
+
             <div className="flex items-center justify-center gap-4 mb-3">
               <button onClick={() => shiftMonth(-1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronLeft className="h-4 w-4" /></button>
               <div className="hud-label text-sm text-primary hud-glow">{monthLabel}</div>
@@ -324,15 +349,13 @@ function InvestingPage() {
                     <div className="flex items-start justify-between">
                       <span className={`hud-label ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
                       <button
-                        onClick={() => {
-                          const entry = journalByDate.get(cell.date!);
-                          entry ? openEditJournal(entry) : openNewJournal(cell.date!);
-                        }}
-                        className={`transition-opacity ${hasJournal ? "text-primary opacity-100" : "text-primary/40 opacity-60 hover:opacity-100"}`}
-                        title={hasJournal ? "Open journal entry" : "Add journal entry"}
+                        onClick={() => openReview(cell.date!)}
+                        className={`h-4 w-4 rounded flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
+                        title={hasJournal ? "Open trade review" : "Add trade review"}
                       >
                         <BookOpen className="h-2.5 w-2.5" />
                       </button>
+
                     </div>
                     {pnl !== 0 && (
                       <div className={`hud-label tabular-nums text-[9px] leading-none ${pnlClass(pnl)}`}>
@@ -358,8 +381,9 @@ function InvestingPage() {
           </Panel>
         </div>
 
-        {/* Accounts — right / compact */}
-        <div className="xl:col-span-4">
+        {/* Accounts + Strategy Journal — right / compact stack */}
+        <div className="xl:col-span-4 space-y-4">
+
           <Panel title="ACCOUNTS">
             <div className="flex items-center justify-end -mt-8 mb-3">
               <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
@@ -419,65 +443,20 @@ function InvestingPage() {
               ↻ Auto-synced to Wealth
             </div>
           </Panel>
-        </div>
 
-        {/* Add Transaction - left */}
-        <div className="xl:col-span-6">
-          <Panel title="ADD TRANSACTION">
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <button
-                onClick={() => setTxTab("profit")}
-                className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
-              >
-                ADD PROFIT
-              </button>
-              <button
-                onClick={() => setTxTab("loss")}
-                className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "loss" ? "bg-red-500/15 border-red-400/60 text-red-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
-              >
-                ADD LOSS
-              </button>
-            </div>
-
-            <label className="block mb-2">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">ACCOUNT</div>
-              <select value={txAcc} onChange={(e) => setTxAcc(e.target.value)}
-                className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
-                {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
-            </label>
-            <label className="block mb-2">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">AMOUNT ($)</div>
-              <Input type="number" step="0.01" placeholder="Enter amount" value={txAmt} onChange={(e) => setTxAmt(e.target.value)} className="h-9 text-xs" />
-            </label>
-            <label className="block mb-2">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
-              <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9 text-xs" />
-            </label>
-            <label className="block mb-3">
-              <div className="hud-label text-[9px] text-muted-foreground mb-1">NOTES (OPTIONAL)</div>
-              <Textarea rows={2} placeholder="Add notes..." value={txNotes} onChange={(e) => setTxNotes(e.target.value)} className="text-xs" />
-            </label>
-            <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
-              {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
-            </Button>
-          </Panel>
-        </div>
-
-        {/* Strategy Journal - right */}
-        <div className="xl:col-span-6">
+          {/* Strategy Journal — below Accounts */}
           <Panel title="STRATEGY JOURNAL">
             <div className="flex items-center justify-end -mt-8 mb-3">
               <Button onClick={() => openNewJournal()} size="sm" variant="outline" className="hud-label text-[10px]">
                 <Plus className="h-3 w-3 mr-1" /> NEW ENTRY
               </Button>
             </div>
-            <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
               {journal.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">No entries yet.</div>
               )}
               {[...journal].sort((a, b) => b.date.localeCompare(a.date)).map((e) => (
-                <div key={e.id} className="border border-border rounded p-3 hover:border-primary/40 transition-colors group">
+                <div key={e.id} className="border border-border rounded p-2.5 hover:border-primary/40 transition-colors group">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="hud-label text-[10px] text-primary">{new Date(e.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</div>
@@ -487,8 +466,8 @@ function InvestingPage() {
                       <X className="h-3 w-3" />
                     </button>
                   </div>
-                  <button onClick={() => openEditJournal(e)} className="block text-left w-full mt-2">
-                    <div className="text-xs text-foreground/85 leading-snug">{e.review}</div>
+                  <button onClick={() => openReview(e.date)} className="block text-left w-full mt-2">
+                    <div className="text-xs text-foreground/85 leading-snug line-clamp-2">{e.review}</div>
                     <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
                       <div className="flex flex-wrap gap-1">
                         {e.tags.map((t) => (
@@ -503,7 +482,56 @@ function InvestingPage() {
             </div>
           </Panel>
         </div>
+
+        {/* Add Transaction — full width */}
+        <div className="xl:col-span-12">
+          <Panel title="ADD TRANSACTION">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    onClick={() => setTxTab("profit")}
+                    className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
+                  >
+                    ADD PROFIT
+                  </button>
+                  <button
+                    onClick={() => setTxTab("loss")}
+                    className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "loss" ? "bg-red-500/15 border-red-400/60 text-red-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
+                  >
+                    ADD LOSS
+                  </button>
+                </div>
+                <label className="block mb-2">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">ACCOUNT</div>
+                  <select value={txAcc} onChange={(e) => setTxAcc(e.target.value)}
+                    className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
+                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </label>
+                <label className="block mb-2">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">AMOUNT ($)</div>
+                  <Input type="number" step="0.01" placeholder="Enter amount" value={txAmt} onChange={(e) => setTxAmt(e.target.value)} className="h-9 text-xs" />
+                </label>
+                <label className="block">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
+                  <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9 text-xs" />
+                </label>
+              </div>
+              <div className="flex flex-col">
+                <label className="block mb-3 flex-1">
+                  <div className="hud-label text-[9px] text-muted-foreground mb-1">NOTES (OPTIONAL)</div>
+                  <Textarea rows={8} placeholder="Add notes..." value={txNotes} onChange={(e) => setTxNotes(e.target.value)} className="text-xs h-full" />
+                </label>
+                <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
+                  {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
+                </Button>
+              </div>
+            </div>
+          </Panel>
+        </div>
       </div>
+
 
       {/* ============ TRANSACTION HISTORY ============ */}
       <Panel title="TRANSACTION HISTORY">
@@ -570,8 +598,11 @@ function InvestingPage() {
           )}
         </div>
       </Panel>
+      </>
+      )}
 
       {/* ============ MODALS ============ */}
+
       <Dialog open={addAccOpen} onOpenChange={setAddAccOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle className="hud-label text-primary flex items-center gap-2"><Building2 className="h-4 w-4" /> Add Trading Account</DialogTitle></DialogHeader>
@@ -659,5 +690,75 @@ function FooterStat({ label, value, valueClass = "text-primary" }: { label: stri
       <div className="hud-label text-[9px] text-muted-foreground">{label}</div>
       <div className={`hud-label text-lg mt-1 tabular-nums ${valueClass}`}>{value}</div>
     </div>
+  );
+}
+
+// ---------- In-page Trade Review view ----------
+function JournalReviewView(props: {
+  onBack: () => void;
+  onSave: () => void;
+  onDelete?: () => void;
+  isNew: boolean;
+  jDate: string; setJDate: (v: string) => void;
+  jSession: TradingSessionKind; setJSession: (v: TradingSessionKind) => void;
+  jReview: string; setJReview: (v: string) => void;
+  jTags: string; setJTags: (v: string) => void;
+  jPnl: string; setJPnl: (v: string) => void;
+}) {
+  const { onBack, onSave, onDelete, isNew, jDate, setJDate, jSession, setJSession, jReview, setJReview, jTags, setJTags, jPnl, setJPnl } = props;
+  const pnlN = Number(jPnl) || 0;
+  return (
+    <Panel title={isNew ? "NEW TRADE REVIEW" : "TRADE REVIEW"}>
+      <div className="flex items-center justify-between -mt-8 mb-4 gap-2">
+        <Button onClick={onBack} size="sm" variant="outline" className="hud-label text-[10px]">
+          <ArrowLeft className="h-3 w-3 mr-1" /> BACK
+        </Button>
+        <div className="flex items-center gap-2">
+          {onDelete && (
+            <Button onClick={onDelete} size="sm" variant="outline" className="hud-label text-[10px] text-red-400 border-red-400/40 hover:bg-red-500/10">
+              <Trash2 className="h-3 w-3 mr-1" /> DELETE
+            </Button>
+          )}
+          <Button onClick={onSave} size="sm" className="hud-label text-[10px] bg-primary/20 hover:bg-primary/30 text-primary border border-primary/50">
+            {isNew ? "SAVE ENTRY" : "SAVE CHANGES"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div className="hud-card p-4">
+          <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
+          <Input type="date" value={jDate} onChange={(e) => setJDate(e.target.value)} className="h-9 text-xs" />
+        </div>
+        <div className="hud-card p-4">
+          <div className="hud-label text-[9px] text-muted-foreground mb-1">SESSION</div>
+          <select value={jSession} onChange={(e) => setJSession(e.target.value as TradingSessionKind)}
+            className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
+            {TRADING_SESSIONS.map((s) => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="hud-card p-4">
+          <div className="hud-label text-[9px] text-muted-foreground mb-1">DAILY P/L ($)</div>
+          <Input type="number" step="0.01" value={jPnl} onChange={(e) => setJPnl(e.target.value)}
+            className={`h-9 text-xs tabular-nums ${pnlN > 0 ? "text-emerald-400" : pnlN < 0 ? "text-red-400" : ""}`} />
+        </div>
+      </div>
+
+      <label className="block mb-4">
+        <div className="hud-label text-[10px] text-muted-foreground mb-2">TRADE REVIEW / DAILY INPUTS</div>
+        <Textarea
+          rows={14}
+          value={jReview}
+          onChange={(e) => setJReview(e.target.value)}
+          placeholder="What was the setup? How did you execute? What did you learn? Emotions, mistakes, wins, refinements..."
+          className="text-xs leading-relaxed"
+        />
+      </label>
+
+      <label className="block">
+        <div className="hud-label text-[10px] text-muted-foreground mb-2">STRATEGY TAGS (comma separated)</div>
+        <Input value={jTags} onChange={(e) => setJTags(e.target.value)} placeholder="ICT, Liquidity, FVG, SMT" className="h-9 text-xs" />
+      </label>
+    </Panel>
   );
 }
