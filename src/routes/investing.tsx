@@ -288,72 +288,15 @@ function InvestingPage() {
         </div>
       </div>
 
-      {/* ============ ACCOUNTS WIDGET ============ */}
-      <Panel title="ACCOUNTS">
-        <div className="flex items-center justify-end -mt-8 mb-3">
-          <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
-            <Plus className="h-3 w-3 mr-1" /> Add Account
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {accounts.map((acc) => {
-            const t = totals.perAccount[acc.id] ?? { balance: acc.startingBalance, today: 0, month: 0 };
-            return (
-              <div key={acc.id} className="hud-card p-4 group relative">
-                <button
-                  onClick={() => deleteAccount(acc.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                  title="Delete account"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full border border-primary/40 bg-primary/10 flex items-center justify-center hud-label text-xs text-primary">
-                    {acc.company}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="hud-label text-sm text-foreground truncate">{acc.name}</div>
-                    <div className="hud-label text-[10px] text-muted-foreground">${acc.size.toLocaleString()} ACCOUNT</div>
-                  </div>
-                </div>
-                <div className="hud-label text-[9px] text-muted-foreground mt-3">BALANCE</div>
-                <div className="hud-label text-2xl text-primary hud-glow tabular-nums">{fmtBig(t.balance)}</div>
-                <div className="grid grid-cols-2 gap-2 mt-3 border-t border-border pt-3">
-                  <div>
-                    <div className="hud-label text-[9px] text-muted-foreground">P/L TODAY</div>
-                    <div className={`hud-label text-sm tabular-nums ${pnlClass(t.today)}`}>{fmtMoney(t.today, { sign: true })}</div>
-                  </div>
-                  <div>
-                    <div className="hud-label text-[9px] text-muted-foreground">P/L THIS MONTH</div>
-                    <div className={`hud-label text-sm tabular-nums ${pnlClass(t.month)}`}>{fmtMoney(t.month, { sign: true })}</div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          {!accounts.length && (
-            <div className="col-span-full text-center text-xs text-muted-foreground py-8">
-              No accounts yet — click "Add Account" to begin.
-            </div>
-          )}
-        </div>
-
-        {/* Totals footer */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-border">
-          <FooterStat label="TOTAL TRADING ASSETS" value={fmtBig(totals.balance)} />
-          <FooterStat label="TOTAL P/L TODAY" value={fmtMoney(totals.todayPnl, { sign: true })} valueClass={pnlClass(totals.todayPnl)} />
-          <FooterStat label="TOTAL P/L THIS MONTH" value={fmtMoney(totals.monthPnl, { sign: true })} valueClass={pnlClass(totals.monthPnl)} />
-        </div>
-        <div className="mt-2 text-[10px] hud-label text-muted-foreground text-right">
-          ↻ Auto-synced to Wealth · Assets
-        </div>
-      </Panel>
-
-      {/* ============ MAIN GRID: CALENDAR | ADD TX | JOURNAL ============ */}
+      {/* ============ MAIN GRID: CALENDAR + ACCOUNTS | TX | JOURNAL ============ */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-        {/* Calendar - large */}
-        <div className="xl:col-span-6">
+        {/* Calendar — left / larger */}
+        <div className="xl:col-span-8">
           <Panel title="MONTHLY PERFORMANCE">
+            <div className="flex items-center justify-between -mt-8 mb-3">
+              <div />
+              <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
+            </div>
             <div className="flex items-center justify-between -mt-8 mb-3">
               <div />
               <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
