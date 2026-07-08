@@ -273,6 +273,38 @@ export interface TradeStrategy {
 
 export const TRADING_START_BALANCE = 835;
 
+// ---------- Trading Accounts (source of truth for trading assets) ----------
+export interface TradingAccount {
+  id: string;
+  name: string;         // "TradeDay Funded"
+  company: string;      // short logo mark, e.g. "TD"
+  size: number;         // funded account size, e.g. 50000
+  startingBalance: number;
+  createdDate: string;  // YYYY-MM-DD
+}
+
+export type TradingTxType = "profit" | "loss";
+export interface TradingTx {
+  id: string;
+  accountId: string;
+  date: string;         // YYYY-MM-DD
+  time?: string;
+  type: TradingTxType;
+  amount: number;       // positive; sign derived from type
+  notes?: string;
+}
+
+export type TradingSessionKind = "Asia" | "London" | "New York";
+export const TRADING_SESSIONS: TradingSessionKind[] = ["Asia", "London", "New York"];
+export interface TradeJournalEntry {
+  id: string;
+  date: string;
+  session: TradingSessionKind;
+  review: string;
+  tags: string[];
+  pnl: number;
+}
+
 export interface WatchlistItem {
   id: string;
   ticker: string;
@@ -456,6 +488,9 @@ export interface EvolutionData {
   habitOrder: string[];
   hiddenHabits: string[];
   timeLogs: TimeLog[];
+  tradingAccounts: TradingAccount[];
+  tradingTxns: TradingTx[];
+  tradeJournal: TradeJournalEntry[];
 }
 
 export interface EvoHabit {
@@ -501,7 +536,7 @@ export interface NetWorthSnapshot {
 
 
 const STORAGE_KEY = "evolution:data:v2";
-export const STORAGE_VERSION = 4;
+export const STORAGE_VERSION = 5;
 
 type StoredShape = Partial<EvolutionData> & { _version?: number };
 
@@ -518,6 +553,15 @@ function migrate(parsed: StoredShape): StoredShape {
     next.revenue = [];
     if (Array.isArray(next.goals)) {
       next.goals = next.goals.filter((g) => g.category !== "Wealth");
+    }
+  }
+  // v4 → v5: seed trading accounts / journal, purge legacy trading-* assets so sync rebuilds them.
+  if (v < 5) {
+    next.tradingAccounts = undefined;
+    next.tradingTxns = undefined;
+    next.tradeJournal = undefined;
+    if (Array.isArray(next.assets)) {
+      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
     }
   }
   next._version = STORAGE_VERSION;
@@ -669,7 +713,47 @@ export const defaultData: EvolutionData = {
   habitOrder: [],
   hiddenHabits: [],
   timeLogs: [],
+  tradingAccounts: seedTradingAccounts(),
+  tradingTxns: seedTradingTxns(),
+  tradeJournal: seedTradeJournal(),
 };
+
+function _today(): string { return new Date().toISOString().slice(0, 10); }
+function _firstOfMonth(): string {
+  const d = new Date(); d.setDate(1);
+  return d.toISOString().slice(0, 10);
+}
+function _midMonth(): string {
+  const d = new Date(); d.setDate(Math.max(2, Math.floor(d.getDate() / 2)));
+  return d.toISOString().slice(0, 10);
+}
+
+function seedTradingAccounts(): TradingAccount[] {
+  return [
+    { id: "acc-tradeday", name: "TradeDay Funded", company: "TD", size: 50000, startingBalance: 50472, createdDate: _firstOfMonth() },
+    { id: "acc-lucid",    name: "Lucid Futures Funded", company: "LF", size: 100000, startingBalance: 102531, createdDate: _firstOfMonth() },
+    { id: "acc-topstep",  name: "TopStep X", company: "TS", size: 75000, startingBalance: 75955, createdDate: _firstOfMonth() },
+  ];
+}
+function seedTradingTxns(): TradingTx[] {
+  const t = _today(); const m = _midMonth();
+  return [
+    { id: "ttx-1", accountId: "acc-tradeday", date: t, type: "profit", amount: 312.50, notes: "London session long" },
+    { id: "ttx-2", accountId: "acc-tradeday", date: m, type: "profit", amount: 1530.25, notes: "Prior wins this month" },
+    { id: "ttx-3", accountId: "acc-lucid",    date: t, type: "loss",   amount: 125.00, notes: "Stopped out - news spike" },
+    { id: "ttx-4", accountId: "acc-lucid",    date: m, type: "profit", amount: 1279.20, notes: "Prior wins this month" },
+    { id: "ttx-5", accountId: "acc-topstep",  date: t, type: "profit", amount: 89.00,  notes: "Asia session scalp" },
+    { id: "ttx-6", accountId: "acc-topstep",  date: m, type: "profit", amount: 161.30, notes: "Prior wins this month" },
+  ];
+}
+function seedTradeJournal(): TradeJournalEntry[] {
+  const t = _today();
+  return [
+    { id: "tj-1", date: t, session: "London", review: "Clean break of structure on 15m. Waited for retest of imbalance and took long with tight stop below liquidity. Targets hit.", tags: ["ICT", "Liquidity", "Break of Structure"], pnl: 312.50 },
+    { id: "tj-2", date: _midMonth(), session: "Asia", review: "Choppy session. Market lacked direction after news. Took 2 small scalps and called it a day.", tags: ["Patience", "Discipline"], pnl: 89.00 },
+    { id: "tj-3", date: _firstOfMonth(), session: "London", review: "Took a short on highs into premium. Good reaction off daily resistance. Partial profits at 1R, trailed rest.", tags: ["ICT", "Levels", "Execution"], pnl: 245.00 },
+  ];
+}
 
 
 function futureISO(daysAhead: number): string {
@@ -751,6 +835,9 @@ function load(): EvolutionData {
       habitOrder: parsed.habitOrder ?? [],
       hiddenHabits: parsed.hiddenHabits ?? [],
       timeLogs: parsed.timeLogs ?? [],
+      tradingAccounts: parsed.tradingAccounts?.length ? parsed.tradingAccounts : defaultData.tradingAccounts,
+      tradingTxns: parsed.tradingTxns ?? defaultData.tradingTxns,
+      tradeJournal: parsed.tradeJournal ?? defaultData.tradeJournal,
 
 
 
@@ -1005,4 +1092,48 @@ export function formatHm(mins: number): string {
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
 }
+
+// ---------- Trading account balance + Wealth sync ----------
+
+export function accountBalance(accountId: string, accounts: TradingAccount[], txns: TradingTx[]): number {
+  const acc = accounts.find((a) => a.id === accountId);
+  if (!acc) return 0;
+  return acc.startingBalance + txns
+    .filter((t) => t.accountId === accountId)
+    .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
+}
+
+export function tradingTotals(accounts: TradingAccount[], txns: TradingTx[]) {
+  const today = todayDate();
+  const monthKey = today.slice(0, 7);
+  let balance = 0, todayPnl = 0, monthPnl = 0;
+  const perAccount: Record<string, { balance: number; today: number; month: number }> = {};
+  for (const acc of accounts) {
+    let b = acc.startingBalance, tP = 0, mP = 0;
+    for (const t of txns.filter((x) => x.accountId === acc.id)) {
+      const signed = t.type === "profit" ? t.amount : -t.amount;
+      b += signed;
+      if (t.date === today) tP += signed;
+      if (t.date.startsWith(monthKey)) mP += signed;
+    }
+    perAccount[acc.id] = { balance: b, today: tP, month: mP };
+    balance += b; todayPnl += tP; monthPnl += mP;
+  }
+  return { balance, todayPnl, monthPnl, perAccount };
+}
+
+/** Rebuild `assets` so every trading account is mirrored as an Investment asset (`trading-{id}`). */
+export function syncTradingAssets(next: EvolutionData): EvolutionData {
+  const { perAccount } = tradingTotals(next.tradingAccounts, next.tradingTxns);
+  const nonTrading = next.assets.filter((a) => !a.id.startsWith("trading-"));
+  const tradingAssets: Asset[] = next.tradingAccounts.map((acc) => ({
+    id: `trading-${acc.id}`,
+    name: acc.name,
+    value: Math.max(0, Math.round(perAccount[acc.id]?.balance ?? acc.startingBalance)),
+    category: "Investment",
+    date: acc.createdDate,
+  }));
+  return { ...next, assets: [...nonTrading, ...tradingAssets] };
+}
+
 
