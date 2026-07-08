@@ -359,8 +359,72 @@ function InvestingPage() {
           </Panel>
         </div>
 
-        {/* Add Transaction - center */}
-        <div className="xl:col-span-3">
+        {/* Accounts — right / compact */}
+        <div className="xl:col-span-4">
+          <Panel title="ACCOUNTS">
+            <div className="flex items-center justify-end -mt-8 mb-3">
+              <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
+                <Plus className="h-3 w-3 mr-1" /> Add Account
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {accounts.map((acc) => {
+                const t = totals.perAccount[acc.id] ?? { balance: acc.startingBalance, today: 0, month: 0 };
+                return (
+                  <div key={acc.id} className="hud-card p-3 group relative">
+                    <button
+                      onClick={() => deleteAccount(acc.id)}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                      title="Delete account"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full border border-primary/40 bg-primary/10 flex items-center justify-center hud-label text-[10px] text-primary">
+                        {acc.company}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="hud-label text-xs text-foreground truncate">{acc.name}</div>
+                        <div className="hud-label text-[9px] text-muted-foreground">${acc.size.toLocaleString()} ACCOUNT</div>
+                      </div>
+                    </div>
+                    <div className="hud-label text-[8px] text-muted-foreground mt-2">BALANCE</div>
+                    <div className="hud-label text-xl text-primary hud-glow tabular-nums">{fmtBig(t.balance)}</div>
+                    <div className="grid grid-cols-2 gap-2 mt-2 border-t border-border pt-2">
+                      <div>
+                        <div className="hud-label text-[8px] text-muted-foreground">P/L TODAY</div>
+                        <div className={`hud-label text-xs tabular-nums ${pnlClass(t.today)}`}>{fmtMoney(t.today, { sign: true })}</div>
+                      </div>
+                      <div>
+                        <div className="hud-label text-[8px] text-muted-foreground">P/L THIS MONTH</div>
+                        <div className={`hud-label text-xs tabular-nums ${pnlClass(t.month)}`}>{fmtMoney(t.month, { sign: true })}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {!accounts.length && (
+                <div className="text-center text-xs text-muted-foreground py-6">
+                  No accounts yet — click "Add Account" to begin.
+                </div>
+              )}
+            </div>
+
+            {/* Compact totals */}
+            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border">
+              <FooterStat label="TOTAL ASSETS" value={fmtBig(totals.balance)} />
+              <FooterStat label="P/L TODAY" value={fmtMoney(totals.todayPnl, { sign: true })} valueClass={pnlClass(totals.todayPnl)} />
+              <FooterStat label="P/L MONTH" value={fmtMoney(totals.monthPnl, { sign: true })} valueClass={pnlClass(totals.monthPnl)} />
+            </div>
+            <div className="mt-1.5 text-[9px] hud-label text-muted-foreground text-right">
+              ↻ Auto-synced to Wealth
+            </div>
+          </Panel>
+        </div>
+
+        {/* Add Transaction - left */}
+        <div className="xl:col-span-6">
+          <Panel title="ADD TRANSACTION">
           <Panel title="ADD TRANSACTION">
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
