@@ -133,25 +133,55 @@ function InvestingPage() {
   const [txAcc, setTxAcc] = useState<string>(accounts[0]?.id ?? "");
   const [txAmt, setTxAmt] = useState("");
   const [txDate, setTxDate] = useState(todayDate());
-  const [txNotes, setTxNotes] = useState("");
+  const [txReview, setTxReview] = useState("");
+  const [txSession, setTxSession] = useState<TradingSessionKind>("New York");
 
   const submitTx = () => {
     const amt = Number(txAmt);
     const accId = txAcc || accounts[0]?.id;
     if (!amt || !accId) return;
+    const signed = txTab === "profit" ? Math.abs(amt) : -Math.abs(amt);
     const newTx: TradingTx = {
       id: uid(),
       accountId: accId,
       date: txDate,
       type: txTab,
       amount: Math.abs(amt),
-      notes: txNotes.trim() || undefined,
+      notes: txReview.trim() || undefined,
     };
-    mutateTrading((prev) => ({ tradingTxns: [...prev.tradingTxns, newTx] }));
-    setTxAmt(""); setTxNotes("");
+    mutateTrading((prev) => {
+      const nextTxns = [...prev.tradingTxns, newTx];
+      // Upsert a trade-review journal entry for this date so calendar + strategy journal stay in sync.
+      const existing = prev.tradeJournal.find((e) => e.date === txDate);
+      let nextJournal = prev.tradeJournal;
+      if (txReview.trim() || existing) {
+        const dayPnl =
+          nextTxns
+            .filter((t) => t.date === txDate)
+            .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
+        if (existing) {
+          const mergedReview = txReview.trim()
+            ? (existing.review ? `${existing.review}\n\n${txReview.trim()}` : txReview.trim())
+            : existing.review;
+          nextJournal = prev.tradeJournal.map((e) =>
+            e.id === existing.id ? { ...e, review: mergedReview, pnl: dayPnl, session: txSession } : e,
+          );
+        } else {
+          nextJournal = [
+            { id: uid(), date: txDate, session: txSession, review: txReview.trim(), tags: [], pnl: dayPnl },
+            ...prev.tradeJournal,
+          ];
+        }
+      }
+      return { tradingTxns: nextTxns, tradeJournal: nextJournal };
+    });
+    setTxAmt(""); setTxReview("");
   };
   const deleteTx = (id: string) =>
     mutateTrading((prev) => ({ tradingTxns: prev.tradingTxns.filter((t) => t.id !== id) }));
+  void 0; // keep hook signature; signed captured above intentionally
+  void 0;
+
 
   // ---- Journal ----
   const [journalOpen, setJournalOpen] = useState(false);
