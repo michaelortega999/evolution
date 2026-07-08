@@ -692,3 +692,75 @@ function FooterStat({ label, value, valueClass = "text-primary" }: { label: stri
     </div>
   );
 }
+
+// ---------- In-page Trade Review view ----------
+function JournalReviewView(props: {
+  onBack: () => void;
+  onSave: () => void;
+  onDelete?: () => void;
+  isNew: boolean;
+  jDate: string; setJDate: (v: string) => void;
+  jSession: TradingSessionKind; setJSession: (v: TradingSessionKind) => void;
+  jReview: string; setJReview: (v: string) => void;
+  jTags: string; setJTags: (v: string) => void;
+  jPnl: string; setJPnl: (v: string) => void;
+}) {
+  const { onBack, onSave, onDelete, isNew, jDate, setJDate, jSession, setJSession, jReview, setJReview, jTags, setJTags, jPnl, setJPnl } = props;
+  const pnlN = Number(jPnl) || 0;
+  return (
+    <Panel title={isNew ? "NEW TRADE REVIEW" : "TRADE REVIEW"}>
+      <div className="flex items-center justify-between -mt-8 mb-4 gap-2">
+        <Button onClick={onBack} size="sm" variant="outline" className="hud-label text-[10px]">
+          <ArrowLeft className="h-3 w-3 mr-1" /> BACK
+        </Button>
+        <div className="flex items-center gap-2">
+          {onDelete && (
+            <Button onClick={onDelete} size="sm" variant="outline" className="hud-label text-[10px] text-red-400 border-red-400/40 hover:bg-red-500/10">
+              <Trash2 className="h-3 w-3 mr-1" /> DELETE
+            </Button>
+          )}
+          <Button onClick={onSave} size="sm" className="hud-label text-[10px] bg-primary/20 hover:bg-primary/30 text-primary border border-primary/50">
+            {isNew ? "SAVE ENTRY" : "SAVE CHANGES"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div className="hud-card p-4">
+          <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
+          <Input type="date" value={jDate} onChange={(e) => setJDate(e.target.value)} className="h-9 text-xs" />
+        </div>
+        <div className="hud-card p-4">
+          <div className="hud-label text-[9px] text-muted-foreground mb-1">SESSION</div>
+          <select value={jSession} onChange={(e) => setJSession(e.target.value as TradingSessionKind)}
+            className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
+            {TRADING_SESSIONS.map((s) => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="hud-card p-4">
+          <div className="hud-label text-[9px] text-muted-foreground mb-1">DAILY P/L ($)</div>
+          <Input type="number" step="0.01" value={jPnl} onChange={(e) => setJPnl(e.target.value)}
+            className={`h-9 text-xs tabular-nums ${pnlN > 0 ? "text-emerald-400" : pnlN < 0 ? "text-red-400" : ""}`} />
+        </div>
+      </div>
+
+      <label className="block mb-4">
+        <div className="hud-label text-[10px] text-muted-foreground mb-2">TRADE REVIEW / DAILY INPUTS</div>
+        <Textarea
+          rows={14}
+          value={jReview}
+          onChange={(e) => setJReview(e.target.value)}
+          placeholder="What was the setup? How did you execute? What did you learn? Emotions, mistakes, wins, refinements..."
+          className="text-xs leading-relaxed"
+        />
+      </label>
+
+      <label className="block">
+        <div className="hud-label text-[10px] text-muted-foreground mb-2">STRATEGY TAGS (comma separated)</div>
+        <Input value={jTags} onChange={(e) => setJTags(e.target.value)} placeholder="ICT, Liquidity, FVG, SMT" className="h-9 text-xs" />
+      </label>
+    </Panel>
+  );
+}
+
+}
