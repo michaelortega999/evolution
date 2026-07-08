@@ -273,6 +273,38 @@ export interface TradeStrategy {
 
 export const TRADING_START_BALANCE = 835;
 
+// ---------- Trading Accounts (source of truth for trading assets) ----------
+export interface TradingAccount {
+  id: string;
+  name: string;         // "TradeDay Funded"
+  company: string;      // short logo mark, e.g. "TD"
+  size: number;         // funded account size, e.g. 50000
+  startingBalance: number;
+  createdDate: string;  // YYYY-MM-DD
+}
+
+export type TradingTxType = "profit" | "loss";
+export interface TradingTx {
+  id: string;
+  accountId: string;
+  date: string;         // YYYY-MM-DD
+  time?: string;
+  type: TradingTxType;
+  amount: number;       // positive; sign derived from type
+  notes?: string;
+}
+
+export type TradingSessionKind = "Asia" | "London" | "New York";
+export const TRADING_SESSIONS: TradingSessionKind[] = ["Asia", "London", "New York"];
+export interface TradeJournalEntry {
+  id: string;
+  date: string;
+  session: TradingSessionKind;
+  review: string;
+  tags: string[];
+  pnl: number;
+}
+
 export interface WatchlistItem {
   id: string;
   ticker: string;
