@@ -377,7 +377,7 @@ function InvestingPage() {
     <ModuleLayout number="06" title="INVESTING" subtitle="Track performance. Refine strategy. Build freedom." icon={TrendingUp}>
       {/* ============ TOP STATS BAR ============ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Assets" value={fmtBig(totals.balance)} icon={Layers} />
+        <StatCard label="Total Assets" value={fmtBig(totals.balance)} icon={Layers} iconRight />
         <StatCard label="Win Rate" value={`${winRate}%`} valueClass="text-primary" />
         <StatCard label="Best Day" value={fmtMoney(bestDay.pnl, { sign: true })} valueClass="text-emerald-400" />
         <div className="hud-card p-4">
@@ -808,14 +808,15 @@ function InvestingPage() {
 }
 
 // ---------- small presentational helpers ----------
-function StatCard({ label, value, valueClass = "text-primary", icon: Icon }: { label: string; value: string; valueClass?: string; icon?: React.ComponentType<{ className?: string }> }) {
+function StatCard({ label, value, valueClass = "text-primary", icon: Icon, iconRight = false }: { label: string; value: string; valueClass?: string; icon?: React.ComponentType<{ className?: string }>; iconRight?: boolean }) {
   return (
     <div className="hud-card p-4">
-      <div className="flex items-center gap-2 mb-1">
-        {Icon && <Icon className="h-3.5 w-3.5 text-primary" />}
-        <div className="hud-label text-[9px] text-muted-foreground">{label}</div>
+      <div className="hud-label text-[9px] text-muted-foreground mb-1">{label}</div>
+      <div className="flex items-center gap-2">
+        <div className={`hud-label text-lg tabular-nums hud-glow ${valueClass}`}>{value}</div>
+        {Icon && iconRight && <Icon className="h-6 w-6 text-primary" />}
+        {Icon && !iconRight && <Icon className="h-3.5 w-3.5 text-primary" />}
       </div>
-      <div className={`hud-label text-lg tabular-nums hud-glow ${valueClass}`}>{value}</div>
     </div>
   );
 }
