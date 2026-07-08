@@ -555,6 +555,15 @@ function migrate(parsed: StoredShape): StoredShape {
       next.goals = next.goals.filter((g) => g.category !== "Wealth");
     }
   }
+  // v4 → v5: seed trading accounts / journal, purge legacy trading-* assets so sync rebuilds them.
+  if (v < 5) {
+    next.tradingAccounts = undefined;
+    next.tradingTxns = undefined;
+    next.tradeJournal = undefined;
+    if (Array.isArray(next.assets)) {
+      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
+    }
+  }
   next._version = STORAGE_VERSION;
   return next;
 }
