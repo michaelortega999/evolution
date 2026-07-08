@@ -536,7 +536,7 @@ export interface NetWorthSnapshot {
 
 
 const STORAGE_KEY = "evolution:data:v2";
-export const STORAGE_VERSION = 4;
+export const STORAGE_VERSION = 5;
 
 type StoredShape = Partial<EvolutionData> & { _version?: number };
 
