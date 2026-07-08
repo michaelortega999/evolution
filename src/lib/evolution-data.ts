@@ -704,7 +704,47 @@ export const defaultData: EvolutionData = {
   habitOrder: [],
   hiddenHabits: [],
   timeLogs: [],
+  tradingAccounts: seedTradingAccounts(),
+  tradingTxns: seedTradingTxns(),
+  tradeJournal: seedTradeJournal(),
 };
+
+function _today(): string { return new Date().toISOString().slice(0, 10); }
+function _firstOfMonth(): string {
+  const d = new Date(); d.setDate(1);
+  return d.toISOString().slice(0, 10);
+}
+function _midMonth(): string {
+  const d = new Date(); d.setDate(Math.max(2, Math.floor(d.getDate() / 2)));
+  return d.toISOString().slice(0, 10);
+}
+
+function seedTradingAccounts(): TradingAccount[] {
+  return [
+    { id: "acc-tradeday", name: "TradeDay Funded", company: "TD", size: 50000, startingBalance: 50472, createdDate: _firstOfMonth() },
+    { id: "acc-lucid",    name: "Lucid Futures Funded", company: "LF", size: 100000, startingBalance: 102531, createdDate: _firstOfMonth() },
+    { id: "acc-topstep",  name: "TopStep X", company: "TS", size: 75000, startingBalance: 75955, createdDate: _firstOfMonth() },
+  ];
+}
+function seedTradingTxns(): TradingTx[] {
+  const t = _today(); const m = _midMonth();
+  return [
+    { id: "ttx-1", accountId: "acc-tradeday", date: t, type: "profit", amount: 312.50, notes: "London session long" },
+    { id: "ttx-2", accountId: "acc-tradeday", date: m, type: "profit", amount: 1530.25, notes: "Prior wins this month" },
+    { id: "ttx-3", accountId: "acc-lucid",    date: t, type: "loss",   amount: 125.00, notes: "Stopped out - news spike" },
+    { id: "ttx-4", accountId: "acc-lucid",    date: m, type: "profit", amount: 1279.20, notes: "Prior wins this month" },
+    { id: "ttx-5", accountId: "acc-topstep",  date: t, type: "profit", amount: 89.00,  notes: "Asia session scalp" },
+    { id: "ttx-6", accountId: "acc-topstep",  date: m, type: "profit", amount: 161.30, notes: "Prior wins this month" },
+  ];
+}
+function seedTradeJournal(): TradeJournalEntry[] {
+  const t = _today();
+  return [
+    { id: "tj-1", date: t, session: "London", review: "Clean break of structure on 15m. Waited for retest of imbalance and took long with tight stop below liquidity. Targets hit.", tags: ["ICT", "Liquidity", "Break of Structure"], pnl: 312.50 },
+    { id: "tj-2", date: _midMonth(), session: "Asia", review: "Choppy session. Market lacked direction after news. Took 2 small scalps and called it a day.", tags: ["Patience", "Discipline"], pnl: 89.00 },
+    { id: "tj-3", date: _firstOfMonth(), session: "London", review: "Took a short on highs into premium. Good reaction off daily resistance. Partial profits at 1R, trailed rest.", tags: ["ICT", "Levels", "Execution"], pnl: 245.00 },
+  ];
+}
 
 
 function futureISO(daysAhead: number): string {
