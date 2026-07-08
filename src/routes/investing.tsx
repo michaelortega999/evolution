@@ -351,11 +351,12 @@ function InvestingPage() {
                       <span className={`hud-label ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
                       <button
                         onClick={() => openReview(cell.date!)}
-                        className={`h-4 w-4 rounded flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
+                        className={`h-6 w-6 rounded-md flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
                         title={hasJournal ? "Open trade review" : "Add trade review"}
                       >
-                        <BookOpen className="h-2.5 w-2.5" />
+                        <BookOpen className="h-3.5 w-3.5" />
                       </button>
+
 
                     </div>
                     {pnl !== 0 && (
