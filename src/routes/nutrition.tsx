@@ -368,42 +368,51 @@ function NutritionPage() {
 
   // ------- Overview: weight tracker (local) -------
   type WeightEntry = { date: string; lbs: number };
-  const DEFAULT_WEIGHTS: WeightEntry[] = useMemo(() => {
-    const out: WeightEntry[] = [];
-    const start = 175;
-    const end = 165.4;
-    for (let i = 29; i >= 0; i--) {
-      const iso = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      const t = (29 - i) / 29;
-      // ease-out curve from start to end with mild noise
-      const eased = start + (end - start) * (1 - Math.pow(1 - t, 1.6));
-      const noise = Math.sin(i * 1.3) * 0.4;
-      out.push({ date: iso, lbs: Math.round((eased + noise) * 10) / 10 });
-    }
-    return out;
-  }, []);
-  const [weights, setWeights] = useState<WeightEntry[]>(DEFAULT_WEIGHTS);
+  const [weights, setWeights] = useState<WeightEntry[]>([]);
   const [weightPeriod, setWeightPeriod] = useState<"7D" | "30D" | "90D" | "1Y" | "ALL">("30D");
   const [logWeightOpen, setLogWeightOpen] = useState(false);
   const [newWeight, setNewWeight] = useState("");
-  const goalWeight = 155;
+  const [newStartingWeight, setNewStartingWeight] = useState("");
+  const [newGoalWeight, setNewGoalWeight] = useState("");
+  const [startingWeight, setStartingWeight] = useState<number | null>(null);
+  const [goalWeight, setGoalWeight] = useState<number | null>(null);
   const currentWeight = weights[weights.length - 1]?.lbs ?? 0;
-  const startWeight = weights[0]?.lbs ?? currentWeight;
+  const startWeight = startingWeight ?? weights[0]?.lbs ?? 0;
   const lastWeekWeight = weights[weights.length - 8]?.lbs ?? currentWeight;
   const weeklyChange = +(currentWeight - lastWeekWeight).toFixed(1);
   const totalChange = +(currentWeight - startWeight).toFixed(1);
-  const percentChange = +((totalChange / startWeight) * 100).toFixed(2);
-  const highestWeight = Math.max(...weights.map((w) => w.lbs));
-  const lowestWeight = Math.min(...weights.map((w) => w.lbs));
-  const avgWeeklyChange = +(totalChange / (weights.length / 7)).toFixed(1);
-  const bodyFatEst = 16.8;
+  const percentChange = startWeight ? +((totalChange / startWeight) * 100).toFixed(2) : 0;
+  const highestWeight = weights.length ? Math.max(...weights.map((w) => w.lbs)) : 0;
+  const lowestWeight = weights.length ? Math.min(...weights.map((w) => w.lbs)) : 0;
+  const avgWeeklyChange = weights.length >= 7 ? +(totalChange / (weights.length / 7)).toFixed(1) : 0;
+  const bodyFatEst = 0;
   const periodDays: Record<typeof weightPeriod, number> = { "7D": 7, "30D": 30, "90D": 90, "1Y": 365, "ALL": 9999 };
   const visibleWeights = weights.slice(-periodDays[weightPeriod]);
   const submitWeight = () => {
     const v = Number(newWeight);
-    if (!v) return;
-    setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
+    const sw = Number(newStartingWeight);
+    const gw = Number(newGoalWeight);
+    const hasStart = !!newStartingWeight && !Number.isNaN(sw) && sw > 0;
+    const hasGoal = !!newGoalWeight && !Number.isNaN(gw) && gw > 0;
+    // If starting or goal provided → reset the chart (new goal cycle)
+    if (hasStart || hasGoal) {
+      const today = todayDate();
+      const seed: WeightEntry[] = v
+        ? [{ date: today, lbs: v }]
+        : hasStart
+        ? [{ date: today, lbs: sw }]
+        : [];
+      setWeights(seed);
+      if (hasStart) setStartingWeight(sw);
+      else if (v) setStartingWeight(v);
+      if (hasGoal) setGoalWeight(gw);
+    } else if (v) {
+      setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
+      if (startingWeight === null) setStartingWeight(v);
+    }
     setNewWeight("");
+    setNewStartingWeight("");
+    setNewGoalWeight("");
     setLogWeightOpen(false);
   };
 
