@@ -535,7 +535,7 @@ function NutritionPage() {
                         {ticks.map((t, i) => (
                           <g key={i}>
                             <line x1={pad.l} x2={w - pad.r} y1={ys(t)} y2={ys(t)} stroke="var(--border)" strokeDasharray="2 3" opacity="0.4" />
-                            <text x={pad.l - 4} y={ys(t) + 3} textAnchor="end" fontSize="9" fill="var(--muted-foreground)">{Math.round(t)}</text>
+                            <text x={pad.l - 4} y={ys(t) + 3} textAnchor="end" fontSize="12" fill="var(--muted-foreground)">{Math.round(t)}</text>
                           </g>
                         ))}
                         <polygon points={area} fill="oklch(0.78 0.22 240 / 0.18)" />
