@@ -477,8 +477,8 @@ function NutritionPage() {
                     </div>
                   </div>
                   <div className="pt-3 border-t border-border space-y-2 text-[11px]">
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">STARTING WEIGHT</span><span className="text-foreground tabular-nums">{startWeight.toFixed(1)} lbs</span></div>
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">GOAL WEIGHT</span><span className="text-foreground tabular-nums">{goalWeight.toFixed(1)} lbs</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">STARTING WEIGHT</span><span className="text-foreground tabular-nums">{startingWeight !== null ? `${startingWeight.toFixed(1)} lbs` : "—"}</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">GOAL WEIGHT</span><span className="text-foreground tabular-nums">{goalWeight !== null ? `${goalWeight.toFixed(1)} lbs` : "—"}</span></div>
                     <div className="flex justify-between"><span className="hud-label text-muted-foreground">TOTAL CHANGE</span><span className={`tabular-nums ${totalChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(totalChange)} lbs</span></div>
                     <div className="flex justify-between"><span className="hud-label text-muted-foreground">PERCENT CHANGE</span><span className={`tabular-nums ${percentChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(percentChange)}%</span></div>
                     <div className="flex justify-between"><span className="hud-label text-muted-foreground">DAYS TRACKING</span><span className="text-foreground tabular-nums">{weights.length} Days</span></div>
