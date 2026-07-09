@@ -663,31 +663,31 @@ function NutritionPage() {
           {/* Row 3: Fasting + Weekly summary */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
             <Panel title="Intermittent Fasting">
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-3 items-center">
                 <div className="text-center">
-                  <div className="relative mx-auto" style={{ width: 70, height: 70 }}>
-                    <svg viewBox="0 0 70 70" className="-rotate-90">
-                      <circle cx="35" cy="35" r="30" fill="none" stroke="var(--muted)" strokeWidth="5" opacity="0.35" />
-                      <circle cx="35" cy="35" r="30" fill="none" stroke="oklch(0.78 0.22 240)" strokeWidth="5"
-                        strokeDasharray={`${(fastWindow / 24) * 2 * Math.PI * 30} ${2 * Math.PI * 30}`}
-                        style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.6))" }} />
+                  <div className="relative mx-auto" style={{ width: 76, height: 76 }}>
+                    <svg viewBox="0 0 76 76" className="-rotate-90">
+                      <circle cx="38" cy="38" r="32" fill="none" stroke="var(--muted)" strokeWidth="5" opacity="0.35" />
+                      <circle cx="38" cy="38" r="32" fill="none" stroke="oklch(0.78 0.22 240)" strokeWidth="5" strokeLinecap="round"
+                        strokeDasharray={`${(fastWindow / 24) * 2 * Math.PI * 32} ${2 * Math.PI * 32}`}
+                        style={{ filter: "drop-shadow(0 0 6px oklch(0.78 0.22 240 / 0.7))" }} />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center hud-label text-sm text-primary hud-glow">16:8</div>
+                    <div className="absolute inset-0 flex items-center justify-center hud-label text-base text-primary hud-glow tabular-nums">16:8</div>
                   </div>
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1">Started: {fastStart}</div>
+                  <div className="hud-label text-[9px] text-muted-foreground mt-1 whitespace-nowrap">Started: 8:00 PM</div>
                 </div>
-                <div>
-                  <div className="hud-label text-[9px] text-muted-foreground">FASTING WINDOW</div>
-                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums mt-1">16:8</div>
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1">Ends: {fastEnd}</div>
+                <div className="min-w-0">
+                  <div className="hud-label text-[9px] text-muted-foreground whitespace-nowrap">FASTING WINDOW</div>
+                  <div className="hud-label text-base md:text-lg text-primary hud-glow tabular-nums mt-1 whitespace-nowrap">16:8</div>
+                  <div className="hud-label text-[9px] text-muted-foreground mt-1 whitespace-nowrap">Ends: 12:00 PM</div>
                 </div>
-                <div>
-                  <div className="hud-label text-[9px] text-muted-foreground">ELAPSED TIME</div>
-                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums mt-1">{elapsed}</div>
+                <div className="min-w-0">
+                  <div className="hud-label text-[9px] text-muted-foreground whitespace-nowrap">ELAPSED TIME</div>
+                  <div className="hud-label text-base md:text-lg text-primary hud-glow tabular-nums mt-1 whitespace-nowrap">{elapsed}</div>
                 </div>
-                <div>
-                  <div className="hud-label text-[9px] text-muted-foreground">TIME REMAINING</div>
-                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums mt-1">{remainingFast}</div>
+                <div className="min-w-0">
+                  <div className="hud-label text-[9px] text-muted-foreground whitespace-nowrap">TIME REMAINING</div>
+                  <div className="hud-label text-base md:text-lg text-primary hud-glow tabular-nums mt-1 whitespace-nowrap">{remainingFast}</div>
                 </div>
               </div>
               <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW FASTING HISTORY ›</button>
