@@ -596,9 +596,9 @@ function NutritionPage() {
               <div className="grid grid-cols-[70px_1fr_50px_45px_50px_45px] gap-x-2 gap-y-1 text-[10px]">
                 <div className="hud-label text-muted-foreground">MEAL</div>
                 <div className="hud-label text-muted-foreground">FOOD</div>
-                <div className="hud-label text-muted-foreground text-right">CALORIES</div>
-                <div className="hud-label text-muted-foreground text-right">CARBS</div>
-                <div className="hud-label text-muted-foreground text-right">PROTEIN</div>
+                <div className="hud-label text-muted-foreground text-right">CALS</div>
+                <div className="hud-label text-muted-foreground text-right">CARB</div>
+                <div className="hud-label text-muted-foreground text-right">PRO</div>
                 <div className="hud-label text-muted-foreground text-right">FATS</div>
                 {(["Breakfast", "Lunch", "Dinner", "Snack"] as MealType[]).map((mt) => {
                   const meals = todayMeals.filter((m) => (m.mealType ?? categoryFromTime(m.time ?? "12:00")) === mt);
