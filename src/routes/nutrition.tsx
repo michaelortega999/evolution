@@ -376,6 +376,29 @@ function NutritionPage() {
   const [newGoalWeight, setNewGoalWeight] = useState("");
   const [startingWeight, setStartingWeight] = useState<number | null>(null);
   const [goalWeight, setGoalWeight] = useState<number | null>(null);
+  const [weightHydrated, setWeightHydrated] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("nutrition.weightTracker");
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.weights)) setWeights(data.weights);
+        if (typeof data.startingWeight === "number") setStartingWeight(data.startingWeight);
+        if (typeof data.goalWeight === "number") setGoalWeight(data.goalWeight);
+      }
+    } catch {}
+    setWeightHydrated(true);
+  }, []);
+  useEffect(() => {
+    if (!weightHydrated) return;
+    try {
+      localStorage.setItem(
+        "nutrition.weightTracker",
+        JSON.stringify({ weights, startingWeight, goalWeight })
+      );
+    } catch {}
+  }, [weights, startingWeight, goalWeight, weightHydrated]);
+
   const currentWeight = weights[weights.length - 1]?.lbs ?? 0;
   const startWeight = startingWeight ?? weights[0]?.lbs ?? 0;
   const lastWeekWeight = weights[weights.length - 8]?.lbs ?? currentWeight;
