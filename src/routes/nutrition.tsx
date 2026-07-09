@@ -419,26 +419,6 @@ function NutritionPage() {
   const toggleSupp = (id: string) =>
     setSupplements((s) => s.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
 
-  // ------- Overview: fasting -------
-  const [fastStart, setFastStart] = useState("20:00");
-  const fastWindow = 16;
-  const fastEnd = ((Number(fastStart.slice(0, 2)) + fastWindow) % 24).toString().padStart(2, "0") + fastStart.slice(2);
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
-  const fastStartDate = useMemo(() => {
-    const [h, m] = fastStart.split(":").map(Number);
-    const d = new Date();
-    d.setHours(h, m, 0, 0);
-    if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1);
-    return d;
-  }, [fastStart]);
-  const fastEndDate = useMemo(() => new Date(fastStartDate.getTime() + fastWindow * 3600 * 1000), [fastStartDate]);
-  const fmtHMS = (ms: number) => {
-    const s = Math.max(0, Math.floor(ms / 1000));
-    return `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  };
-  const elapsed = fmtHMS(now.getTime() - fastStartDate.getTime());
-  const remainingFast = fmtHMS(fastEndDate.getTime() - now.getTime());
 
 
 
