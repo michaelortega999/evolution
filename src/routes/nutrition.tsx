@@ -738,7 +738,7 @@ function NutritionPage() {
                 </label>
                 <div className="pt-2 border-t border-border">
                   <div className="hud-label text-[10px] text-muted-foreground mb-2">
-                    OPTIONAL — filling either resets the chart for a new goal
+                    RESET
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
