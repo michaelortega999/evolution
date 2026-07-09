@@ -428,13 +428,13 @@ function NutritionPage() {
   return (
     <ModuleLayout number="02" title="Nutrition" subtitle={todayLabel()} icon={Apple}>
       <Tabs defaultValue="overview" className="animate-fade-in">
-        <TabsList className="bg-card border border-border flex-wrap h-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="meals">Meals</TabsTrigger>
-          <TabsTrigger value="macros">Macros</TabsTrigger>
-          <TabsTrigger value="water">Water</TabsTrigger>
-          <TabsTrigger value="grocery">Grocery</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="bg-card border border-border flex-wrap h-auto gap-1">
+          <TabsTrigger value="overview" className="hud-label text-[11px] tracking-wider">OVERVIEW</TabsTrigger>
+          <TabsTrigger value="meals" className="hud-label text-[11px] tracking-wider">FOOD DIARY</TabsTrigger>
+          <TabsTrigger value="macros" className="hud-label text-[11px] tracking-wider">MACROS</TabsTrigger>
+          <TabsTrigger value="water" className="hud-label text-[11px] tracking-wider">WATER</TabsTrigger>
+          <TabsTrigger value="grocery" className="hud-label text-[11px] tracking-wider">GROCERY</TabsTrigger>
+          <TabsTrigger value="history" className="hud-label text-[11px] tracking-wider">HISTORY</TabsTrigger>
         </TabsList>
 
         {/* ============ OVERVIEW ============ */}
