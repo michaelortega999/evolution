@@ -490,6 +490,15 @@ function NutritionPage() {
                   {(() => {
                     const w = 600, h = 220, pad = { l: 30, r: 10, t: 10, b: 24 };
                     const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                    if (visibleWeights.length === 0) {
+                      return (
+                        <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%">
+                          <text x={w / 2} y={h / 2} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" className="hud-label">
+                            NO WEIGHT LOGGED YET
+                          </text>
+                        </svg>
+                      );
+                    }
                     const min = Math.floor(Math.min(...visibleWeights.map((v) => v.lbs)) - 2);
                     const max = Math.ceil(Math.max(...visibleWeights.map((v) => v.lbs)) + 2);
                     const xs = (i: number) => pad.l + (i / Math.max(1, visibleWeights.length - 1)) * iw;
