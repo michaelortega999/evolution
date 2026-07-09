@@ -731,10 +731,27 @@ function NutritionPage() {
           <Dialog open={logWeightOpen} onOpenChange={setLogWeightOpen}>
             <DialogContent className="hud-card border-primary/40">
               <DialogHeader><DialogTitle className="hud-label text-primary hud-glow">Log Weight</DialogTitle></DialogHeader>
-              <label className="block">
-                <span className="hud-label text-[10px] text-muted-foreground">Weight (lbs)</span>
-                <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} className="h-9 text-xs mt-1" />
-              </label>
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="hud-label text-[10px] text-muted-foreground">Weight (lbs)</span>
+                  <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="e.g. 175.4" />
+                </label>
+                <div className="pt-2 border-t border-border">
+                  <div className="hud-label text-[10px] text-muted-foreground mb-2">
+                    OPTIONAL — filling either resets the chart for a new goal
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="hud-label text-[10px] text-muted-foreground">Starting Weight (lbs)</span>
+                      <Input type="number" step="0.1" value={newStartingWeight} onChange={(e) => setNewStartingWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="optional" />
+                    </label>
+                    <label className="block">
+                      <span className="hud-label text-[10px] text-muted-foreground">Goal Weight (lbs)</span>
+                      <Input type="number" step="0.1" value={newGoalWeight} onChange={(e) => setNewGoalWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="optional" />
+                    </label>
+                  </div>
+                </div>
+              </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setLogWeightOpen(false)} className="hud-label text-[10px]">Cancel</Button>
                 <Button onClick={submitWeight} className="hud-label text-[10px]">Save</Button>
