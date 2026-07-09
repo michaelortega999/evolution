@@ -546,7 +546,7 @@ function NutritionPage() {
                         {visibleWeights.filter((_, i) => i % Math.ceil(visibleWeights.length / 6) === 0).map((d, i, arr) => {
                           const origIdx = visibleWeights.indexOf(d);
                           return (
-                            <text key={i} x={xs(origIdx)} y={h - 6} textAnchor="middle" fontSize="9" fill="var(--muted-foreground)">
+                            <text key={i} x={xs(origIdx)} y={h - 6} textAnchor="middle" fontSize="12" fill="var(--muted-foreground)">
                               {new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase()}
                             </text>
                           );
