@@ -189,6 +189,36 @@ function NutritionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ------- Seed demo meals + targets so Overview matches the reference layout -------
+  useEffect(() => {
+    const seedKey = `nutrition:seeded:${today}`;
+    if (typeof window !== "undefined" && localStorage.getItem(seedKey)) return;
+    if (!data.profile.calorieTarget || data.profile.calorieTarget < 2500) {
+      updateProfile({ calorieTarget: 2600, proteinTarget: 200, carbsTarget: 250, fatsTarget: 80 });
+    }
+    const hasToday = data.mealLogs.some((m) => m.date === today);
+    if (!hasToday) {
+      const seed = [
+        { name: "Oatmeal",              calories: 210, protein: 8,  carbs: 27, fats: 4,  time: "08:30", mealType: "Breakfast" as MealType },
+        { name: "Blueberries",          calories: 42,  protein: 1,  carbs: 11, fats: 0,  time: "08:30", mealType: "Breakfast" as MealType },
+        { name: "Whey Protein",         calories: 120, protein: 24, carbs: 3,  fats: 1,  time: "08:30", mealType: "Breakfast" as MealType },
+        { name: "Almonds",              calories: 170, protein: 6,  carbs: 6,  fats: 15, time: "08:30", mealType: "Breakfast" as MealType },
+        { name: "Grilled Chicken Breast", calories: 280, protein: 45, carbs: 0,  fats: 6,  time: "13:00", mealType: "Lunch" as MealType },
+        { name: "White Rice",           calories: 205, protein: 4,  carbs: 45, fats: 0,  time: "13:00", mealType: "Lunch" as MealType },
+        { name: "Broccoli",             calories: 55,  protein: 4,  carbs: 11, fats: 1,  time: "13:00", mealType: "Lunch" as MealType },
+        { name: "Olive Oil",            calories: 92,  protein: 0,  carbs: 0,  fats: 10, time: "13:00", mealType: "Lunch" as MealType },
+        { name: "Salmon",               calories: 320, protein: 36, carbs: 0,  fats: 18, time: "19:00", mealType: "Dinner" as MealType },
+        { name: "Sweet Potato",         calories: 180, protein: 3,  carbs: 41, fats: 0,  time: "19:00", mealType: "Dinner" as MealType },
+        { name: "Asparagus",            calories: 55,  protein: 3,  carbs: 3,  fats: 0,  time: "19:00", mealType: "Dinner" as MealType },
+        { name: "Greek Yogurt",         calories: 150, protein: 15, carbs: 10, fats: 4,  time: "22:00", mealType: "Snack" as MealType },
+        { name: "Protein Bar",          calories: 100, protein: 10, carbs: 12, fats: 2,  time: "22:00", mealType: "Snack" as MealType },
+      ].map((m) => ({ ...m, id: uid(), date: today }));
+      mutate((prev) => ({ mealLogs: [...prev.mealLogs, ...seed] }));
+    }
+    if (typeof window !== "undefined") localStorage.setItem(seedKey, "1");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [gFilter, setGFilter] = useState<string>("All");
   const [gName, setGName] = useState(""); const [gQty, setGQty] = useState("1");
   const [gUnit, setGUnit] = useState("pieces"); const [gCat, setGCat] = useState("Protein");
@@ -428,13 +458,13 @@ function NutritionPage() {
   return (
     <ModuleLayout number="02" title="Nutrition" subtitle={todayLabel()} icon={Apple}>
       <Tabs defaultValue="overview" className="animate-fade-in">
-        <TabsList className="bg-card border border-border flex-wrap h-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="meals">Meals</TabsTrigger>
-          <TabsTrigger value="macros">Macros</TabsTrigger>
-          <TabsTrigger value="water">Water</TabsTrigger>
-          <TabsTrigger value="grocery">Grocery</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="bg-card border border-border flex-wrap h-auto gap-1">
+          <TabsTrigger value="overview" className="hud-label text-[11px] tracking-wider">OVERVIEW</TabsTrigger>
+          <TabsTrigger value="meals" className="hud-label text-[11px] tracking-wider">FOOD DIARY</TabsTrigger>
+          <TabsTrigger value="macros" className="hud-label text-[11px] tracking-wider">MACROS</TabsTrigger>
+          <TabsTrigger value="water" className="hud-label text-[11px] tracking-wider">WATER</TabsTrigger>
+          <TabsTrigger value="grocery" className="hud-label text-[11px] tracking-wider">GROCERY</TabsTrigger>
+          <TabsTrigger value="history" className="hud-label text-[11px] tracking-wider">HISTORY</TabsTrigger>
         </TabsList>
 
         {/* ============ OVERVIEW ============ */}
@@ -461,8 +491,11 @@ function NutritionPage() {
                 <div className="space-y-3">
                   <div>
                     <div className="hud-label text-[10px] text-muted-foreground">CURRENT WEIGHT</div>
-                    <div className="hud-label text-4xl text-primary hud-glow tabular-nums mt-1">{currentWeight} <span className="text-lg text-muted-foreground">lbs</span></div>
-                    <div className={`hud-label text-[10px] mt-1 ${weeklyChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <div className="hud-label text-primary hud-glow tabular-nums mt-1 whitespace-nowrap flex items-baseline gap-1.5">
+                      <span className="text-4xl">{currentWeight}</span>
+                      <span className="text-base text-primary/70 normal-case">lbs</span>
+                    </div>
+                    <div className="hud-label text-[10px] mt-1 text-primary/80 whitespace-nowrap">
                       <TrendingDown className="inline h-3 w-3 mr-1" />
                       {Math.abs(weeklyChange)} lbs vs last week
                     </div>
