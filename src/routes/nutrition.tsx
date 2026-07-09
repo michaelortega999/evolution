@@ -668,38 +668,9 @@ function NutritionPage() {
             </Panel>
           </div>
 
-          {/* Row 3: Fasting + Weekly summary */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
-            <Panel title="Intermittent Fasting">
-              <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-3 items-center">
-                <div className="text-center">
-                  <div className="relative mx-auto" style={{ width: 76, height: 76 }}>
-                    <svg viewBox="0 0 76 76" className="-rotate-90">
-                      <circle cx="38" cy="38" r="32" fill="none" stroke="var(--muted)" strokeWidth="5" opacity="0.35" />
-                      <circle cx="38" cy="38" r="32" fill="none" stroke="oklch(0.78 0.22 240)" strokeWidth="5" strokeLinecap="round"
-                        strokeDasharray={`${(fastWindow / 24) * 2 * Math.PI * 32} ${2 * Math.PI * 32}`}
-                        style={{ filter: "drop-shadow(0 0 6px oklch(0.78 0.22 240 / 0.7))" }} />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center hud-label text-base text-primary hud-glow tabular-nums">16:8</div>
-                  </div>
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1 whitespace-nowrap">Started: 8:00 PM</div>
-                </div>
-                <div className="min-w-0">
-                  <div className="hud-label text-[9px] text-muted-foreground whitespace-nowrap">FASTING WINDOW</div>
-                  <div className="hud-label text-base md:text-lg text-primary hud-glow tabular-nums mt-1 whitespace-nowrap">16:8</div>
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1 whitespace-nowrap">Ends: 12:00 PM</div>
-                </div>
-                <div className="min-w-0">
-                  <div className="hud-label text-[9px] text-muted-foreground whitespace-nowrap">ELAPSED TIME</div>
-                  <div className="hud-label text-base md:text-lg text-primary hud-glow tabular-nums mt-1 whitespace-nowrap">{elapsed}</div>
-                </div>
-                <div className="min-w-0">
-                  <div className="hud-label text-[9px] text-muted-foreground whitespace-nowrap">TIME REMAINING</div>
-                  <div className="hud-label text-base md:text-lg text-primary hud-glow tabular-nums mt-1 whitespace-nowrap">{remainingFast}</div>
-                </div>
-              </div>
-              <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW FASTING HISTORY ›</button>
-            </Panel>
+          {/* Row 3: Weekly summary */}
+          <div className="grid grid-cols-1 gap-6">
+
 
             <Panel title="Weekly Nutrition Summary">
               <div className="grid grid-cols-[1fr_140px] gap-4">
