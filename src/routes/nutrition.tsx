@@ -544,7 +544,7 @@ function NutritionPage() {
                 ].map((s) => (
                   <div key={s.label} className="border border-border rounded-md p-2 text-center">
                     <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
-                    <div className={`hud-label text-sm mt-1 tabular-nums ${s.good ? "text-emerald-400" : "text-foreground"}`}>{s.value}</div>
+                    <div className={`hud-label text-base mt-1 tabular-nums ${s.good ? "text-emerald-400" : "text-foreground"}`}>{s.value}</div>
                   </div>
                 ))}
               </div>
