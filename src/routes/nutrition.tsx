@@ -349,6 +349,82 @@ function NutritionPage() {
     return { id: m.id, time, pct, name: m.name, type: m.mealType ?? categoryFromTime(time) };
   });
 
+  // ------- Overview: weight tracker (local) -------
+  type WeightEntry = { date: string; lbs: number };
+  const DEFAULT_WEIGHTS: WeightEntry[] = useMemo(() => {
+    const out: WeightEntry[] = [];
+    const start = 175;
+    const end = 165.4;
+    for (let i = 29; i >= 0; i--) {
+      const iso = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const t = (29 - i) / 29;
+      // ease-out curve from start to end with mild noise
+      const eased = start + (end - start) * (1 - Math.pow(1 - t, 1.6));
+      const noise = Math.sin(i * 1.3) * 0.4;
+      out.push({ date: iso, lbs: Math.round((eased + noise) * 10) / 10 });
+    }
+    return out;
+  }, []);
+  const [weights, setWeights] = useState<WeightEntry[]>(DEFAULT_WEIGHTS);
+  const [weightPeriod, setWeightPeriod] = useState<"7D" | "30D" | "90D" | "1Y" | "ALL">("30D");
+  const [logWeightOpen, setLogWeightOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState("");
+  const goalWeight = 155;
+  const currentWeight = weights[weights.length - 1]?.lbs ?? 0;
+  const startWeight = weights[0]?.lbs ?? currentWeight;
+  const lastWeekWeight = weights[weights.length - 8]?.lbs ?? currentWeight;
+  const weeklyChange = +(currentWeight - lastWeekWeight).toFixed(1);
+  const totalChange = +(currentWeight - startWeight).toFixed(1);
+  const percentChange = +((totalChange / startWeight) * 100).toFixed(2);
+  const highestWeight = Math.max(...weights.map((w) => w.lbs));
+  const lowestWeight = Math.min(...weights.map((w) => w.lbs));
+  const avgWeeklyChange = +(totalChange / (weights.length / 7)).toFixed(1);
+  const bodyFatEst = 16.8;
+  const periodDays: Record<typeof weightPeriod, number> = { "7D": 7, "30D": 30, "90D": 90, "1Y": 365, "ALL": 9999 };
+  const visibleWeights = weights.slice(-periodDays[weightPeriod]);
+  const submitWeight = () => {
+    const v = Number(newWeight);
+    if (!v) return;
+    setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
+    setNewWeight("");
+    setLogWeightOpen(false);
+  };
+
+  // ------- Overview: supplements -------
+  type Supplement = { id: string; name: string; time: string; dose: string; done: boolean };
+  const [supplements, setSupplements] = useState<Supplement[]>([
+    { id: "s1", name: "Whey Protein",       time: "8:30 AM",  dose: "1 scoop",   done: true },
+    { id: "s2", name: "Creatine Monohydrate", time: "11:00 AM", dose: "5g",       done: true },
+    { id: "s3", name: "Omega 3",            time: "1:00 PM",  dose: "2 softgels", done: true },
+    { id: "s4", name: "Vitamin D3",         time: "1:00 PM",  dose: "5000 IU",   done: true },
+    { id: "s5", name: "Magnesium",          time: "9:00 PM",  dose: "400mg",     done: true },
+  ]);
+  const toggleSupp = (id: string) =>
+    setSupplements((s) => s.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+
+  // ------- Overview: fasting -------
+  const [fastStart, setFastStart] = useState("20:00");
+  const fastWindow = 16;
+  const fastEnd = ((Number(fastStart.slice(0, 2)) + fastWindow) % 24).toString().padStart(2, "0") + fastStart.slice(2);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+  const fastStartDate = useMemo(() => {
+    const [h, m] = fastStart.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1);
+    return d;
+  }, [fastStart]);
+  const fastEndDate = useMemo(() => new Date(fastStartDate.getTime() + fastWindow * 3600 * 1000), [fastStartDate]);
+  const fmtHMS = (ms: number) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    return `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  };
+  const elapsed = fmtHMS(now.getTime() - fastStartDate.getTime());
+  const remainingFast = fmtHMS(fastEndDate.getTime() - now.getTime());
+
+
+
   return (
     <ModuleLayout number="02" title="Nutrition" subtitle={todayLabel()} icon={Apple}>
       <Tabs defaultValue="overview" className="animate-fade-in">
