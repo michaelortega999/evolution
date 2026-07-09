@@ -189,35 +189,22 @@ function NutritionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------- Seed demo meals + targets so Overview matches the reference layout -------
+  // ------- Reset today's meals + water to zero (one-time) -------
   useEffect(() => {
-    const seedKey = `nutrition:seeded:${today}`;
-    if (typeof window !== "undefined" && localStorage.getItem(seedKey)) return;
-    if (!data.profile.calorieTarget || data.profile.calorieTarget < 2500) {
-      updateProfile({ calorieTarget: 2600, proteinTarget: 200, carbsTarget: 250, fatsTarget: 80 });
-    }
-    const hasToday = data.mealLogs.some((m) => m.date === today);
-    if (!hasToday) {
-      const seed = [
-        { name: "Oatmeal",              calories: 210, protein: 8,  carbs: 27, fats: 4,  time: "08:30", mealType: "Breakfast" as MealType },
-        { name: "Blueberries",          calories: 42,  protein: 1,  carbs: 11, fats: 0,  time: "08:30", mealType: "Breakfast" as MealType },
-        { name: "Whey Protein",         calories: 120, protein: 24, carbs: 3,  fats: 1,  time: "08:30", mealType: "Breakfast" as MealType },
-        { name: "Almonds",              calories: 170, protein: 6,  carbs: 6,  fats: 15, time: "08:30", mealType: "Breakfast" as MealType },
-        { name: "Grilled Chicken Breast", calories: 280, protein: 45, carbs: 0,  fats: 6,  time: "13:00", mealType: "Lunch" as MealType },
-        { name: "White Rice",           calories: 205, protein: 4,  carbs: 45, fats: 0,  time: "13:00", mealType: "Lunch" as MealType },
-        { name: "Broccoli",             calories: 55,  protein: 4,  carbs: 11, fats: 1,  time: "13:00", mealType: "Lunch" as MealType },
-        { name: "Olive Oil",            calories: 92,  protein: 0,  carbs: 0,  fats: 10, time: "13:00", mealType: "Lunch" as MealType },
-        { name: "Salmon",               calories: 320, protein: 36, carbs: 0,  fats: 18, time: "19:00", mealType: "Dinner" as MealType },
-        { name: "Sweet Potato",         calories: 180, protein: 3,  carbs: 41, fats: 0,  time: "19:00", mealType: "Dinner" as MealType },
-        { name: "Asparagus",            calories: 55,  protein: 3,  carbs: 3,  fats: 0,  time: "19:00", mealType: "Dinner" as MealType },
-        { name: "Greek Yogurt",         calories: 150, protein: 15, carbs: 10, fats: 4,  time: "22:00", mealType: "Snack" as MealType },
-        { name: "Protein Bar",          calories: 100, protein: 10, carbs: 12, fats: 2,  time: "22:00", mealType: "Snack" as MealType },
-      ].map((m) => ({ ...m, id: uid(), date: today }));
-      mutate((prev) => ({ mealLogs: [...prev.mealLogs, ...seed] }));
-    }
-    if (typeof window !== "undefined") localStorage.setItem(seedKey, "1");
+    const resetKey = `nutrition:reset-zero:${today}`;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(resetKey)) return;
+    // Clear any previously seeded meals for today so Overview starts at zero.
+    mutate((prev) => ({
+      mealLogs: prev.mealLogs.filter((m) => m.date !== today),
+      water: prev.water.filter((w) => w.date !== today),
+    }));
+    // Also clear the old seeder flag so it can't repopulate.
+    localStorage.removeItem(`nutrition:seeded:${today}`);
+    localStorage.setItem(resetKey, "1");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const [gFilter, setGFilter] = useState<string>("All");
   const [gName, setGName] = useState(""); const [gQty, setGQty] = useState("1");
