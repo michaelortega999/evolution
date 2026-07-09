@@ -191,6 +191,8 @@ function NutritionPage() {
 
   // ------- Seed demo meals + targets so Overview matches the reference layout -------
   useEffect(() => {
+    const seedKey = `nutrition:seeded:${today}`;
+    if (typeof window !== "undefined" && localStorage.getItem(seedKey)) return;
     if (!data.profile.calorieTarget || data.profile.calorieTarget < 2500) {
       updateProfile({ calorieTarget: 2600, proteinTarget: 200, carbsTarget: 250, fatsTarget: 80 });
     }
@@ -213,6 +215,7 @@ function NutritionPage() {
       ].map((m) => ({ ...m, id: uid(), date: today }));
       mutate((prev) => ({ mealLogs: [...prev.mealLogs, ...seed] }));
     }
+    if (typeof window !== "undefined") localStorage.setItem(seedKey, "1");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
