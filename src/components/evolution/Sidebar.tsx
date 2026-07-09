@@ -11,9 +11,9 @@ import { HologramEmblem } from "./HologramEmblem";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
-  { icon: Wallet, label: "Wealth", num: "1", to: "/wealth" as const },
-  { icon: Apple, label: "Nutrition", num: "2", to: "/nutrition" as const },
-  { icon: CheckSquare, label: "Tasks", num: "3", to: "/notes" as const },
+  { icon: CheckSquare, label: "Tasks", num: "1", to: "/notes" as const },
+  { icon: Nutrition, label: "Nutrition", num: "2", to: "/nutrition" as const },
+  { icon: Wallet, label: "Wealth", num: "3", to: "/wealth" as const },
   { icon: Zap, label: "Focus", num: "4", to: "/focus" as const },
   { icon: Dumbbell, label: "Fitness", num: "5", to: "/fitness" as const },
   { icon: TrendingUp, label: "Investing", num: "6", to: "/investing" as const },
