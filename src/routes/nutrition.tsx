@@ -368,42 +368,51 @@ function NutritionPage() {
 
   // ------- Overview: weight tracker (local) -------
   type WeightEntry = { date: string; lbs: number };
-  const DEFAULT_WEIGHTS: WeightEntry[] = useMemo(() => {
-    const out: WeightEntry[] = [];
-    const start = 175;
-    const end = 165.4;
-    for (let i = 29; i >= 0; i--) {
-      const iso = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      const t = (29 - i) / 29;
-      // ease-out curve from start to end with mild noise
-      const eased = start + (end - start) * (1 - Math.pow(1 - t, 1.6));
-      const noise = Math.sin(i * 1.3) * 0.4;
-      out.push({ date: iso, lbs: Math.round((eased + noise) * 10) / 10 });
-    }
-    return out;
-  }, []);
-  const [weights, setWeights] = useState<WeightEntry[]>(DEFAULT_WEIGHTS);
+  const [weights, setWeights] = useState<WeightEntry[]>([]);
   const [weightPeriod, setWeightPeriod] = useState<"7D" | "30D" | "90D" | "1Y" | "ALL">("30D");
   const [logWeightOpen, setLogWeightOpen] = useState(false);
   const [newWeight, setNewWeight] = useState("");
-  const goalWeight = 155;
+  const [newStartingWeight, setNewStartingWeight] = useState("");
+  const [newGoalWeight, setNewGoalWeight] = useState("");
+  const [startingWeight, setStartingWeight] = useState<number | null>(null);
+  const [goalWeight, setGoalWeight] = useState<number | null>(null);
   const currentWeight = weights[weights.length - 1]?.lbs ?? 0;
-  const startWeight = weights[0]?.lbs ?? currentWeight;
+  const startWeight = startingWeight ?? weights[0]?.lbs ?? 0;
   const lastWeekWeight = weights[weights.length - 8]?.lbs ?? currentWeight;
   const weeklyChange = +(currentWeight - lastWeekWeight).toFixed(1);
   const totalChange = +(currentWeight - startWeight).toFixed(1);
-  const percentChange = +((totalChange / startWeight) * 100).toFixed(2);
-  const highestWeight = Math.max(...weights.map((w) => w.lbs));
-  const lowestWeight = Math.min(...weights.map((w) => w.lbs));
-  const avgWeeklyChange = +(totalChange / (weights.length / 7)).toFixed(1);
-  const bodyFatEst = 16.8;
+  const percentChange = startWeight ? +((totalChange / startWeight) * 100).toFixed(2) : 0;
+  const highestWeight = weights.length ? Math.max(...weights.map((w) => w.lbs)) : 0;
+  const lowestWeight = weights.length ? Math.min(...weights.map((w) => w.lbs)) : 0;
+  const avgWeeklyChange = weights.length >= 7 ? +(totalChange / (weights.length / 7)).toFixed(1) : 0;
+  const bodyFatEst = 0;
   const periodDays: Record<typeof weightPeriod, number> = { "7D": 7, "30D": 30, "90D": 90, "1Y": 365, "ALL": 9999 };
   const visibleWeights = weights.slice(-periodDays[weightPeriod]);
   const submitWeight = () => {
     const v = Number(newWeight);
-    if (!v) return;
-    setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
+    const sw = Number(newStartingWeight);
+    const gw = Number(newGoalWeight);
+    const hasStart = !!newStartingWeight && !Number.isNaN(sw) && sw > 0;
+    const hasGoal = !!newGoalWeight && !Number.isNaN(gw) && gw > 0;
+    // If starting or goal provided → reset the chart (new goal cycle)
+    if (hasStart || hasGoal) {
+      const today = todayDate();
+      const seed: WeightEntry[] = v
+        ? [{ date: today, lbs: v }]
+        : hasStart
+        ? [{ date: today, lbs: sw }]
+        : [];
+      setWeights(seed);
+      if (hasStart) setStartingWeight(sw);
+      else if (v) setStartingWeight(v);
+      if (hasGoal) setGoalWeight(gw);
+    } else if (v) {
+      setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
+      if (startingWeight === null) setStartingWeight(v);
+    }
     setNewWeight("");
+    setNewStartingWeight("");
+    setNewGoalWeight("");
     setLogWeightOpen(false);
   };
 
@@ -468,8 +477,8 @@ function NutritionPage() {
                     </div>
                   </div>
                   <div className="pt-3 border-t border-border space-y-2 text-[11px]">
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">STARTING WEIGHT</span><span className="text-foreground tabular-nums">{startWeight.toFixed(1)} lbs</span></div>
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">GOAL WEIGHT</span><span className="text-foreground tabular-nums">{goalWeight.toFixed(1)} lbs</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">STARTING WEIGHT</span><span className="text-foreground tabular-nums">{startingWeight !== null ? `${startingWeight.toFixed(1)} lbs` : "—"}</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">GOAL WEIGHT</span><span className="text-foreground tabular-nums">{goalWeight !== null ? `${goalWeight.toFixed(1)} lbs` : "—"}</span></div>
                     <div className="flex justify-between"><span className="hud-label text-muted-foreground">TOTAL CHANGE</span><span className={`tabular-nums ${totalChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(totalChange)} lbs</span></div>
                     <div className="flex justify-between"><span className="hud-label text-muted-foreground">PERCENT CHANGE</span><span className={`tabular-nums ${percentChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(percentChange)}%</span></div>
                     <div className="flex justify-between"><span className="hud-label text-muted-foreground">DAYS TRACKING</span><span className="text-foreground tabular-nums">{weights.length} Days</span></div>
@@ -481,6 +490,15 @@ function NutritionPage() {
                   {(() => {
                     const w = 600, h = 220, pad = { l: 30, r: 10, t: 10, b: 24 };
                     const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                    if (visibleWeights.length === 0) {
+                      return (
+                        <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%">
+                          <text x={w / 2} y={h / 2} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" className="hud-label">
+                            NO WEIGHT LOGGED YET
+                          </text>
+                        </svg>
+                      );
+                    }
                     const min = Math.floor(Math.min(...visibleWeights.map((v) => v.lbs)) - 2);
                     const max = Math.ceil(Math.max(...visibleWeights.map((v) => v.lbs)) + 2);
                     const xs = (i: number) => pad.l + (i / Math.max(1, visibleWeights.length - 1)) * iw;
@@ -713,10 +731,27 @@ function NutritionPage() {
           <Dialog open={logWeightOpen} onOpenChange={setLogWeightOpen}>
             <DialogContent className="hud-card border-primary/40">
               <DialogHeader><DialogTitle className="hud-label text-primary hud-glow">Log Weight</DialogTitle></DialogHeader>
-              <label className="block">
-                <span className="hud-label text-[10px] text-muted-foreground">Weight (lbs)</span>
-                <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} className="h-9 text-xs mt-1" />
-              </label>
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="hud-label text-[10px] text-muted-foreground">Weight (lbs)</span>
+                  <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="e.g. 175.4" />
+                </label>
+                <div className="pt-2 border-t border-border">
+                  <div className="hud-label text-[10px] text-muted-foreground mb-2">
+                    OPTIONAL — filling either resets the chart for a new goal
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="hud-label text-[10px] text-muted-foreground">Starting Weight (lbs)</span>
+                      <Input type="number" step="0.1" value={newStartingWeight} onChange={(e) => setNewStartingWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="optional" />
+                    </label>
+                    <label className="block">
+                      <span className="hud-label text-[10px] text-muted-foreground">Goal Weight (lbs)</span>
+                      <Input type="number" step="0.1" value={newGoalWeight} onChange={(e) => setNewGoalWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="optional" />
+                    </label>
+                  </div>
+                </div>
+              </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setLogWeightOpen(false)} className="hud-label text-[10px]">Cancel</Button>
                 <Button onClick={submitWeight} className="hud-label text-[10px]">Save</Button>
