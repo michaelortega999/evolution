@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check, Undo2, RotateCcw } from "lucide-react";
+import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check, Undo2, RotateCcw, TrendingDown, Pill } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { Input } from "@/components/ui/input";
@@ -349,6 +349,82 @@ function NutritionPage() {
     return { id: m.id, time, pct, name: m.name, type: m.mealType ?? categoryFromTime(time) };
   });
 
+  // ------- Overview: weight tracker (local) -------
+  type WeightEntry = { date: string; lbs: number };
+  const DEFAULT_WEIGHTS: WeightEntry[] = useMemo(() => {
+    const out: WeightEntry[] = [];
+    const start = 175;
+    const end = 165.4;
+    for (let i = 29; i >= 0; i--) {
+      const iso = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const t = (29 - i) / 29;
+      // ease-out curve from start to end with mild noise
+      const eased = start + (end - start) * (1 - Math.pow(1 - t, 1.6));
+      const noise = Math.sin(i * 1.3) * 0.4;
+      out.push({ date: iso, lbs: Math.round((eased + noise) * 10) / 10 });
+    }
+    return out;
+  }, []);
+  const [weights, setWeights] = useState<WeightEntry[]>(DEFAULT_WEIGHTS);
+  const [weightPeriod, setWeightPeriod] = useState<"7D" | "30D" | "90D" | "1Y" | "ALL">("30D");
+  const [logWeightOpen, setLogWeightOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState("");
+  const goalWeight = 155;
+  const currentWeight = weights[weights.length - 1]?.lbs ?? 0;
+  const startWeight = weights[0]?.lbs ?? currentWeight;
+  const lastWeekWeight = weights[weights.length - 8]?.lbs ?? currentWeight;
+  const weeklyChange = +(currentWeight - lastWeekWeight).toFixed(1);
+  const totalChange = +(currentWeight - startWeight).toFixed(1);
+  const percentChange = +((totalChange / startWeight) * 100).toFixed(2);
+  const highestWeight = Math.max(...weights.map((w) => w.lbs));
+  const lowestWeight = Math.min(...weights.map((w) => w.lbs));
+  const avgWeeklyChange = +(totalChange / (weights.length / 7)).toFixed(1);
+  const bodyFatEst = 16.8;
+  const periodDays: Record<typeof weightPeriod, number> = { "7D": 7, "30D": 30, "90D": 90, "1Y": 365, "ALL": 9999 };
+  const visibleWeights = weights.slice(-periodDays[weightPeriod]);
+  const submitWeight = () => {
+    const v = Number(newWeight);
+    if (!v) return;
+    setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
+    setNewWeight("");
+    setLogWeightOpen(false);
+  };
+
+  // ------- Overview: supplements -------
+  type Supplement = { id: string; name: string; time: string; dose: string; done: boolean };
+  const [supplements, setSupplements] = useState<Supplement[]>([
+    { id: "s1", name: "Whey Protein",       time: "8:30 AM",  dose: "1 scoop",   done: true },
+    { id: "s2", name: "Creatine Monohydrate", time: "11:00 AM", dose: "5g",       done: true },
+    { id: "s3", name: "Omega 3",            time: "1:00 PM",  dose: "2 softgels", done: true },
+    { id: "s4", name: "Vitamin D3",         time: "1:00 PM",  dose: "5000 IU",   done: true },
+    { id: "s5", name: "Magnesium",          time: "9:00 PM",  dose: "400mg",     done: true },
+  ]);
+  const toggleSupp = (id: string) =>
+    setSupplements((s) => s.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+
+  // ------- Overview: fasting -------
+  const [fastStart, setFastStart] = useState("20:00");
+  const fastWindow = 16;
+  const fastEnd = ((Number(fastStart.slice(0, 2)) + fastWindow) % 24).toString().padStart(2, "0") + fastStart.slice(2);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+  const fastStartDate = useMemo(() => {
+    const [h, m] = fastStart.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1);
+    return d;
+  }, [fastStart]);
+  const fastEndDate = useMemo(() => new Date(fastStartDate.getTime() + fastWindow * 3600 * 1000), [fastStartDate]);
+  const fmtHMS = (ms: number) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    return `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  };
+  const elapsed = fmtHMS(now.getTime() - fastStartDate.getTime());
+  const remainingFast = fmtHMS(fastEndDate.getTime() - now.getTime());
+
+
+
   return (
     <ModuleLayout number="02" title="Nutrition" subtitle={todayLabel()} icon={Apple}>
       <Tabs defaultValue="overview" className="animate-fade-in">
@@ -363,109 +439,314 @@ function NutritionPage() {
 
         {/* ============ OVERVIEW ============ */}
         <TabsContent value="overview" className="space-y-6 animate-fade-in">
-          <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
-            <Panel title="Today">
-              <div className="flex flex-col items-center">
-                <RingProgress
-                  value={Math.min(100, calPct)}
-                  size={210}
-                  label={`${t.kcal}`}
-                  sublabel={`/ ${calTarget} kcal`}
-                />
-                <div className={`hud-label text-sm mt-3 ${remaining >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                  {remaining >= 0 ? `${remaining} kcal remaining` : `${Math.abs(remaining)} kcal over`}
-                </div>
-                {/* Hexagon nutrition score */}
-                <div className="mt-5 relative" style={{ width: 90, height: 100 }}>
-                  <svg viewBox="0 0 100 110" width="90" height="100">
-                    <polygon
-                      points="50,4 92,28 92,82 50,106 8,82 8,28"
-                      fill="oklch(0.65 0.28 310 / 0.15)"
-                      stroke="oklch(0.78 0.28 310)"
-                      strokeWidth="2"
-                      style={{ filter: "drop-shadow(0 0 8px oklch(0.78 0.28 310 / 0.6))" }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="hud-label text-2xl text-primary hud-glow">{score}</span>
-                    <span className="hud-label text-[9px] text-muted-foreground">SCORE</span>
+          {/* Row 1: Weight Tracker + Calorie Summary */}
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <Panel title="Weight Tracker">
+              <div className="flex items-center justify-end gap-2 mb-4 -mt-1">
+                {(["7D", "30D", "90D", "1Y", "ALL"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setWeightPeriod(p)}
+                    className={`hud-label text-[10px] px-2 py-1 rounded border transition-colors ${weightPeriod === p ? "bg-primary/20 border-primary text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <Button size="sm" onClick={() => setLogWeightOpen(true)} className="hud-label text-[10px] h-7">
+                  <Plus className="h-3 w-3 mr-1" /> LOG WEIGHT
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+                <div className="space-y-3">
+                  <div>
+                    <div className="hud-label text-[10px] text-muted-foreground">CURRENT WEIGHT</div>
+                    <div className="hud-label text-4xl text-primary hud-glow tabular-nums mt-1">{currentWeight} <span className="text-lg text-muted-foreground">lbs</span></div>
+                    <div className={`hud-label text-[10px] mt-1 ${weeklyChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      <TrendingDown className="inline h-3 w-3 mr-1" />
+                      {Math.abs(weeklyChange)} lbs vs last week
+                    </div>
+                  </div>
+                  <div className="pt-3 border-t border-border space-y-2 text-[11px]">
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">STARTING WEIGHT</span><span className="text-foreground tabular-nums">{startWeight.toFixed(1)} lbs</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">GOAL WEIGHT</span><span className="text-foreground tabular-nums">{goalWeight.toFixed(1)} lbs</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">TOTAL CHANGE</span><span className={`tabular-nums ${totalChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(totalChange)} lbs</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">PERCENT CHANGE</span><span className={`tabular-nums ${percentChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(percentChange)}%</span></div>
+                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">DAYS TRACKING</span><span className="text-foreground tabular-nums">{weights.length} Days</span></div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-4">
-                  <Flame className="h-4 w-4 text-primary" />
-                  <span className="hud-label text-sm text-primary">{streak}</span>
-                  <span className="hud-label text-[10px] text-muted-foreground">day streak</span>
+
+                {/* Line chart */}
+                <div className="relative" style={{ height: 220 }}>
+                  {(() => {
+                    const w = 600, h = 220, pad = { l: 30, r: 10, t: 10, b: 24 };
+                    const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                    const min = Math.floor(Math.min(...visibleWeights.map((v) => v.lbs)) - 2);
+                    const max = Math.ceil(Math.max(...visibleWeights.map((v) => v.lbs)) + 2);
+                    const xs = (i: number) => pad.l + (i / Math.max(1, visibleWeights.length - 1)) * iw;
+                    const ys = (v: number) => pad.t + (1 - (v - min) / Math.max(1, max - min)) * ih;
+                    const pts = visibleWeights.map((d, i) => `${xs(i)},${ys(d.lbs)}`).join(" ");
+                    const area = `${pad.l},${pad.t + ih} ${pts} ${xs(visibleWeights.length - 1)},${pad.t + ih}`;
+                    const yTicks = 5;
+                    const ticks = Array.from({ length: yTicks + 1 }, (_, i) => min + ((max - min) * i) / yTicks);
+                    return (
+                      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%">
+                        {ticks.map((t, i) => (
+                          <g key={i}>
+                            <line x1={pad.l} x2={w - pad.r} y1={ys(t)} y2={ys(t)} stroke="var(--border)" strokeDasharray="2 3" opacity="0.4" />
+                            <text x={pad.l - 4} y={ys(t) + 3} textAnchor="end" fontSize="9" fill="var(--muted-foreground)">{Math.round(t)}</text>
+                          </g>
+                        ))}
+                        <polygon points={area} fill="oklch(0.78 0.22 240 / 0.18)" />
+                        <polyline points={pts} fill="none" stroke="oklch(0.78 0.22 240)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.7))" }} />
+                        {visibleWeights.map((d, i) => (
+                          <circle key={i} cx={xs(i)} cy={ys(d.lbs)} r="2.5" fill="oklch(0.78 0.22 240)" />
+                        ))}
+                        {visibleWeights.filter((_, i) => i % Math.ceil(visibleWeights.length / 6) === 0).map((d, i, arr) => {
+                          const origIdx = visibleWeights.indexOf(d);
+                          return (
+                            <text key={i} x={xs(origIdx)} y={h - 6} textAnchor="middle" fontSize="9" fill="var(--muted-foreground)">
+                              {new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase()}
+                            </text>
+                          );
+                        })}
+                      </svg>
+                    );
+                  })()}
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 mt-6 pt-5 border-t border-border">
-                <div className="text-center">
-                  <RingProgress value={pPct} size={75} label={`${t.p}g`} sublabel="Protein" />
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1">/ {pTarget}g · {pPct}%</div>
-                </div>
-                <div className="text-center">
-                  <RingProgress value={cPct} size={75} label={`${t.c}g`} sublabel="Carbs" />
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1">/ {cTarget}g · {cPct}%</div>
-                </div>
-                <div className="text-center">
-                  <RingProgress value={fPct} size={75} label={`${t.f}g`} sublabel="Fats" />
-                  <div className="hud-label text-[9px] text-muted-foreground mt-1">/ {fTarget}g · {fPct}%</div>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-5 pt-5 border-t border-border">
+                {[
+                  { label: "WEEKLY CHANGE", value: `▼ ${Math.abs(weeklyChange)} lbs`, good: weeklyChange <= 0 },
+                  { label: "AVG. WEEKLY CHANGE", value: `▼ ${Math.abs(avgWeeklyChange)} lbs`, good: avgWeeklyChange <= 0 },
+                  { label: "HIGHEST WEIGHT", value: `${highestWeight.toFixed(1)} lbs` },
+                  { label: "LOWEST WEIGHT", value: `${lowestWeight.toFixed(1)} lbs` },
+                  { label: "BODY FAT (EST.)", value: `${bodyFatEst}%` },
+                ].map((s) => (
+                  <div key={s.label} className="border border-border rounded-md p-2 text-center">
+                    <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
+                    <div className={`hud-label text-sm mt-1 tabular-nums ${s.good ? "text-emerald-400" : "text-foreground"}`}>{s.value}</div>
+                  </div>
+                ))}
               </div>
             </Panel>
 
-            <div className="space-y-6">
-              <Panel title="Quick Add — Michael's Foods">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {QUICK_FOODS.map((q) => (
-                    <button
-                      key={q.key}
-                      onClick={() => addQuick(q)}
-                      className="text-left p-4 rounded-md border border-border hover:border-primary/60 hover:bg-primary/10 transition-all hover:scale-[1.02] active:scale-100"
-                    >
-                      <div className="hud-label text-sm text-foreground">{q.label}</div>
-                      <div className="hud-label text-[10px] text-muted-foreground mt-1">
-                        {q.kcal} cal · {q.p}P · {q.c}C · {q.f}F
+            <Panel title="Calorie Summary">
+              <div className="flex flex-col items-center">
+                <RingProgress value={Math.min(100, calPct)} size={180} label={`${t.kcal}`} sublabel={`kcal Consumed`} />
+                <div className={`hud-label text-[11px] mt-2 ${remaining >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  ▲ {Math.abs(Math.round(((t.kcal || 1) / Math.max(1, calTarget)) * 100 - 88))}% vs Yesterday
+                </div>
+              </div>
+              <div className="space-y-1.5 mt-4 text-[11px]">
+                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Calorie Target</span><span className="text-foreground tabular-nums">{calTarget.toLocaleString()} kcal</span></div>
+                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Consumed</span><span className="text-foreground tabular-nums">{t.kcal.toLocaleString()} kcal</span></div>
+                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Remaining</span><span className="text-emerald-400 tabular-nums">{Math.max(0, remaining).toLocaleString()} kcal</span></div>
+                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Burned (Active)</span><span className="text-foreground tabular-nums">420 kcal</span></div>
+                <div className="flex justify-between pt-1 border-t border-border"><span className="hud-label text-muted-foreground">Net</span><span className="text-foreground tabular-nums">{(t.kcal - 420).toLocaleString()} kcal</span></div>
+              </div>
+              <div className="mt-4 space-y-2">
+                {[
+                  { label: "PROTEIN", cur: t.p, tgt: pTarget, color: "oklch(0.78 0.22 240)" },
+                  { label: "CARBS",   cur: t.c, tgt: cTarget, color: "oklch(0.65 0.28 310)" },
+                  { label: "FATS",    cur: t.f, tgt: fTarget, color: "oklch(0.78 0.18 60)" },
+                ].map((m) => {
+                  const pct = Math.min(100, (m.cur / Math.max(1, m.tgt)) * 100);
+                  return (
+                    <div key={m.label}>
+                      <div className="flex justify-between hud-label text-[10px]">
+                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full" style={{ background: m.color }} /> {m.label}</span>
+                        <span className="text-muted-foreground tabular-nums">{m.cur}g / {m.tgt}g</span>
                       </div>
-                    </button>
-                  ))}
-                </div>
-                <Button onClick={openCustom} className="w-full mt-4 hud-label text-[10px]">
-                  <Plus className="h-3 w-3 mr-1" /> Log Custom Meal
-                </Button>
-              </Panel>
-
-              <Panel title="Daily Targets">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <label className="block">
-                    <span className="hud-label text-[10px] text-muted-foreground">Calories</span>
-                    <Input type="number" value={data.profile.calorieTarget}
-                      onChange={(e) => updateProfile({ calorieTarget: Number(e.target.value) || 0 })}
-                      className="h-9 text-xs mt-1" />
-                  </label>
-                  <label className="block">
-                    <span className="hud-label text-[10px] text-muted-foreground">Protein (g)</span>
-                    <Input type="number" value={data.profile.proteinTarget}
-                      onChange={(e) => updateProfile({ proteinTarget: Number(e.target.value) || 0 })}
-                      className="h-9 text-xs mt-1" />
-                  </label>
-                  <label className="block">
-                    <span className="hud-label text-[10px] text-muted-foreground">Carbs (g)</span>
-                    <Input type="number" value={data.profile.carbsTarget}
-                      onChange={(e) => updateProfile({ carbsTarget: Number(e.target.value) || 0 })}
-                      className="h-9 text-xs mt-1" />
-                  </label>
-                  <label className="block">
-                    <span className="hud-label text-[10px] text-muted-foreground">Fats (g)</span>
-                    <Input type="number" value={data.profile.fatsTarget}
-                      onChange={(e) => updateProfile({ fatsTarget: Number(e.target.value) || 0 })}
-                      className="h-9 text-xs mt-1" />
-                  </label>
-                </div>
-              </Panel>
-            </div>
+                      <div className="h-1.5 rounded bg-primary/10 overflow-hidden mt-1">
+                        <div className="h-full transition-all duration-500" style={{ width: `${pct}%`, background: m.color, boxShadow: `0 0 6px ${m.color}` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW MACRO DETAILS ›</button>
+            </Panel>
           </div>
+
+          {/* Row 2: Food Diary + Quick Add + Supplements */}
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr_1fr] gap-6">
+            <Panel title="Food Diary">
+              <div className="grid grid-cols-[70px_1fr_50px_45px_50px_45px] gap-x-2 gap-y-1 text-[10px]">
+                <div className="hud-label text-muted-foreground">MEAL</div>
+                <div className="hud-label text-muted-foreground">FOOD</div>
+                <div className="hud-label text-muted-foreground text-right">CALORIES</div>
+                <div className="hud-label text-muted-foreground text-right">CARBS</div>
+                <div className="hud-label text-muted-foreground text-right">PROTEIN</div>
+                <div className="hud-label text-muted-foreground text-right">FATS</div>
+                {(["Breakfast", "Lunch", "Dinner", "Snack"] as MealType[]).map((mt) => {
+                  const meals = todayMeals.filter((m) => (m.mealType ?? categoryFromTime(m.time ?? "12:00")) === mt);
+                  if (!meals.length) return null;
+                  const firstTime = meals[0].time ?? "";
+                  return (
+                    <div key={mt} className="contents">
+                      <div className="row-span-1 py-2">
+                        <div className="hud-label text-[11px] text-primary">{mt === "Breakfast" ? "☀" : mt === "Lunch" ? "☼" : mt === "Dinner" ? "☾" : "◆"} {mt}</div>
+                        <div className="hud-label text-[9px] text-muted-foreground">{firstTime}</div>
+                      </div>
+                      <div className="col-span-5 py-2">
+                        {meals.map((m) => (
+                          <div key={m.id} className="grid grid-cols-[1fr_50px_45px_50px_45px] gap-x-2 py-0.5 text-[11px]">
+                            <span className="text-foreground truncate">{m.name}</span>
+                            <span className="text-right text-primary tabular-nums">{m.calories}</span>
+                            <span className="text-right text-muted-foreground tabular-nums">{m.carbs}g</span>
+                            <span className="text-right text-muted-foreground tabular-nums">{m.protein}g</span>
+                            <span className="text-right text-muted-foreground tabular-nums">{m.fats}g</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="col-span-6 border-t border-border mt-2 pt-2 grid grid-cols-[70px_1fr_50px_45px_50px_45px] gap-x-2 text-[11px]">
+                  <div className="hud-label text-primary">DAILY TOTAL</div>
+                  <div />
+                  <div className="text-right text-primary hud-glow tabular-nums">{t.kcal} kcal</div>
+                  <div className="text-right text-muted-foreground tabular-nums">{t.c}g</div>
+                  <div className="text-right text-muted-foreground tabular-nums">{t.p}g</div>
+                  <div className="text-right text-muted-foreground tabular-nums">{t.f}g</div>
+                </div>
+                {!todayMeals.length && <div className="col-span-6 text-center text-xs text-muted-foreground py-6">No meals logged today.</div>}
+              </div>
+            </Panel>
+
+            <Panel title="Quick Add Meals">
+              <div className="space-y-2">
+                {QUICK_FOODS.slice(0, 3).map((q) => (
+                  <div key={q.key} className="border border-border rounded-md p-3 hover:border-primary/40 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="hud-label text-[12px] text-foreground">{q.label}</div>
+                        <div className="hud-label text-[10px] text-muted-foreground mt-1">
+                          - {q.kcal} kcal · E {q.c}g · P {q.p}g · F {q.f}g
+                        </div>
+                      </div>
+                      <Button size="sm" onClick={() => addQuick(q)} className="hud-label text-[10px] h-7 shrink-0">ADD MEAL</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" onClick={openCustom} className="w-full mt-3 hud-label text-[10px]">
+                <Plus className="h-3 w-3 mr-1" /> LOG CUSTOM MEAL
+              </Button>
+            </Panel>
+
+            <Panel title="Supplements">
+              <div className="flex items-center justify-end mb-2">
+                <Button size="sm" variant="outline" className="hud-label text-[10px] h-7">
+                  <Plus className="h-3 w-3 mr-1" /> ADD SUPPLEMENT
+                </Button>
+              </div>
+              <ul className="space-y-2">
+                {supplements.map((s) => (
+                  <li key={s.id} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-2 text-[11px]">
+                    <button onClick={() => toggleSupp(s.id)}
+                      className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${s.done ? "bg-primary border-primary" : "border-primary/50"}`}>
+                      {s.done && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </button>
+                    <span className={`truncate ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
+                    <span className="hud-label text-[9px] text-muted-foreground tabular-nums">{s.time}</span>
+                    <span className="hud-label text-[10px] text-primary tabular-nums">{s.dose}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW ALL SUPPLEMENTS ›</button>
+            </Panel>
+          </div>
+
+          {/* Row 3: Fasting + Weekly summary */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
+            <Panel title="Intermittent Fasting">
+              <div className="grid grid-cols-4 gap-3">
+                <div className="text-center">
+                  <div className="relative mx-auto" style={{ width: 70, height: 70 }}>
+                    <svg viewBox="0 0 70 70" className="-rotate-90">
+                      <circle cx="35" cy="35" r="30" fill="none" stroke="var(--muted)" strokeWidth="5" opacity="0.35" />
+                      <circle cx="35" cy="35" r="30" fill="none" stroke="oklch(0.78 0.22 240)" strokeWidth="5"
+                        strokeDasharray={`${(fastWindow / 24) * 2 * Math.PI * 30} ${2 * Math.PI * 30}`}
+                        style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.6))" }} />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center hud-label text-sm text-primary hud-glow">16:8</div>
+                  </div>
+                  <div className="hud-label text-[9px] text-muted-foreground mt-1">Started: {fastStart}</div>
+                </div>
+                <div>
+                  <div className="hud-label text-[9px] text-muted-foreground">FASTING WINDOW</div>
+                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums mt-1">16:8</div>
+                  <div className="hud-label text-[9px] text-muted-foreground mt-1">Ends: {fastEnd}</div>
+                </div>
+                <div>
+                  <div className="hud-label text-[9px] text-muted-foreground">ELAPSED TIME</div>
+                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums mt-1">{elapsed}</div>
+                </div>
+                <div>
+                  <div className="hud-label text-[9px] text-muted-foreground">TIME REMAINING</div>
+                  <div className="hud-label text-2xl text-primary hud-glow tabular-nums mt-1">{remainingFast}</div>
+                </div>
+              </div>
+              <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW FASTING HISTORY ›</button>
+            </Panel>
+
+            <Panel title="Weekly Nutrition Summary">
+              <div className="grid grid-cols-[1fr_140px] gap-4">
+                <div className="relative" style={{ height: 180 }}>
+                  <div className="absolute left-0 right-0 border-t border-dashed border-primary/50 pointer-events-none"
+                    style={{ top: `${100 - Math.min(100, (calTarget / 3000) * 100)}%` }}>
+                    <span className="absolute -top-4 right-0 hud-label text-[9px] text-primary">Target ({calTarget} kcal)</span>
+                  </div>
+                  <div className="flex items-end justify-between gap-2 h-full pt-4">
+                    {last7.map((d, i) => {
+                      const max = 3000;
+                      const h = Math.max(4, (d.kcal / max) * 100);
+                      const isToday = i === last7.length - 1;
+                      const color = isToday ? "oklch(0.78 0.22 240)" : "oklch(0.5 0.05 240)";
+                      const label = new Date(d.date).toLocaleDateString(undefined, { weekday: "short" }).toUpperCase().slice(0, 3);
+                      return (
+                        <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
+                          <div className="w-full flex items-end" style={{ height: "80%" }}>
+                            <div className="w-full rounded-t-sm transition-all duration-500"
+                              style={{ height: `${h}%`, background: color, boxShadow: isToday ? "0 0 8px oklch(0.78 0.22 240 / 0.7)" : "none" }} />
+                          </div>
+                          <div className="hud-label text-[9px] text-muted-foreground">{label}</div>
+                          <div className="hud-label text-[9px] text-foreground tabular-nums">{d.kcal || "—"}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-2 text-[11px] border-l border-border pl-4">
+                  <div><div className="hud-label text-[9px] text-muted-foreground">WEEKLY AVG</div><div className="text-primary hud-glow tabular-nums">{weeklyAvg.kcal.toLocaleString()} kcal</div></div>
+                  <div><div className="hud-label text-[9px] text-muted-foreground">AVG PROTEIN</div><div className="text-foreground tabular-nums">{weeklyAvg.p}g</div></div>
+                  <div><div className="hud-label text-[9px] text-muted-foreground">AVG CARBS</div><div className="text-foreground tabular-nums">{weeklyAvg.c}g</div></div>
+                  <div><div className="hud-label text-[9px] text-muted-foreground">AVG FATS</div><div className="text-foreground tabular-nums">{weeklyAvg.f}g</div></div>
+                </div>
+              </div>
+            </Panel>
+          </div>
+
+          {/* Log weight dialog */}
+          <Dialog open={logWeightOpen} onOpenChange={setLogWeightOpen}>
+            <DialogContent className="hud-card border-primary/40">
+              <DialogHeader><DialogTitle className="hud-label text-primary hud-glow">Log Weight</DialogTitle></DialogHeader>
+              <label className="block">
+                <span className="hud-label text-[10px] text-muted-foreground">Weight (lbs)</span>
+                <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} className="h-9 text-xs mt-1" />
+              </label>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setLogWeightOpen(false)} className="hud-label text-[10px]">Cancel</Button>
+                <Button onClick={submitWeight} className="hud-label text-[10px]">Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
+
+
 
         {/* ============ MEALS ============ */}
         <TabsContent value="meals" className="space-y-6 animate-fade-in">
