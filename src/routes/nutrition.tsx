@@ -612,14 +612,22 @@ function NutritionPage() {
                       </div>
                       <div className="col-span-5 py-2">
                         {meals.map((m) => (
-                          <div key={m.id} className="grid grid-cols-[1fr_50px_45px_50px_45px] gap-x-2 py-0.5 text-[11px]">
+                          <div key={m.id} className="group grid grid-cols-[1fr_50px_45px_50px_45px_20px] gap-x-2 py-0.5 text-[11px] items-center">
                             <span className="text-foreground truncate">{m.name}</span>
                             <span className="text-right text-primary tabular-nums">{m.calories}</span>
                             <span className="text-right text-muted-foreground tabular-nums">{m.carbs}g</span>
                             <span className="text-right text-muted-foreground tabular-nums">{m.protein}g</span>
                             <span className="text-right text-muted-foreground tabular-nums">{m.fats}g</span>
+                            <button
+                              onClick={() => delMeal(m.id)}
+                              aria-label={`Delete ${m.name}`}
+                              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity justify-self-end"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
                           </div>
                         ))}
+
                       </div>
                     </div>
                   );
