@@ -461,8 +461,11 @@ function NutritionPage() {
                 <div className="space-y-3">
                   <div>
                     <div className="hud-label text-[10px] text-muted-foreground">CURRENT WEIGHT</div>
-                    <div className="hud-label text-4xl text-primary hud-glow tabular-nums mt-1">{currentWeight} <span className="text-lg text-muted-foreground">lbs</span></div>
-                    <div className={`hud-label text-[10px] mt-1 ${weeklyChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <div className="hud-label text-primary hud-glow tabular-nums mt-1 whitespace-nowrap flex items-baseline gap-1.5">
+                      <span className="text-4xl">{currentWeight}</span>
+                      <span className="text-base text-primary/70 normal-case">lbs</span>
+                    </div>
+                    <div className="hud-label text-[10px] mt-1 text-primary/80 whitespace-nowrap">
                       <TrendingDown className="inline h-3 w-3 mr-1" />
                       {Math.abs(weeklyChange)} lbs vs last week
                     </div>
