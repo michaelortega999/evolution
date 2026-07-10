@@ -600,8 +600,8 @@ function NutritionPage() {
             </Panel>
           </div>
 
-          {/* Row 2: Food Diary + Quick Add + Supplements */}
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr_1fr] gap-6">
+          {/* Row 2: Food Diary + Quick Add */}
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr] gap-6">
             <Panel title="Food Diary">
               <div className="grid grid-cols-[70px_1fr_50px_45px_50px_45px] gap-x-2 gap-y-1 text-[10px]">
                 <div className="hud-label text-muted-foreground">MEAL</div>
@@ -674,7 +674,10 @@ function NutritionPage() {
                 <Plus className="h-3 w-3 mr-1" /> LOG CUSTOM MEAL
               </Button>
             </Panel>
+          </div>
 
+          {/* Row 3: Supplements + Weekly Nutrition Summary */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
             <Panel title="Supplements">
               <div className="flex items-center justify-end mb-2">
                 <Button size="sm" variant="outline" className="hud-label text-[10px] h-7">
@@ -696,11 +699,6 @@ function NutritionPage() {
               </ul>
               <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW ALL SUPPLEMENTS ›</button>
             </Panel>
-          </div>
-
-          {/* Row 3: Weekly summary */}
-          <div className="grid grid-cols-1 gap-6">
-
 
             <Panel title="Weekly Nutrition Summary">
               <div className="grid grid-cols-[1fr_140px] gap-4">
