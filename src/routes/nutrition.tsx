@@ -189,21 +189,10 @@ function NutritionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------- Reset today's meals + water to zero (one-time) -------
-  useEffect(() => {
-    const resetKey = `nutrition:reset-zero:${today}`;
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem(resetKey)) return;
-    // Clear any previously seeded meals for today so Overview starts at zero.
-    mutate((prev) => ({
-      mealLogs: prev.mealLogs.filter((m) => m.date !== today),
-      water: prev.water.filter((w) => w.date !== today),
-    }));
-    // Also clear the old seeder flag so it can't repopulate.
-    localStorage.removeItem(`nutrition:seeded:${today}`);
-    localStorage.setItem(resetKey, "1");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // (Removed one-time "reset today to zero" effect — it was wiping meals
+  // the user added, causing them to disappear after refresh.)
+
+
 
 
   const [gFilter, setGFilter] = useState<string>("All");
