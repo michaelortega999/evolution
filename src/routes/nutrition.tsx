@@ -702,30 +702,73 @@ function NutritionPage() {
 
             <Panel title="Weekly Nutrition Summary">
               <div className="grid grid-cols-[1fr_140px] gap-4">
-                <div className="relative" style={{ height: 180 }}>
-                  <div className="absolute left-0 right-0 border-t border-dashed border-primary/50 pointer-events-none"
-                    style={{ top: `${100 - Math.min(100, (calTarget / 3000) * 100)}%` }}>
-                    <span className="absolute -top-4 right-0 hud-label text-[9px] text-primary">Target ({calTarget} kcal)</span>
-                  </div>
-                  <div className="flex items-end justify-between gap-2 h-full pt-4">
-                    {last7.map((d, i) => {
-                      const max = 3000;
-                      const h = Math.max(4, (d.kcal / max) * 100);
-                      const isToday = i === last7.length - 1;
-                      const color = isToday ? "oklch(0.78 0.22 240)" : "oklch(0.5 0.05 240)";
-                      const label = new Date(d.date).toLocaleDateString(undefined, { weekday: "short" }).toUpperCase().slice(0, 3);
-                      return (
-                        <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                          <div className="w-full flex items-end" style={{ height: "80%" }}>
-                            <div className="w-full rounded-t-sm transition-all duration-500"
-                              style={{ height: `${h}%`, background: color, boxShadow: isToday ? "0 0 8px oklch(0.78 0.22 240 / 0.7)" : "none" }} />
-                          </div>
-                          <div className="hud-label text-[9px] text-muted-foreground">{label}</div>
-                          <div className="hud-label text-[9px] text-foreground tabular-nums">{d.kcal || "—"}</div>
+                <div>
+                  {(() => {
+                    const chartMax = Math.max(3000, calTarget + 200, ...last7.map((d) => d.kcal));
+                    const roundedMax = Math.ceil(chartMax / 1000) * 1000;
+                    const gridSteps = [0, 0.25, 0.5, 0.75, 1];
+                    const targetPct = Math.min(100, (calTarget / roundedMax) * 100);
+                    return (
+                      <>
+                        <div className="flex justify-end gap-4 mb-2 hud-label text-[9px]">
+                          <span className="flex items-center gap-1.5 text-primary">
+                            <span className="w-4 border-t border-dashed border-primary" /> Target ({calTarget.toLocaleString()} kcal)
+                          </span>
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <span className="w-3 h-2 rounded-sm" style={{ background: "linear-gradient(180deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))" }} /> Consumed
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div className="flex gap-2">
+                          <div className="flex flex-col justify-between hud-label text-[9px] text-muted-foreground tabular-nums" style={{ height: 180 }}>
+                            {[...gridSteps].reverse().map((s) => (
+                              <span key={s}>{Math.round(roundedMax * s).toLocaleString()}</span>
+                            ))}
+                          </div>
+                          <div className="relative flex-1" style={{ height: 180 }}>
+                            {gridSteps.map((s) => (
+                              <div key={s} className="absolute left-0 right-0 border-t border-border/40" style={{ top: `${(1 - s) * 100}%` }} />
+                            ))}
+                            <div
+                              className="absolute left-0 right-0 border-t border-dashed border-primary pointer-events-none"
+                              style={{ top: `${100 - targetPct}%` }}
+                            />
+                            <div className="absolute inset-0 flex items-end justify-between gap-2 px-1">
+                              {last7.map((d, i) => {
+                                const h = d.kcal > 0 ? Math.max(2, (d.kcal / roundedMax) * 100) : 0;
+                                const isToday = i === last7.length - 1;
+                                return (
+                                  <div key={d.date} className="flex-1 h-full flex items-end">
+                                    <div
+                                      className="w-full rounded-t-sm transition-all duration-500"
+                                      style={{
+                                        height: `${h}%`,
+                                        background: "linear-gradient(180deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))",
+                                        boxShadow: isToday ? "0 0 8px oklch(0.78 0.22 240 / 0.7)" : "none",
+                                      }}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <div className="hud-label text-[9px] invisible tabular-nums">{roundedMax.toLocaleString()}</div>
+                          <div className="flex-1 flex justify-between gap-2 px-1">
+                            {last7.map((d) => {
+                              const label = new Date(d.date).toLocaleDateString(undefined, { weekday: "short" }).toUpperCase().slice(0, 3);
+                              return (
+                                <div key={d.date} className="flex-1 flex flex-col items-center gap-0.5">
+                                  <div className="hud-label text-[10px] text-muted-foreground">{label}</div>
+                                  <div className="hud-label text-xs text-foreground tabular-nums">{d.kcal > 0 ? d.kcal.toLocaleString() : "—"}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
                 <div className="space-y-2 text-[11px] border-l border-border pl-4">
                   <div><div className="hud-label text-[9px] text-muted-foreground">WEEKLY AVG</div><div className="text-primary hud-glow tabular-nums">{weeklyAvg.kcal.toLocaleString()} kcal</div></div>
