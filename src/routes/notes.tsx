@@ -376,6 +376,7 @@ function TasksPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="hud-label text-[10px] text-muted-foreground border-b border-border">
+                <th className="w-6"></th>
                 <th className="w-8"></th>
                 <th className="text-left py-2 font-normal">TASK</th>
                 <th className="text-left py-2 font-normal w-24">CATEGORY</th>
@@ -387,7 +388,7 @@ function TasksPage() {
             </thead>
             <tbody>
               {visibleTasks.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-8 text-xs text-muted-foreground">No tasks yet. Click ADD TASK to create one.</td></tr>
+                <tr><td colSpan={8} className="text-center py-8 text-xs text-muted-foreground">No tasks yet. Click ADD TASK to create one.</td></tr>
               )}
               {visibleTasks.map((t) => {
                 const meta = CATEGORY_META[t.category];
