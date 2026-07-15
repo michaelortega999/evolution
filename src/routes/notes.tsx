@@ -145,6 +145,20 @@ function TasksPage() {
     mutate(() => ({ habitOrder: next }));
   }
 
+  function reorderTasks(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    mutate((p) => {
+      const current = p.evoTasks ?? [];
+      const from = current.findIndex((t) => t.id === sourceId);
+      const to = current.findIndex((t) => t.id === targetId);
+      if (from < 0 || to < 0) return {};
+      const next = current.slice();
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return { evoTasks: next };
+    });
+  }
+
 
 
   const visibleTasks = useMemo(() => {
