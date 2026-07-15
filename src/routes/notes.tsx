@@ -83,6 +83,7 @@ function TasksPage() {
   const [sortPriority, setSortPriority] = useState(false);
   const [sortDue, setSortDue] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [dragTaskId, setDragTaskId] = useState<string | null>(null);
 
   // Add task modal state
   const [showAdd, setShowAdd] = useState(false);
