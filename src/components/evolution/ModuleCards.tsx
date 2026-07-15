@@ -269,46 +269,61 @@ export function NotesCard() {
   const { data, mutate } = useEvolutionData();
   const [text, setText] = useState("");
 
+  const tasks = data.evoTasks ?? [];
+
   const add = () => {
     const t = text.trim();
     if (!t) return;
-    mutate((prev) => ({
-      notes: [...prev.notes, { id: `n${Date.now()}`, text: t, done: false }],
-    }));
+    const task: EvoTask = {
+      id: uid(),
+      text: t,
+      category: "Notes",
+      priority: "Medium",
+      due: todayDate(),
+      status: "Not Started",
+    };
+    mutate((prev) => ({ evoTasks: [...(prev.evoTasks ?? []), task] }));
     setText("");
   };
+
   const toggle = (id: string) =>
     mutate((prev) => ({
-      notes: prev.notes.map((n) => (n.id === id ? { ...n, done: !n.done } : n)),
+      evoTasks: (prev.evoTasks ?? []).map((t) =>
+        t.id === id ? { ...t, status: t.status === "Done" ? "Not Started" : "Done" } : t
+      ),
     }));
+
   const remove = (id: string) =>
-    mutate((prev) => ({ notes: prev.notes.filter((n) => n.id !== id) }));
+    mutate((prev) => ({ evoTasks: (prev.evoTasks ?? []).filter((t) => t.id !== id) }));
+
+  const visible = tasks.filter((t) => t.status !== "Done");
 
   return (
     <Card icon={NotebookPen} variant="notes" number="05" title="TASKS" href="/notes">
       <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32">
-        {data.notes.map((n) => (
-          <li key={n.id} className="flex items-start gap-2 text-xs group">
+        {visible.map((t) => (
+          <li key={t.id} className="flex items-start gap-2 text-xs group">
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(n.id); }}
-              className={`mt-0.5 h-3.5 w-3.5 rounded border flex items-center justify-center shrink-0 ${
-                n.done ? "bg-primary border-primary text-primary-foreground" : "border-primary/50 hover:border-primary"
-              }`}
-              aria-label={n.done ? "Mark as not done" : "Mark as done"}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(t.id); }}
+              className="mt-0.5 h-3.5 w-3.5 rounded border flex items-center justify-center shrink-0 border-primary/50 hover:border-primary"
+              aria-label="Mark as done"
             >
-              {n.done && <span className="text-[8px] leading-none">✓</span>}
+              <span className="text-[8px] leading-none opacity-0">✓</span>
             </button>
-            <span className={`flex-1 ${n.done ? "line-through text-muted-foreground" : "text-foreground/90"}`}>{n.text}</span>
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); remove(n.id); }} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
+            <span className="flex-1 text-foreground/90">{t.text}</span>
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); remove(t.id); }} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
               <X className="h-3 w-3" />
             </button>
           </li>
         ))}
+        {visible.length === 0 && (
+          <li className="text-xs text-muted-foreground italic">No open tasks.</li>
+        )}
       </ul>
       <div className="flex gap-2 mt-3">
         <Input value={text} onChange={(e) => setText(e.target.value)}
                onKeyDown={(e) => e.key === "Enter" && add()}
-               placeholder="Capture…" className="h-8 text-xs" />
+               placeholder="Add task…" className="h-8 text-xs" />
         <button onClick={add} className="h-8 w-8 rounded-md border border-primary/40 text-primary flex items-center justify-center hover:bg-primary/10">
           <Plus className="h-3.5 w-3.5" />
         </button>
