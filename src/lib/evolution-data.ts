@@ -864,9 +864,8 @@ async function pullCloud(userId: string): Promise<EvolutionData | null> {
 
 async function pushCloud(userId: string, data: EvolutionData) {
   try {
-    await supabase
-      .from("user_data")
-      .upsert({ user_id: userId, data: { ...data, _version: STORAGE_VERSION } as unknown as Record<string, unknown> });
+    const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
+    await supabase.from("user_data").upsert({ user_id: userId, data: payload });
   } catch {
     /* offline / network — localStorage still holds the truth */
   }
