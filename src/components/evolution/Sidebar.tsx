@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Home, Wallet, Apple, Dumbbell, FileText, CheckSquare,
-  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap,
+  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap, LogOut, LogIn,
 } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { HologramPicker } from "./HologramPicker";
 import { HologramEmblem } from "./HologramEmblem";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
@@ -31,8 +33,24 @@ const secondaryNav = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { data, updateProfile } = useEvolutionData();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUserEmail(data.session?.user.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserEmail(session?.user.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate({ to: "/auth" });
+  };
 
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
@@ -102,11 +120,32 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-4 pt-4 border-t border-border flex items-center gap-3">
-        <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/40 flex items-center justify-center text-primary hud-label text-xs">M</div>
-        <div className="flex-1 min-w-0">
-          <div className="hud-label text-xs text-foreground truncate">Michael</div>
-          <div className="hud-label text-[9px] text-muted-foreground">Premium Member</div>
+        <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/40 flex items-center justify-center text-primary hud-label text-xs">
+          {(userEmail?.[0] ?? data.profile.name?.[0] ?? "M").toUpperCase()}
         </div>
+        <div className="flex-1 min-w-0">
+          <div className="hud-label text-xs text-foreground truncate">{data.profile.name || "Operator"}</div>
+          <div className="hud-label text-[9px] text-muted-foreground truncate">
+            {userEmail ?? "Not signed in"}
+          </div>
+        </div>
+        {userEmail ? (
+          <button
+            onClick={signOut}
+            title="Sign out"
+            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <Link
+            to="/auth"
+            title="Sign in"
+            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10"
+          >
+            <LogIn className="h-3.5 w-3.5" />
+          </Link>
+        )}
       </div>
     </aside>
   );
