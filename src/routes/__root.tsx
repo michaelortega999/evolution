@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import "../styles.css";
 import { useTheme } from "@/lib/use-theme";
 import { FocusNotification } from "@/components/evolution/FocusNotification";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -31,14 +32,13 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Evolution — Life Operating System" },
+      { name: "description", content: "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD." },
+      { name: "author", content: "Evolution" },
+      { property: "og:title", content: "Evolution — Life Operating System" },
+      { property: "og:description", content: "Track wealth, fitness, nutrition, journaling, investing, and habits in one HUD." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -74,6 +74,7 @@ function RootComponent() {
     <>
       <Outlet />
       <FocusNotification />
+      <Toaster theme="dark" position="top-right" />
     </>
   );
 }

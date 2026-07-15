@@ -120,11 +120,32 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-4 pt-4 border-t border-border flex items-center gap-3">
-        <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/40 flex items-center justify-center text-primary hud-label text-xs">M</div>
-        <div className="flex-1 min-w-0">
-          <div className="hud-label text-xs text-foreground truncate">Michael</div>
-          <div className="hud-label text-[9px] text-muted-foreground">Premium Member</div>
+        <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/40 flex items-center justify-center text-primary hud-label text-xs">
+          {(userEmail?.[0] ?? data.profile.name?.[0] ?? "M").toUpperCase()}
         </div>
+        <div className="flex-1 min-w-0">
+          <div className="hud-label text-xs text-foreground truncate">{data.profile.name || "Operator"}</div>
+          <div className="hud-label text-[9px] text-muted-foreground truncate">
+            {userEmail ?? "Not signed in"}
+          </div>
+        </div>
+        {userEmail ? (
+          <button
+            onClick={signOut}
+            title="Sign out"
+            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <Link
+            to="/auth"
+            title="Sign in"
+            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10"
+          >
+            <LogIn className="h-3.5 w-3.5" />
+          </Link>
+        )}
       </div>
     </aside>
   );
