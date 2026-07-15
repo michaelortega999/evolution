@@ -21,7 +21,7 @@ import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary, tradingTotals,
   todayDate, dayTotals, nutritionStreak, uid, wealthSummary,
-  type Meal, type Hobby,
+  type Meal, type Hobby, type EvoTask,
 } from "@/lib/evolution-data";
 
 type ModuleHref = "/wealth" | "/nutrition" | "/fitness" | "/journal" | "/notes" | "/investing" | "/business" | "/hobby";
