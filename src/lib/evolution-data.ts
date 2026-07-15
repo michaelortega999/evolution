@@ -826,7 +826,7 @@ function hydrate(parsed: StoredShape): EvolutionData {
     habitOrder: parsed.habitOrder ?? [],
     hiddenHabits: parsed.hiddenHabits ?? [],
     timeLogs: parsed.timeLogs ?? [],
-    tradingAccounts: parsed.tradingAccounts?.length ? parsed.tradingAccounts : defaultData.tradingAccounts,
+    tradingAccounts: parsed.tradingAccounts ?? defaultData.tradingAccounts,
     tradingTxns: parsed.tradingTxns ?? defaultData.tradingTxns,
     tradeJournal: parsed.tradeJournal ?? defaultData.tradeJournal,
   };
