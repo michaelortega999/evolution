@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export type NutritionEntry = { date: string; calories: number; protein?: number; carbs?: number; fats?: number };
 export type FitnessEntry = { date: string; workouts: number; label?: string };
@@ -762,90 +764,151 @@ function nextSatISO(): string {
   return d.toISOString().slice(0, 10);
 }
 
+function hydrate(parsed: StoredShape): EvolutionData {
+  const loaded: EvolutionData = {
+    ...defaultData,
+    ...parsed,
+    profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
+    nutrition: parsed.nutrition?.length ? parsed.nutrition : defaultData.nutrition,
+    fitness: parsed.fitness?.length ? parsed.fitness : defaultData.fitness,
+    investing: parsed.investing?.length ? parsed.investing : defaultData.investing,
+    meals: parsed.meals ?? [],
+    notes: (() => {
+      const r = (parsed as { notes?: unknown }).notes;
+      if (!Array.isArray(r)) return defaultData.notes;
+      return r.map((n, i) =>
+        typeof n === "string"
+          ? { id: `n-legacy-${i}-${Date.now()}`, text: n, done: false }
+          : (n as TodoItem)
+      );
+    })(),
+    journal: parsed.journal ?? [],
+    hobby: parsed.hobby ?? defaultData.hobby,
+    events: parsed.events ?? [],
+    goals: parsed.goals ?? [],
+    calendar: parsed.calendar ?? [],
+    settings: { ...defaultData.settings, ...(parsed.settings ?? {}) },
+    focusSessions: parsed.focusSessions ?? [],
+    focusSettings: { ...defaultFocusSettings, ...(parsed.focusSettings ?? {}) },
+    workouts: parsed.workouts ?? [],
+    prHistory: parsed.prHistory ?? [],
+    recovery: parsed.recovery ?? [],
+    assets: parsed.assets ?? [],
+    transactions: parsed.transactions ?? [],
+    mealLogs: parsed.mealLogs ?? [],
+    grocery: parsed.grocery ?? [],
+    water: parsed.water ?? [],
+    journalEntries: parsed.journalEntries ?? [],
+    reflections: parsed.reflections ?? [],
+    richNotes: parsed.richNotes ?? [],
+    trades: parsed.trades ?? [],
+    strategies: parsed.strategies?.length ? parsed.strategies : defaultData.strategies,
+    watchlist: parsed.watchlist ?? [],
+    projects: parsed.projects ?? defaultData.projects,
+    revenue: parsed.revenue ?? [],
+    bizTasks: parsed.bizTasks ?? [],
+    carMeets: parsed.carMeets ?? [],
+    guitarSessions: parsed.guitarSessions ?? [],
+    trips: parsed.trips ?? [],
+    cars: parsed.cars ?? [],
+    carExpenses: parsed.carExpenses ?? [],
+    carEvents: parsed.carEvents?.length ? parsed.carEvents : defaultData.carEvents,
+    guitarSkills: parsed.guitarSkills ?? [],
+    guitarSongs: parsed.guitarSongs ?? [],
+    guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
+    customHobbies: parsed.customHobbies ?? [],
+    weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
+    trainingSchedule: parsed.trainingSchedule ?? defaultData.trainingSchedule,
+    netWorthSnapshots: parsed.netWorthSnapshots ?? [],
+    evoTasks: parsed.evoTasks ?? [],
+    habitLog: parsed.habitLog ?? {},
+    customHabits: parsed.customHabits ?? [],
+    habitOrder: parsed.habitOrder ?? [],
+    hiddenHabits: parsed.hiddenHabits ?? [],
+    timeLogs: parsed.timeLogs ?? [],
+    tradingAccounts: parsed.tradingAccounts?.length ? parsed.tradingAccounts : defaultData.tradingAccounts,
+    tradingTxns: parsed.tradingTxns ?? defaultData.tradingTxns,
+    tradeJournal: parsed.tradeJournal ?? defaultData.tradeJournal,
+  };
+  return syncTradingAssets(loaded);
+}
+
 function load(): EvolutionData {
   if (typeof window === "undefined") return defaultData;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData;
-    const parsed = migrate(JSON.parse(raw) as StoredShape);
-    const loaded: EvolutionData = {
-      ...defaultData,
-      ...parsed,
-      profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
-      nutrition: parsed.nutrition?.length ? parsed.nutrition : defaultData.nutrition,
-      fitness: parsed.fitness?.length ? parsed.fitness : defaultData.fitness,
-      investing: parsed.investing?.length ? parsed.investing : defaultData.investing,
-      meals: parsed.meals ?? [],
-      notes: (() => {
-        const r = (parsed as { notes?: unknown }).notes;
-        if (!Array.isArray(r)) return defaultData.notes;
-        return r.map((n, i) =>
-          typeof n === "string"
-            ? { id: `n-legacy-${i}-${Date.now()}`, text: n, done: false }
-            : (n as TodoItem)
-        );
-      })(),
-      journal: parsed.journal ?? [],
-      hobby: parsed.hobby ?? defaultData.hobby,
-      events: parsed.events ?? [],
-      goals: parsed.goals ?? [],
-      calendar: parsed.calendar ?? [],
-      settings: { ...defaultData.settings, ...(parsed.settings ?? {}) },
-      focusSessions: parsed.focusSessions ?? [],
-      focusSettings: { ...defaultFocusSettings, ...(parsed.focusSettings ?? {}) },
-      workouts: parsed.workouts ?? [],
-      prHistory: parsed.prHistory ?? [],
-      recovery: parsed.recovery ?? [],
-      assets: parsed.assets ?? [],
-      transactions: parsed.transactions ?? [],
-      mealLogs: parsed.mealLogs ?? [],
-      grocery: parsed.grocery ?? [],
-      water: parsed.water ?? [],
-      journalEntries: parsed.journalEntries ?? [],
-      reflections: parsed.reflections ?? [],
-      richNotes: parsed.richNotes ?? [],
-      trades: parsed.trades ?? [],
-      strategies: parsed.strategies?.length ? parsed.strategies : defaultData.strategies,
-      watchlist: parsed.watchlist ?? [],
-      projects: parsed.projects ?? defaultData.projects,
-      revenue: parsed.revenue ?? [],
-      bizTasks: parsed.bizTasks ?? [],
-      carMeets: parsed.carMeets ?? [],
-      guitarSessions: parsed.guitarSessions ?? [],
-      trips: parsed.trips ?? [],
-      cars: parsed.cars ?? [],
-      carExpenses: parsed.carExpenses ?? [],
-      carEvents: parsed.carEvents?.length ? parsed.carEvents : defaultData.carEvents,
-      guitarSkills: parsed.guitarSkills ?? [],
-      guitarSongs: parsed.guitarSongs ?? [],
-      guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
-      customHobbies: parsed.customHobbies ?? [],
-      weeklyHobbyTargets: { ...defaultData.weeklyHobbyTargets, ...(parsed.weeklyHobbyTargets ?? {}) },
-      trainingSchedule: parsed.trainingSchedule ?? defaultData.trainingSchedule,
-      netWorthSnapshots: parsed.netWorthSnapshots ?? [],
-      evoTasks: parsed.evoTasks ?? [],
-      habitLog: parsed.habitLog ?? {},
-      customHabits: parsed.customHabits ?? [],
-      habitOrder: parsed.habitOrder ?? [],
-      hiddenHabits: parsed.hiddenHabits ?? [],
-      timeLogs: parsed.timeLogs ?? [],
-      tradingAccounts: parsed.tradingAccounts?.length ? parsed.tradingAccounts : defaultData.tradingAccounts,
-      tradingTxns: parsed.tradingTxns ?? defaultData.tradingTxns,
-      tradeJournal: parsed.tradeJournal ?? defaultData.tradeJournal,
-
-
-
-    };
-    return syncTradingAssets(loaded);
+    return hydrate(migrate(JSON.parse(raw) as StoredShape));
   } catch {
     return defaultData;
   }
+}
+
+// ------------- Cloud sync -------------
+let cloudUserId: string | null = null;
+let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function pullCloud(userId: string): Promise<EvolutionData | null> {
+  try {
+    const { data, error } = await supabase
+      .from("user_data")
+      .select("data")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data?.data) return null;
+    return hydrate(migrate(data.data as StoredShape));
+  } catch {
+    return null;
+  }
+}
+
+async function pushCloud(userId: string, data: EvolutionData) {
+  try {
+    await supabase
+      .from("user_data")
+      .upsert({ user_id: userId, data: { ...data, _version: STORAGE_VERSION } as unknown as Record<string, unknown> });
+  } catch {
+    /* offline / network — localStorage still holds the truth */
+  }
+}
+
+function scheduleCloudSave(data: EvolutionData) {
+  if (!cloudUserId) return;
+  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  const uid = cloudUserId;
+  cloudSaveTimer = setTimeout(() => pushCloud(uid, data), 800);
+}
+
+async function activateCloudForUser(userId: string) {
+  cloudUserId = userId;
+  const cloud = await pullCloud(userId);
+  if (cloud) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...cloud, _version: STORAGE_VERSION }));
+    window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+  } else {
+    // First sign-in: seed cloud with whatever is local
+    await pushCloud(userId, load());
+  }
+}
+
+if (typeof window !== "undefined") {
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) void activateCloudForUser(data.session.user.id);
+  });
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" && session) {
+      void activateCloudForUser(session.user.id);
+    } else if (event === "SIGNED_OUT") {
+      cloudUserId = null;
+    }
+  });
 }
 
 function save(data: EvolutionData) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
   window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+  scheduleCloudSave(data);
 }
 
 export function useEvolutionData() {
