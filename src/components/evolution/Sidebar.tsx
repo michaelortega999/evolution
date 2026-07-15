@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Home, Wallet, Apple, Dumbbell, FileText, CheckSquare,
-  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap,
+  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap, LogOut, LogIn,
 } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { HologramPicker } from "./HologramPicker";
 import { HologramEmblem } from "./HologramEmblem";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
@@ -31,8 +33,24 @@ const secondaryNav = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { data, updateProfile } = useEvolutionData();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUserEmail(data.session?.user.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserEmail(session?.user.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate({ to: "/auth" });
+  };
 
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
