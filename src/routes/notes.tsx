@@ -398,8 +398,38 @@ function TasksPage() {
                 const priArrow = t.priority === "Low" ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />;
                 const statusIcon = t.status === "Done" ? <CheckCircle2 className="h-3 w-3" /> : t.status === "In Progress" ? <Loader2 className="h-3 w-3" /> : <Circle className="h-3 w-3" />;
                 const statusColor = t.status === "Done" ? "#4ade80" : t.status === "In Progress" ? "#38bdf8" : "#9ca3af";
+                const isTaskDragging = dragTaskId === t.id;
                 return (
-                  <tr key={t.id} className="border-b border-border/50 hover:bg-primary/5 group">
+                  <tr
+                    key={t.id}
+                    onDragOver={(e) => { e.preventDefault(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const src = e.dataTransfer.getData("text/plain");
+                      if (src) reorderTasks(src, t.id);
+                      setDragTaskId(null);
+                    }}
+                    className={cn(
+                      "border-b border-border/50 hover:bg-primary/5 group transition-colors",
+                      isTaskDragging && "opacity-40",
+                      dragTaskId && !isTaskDragging && "hover:bg-primary/5"
+                    )}
+                  >
+                    <td className="py-2.5">
+                      <button
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", t.id);
+                          setDragTaskId(t.id);
+                        }}
+                        onDragEnd={() => setDragTaskId(null)}
+                        aria-label="Drag to reorder"
+                        className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-primary transition-colors -ml-1"
+                      >
+                        <GripVertical className="h-4 w-4" />
+                      </button>
+                    </td>
                     <td className="py-2.5">
                       <input type="checkbox" checked={done} onChange={(e) => toggleDone(t.id, e.target.checked)}
                         className="h-3.5 w-3.5 accent-primary" />
