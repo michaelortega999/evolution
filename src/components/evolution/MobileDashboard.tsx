@@ -102,7 +102,7 @@ export function MobileDashboard() {
   const focusPct = Math.min(100, Math.round((todayFocusSec / (2 * 3600)) * 100));
 
   const wealthPct = Math.min(100, Math.round((wealth.netWorth / (data.profile.goal || 1)) * 100));
-  const investPnl = trading.pnl;
+  const investPnl = trading.todayPnl;
   const investPct = Math.min(100, Math.abs(investPnl) / 100);
 
   const heroSrc = hologramSrc(data.profile.hologram);
