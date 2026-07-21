@@ -308,6 +308,7 @@ export function useFocusTimer(): UseFocusTimer {
     start,
     pause,
     reset,
+    logSession,
     setMode,
     setTask,
     setTag,
