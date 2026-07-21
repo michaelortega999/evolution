@@ -4,6 +4,7 @@ import { TopBar } from "@/components/evolution/TopBar";
 import { BottomBar } from "@/components/evolution/BottomBar";
 import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
+import { MobileDashboard } from "@/components/evolution/MobileDashboard";
 import {
   WealthCard, NutritionCard, FitnessCard, JournalCard,
   InvestingCard, BusinessCard, HobbyCard,
@@ -32,7 +33,9 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <>
+      <MobileDashboard />
+      <div className="hidden md:block min-h-screen p-4 md:p-6">
       <div className="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
         <div className="lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
           <Sidebar />
