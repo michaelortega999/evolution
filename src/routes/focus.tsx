@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Play, Pause, RotateCcw, Target, Clock,
+  Play, Pause, RotateCcw, Target, Clock, FileText,
 } from "lucide-react";
 import { Sidebar } from "@/components/evolution/Sidebar";
 import { Input } from "@/components/ui/input";
@@ -214,6 +214,12 @@ function FocusPage() {
                 className="h-11 px-5 rounded-md border border-border text-foreground/80 hud-label text-xs hover:text-primary hover:border-primary/40 flex items-center gap-2"
               >
                 <RotateCcw className="h-4 w-4" /> Reset
+              </button>
+              <button
+                onClick={() => timer.logSession()}
+                className="h-11 px-5 rounded-md border border-border text-foreground/80 hud-label text-xs hover:text-primary hover:border-primary/40 flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" /> Log Session
               </button>
             </div>
           </section>
