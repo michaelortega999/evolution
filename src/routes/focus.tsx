@@ -215,6 +215,12 @@ function FocusPage() {
               >
                 <RotateCcw className="h-4 w-4" /> Reset
               </button>
+              <button
+                onClick={() => timer.logSession()}
+                className="h-11 px-5 rounded-md border border-border text-foreground/80 hud-label text-xs hover:text-primary hover:border-primary/40 flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" /> Log Session
+              </button>
             </div>
           </section>
 
