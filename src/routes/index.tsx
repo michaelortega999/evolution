@@ -69,6 +69,7 @@ function Index() {
           </footer>
         </main>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
