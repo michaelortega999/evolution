@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Play, Pause, RotateCcw, Target, Clock,
+  Play, Pause, RotateCcw, Target, Clock, FileText,
 } from "lucide-react";
 import { Sidebar } from "@/components/evolution/Sidebar";
 import { Input } from "@/components/ui/input";
