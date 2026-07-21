@@ -75,6 +75,8 @@ interface UseFocusTimer {
   start: () => void;
   pause: () => void;
   reset: () => void;
+  /** Manually log a full session for the current task/tag and mode. */
+  logSession: () => void;
   setMode: (mode: FocusMode) => void;
   setTask: (task: string) => void;
   setTag: (tag: FocusTag | null) => void;
