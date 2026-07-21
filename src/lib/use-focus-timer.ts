@@ -222,6 +222,33 @@ export function useFocusTimer(): UseFocusTimer {
     });
   }, [settings]);
 
+  const logSession = useCallback(() => {
+    const completedAt = Date.now();
+    const startedAt = completedAt - totalMs;
+    const session: FocusSession = {
+      id: crypto.randomUUID(),
+      startedAt,
+      completedAt,
+      durationSec: Math.round(totalMs / 1000),
+      mode: state.mode,
+      task: state.task || "Untitled session",
+      tag: state.tag ?? undefined,
+    };
+    const timeLog: TimeLog = {
+      id: crypto.randomUUID(),
+      date: new Date(completedAt).toISOString().slice(0, 10),
+      minutes: Math.max(1, Math.round(totalMs / 60000)),
+      module: tagToModule(state.tag),
+      source: "focus",
+      label: state.task || "Focus session",
+      ts: completedAt,
+    };
+    mutate((prev) => ({
+      focusSessions: [...prev.focusSessions, session],
+      timeLogs: [...(prev.timeLogs ?? []), timeLog],
+    }));
+  }, [state, totalMs, mutate]);
+
   const setMode = useCallback((mode: FocusMode) => {
     setState((prev) => {
       const next: PersistedTimer = {
