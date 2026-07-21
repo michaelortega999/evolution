@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { File } from "lucide-react";
 import {
   useEvolutionData,
   type FocusMode,
