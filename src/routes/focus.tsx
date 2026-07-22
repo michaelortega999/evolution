@@ -97,11 +97,11 @@ function FocusPage() {
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
-        <div className="lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
+        <div className="order-2 lg:order-1 lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
           <Sidebar />
         </div>
 
-        <main className="flex flex-col gap-6 min-w-0">
+        <main className="order-1 lg:order-2 flex flex-col gap-6 min-w-0">
           {/* Header */}
           <div className="hud-card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
