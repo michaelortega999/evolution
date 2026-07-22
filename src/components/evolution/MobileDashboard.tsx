@@ -30,13 +30,13 @@ function ModuleTile({
       className="relative rounded-xl border border-primary/25 bg-[#050a14] p-3 flex flex-col items-center text-center overflow-hidden"
       style={{ boxShadow: "0 0 12px rgba(0,212,255,0.08), inset 0 0 12px rgba(0,212,255,0.04)" }}
     >
-      <div className="hud-label text-[10px] tracking-[0.18em] text-foreground/80 self-start">{label}</div>
-      <div className="my-2 h-14 w-14 rounded-full border border-primary/40 flex items-center justify-center"
+      <div className="hud-label text-[9px] tracking-[0.2em] text-foreground/60 self-start">{label}</div>
+      <div className="my-1.5 h-12 w-12 rounded-full border border-primary/40 flex items-center justify-center"
            style={{ boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 10px rgba(0,212,255,0.2)" }}>
-        <Icon className="h-7 w-7" style={{ color: "#00d4ff", filter: "drop-shadow(0 0 6px #00d4ff)" }} />
+        <Icon className="h-6 w-6" style={{ color: "#00d4ff", filter: "drop-shadow(0 0 6px #00d4ff)" }} />
       </div>
-      <div className="hud-label text-lg text-foreground leading-tight">{value}</div>
-      <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>
+      <div className="hud-label text-base leading-tight" style={{ color: "#00d4ff", textShadow: "0 0 10px rgba(0,212,255,0.5)" }}>{value}</div>
+      <div className="text-[9px] text-muted-foreground mt-0.5">{sub}</div>
       <div className="mt-2 w-full flex items-center gap-2">
         <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
           <div
