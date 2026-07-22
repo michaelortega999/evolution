@@ -171,7 +171,7 @@ function CalendarPage() {
       </div>
 
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(260px,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,2.8fr)_minmax(220px,1fr)]">
         {/* LEFT: calendar */}
         <div className="min-w-0 flex flex-col gap-3">
           <div key={view} className="animate-in fade-in duration-300">
