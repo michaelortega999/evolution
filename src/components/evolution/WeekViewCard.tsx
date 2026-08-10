@@ -272,7 +272,7 @@ export function WeekViewCard() {
       </Panel>
 
       {formDate && (
-        <Panel title={`ADD EVENT · ${formDate}`}>
+        <Panel title={`${editId ? "EDIT EVENT" : "ADD EVENT"} · ${formDate}`}>
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex-1 min-w-[200px]">
               <label className="hud-label text-[10px] text-muted-foreground">Title</label>
