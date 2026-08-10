@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Panel } from "@/components/evolution/ModuleLayout";
 import { useEvolutionData, type CalendarEvent, type ReminderOffset } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
@@ -35,26 +36,30 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-function EventBlock({ event }: { event: CalendarEvent }) {
+function EventBlock({ event, onSelect }: { event: CalendarEvent; onSelect: () => void }) {
   const start = parseHM(event.time);
   const end = event.endTime ? parseHM(event.endTime) : start + 60;
   const top = (start / 60) * HOUR_PX;
   const height = Math.max(20, ((end - start) / 60) * HOUR_PX - 2);
   return (
-    <div
-      className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden transition-all hover:bg-primary/35 hover:z-10"
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
+      className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden text-left transition-all hover:bg-primary/35 hover:z-10"
       style={{
         top,
         height,
         boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--glow) 25%, transparent)",
       }}
-      title={`${event.title} — ${fmt12(event.time)}${event.endTime ? ` – ${fmt12(event.endTime)}` : ""}`}
+      title={`${event.title} — ${fmt12(event.time)}${event.endTime ? ` – ${fmt12(event.endTime)}` : ""} (click to edit)`}
     >
       <div className="hud-label text-[9px] text-primary truncate group-hover:hud-glow">
         {fmt12(event.time)}
       </div>
       <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
-    </div>
+    </button>
   );
 }
 
@@ -64,6 +69,7 @@ export function WeekViewCard() {
   const [weekCursor, setWeekCursor] = useState(() => startOfWeek(new Date()));
 
   const [formDate, setFormDate] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("12:00");
   const [endTime, setEndTime] = useState("13:00");
@@ -86,26 +92,55 @@ export function WeekViewCard() {
   const rangeLabel = `${days[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${days[6].toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 
   function openForm(ds: string, startHM: string) {
+    setEditId(null);
     setFormDate(ds);
     setTime(startHM);
     setEndTime(fmtHM(Math.min(23 * 60 + 59, parseHM(startHM) + 60)));
     setTitle("");
   }
 
-  function addEvent() {
-    if (!formDate || !title.trim()) return;
-    const ev: CalendarEvent = {
-      id: crypto.randomUUID(),
-      date: formDate,
-      time,
-      endTime,
-      title: title.trim(),
-      reminder: 0 as ReminderOffset,
-    };
-    mutate((p) => ({ calendar: [...(p.calendar ?? []), ev] }));
-    setTitle("");
-    setFormDate(null);
+  function openEdit(ev: CalendarEvent) {
+    setEditId(ev.id);
+    setFormDate(ev.date);
+    setTime(ev.time);
+    setEndTime(ev.endTime ?? fmtHM(Math.min(23 * 60 + 59, parseHM(ev.time) + 60)));
+    setTitle(ev.title);
   }
+
+  function closeForm() {
+    setFormDate(null);
+    setEditId(null);
+    setTitle("");
+  }
+
+  function saveEvent() {
+    if (!formDate || !title.trim()) return;
+    if (editId) {
+      mutate((p) => ({
+        calendar: (p.calendar ?? []).map((e) =>
+          e.id === editId ? { ...e, date: formDate, time, endTime, title: title.trim() } : e,
+        ),
+      }));
+    } else {
+      const ev: CalendarEvent = {
+        id: crypto.randomUUID(),
+        date: formDate,
+        time,
+        endTime,
+        title: title.trim(),
+        reminder: 0 as ReminderOffset,
+      };
+      mutate((p) => ({ calendar: [...(p.calendar ?? []), ev] }));
+    }
+    closeForm();
+  }
+
+  function deleteEvent() {
+    if (!editId) return;
+    mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== editId) }));
+    closeForm();
+  }
+
 
   return (
     <div className="flex flex-col gap-3">
@@ -203,7 +238,7 @@ export function WeekViewCard() {
                     />
                   ))}
                   {dayEvents.map((e) => (
-                    <EventBlock key={e.id} event={e} />
+                    <EventBlock key={e.id} event={e} onSelect={() => openEdit(e)} />
                   ))}
                 </div>
               );
@@ -238,7 +273,7 @@ export function WeekViewCard() {
       </Panel>
 
       {formDate && (
-        <Panel title={`ADD EVENT · ${formDate}`}>
+        <Panel title={`${editId ? "EDIT EVENT" : "ADD EVENT"} · ${formDate}`}>
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex-1 min-w-[200px]">
               <label className="hud-label text-[10px] text-muted-foreground">Title</label>
@@ -269,13 +304,22 @@ export function WeekViewCard() {
               />
             </div>
             <button
-              onClick={addEvent}
+              onClick={saveEvent}
               className="px-4 py-2 border border-primary rounded hud-label text-[10px] text-primary hover:bg-primary/10"
             >
-              Add
+              {editId ? "Save" : "Add"}
             </button>
+            {editId && (
+              <button
+                onClick={deleteEvent}
+                className="px-4 py-2 border border-destructive rounded hud-label text-[10px] text-destructive hover:bg-destructive/10 flex items-center gap-1.5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            )}
             <button
-              onClick={() => setFormDate(null)}
+              onClick={closeForm}
               className="px-4 py-2 border border-border rounded hud-label text-[10px] text-muted-foreground hover:bg-muted/20"
             >
               Cancel
