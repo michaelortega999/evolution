@@ -35,20 +35,24 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-function EventBlock({ event }: { event: CalendarEvent }) {
+function EventBlock({ event, onSelect }: { event: CalendarEvent; onSelect: () => void }) {
   const start = parseHM(event.time);
   const end = event.endTime ? parseHM(event.endTime) : start + 60;
   const top = (start / 60) * HOUR_PX;
   const height = Math.max(20, ((end - start) / 60) * HOUR_PX - 2);
   return (
-    <div
-      className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden transition-all hover:bg-primary/35 hover:z-10"
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
+      className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden text-left transition-all hover:bg-primary/35 hover:z-10"
       style={{
         top,
         height,
         boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--glow) 25%, transparent)",
       }}
-      title={`${event.title} — ${fmt12(event.time)}${event.endTime ? ` – ${fmt12(event.endTime)}` : ""}`}
+      title={`${event.title} — ${fmt12(event.time)}${event.endTime ? ` – ${fmt12(event.endTime)}` : ""} (click to edit)`}
     >
       <div className="hud-label text-[9px] text-primary truncate group-hover:hud-glow">
         {fmt12(event.time)}
