@@ -303,13 +303,22 @@ export function WeekViewCard() {
               />
             </div>
             <button
-              onClick={addEvent}
+              onClick={saveEvent}
               className="px-4 py-2 border border-primary rounded hud-label text-[10px] text-primary hover:bg-primary/10"
             >
-              Add
+              {editId ? "Save" : "Add"}
             </button>
+            {editId && (
+              <button
+                onClick={deleteEvent}
+                className="px-4 py-2 border border-destructive rounded hud-label text-[10px] text-destructive hover:bg-destructive/10 flex items-center gap-1.5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            )}
             <button
-              onClick={() => setFormDate(null)}
+              onClick={closeForm}
               className="px-4 py-2 border border-border rounded hud-label text-[10px] text-muted-foreground hover:bg-muted/20"
             >
               Cancel
