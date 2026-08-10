@@ -68,6 +68,7 @@ export function WeekViewCard() {
   const [weekCursor, setWeekCursor] = useState(() => startOfWeek(new Date()));
 
   const [formDate, setFormDate] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("12:00");
   const [endTime, setEndTime] = useState("13:00");
