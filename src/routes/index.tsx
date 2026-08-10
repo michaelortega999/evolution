@@ -62,6 +62,8 @@ function Index() {
             <HobbyCard />
           </section>
 
+          <WeekViewCard />
+
           <BottomBar />
 
           <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
