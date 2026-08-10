@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Panel } from "@/components/evolution/ModuleLayout";
 import { useEvolutionData, type CalendarEvent, type ReminderOffset } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
