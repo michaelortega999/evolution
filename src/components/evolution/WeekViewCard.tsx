@@ -58,7 +58,7 @@ function EventBlock({ event, onSelect }: { event: CalendarEvent; onSelect: () =>
         {fmt12(event.time)}
       </div>
       <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
-    </div>
+    </button>
   );
 }
 
