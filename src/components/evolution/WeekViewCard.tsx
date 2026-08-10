@@ -91,26 +91,55 @@ export function WeekViewCard() {
   const rangeLabel = `${days[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${days[6].toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 
   function openForm(ds: string, startHM: string) {
+    setEditId(null);
     setFormDate(ds);
     setTime(startHM);
     setEndTime(fmtHM(Math.min(23 * 60 + 59, parseHM(startHM) + 60)));
     setTitle("");
   }
 
-  function addEvent() {
-    if (!formDate || !title.trim()) return;
-    const ev: CalendarEvent = {
-      id: crypto.randomUUID(),
-      date: formDate,
-      time,
-      endTime,
-      title: title.trim(),
-      reminder: 0 as ReminderOffset,
-    };
-    mutate((p) => ({ calendar: [...(p.calendar ?? []), ev] }));
-    setTitle("");
-    setFormDate(null);
+  function openEdit(ev: CalendarEvent) {
+    setEditId(ev.id);
+    setFormDate(ev.date);
+    setTime(ev.time);
+    setEndTime(ev.endTime ?? fmtHM(Math.min(23 * 60 + 59, parseHM(ev.time) + 60)));
+    setTitle(ev.title);
   }
+
+  function closeForm() {
+    setFormDate(null);
+    setEditId(null);
+    setTitle("");
+  }
+
+  function saveEvent() {
+    if (!formDate || !title.trim()) return;
+    if (editId) {
+      mutate((p) => ({
+        calendar: (p.calendar ?? []).map((e) =>
+          e.id === editId ? { ...e, date: formDate, time, endTime, title: title.trim() } : e,
+        ),
+      }));
+    } else {
+      const ev: CalendarEvent = {
+        id: crypto.randomUUID(),
+        date: formDate,
+        time,
+        endTime,
+        title: title.trim(),
+        reminder: 0 as ReminderOffset,
+      };
+      mutate((p) => ({ calendar: [...(p.calendar ?? []), ev] }));
+    }
+    closeForm();
+  }
+
+  function deleteEvent() {
+    if (!editId) return;
+    mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== editId) }));
+    closeForm();
+  }
+
 
   return (
     <div className="flex flex-col gap-3">
