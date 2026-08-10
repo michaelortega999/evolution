@@ -237,7 +237,7 @@ export function WeekViewCard() {
                     />
                   ))}
                   {dayEvents.map((e) => (
-                    <EventBlock key={e.id} event={e} />
+                    <EventBlock key={e.id} event={e} onSelect={() => openEdit(e)} />
                   ))}
                 </div>
               );
