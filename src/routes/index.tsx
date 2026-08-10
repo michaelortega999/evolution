@@ -11,6 +11,7 @@ import {
 } from "@/components/evolution/ModuleCards";
 import { CalendarCard } from "@/components/evolution/CalendarCard";
 import { MonthSelector } from "@/components/evolution/MonthSelector";
+import { WeekViewCard } from "@/components/evolution/WeekViewCard";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
 
@@ -61,6 +62,8 @@ function Index() {
             <BusinessCard />
             <HobbyCard />
           </section>
+
+          <WeekViewCard />
 
           <BottomBar />
 
