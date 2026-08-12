@@ -11,7 +11,7 @@ import { Donut } from "@/components/evolution/Donut";
 import { Gauge } from "@/components/evolution/Gauge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 
@@ -241,409 +241,281 @@ function WealthPage() {
 
   return (
     <ModuleLayout number="01" title="Wealth" subtitle="Track your net worth and build a strong financial future." icon={Wallet}>
-      <Tabs defaultValue="overview">
-        <TabsList className="bg-card border border-border">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tx">Transactions</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* ===== ROW 1: NET WORTH BIG + 3 KPI CARDS ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="hud-card p-5 relative overflow-hidden">
-              <div className="hud-label text-[10px] text-muted-foreground tracking-widest mb-2">NET WORTH</div>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="hud-label text-4xl text-primary hud-glow tabular-nums">{fmt(netWorth)}</div>
-                  <div className="mt-2 hud-label text-[11px]">
-                    <span className="text-primary">▲ 13.44%</span>
-                    <span className="text-muted-foreground ml-2">vs last month</span>
-                  </div>
-                </div>
-                <div className="flex-1 max-w-[60%] h-[80px]">
-                  <Sparkline data={netWorthSeries.length > 1 ? netWorthSeries : [0, 0]} height={80} fill />
+      <div className="flex flex-col gap-3 h-[calc(100vh-180px)] min-h-0">
+        {/* ===== ROW 1: NET WORTH + 3 KPI CARDS ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 shrink-0">
+          <div className="lg:col-span-2 hud-card p-4 relative overflow-hidden flex flex-col justify-between">
+            <div className="hud-label text-[9px] text-muted-foreground tracking-widest">NET WORTH</div>
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className="hud-label text-3xl text-primary hud-glow tabular-nums">{fmt(netWorth)}</div>
+                <div className="mt-1 hud-label text-[10px]">
+                  <span className="text-primary">▲ 13.44%</span>
+                  <span className="text-muted-foreground ml-2">vs last month</span>
                 </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Total Assets", value: fmt(assetsTotal), icon: Layers, delta: 8.21, positive: true },
-                { label: "Total Liabilities", value: fmt(liabilitiesTotal), icon: AlertTriangle, delta: -3.16, positive: false },
-                { label: "Cash Balance", value: fmt(cashBalance), icon: DollarSign, delta: 5.32, positive: true },
-              ].map((k) => {
-                const Icon = k.icon;
-                const isCash = k.label === "Cash Balance";
-                const isAssets = k.label === "Total Assets";
-                const isLiabilities = k.label === "Total Liabilities";
-                let cardClass = "hud-card p-4 flex flex-col gap-2";
-                let ringClass = "h-8 w-8 rounded-full border flex items-center justify-center";
-                let iconClass = "h-3.5 w-3.5";
-                let valueClass = "hud-label text-2xl hud-glow tabular-nums";
-                let deltaClass = "";
-                if (isCash) {
-                  cardClass += " border-[#39ff14]/40 shadow-[0_0_12px_rgba(57,255,20,0.15)]";
-                  ringClass += " border-[#39ff14]/60 bg-[#39ff14]/10";
-                  iconClass += " text-[#39ff14]";
-                  valueClass += " text-[#39ff14]";
-                  deltaClass = "text-[#39ff14]";
-                } else if (isAssets) {
-                  cardClass += " border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]";
-                  ringClass += " border-[#00f0ff]/60 bg-[#00f0ff]/10";
-                  iconClass += " text-[#00f0ff]";
-                  valueClass += " text-[#00f0ff]";
-                  deltaClass = "text-[#00f0ff]";
-                } else if (isLiabilities) {
-                  cardClass += " border-[#ff1a1a]/40 shadow-[0_0_12px_rgba(255,26,26,0.15)]";
-                  ringClass += " border-[#ff1a1a]/60 bg-[#ff1a1a]/10";
-                  iconClass += " text-[#ff1a1a]";
-                  valueClass += " text-[#ff1a1a]";
-                  deltaClass = "text-[#ff1a1a]";
-                } else {
-                  cardClass += "";
-                  ringClass += " border-primary/40 bg-primary/10";
-                  iconClass += " text-primary";
-                  valueClass += " text-primary";
-                  deltaClass = k.positive ? "text-primary" : "text-destructive";
-                }
-                return (
-                  <div key={k.label} className={cardClass}>
-                    <div className="flex items-center gap-2">
-                      <div className={ringClass}>
-                        <Icon className={iconClass} />
-                      </div>
-                      <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
-                    </div>
-                    <div className={valueClass}>{k.value}</div>
-                    <div className="text-[10px] hud-label">
-                      <span className={deltaClass}>
-                        {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
-                      </span>
-                      <span className="text-muted-foreground ml-1">vs last month</span>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="w-[45%] h-[50px]">
+                <Sparkline data={netWorthSeries.length > 1 ? netWorthSeries : [0, 0]} height={50} fill />
+              </div>
             </div>
           </div>
 
-          {/* ===== ROW 2: NET WORTH OVER TIME | QUICK ADD + ASSET ALLOCATION ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
-              <Panel title="Net Worth Over Time">
-                {netWorthSeries.length >= 2 ? (
-                  <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={460} />
-                ) : (
-                  <div className="h-[460px] flex items-center justify-center text-xs text-muted-foreground">
-                    Log income or expenses to draw the chart.
+          <div className="lg:col-span-3 grid grid-cols-3 gap-3">
+            {[
+              { label: "Total Assets", value: fmt(assetsTotal), icon: Layers, delta: 8.21, positive: true },
+              { label: "Total Liabilities", value: fmt(liabilitiesTotal), icon: AlertTriangle, delta: -3.16, positive: false },
+              { label: "Cash Balance", value: fmt(cashBalance), icon: DollarSign, delta: 5.32, positive: true },
+            ].map((k) => {
+              const Icon = k.icon;
+              const isCash = k.label === "Cash Balance";
+              const isAssets = k.label === "Total Assets";
+              const isLiabilities = k.label === "Total Liabilities";
+              let cardClass = "hud-card p-3 flex flex-col justify-between gap-1";
+              let ringClass = "h-7 w-7 rounded-full border flex items-center justify-center";
+              let iconClass = "h-3 w-3";
+              let valueClass = "hud-label text-xl hud-glow tabular-nums";
+              let deltaClass = "";
+              if (isCash) {
+                cardClass += " border-[#39ff14]/40 shadow-[0_0_12px_rgba(57,255,20,0.15)]";
+                ringClass += " border-[#39ff14]/60 bg-[#39ff14]/10";
+                iconClass += " text-[#39ff14]";
+                valueClass += " text-[#39ff14]";
+                deltaClass = "text-[#39ff14]";
+              } else if (isAssets) {
+                cardClass += " border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]";
+                ringClass += " border-[#00f0ff]/60 bg-[#00f0ff]/10";
+                iconClass += " text-[#00f0ff]";
+                valueClass += " text-[#00f0ff]";
+                deltaClass = "text-[#00f0ff]";
+              } else if (isLiabilities) {
+                cardClass += " border-[#ff1a1a]/40 shadow-[0_0_12px_rgba(255,26,26,0.15)]";
+                ringClass += " border-[#ff1a1a]/60 bg-[#ff1a1a]/10";
+                iconClass += " text-[#ff1a1a]";
+                valueClass += " text-[#ff1a1a]";
+                deltaClass = "text-[#ff1a1a]";
+              }
+              return (
+                <div key={k.label} className={cardClass}>
+                  <div className="flex items-center gap-2">
+                    <div className={ringClass}>
+                      <Icon className={iconClass} />
+                    </div>
+                    <span className="hud-label text-[9px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
                   </div>
-                )}
-              </Panel>
-            </div>
+                  <div className={valueClass}>{k.value}</div>
+                  <div className="text-[9px] hud-label">
+                    <span className={deltaClass}>
+                      {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
+                    </span>
+                    <span className="text-muted-foreground ml-1">vs last month</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <Panel title="Quick Add">
-                {(() => {
-                    const QA_COLORS: Record<QaMode, string> = {
-                    income: "#00ff88",
-                    expense: "#ff3333",
-                    asset: "#00d4ff",
-                  };
-                  const activeColor = QA_COLORS[qaMode];
-                  const descPh = qaMode === "asset" ? "e.g. Chase Savings" : "e.g. Salary, Freelance, etc.";
-                  const catPh = qaMode === "asset" ? "Cash | Investment | Property | Other" : "Category";
-                  const dateLabel = "DATE";
-                  const amtLabel = "AMOUNT";
-                  return (
-                    <>
-                      <div className="grid grid-cols-[auto_1fr] gap-3">
-                        <div className="flex flex-col gap-2">
-                          {([
-                            { key: "income", label: "INCOME", icon: ArrowDownRight },
-                            { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
-                            { key: "asset", label: "ASSET", icon: Layers },
-                          ] as const).map((opt) => {
-                            const Icon = opt.icon;
-                            const color = QA_COLORS[opt.key];
-                            const active = qaMode === opt.key;
-                            return (
-                              <button
-                                key={opt.key}
-                                type="button"
-                                onClick={() => {
-                                  setQaMode(opt.key);
-                                  if (opt.key === "income" || opt.key === "expense") setTType(opt.key);
-                                }}
-                                className="hud-label text-[10px] px-3 py-2 rounded border flex items-center gap-2 transition-all"
+        {/* ===== ROW 2: NET WORTH OVER TIME | QUICK ADD | ASSET ALLOCATION ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
+          <div className="lg:col-span-3 hud-card p-4 flex flex-col min-h-0">
+            <h2 className="hud-label text-[10px] text-muted-foreground mb-2">NET WORTH OVER TIME</h2>
+            <div className="flex-1 min-h-0">
+              {netWorthSeries.length >= 2 ? (
+                <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={220} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                  Log income or expenses to draw the chart.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
+            <Panel title="Quick Add" className="p-3 shrink-0">
+              {(() => {
+                const QA_COLORS: Record<QaMode, string> = {
+                  income: "#00ff88",
+                  expense: "#ff3333",
+                  asset: "#00d4ff",
+                };
+                const activeColor = QA_COLORS[qaMode];
+                const descPh = qaMode === "asset" ? "e.g. Chase Savings" : "e.g. Salary, Freelance, etc.";
+                const catPh = qaMode === "asset" ? "Cash | Investment | Property | Other" : "Category";
+                return (
+                  <>
+                    <div className="grid grid-cols-[auto_1fr] gap-2">
+                      <div className="flex flex-col gap-1.5">
+                        {([
+                          { key: "income", label: "INCOME", icon: ArrowDownRight },
+                          { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
+                          { key: "asset", label: "ASSET", icon: Layers },
+                        ] as const).map((opt) => {
+                          const Icon = opt.icon;
+                          const color = QA_COLORS[opt.key];
+                          const active = qaMode === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              onClick={() => {
+                                setQaMode(opt.key);
+                                if (opt.key === "income" || opt.key === "expense") setTType(opt.key);
+                              }}
+                              className="hud-label text-[9px] px-2 py-1.5 rounded border flex items-center gap-1.5 transition-all"
+                              style={{
+                                borderColor: active ? color : "var(--border)",
+                                background: active ? `${color}1a` : "transparent",
+                                color: active ? color : undefined,
+                                boxShadow: active ? `0 0 8px ${color}66` : "none",
+                              }}
+                            >
+                              <span
+                                className="h-5 w-5 rounded-full flex items-center justify-center border shrink-0"
                                 style={{
-                                  borderColor: active ? color : "var(--border)",
-                                  background: active ? `${color}1a` : "transparent",
-                                  color: active ? color : undefined,
-                                  boxShadow: active ? `0 0 12px ${color}66` : "none",
+                                  borderColor: color,
+                                  background: `${color}22`,
+                                  boxShadow: `0 0 6px ${color}88, inset 0 0 4px ${color}44`,
                                 }}
                               >
-                                <span
-                                  className="h-7 w-7 rounded-full flex items-center justify-center border shrink-0"
-                                  style={{
-                                    borderColor: color,
-                                    background: `${color}22`,
-                                    boxShadow: `0 0 10px ${color}88, inset 0 0 6px ${color}44`,
-                                  }}
-                                >
-                                  <Icon className="h-4 w-4" style={{ color, filter: `drop-shadow(0 0 4px ${color})` }} />
-                                </span>
-                                {opt.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="block">
-                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">DESCRIPTION</span>
-                            <Input placeholder={descPh} value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-8 text-xs mt-1" maxLength={80} />
-                          </label>
-                          <label className="block">
-                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">{amtLabel}</span>
-                            <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-8 text-xs mt-1" />
-                          </label>
-                          <label className="block">
-                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">{dateLabel}</span>
-                            <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-8 text-xs mt-1" />
-                          </label>
-                          <label className="block">
-                            <span className="hud-label text-[9px] text-muted-foreground tracking-widest">CATEGORY</span>
-                            <Input placeholder={catPh} value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-8 text-xs mt-1" maxLength={40} />
-                          </label>
-                        </div>
+                                <Icon className="h-3 w-3" style={{ color, filter: `drop-shadow(0 0 3px ${color})` }} />
+                              </span>
+                              {opt.label}
+                            </button>
+                          );
+                        })}
                       </div>
-                      <button
-                        onClick={addQuick}
-                        className="hud-label text-[11px] mt-4 w-full tracking-widest rounded-md py-2 flex items-center justify-center transition-all border"
-                        style={{
-                          borderColor: activeColor,
-                          background: `${activeColor}1f`,
-                          color: activeColor,
-                          boxShadow: `0 0 16px ${activeColor}55, inset 0 0 8px ${activeColor}33`,
-                        }}
-                      >
-                        <Plus className="h-3 w-3 mr-1" /> ADD {qaMode.toUpperCase()}
-                      </button>
-                    </>
-                  );
-                })()}
-              </Panel>
-
-
-              <Panel title="Asset Allocation">
-                <div className="flex items-center gap-5">
-                  {allocByCat.length ? (
-                    <Donut
-                      data={allocByCat}
-                      size={200}
-                      thickness={24}
-                      centerLabel={fmt(assetsTotal)}
-                      centerSub="TOTAL ASSETS"
-                    />
-                  ) : (
-                    <div className="h-[200px] w-[200px] flex items-center justify-center text-xs text-muted-foreground">
-                      No assets yet.
+                      <div className="flex flex-col gap-1.5">
+                        <label className="block">
+                          <span className="hud-label text-[8px] text-muted-foreground tracking-widest">DESCRIPTION</span>
+                          <Input placeholder={descPh} value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-7 text-[11px] mt-0.5" maxLength={80} />
+                        </label>
+                        <label className="block">
+                          <span className="hud-label text-[8px] text-muted-foreground tracking-widest">AMOUNT</span>
+                          <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-7 text-[11px] mt-0.5" />
+                        </label>
+                        <label className="block">
+                          <span className="hud-label text-[8px] text-muted-foreground tracking-widest">DATE</span>
+                          <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-7 text-[11px] mt-0.5" />
+                        </label>
+                        <label className="block">
+                          <span className="hud-label text-[8px] text-muted-foreground tracking-widest">CATEGORY</span>
+                          <Input placeholder={catPh} value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-7 text-[11px] mt-0.5" maxLength={40} />
+                        </label>
+                      </div>
                     </div>
-                  )}
-                  <ul className="flex-1 space-y-2">
-                    {allocByCat.map((s) => {
-                      const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
-                      return (
-                        <li key={s.label} className="flex items-center gap-2 text-xs hud-label">
-                          <span className="h-2 w-2 rounded-full" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
-                          <span className="flex-1 text-foreground/80">{s.label}</span>
-                          <span className="text-muted-foreground tabular-nums w-10 text-right">{pct}%</span>
-                          <span className="text-primary tabular-nums w-16 text-right">{fmt(s.value)}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-                <button
-                  onClick={openNewAsset}
-                  className="mt-4 w-full hud-label text-[11px] text-primary border border-primary/40 rounded py-2 hover:bg-primary/10 transition-colors tracking-widest"
-                >
-                  VIEW ALL ACCOUNTS
-                </button>
-              </Panel>
-            </div>
-          </div>
+                    <button
+                      onClick={addQuick}
+                      className="hud-label text-[10px] mt-2 w-full tracking-widest rounded-md py-1.5 flex items-center justify-center transition-all border"
+                      style={{
+                        borderColor: activeColor,
+                        background: `${activeColor}1f`,
+                        color: activeColor,
+                        boxShadow: `0 0 12px ${activeColor}55, inset 0 0 6px ${activeColor}33`,
+                      }}
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> ADD {qaMode.toUpperCase()}
+                    </button>
+                  </>
+                );
+              })()}
+            </Panel>
 
-          {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Panel title="Recent Transactions">
-              <ul className="divide-y divide-border">
-                {(() => {
-                  type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
-                  const rows: Row[] = [];
-                  for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
-                  for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
-                  for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
-                  const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
-                    income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
-                    expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
-                    asset: { color: "#00d4ff", sign: "+", Icon: Layers },
-                    goal: { color: "#f59e0b", sign: "◎", Icon: TargetIcon },
-                  };
-                  return rows.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6).map((r) => {
-                    const s = styles[r.kind];
-                    const Icon = s.Icon;
-                    const onDelete = () => {
-                      if (r.kind === "income" || r.kind === "expense") delTx(r.id);
-                      else if (r.kind === "asset") delAsset(r.id);
-                      else if (r.kind === "goal") delGoal(r.id);
-                    };
+            <Panel title="Asset Allocation" className="p-3 flex-1 min-h-0">
+              <div className="flex items-center gap-3 h-full">
+                {allocByCat.length ? (
+                  <Donut
+                    data={allocByCat}
+                    size={130}
+                    thickness={18}
+                    centerLabel={fmt(assetsTotal)}
+                    centerSub="TOTAL ASSETS"
+                  />
+                ) : (
+                  <div className="h-[130px] w-[130px] flex items-center justify-center text-xs text-muted-foreground">
+                    No assets yet.
+                  </div>
+                )}
+                <ul className="flex-1 space-y-1.5">
+                  {allocByCat.map((s) => {
+                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
                     return (
-                      <li key={`${r.kind}-${r.id}`} className="py-2.5 flex items-center gap-3 group">
-                        <div className="h-8 w-8 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}66`, background: `${s.color}1a`, boxShadow: `0 0 8px ${s.color}55` }}>
-                          <Icon className="h-3.5 w-3.5" style={{ color: s.color }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="hud-label text-xs text-foreground truncate">{r.description || r.kind.toUpperCase()}</div>
-                          <div className="hud-label text-[10px] text-muted-foreground">{r.category || r.kind}</div>
-                        </div>
-                        <div className="hud-label text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{r.date.slice(5).replace("-", "/")}</div>
-                        <div className="hud-label text-xs tabular-nums whitespace-nowrap" style={{ color: s.color }}>
-                          {s.sign}{fmt(r.amount)}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={onDelete}
-                          aria-label="Delete entry"
-                          className="h-6 w-6 rounded border border-border/60 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/60 hover:bg-destructive/10 transition-colors opacity-60 group-hover:opacity-100"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                      <li key={s.label} className="flex items-center gap-2 text-[11px] hud-label">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span className="flex-1 text-foreground/80 truncate">{s.label}</span>
+                        <span className="text-muted-foreground tabular-nums w-8 text-right">{pct}%</span>
+                        <span className="text-primary tabular-nums w-14 text-right">{fmt(s.value)}</span>
                       </li>
                     );
-                  });
-                })()}
-
-                {!data.transactions.length && !data.assets.length && !data.goals.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries yet.</li>}
-              </ul>
-              <div className="mt-3 text-center">
-                <span className="hud-label text-[11px] text-primary tracking-widest">VIEW ALL TRANSACTIONS</span>
-              </div>
-            </Panel>
-
-
-            <Panel title="Financial Health">
-              <div className="flex flex-col items-center gap-2">
-                <Gauge value={healthScore} size={200} label={healthLabel} />
-                <p className="text-xs text-muted-foreground text-center leading-relaxed mt-1">
-                  You're building momentum.<br />Keep executing.
-                </p>
+                  })}
+                </ul>
               </div>
             </Panel>
           </div>
-        </TabsContent>
+        </div>
 
-        {/* ===== TRANSACTIONS TAB ===== */}
-        <TabsContent value="tx" className="space-y-6">
-          <Panel title="Add Transaction">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <Input placeholder="Description" value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-9 text-xs" />
-              <Input type="number" placeholder="Amount" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-9 text-xs" />
-              <div className="flex gap-1 p-0.5 rounded-md border border-border bg-card/60 h-9">
-                {(["income", "expense"] as TxType[]).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTType(t)}
-                    className={`hud-label text-[10px] px-2 rounded transition-colors uppercase flex-1 ${
-                      tType === t
-                        ? t === "income"
-                          ? "bg-primary/20 text-primary border border-primary/40"
-                          : "bg-destructive/20 text-destructive border border-destructive/40"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-              <Input placeholder="Category" value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-9 text-xs" />
-              <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-9 text-xs" />
-            </div>
-            <Button onClick={addTx} size="sm" className="hud-label text-[10px] mt-3">+ Add {tType === "income" ? "Income" : "Expense"}</Button>
-          </Panel>
-
-          <Panel title={`Transactions (${data.transactions.length})`}>
-            <ul className="divide-y divide-border max-h-[500px] overflow-y-auto">
-              {[...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).map((t) => (
-                <li key={t.id} className="py-3 grid grid-cols-[80px_1fr_auto_auto] items-center gap-3 group text-xs">
-                  <span className="hud-label text-[10px] text-muted-foreground">{t.date}</span>
-                  <div>
-                    <div className="hud-label text-foreground">{t.description}</div>
-                    <div className="hud-label text-[10px] text-muted-foreground">{t.category}</div>
-                  </div>
-                  <span className={`hud-label ${t.type === "income" ? "text-primary" : "text-destructive"}`}>
-                    {t.type === "income" ? "+" : "−"}{fmt(t.amount)}
-                  </span>
-                  <button onClick={() => delTx(t.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
-              {!data.transactions.length && <li className="text-xs text-muted-foreground py-6 text-center">No transactions.</li>}
-            </ul>
-          </Panel>
-        </TabsContent>
-
-        {/* ===== GOALS TAB ===== */}
-        <TabsContent value="goals" className="space-y-6">
-          <Panel title="Add Financial Goal">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <Input placeholder="Title" value={gTitle} onChange={(e) => setGTitle(e.target.value)} className="h-9 text-xs" />
-              <Input type="number" placeholder="Target $" value={gTarget} onChange={(e) => setGTarget(e.target.value)} className="h-9 text-xs" />
-              <Input type="number" placeholder="Current $" value={gCurrent} onChange={(e) => setGCurrent(e.target.value)} className="h-9 text-xs" />
-              <Input type="date" value={gDeadline} onChange={(e) => setGDeadline(e.target.value)} className="h-9 text-xs" />
-            </div>
-            <Button onClick={addGoal} size="sm" className="hud-label text-[10px] mt-3">+ Add Goal</Button>
-          </Panel>
-
-          <Panel title={`Goals (${wealthGoals.length})`}>
-            <ul className="space-y-3">
-              {wealthGoals.map((g) => {
-                const pct = Math.min(100, Math.round((g.current / g.target) * 100));
-                return (
-                  <li key={g.id} className="border border-border rounded p-3 group">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <div className="hud-label text-xs text-foreground">{g.title}</div>
-                        <div className="hud-label text-[10px] text-muted-foreground">Due {g.deadline}</div>
+        {/* ===== ROW 3: RECENT TRANSACTIONS + FINANCIAL HEALTH ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 shrink-0">
+          <Panel title="Recent Transactions" className="p-3">
+            <ul className="divide-y divide-border">
+              {(() => {
+                type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
+                const rows: Row[] = [];
+                for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
+                for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
+                for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
+                  income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
+                  expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
+                  asset: { color: "#00d4ff", sign: "+", Icon: Layers },
+                  goal: { color: "#f59e0b", sign: "◎", Icon: TargetIcon },
+                };
+                return rows.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4).map((r) => {
+                  const s = styles[r.kind];
+                  const Icon = s.Icon;
+                  const onDelete = () => {
+                    if (r.kind === "income" || r.kind === "expense") delTx(r.id);
+                    else if (r.kind === "asset") delAsset(r.id);
+                    else if (r.kind === "goal") delGoal(r.id);
+                  };
+                  return (
+                    <li key={`${r.kind}-${r.id}`} className="py-2 flex items-center gap-2 group">
+                      <div className="h-7 w-7 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}66`, background: `${s.color}1a`, boxShadow: `0 0 6px ${s.color}55` }}>
+                        <Icon className="h-3 w-3" style={{ color: s.color }} />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Input type="number" value={g.current} onChange={(e) => updateGoalCurrent(g.id, Number(e.target.value) || 0)} className="h-8 text-xs w-24" />
-                        <span className="hud-label text-xs text-primary">/ {fmt(g.target)}</span>
-                        <button onClick={() => delGoal(g.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="hud-label text-[11px] text-foreground truncate">{r.description || r.kind.toUpperCase()}</div>
+                        <div className="hud-label text-[9px] text-muted-foreground">{r.category || r.kind}</div>
                       </div>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--primary)" }} />
-                    </div>
-                    <div className="hud-label text-[10px] text-primary text-right mt-1">{pct}%</div>
-                  </li>
-                );
-              })}
-              {!wealthGoals.length && <li className="text-xs text-muted-foreground py-6 text-center">No goals yet.</li>}
+                      <div className="hud-label text-[9px] text-muted-foreground tabular-nums whitespace-nowrap">{r.date.slice(5).replace("-", "/")}</div>
+                      <div className="hud-label text-[11px] tabular-nums whitespace-nowrap" style={{ color: s.color }}>
+                        {s.sign}{fmt(r.amount)}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={onDelete}
+                        aria-label="Delete entry"
+                        className="h-5 w-5 rounded border border-border/60 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/60 hover:bg-destructive/10 transition-colors opacity-60 group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-2.5 w-2.5" />
+                      </button>
+                    </li>
+                  );
+                });
+              })()}
+              {!data.transactions.length && !data.assets.length && !data.goals.length && <li className="text-xs text-muted-foreground py-4 text-center">No entries yet.</li>}
             </ul>
           </Panel>
 
-          <Panel title="Trading Balance">
-            <Input type="number" value={data.profile.tradingBalance}
-              onChange={(e) => updateProfile({ tradingBalance: Number(e.target.value) || 0 })}
-              className="h-10 text-xl text-primary hud-label max-w-xs" />
+          <Panel title="Financial Health" className="p-3">
+            <div className="flex items-center justify-center gap-4 h-full">
+              <Gauge value={healthScore} size={140} label={healthLabel} />
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-[140px]">
+                You're building momentum. Keep executing.
+              </p>
+            </div>
           </Panel>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       <Dialog open={assetOpen} onOpenChange={setAssetOpen}>
         <DialogContent className="hud-card border-primary/40">
