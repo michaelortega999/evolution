@@ -11,7 +11,7 @@ import { Donut } from "@/components/evolution/Donut";
 import { Gauge } from "@/components/evolution/Gauge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 
