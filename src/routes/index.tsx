@@ -65,7 +65,7 @@ function Index() {
 
           <WeekViewCard />
 
-          <BottomBar />
+          <WeeklyTasksCard />
 
           <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
             Evolution · Growing today, building forever
