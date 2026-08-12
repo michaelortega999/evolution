@@ -12,6 +12,7 @@ import {
   type EvoHabit, type TimeLog,
 } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
+import { DEFAULT_HABITS } from "@/lib/habits";
 
 
 export const Route = createFileRoute("/notes")({
@@ -42,8 +43,6 @@ const GOAL_DEFS: { category: EvoCategory; title: string; subtitle: string; pct: 
   { category: "Journal",   title: "JOURNAL",   subtitle: "Daily Journal", pct: 80, label: "24 / 30 Entries" },
   { category: "Notes",     title: "NOTES",     subtitle: "Stay Organized", pct: 90, label: "27 / 30 Days" },
 ];
-
-import { DEFAULT_HABITS } from "@/lib/habits";
 
 
 
