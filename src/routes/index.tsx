@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Sidebar } from "@/components/evolution/Sidebar";
 import { TopBar } from "@/components/evolution/TopBar";
-import { BottomBar } from "@/components/evolution/BottomBar";
+import { WeeklyTasksCard } from "@/components/evolution/WeeklyTasksCard";
 import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
 import { MobileDashboard } from "@/components/evolution/MobileDashboard";
@@ -65,7 +65,7 @@ function Index() {
 
           <WeekViewCard />
 
-          <BottomBar />
+          <WeeklyTasksCard />
 
           <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
             Evolution · Growing today, building forever
