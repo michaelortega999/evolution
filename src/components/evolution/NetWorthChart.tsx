@@ -300,16 +300,16 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
         {/* Hover tooltip */}
         {hoverPoint && (
           <div
-            className="absolute pointer-events-none hud-card px-2.5 py-1.5 border border-primary/40"
+            className="absolute pointer-events-none hud-card px-2.5 py-1.5 border border-[#00f0ff]/40"
             style={{
               left: `${(hoverPoint.x / width) * 100}%`,
               top: `${(hoverPoint.y / height) * 100}%`,
               transform: "translate(-50%, calc(-100% - 12px))",
-              boxShadow: "0 0 12px color-mix(in oklab, var(--primary) 50%, transparent)",
+              boxShadow: "0 0 12px color-mix(in oklab, #00f0ff 50%, transparent)",
             }}
           >
             <div className="hud-label text-[9px] text-muted-foreground tracking-widest">VALUE</div>
-            <div className="hud-label text-sm text-primary hud-glow tabular-nums whitespace-nowrap">{fmtCompact(hoverPoint.v)}</div>
+            <div className="hud-label text-sm text-[#00f0ff] hud-glow tabular-nums whitespace-nowrap">{fmtCompact(hoverPoint.v)}</div>
           </div>
         )}
       </div>
