@@ -120,8 +120,8 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
               onClick={() => setRange(r.key)}
               className={`hud-label text-[10px] px-2.5 py-1 rounded transition-colors ${
                 range === r.key
-                  ? "bg-primary/20 text-primary border border-primary/40"
-                  : "text-muted-foreground hover:text-primary"
+                  ? "bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/40"
+                  : "text-muted-foreground hover:text-[#00f0ff]"
               }`}
             >
               {r.key}
