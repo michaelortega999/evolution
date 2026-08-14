@@ -225,16 +225,16 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
           </g>
 
 
-          {/* Area + line in primary color */}
-          <g style={{ color: "var(--primary)" }}>
+          {/* Area + line in neon blue */}
+          <g style={{ color: "#00f0ff" }}>
             <path d={area} fill={`url(#fill-${gid})`} />
             {/* glow underlay */}
             <path
               d={line}
               fill="none"
               stroke="currentColor"
-              strokeWidth="6"
-              strokeOpacity="0.35"
+              strokeWidth="8"
+              strokeOpacity="0.55"
               strokeLinecap="round"
               strokeLinejoin="round"
               filter={`url(#glow-${gid})`}
@@ -242,8 +242,8 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
             <path
               d={line}
               fill="none"
-              stroke="var(--foreground)"
-              strokeWidth="2.5"
+              stroke="#00f0ff"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
