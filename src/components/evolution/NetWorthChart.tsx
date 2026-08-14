@@ -107,8 +107,8 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
         <div>
           <div className="hud-label text-[10px] text-muted-foreground tracking-widest">CURRENT VALUE</div>
           <div className="flex items-baseline gap-3">
-            <span className="hud-label text-3xl text-primary hud-glow tabular-nums">{fmtCompact(last.v)}</span>
-            <span className={`hud-label text-xs tabular-nums ${positive ? "text-primary" : "text-destructive"}`}>
+            <span className="hud-label text-3xl text-[#00f0ff] hud-glow tabular-nums">{fmtCompact(last.v)}</span>
+            <span className={`hud-label text-xs tabular-nums ${positive ? "text-[#00f0ff]" : "text-destructive"}`}>
               {positive ? "▲" : "▼"} {fmtCompact(Math.abs(delta))} ({deltaPct.toFixed(2)}%)
             </span>
           </div>
@@ -120,8 +120,8 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
               onClick={() => setRange(r.key)}
               className={`hud-label text-[10px] px-2.5 py-1 rounded transition-colors ${
                 range === r.key
-                  ? "bg-primary/20 text-primary border border-primary/40"
-                  : "text-muted-foreground hover:text-primary"
+                  ? "bg-[#00f0ff]/20 text-[#00f0ff] border border-[#00f0ff]/40"
+                  : "text-muted-foreground hover:text-[#00f0ff]"
               }`}
             >
               {r.key}
@@ -169,7 +169,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
           </defs>
 
           {/* Grid + Y labels */}
-          <g style={{ color: "var(--primary)" }}>
+          <g style={{ color: "#00f0ff" }}>
             {yTicks.map((t, i) => {
               const y = padT + innerH - ((t - yMin) / yRange) * innerH;
               return (
@@ -188,7 +188,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                     y={y + 5}
                     textAnchor="end"
                     className="hud-label"
-                    fontSize="14"
+                    fontSize="18"
                     fill="var(--muted-foreground)"
                   >
                     {fmtCompact(t)}
@@ -225,16 +225,16 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
           </g>
 
 
-          {/* Area + line in primary color */}
-          <g style={{ color: "var(--primary)" }}>
+          {/* Area + line in neon blue */}
+          <g style={{ color: "#00f0ff" }}>
             <path d={area} fill={`url(#fill-${gid})`} />
             {/* glow underlay */}
             <path
               d={line}
               fill="none"
               stroke="currentColor"
-              strokeWidth="6"
-              strokeOpacity="0.35"
+              strokeWidth="8"
+              strokeOpacity="0.55"
               strokeLinecap="round"
               strokeLinejoin="round"
               filter={`url(#glow-${gid})`}
@@ -242,8 +242,8 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
             <path
               d={line}
               fill="none"
-              stroke="var(--foreground)"
-              strokeWidth="2.5"
+              stroke="#00f0ff"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -256,7 +256,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                   x2={p.x}
                   y1={p.y}
                   y2={padT + innerH}
-                  stroke="currentColor"
+                  stroke="#00f0ff"
                   strokeOpacity={0.35}
                   strokeDasharray="3 4"
                 />
@@ -265,9 +265,9 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                   cy={p.y}
                   r="6"
                   fill="var(--background)"
-                  stroke="var(--foreground)"
+                  stroke="#00f0ff"
                   strokeWidth="2.5"
-                  style={{ filter: "drop-shadow(0 0 8px var(--primary))" }}
+                  style={{ filter: "drop-shadow(0 0 8px #00f0ff)" }}
                 />
               </g>
             ))}
@@ -287,11 +287,11 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                   x2={hoverPoint.x}
                   y1={padT}
                   y2={padT + innerH}
-                  stroke="currentColor"
+                  stroke="#00f0ff"
                   strokeOpacity={0.4}
                   strokeDasharray="2 3"
                 />
-                <circle cx={hoverPoint.x} cy={hoverPoint.y} r="5" fill="var(--background)" stroke="currentColor" strokeWidth="2" />
+                <circle cx={hoverPoint.x} cy={hoverPoint.y} r="5" fill="var(--background)" stroke="#00f0ff" strokeWidth="2" />
               </>
             )}
           </g>
@@ -300,16 +300,16 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
         {/* Hover tooltip */}
         {hoverPoint && (
           <div
-            className="absolute pointer-events-none hud-card px-2.5 py-1.5 border border-primary/40"
+            className="absolute pointer-events-none hud-card px-2.5 py-1.5 border border-[#00f0ff]/40"
             style={{
               left: `${(hoverPoint.x / width) * 100}%`,
               top: `${(hoverPoint.y / height) * 100}%`,
               transform: "translate(-50%, calc(-100% - 12px))",
-              boxShadow: "0 0 12px color-mix(in oklab, var(--primary) 50%, transparent)",
+              boxShadow: "0 0 12px color-mix(in oklab, #00f0ff 50%, transparent)",
             }}
           >
             <div className="hud-label text-[9px] text-muted-foreground tracking-widest">VALUE</div>
-            <div className="hud-label text-sm text-primary hud-glow tabular-nums whitespace-nowrap">{fmtCompact(hoverPoint.v)}</div>
+            <div className="hud-label text-sm text-[#00f0ff] hud-glow tabular-nums whitespace-nowrap">{fmtCompact(hoverPoint.v)}</div>
           </div>
         )}
       </div>
