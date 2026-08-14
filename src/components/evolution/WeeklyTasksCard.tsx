@@ -78,43 +78,43 @@ export function WeeklyTasksCard() {
   const pct = totalCells ? Math.round((done / totalCells) * 100) : 0;
 
   return (
-    <section className="hud-card p-5">
-      <div className="flex items-center justify-between mb-4 gap-3">
+    <section className="hud-card p-6">
+      <div className="flex items-center justify-between mb-5 gap-3">
         <div>
-          <div className="hud-label text-sm text-foreground/90">Weekly Tasks</div>
-          <div className="hud-label text-[10px] text-muted-foreground mt-1">
+          <div className="hud-label text-base text-foreground/90">Weekly Tasks</div>
+          <div className="hud-label text-xs text-muted-foreground mt-1">
             {done}/{totalCells} COMPLETED · {pct}%
           </div>
         </div>
         <button
           onClick={() => setShowAdd((s) => !s)}
-          className="hud-label text-[10px] flex items-center gap-1 border border-primary/50 text-primary rounded px-2 py-1 hover:bg-primary/10"
+          className="hud-label text-xs flex items-center gap-1.5 border border-primary/50 text-primary rounded px-3 py-1.5 hover:bg-primary/10"
         >
-          {showAdd ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+          {showAdd ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {showAdd ? "CANCEL" : "ADD"}
         </button>
       </div>
 
       {showAdd && (
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-5">
           <input
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") addHabit(); }}
             placeholder="Weekly task name"
-            className="flex-1 min-w-[160px] bg-transparent border border-border rounded px-2 py-1.5 text-sm outline-none focus:border-primary"
+            className="flex-1 min-w-[160px] bg-transparent border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary"
           />
           <select
             value={cat}
             onChange={(e) => setCat(e.target.value as EvoCategory)}
-            className="bg-background border border-border rounded px-2 py-1.5 text-xs outline-none focus:border-primary"
+            className="bg-background border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary"
           >
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <button
             onClick={addHabit}
-            className="hud-label text-[10px] border border-primary text-primary rounded px-3 py-1.5 hover:bg-primary/10"
+            className="hud-label text-xs border border-primary text-primary rounded px-4 py-2 hover:bg-primary/10"
           >
             SAVE
           </button>
@@ -125,12 +125,12 @@ export function WeeklyTasksCard() {
         <table className="w-full min-w-[520px] border-separate border-spacing-y-1">
           <thead>
             <tr>
-              <th className="text-left hud-label text-[10px] text-muted-foreground font-normal pb-2">TASK</th>
+              <th className="text-left hud-label text-xs text-muted-foreground font-normal pb-3">TASK</th>
               {DAY_LABELS.map((d, i) => (
                 <th
                   key={d + i}
                   className={cn(
-                    "hud-label text-[10px] font-normal pb-2 w-10 text-center",
+                    "hud-label text-xs font-normal pb-3 w-12 text-center",
                     days[i] === today ? "text-primary" : "text-muted-foreground",
                   )}
                 >
@@ -143,19 +143,19 @@ export function WeeklyTasksCard() {
           <tbody>
             {habits.map((h) => (
               <tr key={h.id} className="group">
-                <td className="text-xs text-foreground/90 pr-3 py-1">
-                  <span className="mr-1.5">{h.emoji ?? "•"}</span>
+                <td className="text-sm text-foreground/90 pr-3 py-1.5">
+                  <span className="mr-2">{h.emoji ?? "•"}</span>
                   {h.name}
                 </td>
                 {days.map((iso) => {
                   const checked = (habitLog[h.id] ?? []).includes(iso);
                   return (
-                    <td key={iso} className="text-center py-1">
+                    <td key={iso} className="text-center py-1.5">
                       <button
                         onClick={() => toggle(h.id, iso)}
                         aria-label={`${h.name} ${iso}`}
                         className={cn(
-                          "h-5 w-5 rounded border transition-colors",
+                          "h-6 w-6 rounded border transition-colors",
                           checked
                             ? "bg-primary/70 border-primary"
                             : "border-border hover:border-primary/60",
@@ -171,14 +171,14 @@ export function WeeklyTasksCard() {
                     aria-label={`Delete ${h.name}`}
                     className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </td>
               </tr>
             ))}
             {habits.length === 0 && (
               <tr>
-                <td colSpan={9} className="text-xs text-muted-foreground italic py-3">
+                <td colSpan={9} className="text-sm text-muted-foreground italic py-3">
                   No weekly tasks yet.
                 </td>
               </tr>
