@@ -228,22 +228,56 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
           {/* Area + line in primary color */}
           <g style={{ color: "var(--primary)" }}>
             <path d={area} fill={`url(#fill-${gid})`} />
+            {/* glow underlay */}
             <path
               d={line}
               fill="none"
-              stroke={`url(#line-${gid})`}
-              strokeWidth="2"
+              stroke="currentColor"
+              strokeWidth="6"
+              strokeOpacity="0.35"
               strokeLinecap="round"
               strokeLinejoin="round"
               filter={`url(#glow-${gid})`}
             />
+            <path
+              d={line}
+              fill="none"
+              stroke="var(--foreground)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {/* Drop lines + node markers at every point */}
+            {points.map((p, i) => (
+              <g key={i}>
+                <line
+                  x1={p.x}
+                  x2={p.x}
+                  y1={p.y}
+                  y2={padT + innerH}
+                  stroke="currentColor"
+                  strokeOpacity={0.35}
+                  strokeDasharray="3 4"
+                />
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r="6"
+                  fill="var(--background)"
+                  stroke="var(--foreground)"
+                  strokeWidth="2.5"
+                  style={{ filter: "drop-shadow(0 0 8px var(--primary))" }}
+                />
+              </g>
+            ))}
 
             {/* Last-point pulse */}
             <circle cx={last.x} cy={last.y} r="14" fill={`url(#pulse-${gid})`}>
               <animate attributeName="r" values="10;18;10" dur="2.4s" repeatCount="indefinite" />
               <animate attributeName="opacity" values="0.9;0.2;0.9" dur="2.4s" repeatCount="indefinite" />
             </circle>
-            <circle cx={last.x} cy={last.y} r="4" fill="currentColor" style={{ filter: "drop-shadow(0 0 6px currentColor)" }} />
+
 
             {/* Hover guide */}
             {hoverPoint && (
