@@ -256,7 +256,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                   x2={p.x}
                   y1={p.y}
                   y2={padT + innerH}
-                  stroke="currentColor"
+                  stroke="#00f0ff"
                   strokeOpacity={0.35}
                   strokeDasharray="3 4"
                 />
@@ -265,9 +265,9 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                   cy={p.y}
                   r="6"
                   fill="var(--background)"
-                  stroke="var(--foreground)"
+                  stroke="#00f0ff"
                   strokeWidth="2.5"
-                  style={{ filter: "drop-shadow(0 0 8px var(--primary))" }}
+                  style={{ filter: "drop-shadow(0 0 8px #00f0ff)" }}
                 />
               </g>
             ))}
@@ -287,11 +287,11 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                   x2={hoverPoint.x}
                   y1={padT}
                   y2={padT + innerH}
-                  stroke="currentColor"
+                  stroke="#00f0ff"
                   strokeOpacity={0.4}
                   strokeDasharray="2 3"
                 />
-                <circle cx={hoverPoint.x} cy={hoverPoint.y} r="5" fill="var(--background)" stroke="currentColor" strokeWidth="2" />
+                <circle cx={hoverPoint.x} cy={hoverPoint.y} r="5" fill="var(--background)" stroke="#00f0ff" strokeWidth="2" />
               </>
             )}
           </g>
