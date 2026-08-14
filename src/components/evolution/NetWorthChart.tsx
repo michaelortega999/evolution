@@ -42,10 +42,11 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
 
 
   const width = 800;
-  const padL = 48;
-  const padR = 16;
-  const padT = 16;
-  const padB = 32;
+  const padL = 66;
+  const padR = 20;
+  const padT = 18;
+  const padB = 42;
+
   const innerW = width - padL - padR;
   const innerH = height - padT - padB;
 
