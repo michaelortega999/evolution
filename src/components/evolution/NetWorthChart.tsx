@@ -107,8 +107,8 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
         <div>
           <div className="hud-label text-[10px] text-muted-foreground tracking-widest">CURRENT VALUE</div>
           <div className="flex items-baseline gap-3">
-            <span className="hud-label text-3xl text-primary hud-glow tabular-nums">{fmtCompact(last.v)}</span>
-            <span className={`hud-label text-xs tabular-nums ${positive ? "text-primary" : "text-destructive"}`}>
+            <span className="hud-label text-3xl text-[#00f0ff] hud-glow tabular-nums">{fmtCompact(last.v)}</span>
+            <span className={`hud-label text-xs tabular-nums ${positive ? "text-[#00f0ff]" : "text-destructive"}`}>
               {positive ? "▲" : "▼"} {fmtCompact(Math.abs(delta))} ({deltaPct.toFixed(2)}%)
             </span>
           </div>
