@@ -183,11 +183,11 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                     strokeDasharray="2 4"
                   />
                   <text
-                    x={padL - 6}
-                    y={y + 3}
+                    x={padL - 8}
+                    y={y + 5}
                     textAnchor="end"
                     className="hud-label"
-                    fontSize="9"
+                    fontSize="14"
                     fill="var(--muted-foreground)"
                   >
                     {fmtCompact(t)}
@@ -202,7 +202,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
               y1={padT + innerH}
               y2={padT + innerH}
               stroke="currentColor"
-              strokeOpacity={0.25}
+              strokeOpacity={0.35}
             />
           </g>
 
@@ -212,16 +212,17 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
               <text
                 key={i}
                 x={m.x}
-                y={height - 10}
+                y={height - 8}
                 textAnchor="middle"
                 className="hud-label"
-                fontSize="9"
+                fontSize="14"
                 fill="var(--muted-foreground)"
               >
                 {m.label}
               </text>
             ))}
           </g>
+
 
           {/* Area + line in primary color */}
           <g style={{ color: "var(--primary)" }}>
