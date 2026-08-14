@@ -169,7 +169,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
           </defs>
 
           {/* Grid + Y labels */}
-          <g style={{ color: "var(--primary)" }}>
+          <g style={{ color: "#00f0ff" }}>
             {yTicks.map((t, i) => {
               const y = padT + innerH - ((t - yMin) / yRange) * innerH;
               return (
@@ -188,7 +188,7 @@ export function NetWorthChart({ data, height = 280, labels }: NetWorthChartProps
                     y={y + 5}
                     textAnchor="end"
                     className="hud-label"
-                    fontSize="14"
+                    fontSize="18"
                     fill="var(--muted-foreground)"
                   >
                     {fmtCompact(t)}
