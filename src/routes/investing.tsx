@@ -376,22 +376,22 @@ function InvestingPage() {
   return (
     <ModuleLayout number="06" title="INVESTING" subtitle="Track performance. Refine strategy. Build freedom." icon={TrendingUp}>
       {/* ============ TOP STATS BAR ============ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="hud-card p-4 flex flex-col gap-2 border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="hud-card p-3 flex flex-col gap-1.5 border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]">
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
-              <Layers className="h-5 w-5 text-[#00f0ff]" />
+            <div className="h-8 w-8 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
+              <Layers className="h-4 w-4 text-[#00f0ff]" />
             </div>
             <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">Total Assets</span>
           </div>
-          <div className="hud-label text-2xl text-[#00f0ff] hud-glow tabular-nums">{fmtBig(totals.balance)}</div>
+          <div className="hud-label text-xl text-[#00f0ff] hud-glow tabular-nums">{fmtBig(totals.balance)}</div>
         </div>
         <StatCard label="Win Rate" value={`${winRate}%`} valueClass="text-primary" />
         <StatCard label="Best Day" value={fmtMoney(bestDay.pnl, { sign: true })} valueClass="text-emerald-400" />
-        <div className="hud-card p-4">
+        <div className="hud-card p-3">
           <div className="hud-label text-[9px] text-muted-foreground">{dayStr}</div>
-          <div className="hud-label text-lg text-primary hud-glow leading-tight">{dateStr}</div>
-          <div className="hud-label text-xs text-muted-foreground mt-0.5">{timeStr}</div>
+          <div className="hud-label text-base text-primary hud-glow leading-tight">{dateStr}</div>
+          <div className="hud-label text-[10px] text-muted-foreground mt-0.5">{timeStr}</div>
         </div>
       </div>
 
@@ -409,27 +409,25 @@ function InvestingPage() {
         />
       ) : (
       <>
-      {/* ============ MAIN GRID: CALENDAR | ACCOUNTS + JOURNAL ============ */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-        {/* Calendar — left / larger */}
-        <div className="xl:col-span-8">
-          <Panel title="MONTHLY PERFORMANCE">
-            <div className="flex items-center justify-between -mt-8 mb-3">
-              <div />
+      {/* ============ MAIN GRID ============ */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 xl:h-[calc(100vh-14rem)]">
+        {/* Left: Monthly Performance + Transaction History */}
+        <div className="xl:col-span-8 flex flex-col gap-3 h-full overflow-hidden">
+          <Panel title="MONTHLY PERFORMANCE" className="flex-1 min-h-0 flex flex-col">
+            <div className="flex items-center justify-between -mt-8 mb-2">
+              <div className="flex items-center justify-center gap-3">
+                <button onClick={() => shiftMonth(-1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronLeft className="h-3 w-3" /></button>
+                <div className="hud-label text-xs text-primary hud-glow">{monthLabel}</div>
+                <button onClick={() => shiftMonth(1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronRight className="h-3 w-3" /></button>
+              </div>
               <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
-            </div>
-
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <button onClick={() => shiftMonth(-1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronLeft className="h-4 w-4" /></button>
-              <div className="hud-label text-sm text-primary hud-glow">{monthLabel}</div>
-              <button onClick={() => shiftMonth(1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronRight className="h-4 w-4" /></button>
             </div>
             <div className="grid grid-cols-7 gap-1 mb-1">
               {["SUN","MON","TUE","WED","THU","FRI","SAT"].map((d) => (
                 <div key={d} className="hud-label text-[9px] text-muted-foreground text-center py-1">{d}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1 flex-1">
               {calCells.map((cell, i) => {
                 if (!cell.date) return <div key={i} className="aspect-square" />;
                 const pnl = dayMap.get(cell.date) ?? 0;
@@ -444,16 +442,14 @@ function InvestingPage() {
                       <span className={`hud-label ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
                       <button
                         onClick={() => openReview(cell.date!)}
-                        className={`h-6 w-6 rounded-md flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
+                        className={`h-5 w-5 rounded flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
                         title={hasJournal ? "Open trade review" : "Add trade review"}
                       >
-                        <BookOpen className="h-3.5 w-3.5" />
+                        <BookOpen className="h-3 w-3" />
                       </button>
-
-
                     </div>
                     {pnl !== 0 && (
-                      <div className={`hud-label tabular-nums text-[9px] leading-none ${pnlClass(pnl)}`}>
+                      <div className={`hud-label tabular-nums text-[8px] leading-none ${pnlClass(pnl)}`}>
                         {pnl > 0 ? "+" : ""}${Math.abs(pnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </div>
                     )}
@@ -461,35 +457,99 @@ function InvestingPage() {
                 );
               })}
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-border">
+            <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-border">
               <div>
                 <div className="hud-label text-[9px] text-muted-foreground">MONTHLY P/L</div>
-                <div className={`hud-label text-lg tabular-nums ${pnlClass(monthlyPnl)}`}>{fmtMoney(monthlyPnl, { sign: true })}</div>
+                <div className={`hud-label text-base tabular-nums ${pnlClass(monthlyPnl)}`}>{fmtMoney(monthlyPnl, { sign: true })}</div>
               </div>
               <div>
                 <div className="hud-label text-[9px] text-muted-foreground">MONTHLY RETURN</div>
-                <div className={`hud-label text-lg tabular-nums ${pnlClass(monthlyPnl)}`}>
+                <div className={`hud-label text-base tabular-nums ${pnlClass(monthlyPnl)}`}>
                   {monthlyPnl > 0 ? "+" : ""}{monthlyReturnPct.toFixed(2)}%
                 </div>
               </div>
             </div>
           </Panel>
+
+          <Panel title="TRANSACTION HISTORY" className="h-[42%] flex flex-col min-h-0">
+            <div className="flex items-center justify-end -mt-8 mb-2 gap-2 flex-wrap">
+              <select value={histAcc} onChange={(e) => setHistAcc(e.target.value)}
+                className="h-8 bg-input border border-border rounded px-2 text-xs hud-label">
+                <option value="all">ALL ACCOUNTS</option>
+                {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              <select value={histType} onChange={(e) => setHistType(e.target.value)}
+                className="h-8 bg-input border border-border rounded px-2 text-xs hud-label">
+                <option value="all">ALL TYPES</option>
+                <option value="profit">PROFIT</option>
+                <option value="loss">LOSS</option>
+              </select>
+              <Button onClick={exportCsv} size="sm" variant="outline" className="hud-label text-[10px]">
+                <Download className="h-3 w-3 mr-1" /> EXPORT
+              </Button>
+            </div>
+            <div className="overflow-x-auto flex-1 min-h-0">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="hud-label text-[10px] text-muted-foreground text-left border-b border-border">
+                    <th className="py-1.5 pr-3">DATE</th>
+                    <th className="pr-3">ACCOUNT</th>
+                    <th className="pr-3">TYPE</th>
+                    <th className="pr-3 text-right">AMOUNT</th>
+                    <th className="pr-3 text-right">P/L</th>
+                    <th className="pr-3 text-right">BALANCE</th>
+                    <th className="pr-3">NOTES</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredHistory.map((t) => {
+                    const acc = accounts.find((a) => a.id === t.accountId);
+                    const signed = t.type === "profit" ? t.amount : -t.amount;
+                    const bal = runningBalances[t.id] ?? 0;
+                    return (
+                      <tr key={t.id} className="border-b border-border/50 group">
+                        <td className="py-1.5 pr-3 text-muted-foreground">{new Date(t.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</td>
+                        <td className="pr-3">{acc?.name ?? "—"}</td>
+                        <td className="pr-3">
+                          <span className={`hud-label text-[10px] px-2 py-0.5 rounded border ${t.type === "profit" ? "text-emerald-400 border-emerald-400/40 bg-emerald-500/10" : "text-red-400 border-red-400/40 bg-red-500/10"}`}>
+                            {t.type.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="pr-3 text-right tabular-nums">${t.amount.toFixed(2)}</td>
+                        <td className={`pr-3 text-right tabular-nums hud-label ${pnlClass(signed)}`}>{fmtMoney(signed, { sign: true })}</td>
+                        <td className="pr-3 text-right tabular-nums text-muted-foreground">${bal.toFixed(2)}</td>
+                        <td className="pr-3 text-muted-foreground truncate max-w-[240px]">{t.notes ?? "—"}</td>
+                        <td>
+                          <button onClick={() => deleteTx(t.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {!filteredHistory.length && (
+                <div className="text-xs text-muted-foreground text-center py-6">No transactions match the current filters.</div>
+              )}
+            </div>
+          </Panel>
         </div>
 
-        {/* Accounts + Strategy Journal — right / compact stack */}
-        <div className="xl:col-span-4 space-y-4">
-
-          <Panel title="ACCOUNTS">
-            <div className="flex items-center justify-end -mt-8 mb-3">
+        {/* Right: Accounts + Add Transaction + Strategy Journal */}
+        <div className="xl:col-span-4 flex flex-col gap-3 h-full overflow-hidden">
+          <Panel title="ACCOUNTS" className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-end -mt-8 mb-2">
               <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
                 <Plus className="h-3 w-3 mr-1" /> Add Account
               </Button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 overflow-y-auto pr-1">
               {accounts.map((acc) => {
                 const t = totals.perAccount[acc.id] ?? { balance: acc.startingBalance, today: 0, month: 0 };
                 return (
-                  <div key={acc.id} className="hud-card p-3 group relative">
+                  <div key={acc.id} className="hud-card p-2.5 group relative">
                     <button
                       onClick={() => deleteAccount(acc.id)}
                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
@@ -506,9 +566,9 @@ function InvestingPage() {
                         <div className="hud-label text-[9px] text-muted-foreground">${acc.size.toLocaleString()} ACCOUNT</div>
                       </div>
                     </div>
-                    <div className="hud-label text-[8px] text-muted-foreground mt-2">BALANCE</div>
-                    <div className="hud-label text-xl text-primary hud-glow tabular-nums">{fmtBig(t.balance)}</div>
-                    <div className="grid grid-cols-2 gap-2 mt-2 border-t border-border pt-2">
+                    <div className="hud-label text-[8px] text-muted-foreground mt-1.5">BALANCE</div>
+                    <div className="hud-label text-lg text-primary hud-glow tabular-nums">{fmtBig(t.balance)}</div>
+                    <div className="grid grid-cols-2 gap-2 mt-1.5 border-t border-border pt-1.5">
                       <div>
                         <div className="hud-label text-[8px] text-muted-foreground">P/L TODAY</div>
                         <div className={`hud-label text-xs tabular-nums ${pnlClass(t.today)}`}>{fmtMoney(t.today, { sign: true })}</div>
@@ -528,15 +588,14 @@ function InvestingPage() {
               )}
             </div>
 
-            {/* Compact totals — Total P/L (All Accounts) on top, P/L row below */}
-            <div className="mt-3 pt-3 border-t border-border space-y-2">
-              <div className="border border-primary/40 bg-primary/5 rounded p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
-                  <TrendingUp className="h-4 w-4 text-primary" />
+            <div className="mt-2 pt-2 border-t border-border space-y-2 shrink-0">
+              <div className="border border-primary/40 bg-primary/5 rounded p-2.5 flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full border border-primary/50 bg-primary/10 flex items-center justify-center shrink-0">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="hud-label text-[9px] text-muted-foreground">TOTAL P/L (ALL ACCOUNTS)</div>
-                  <div className={`hud-label text-xl hud-glow tabular-nums truncate ${pnlClass(totalPnl)}`}>{fmtMoney(totalPnl, { sign: totalPnl > 0 })}</div>
+                  <div className={`hud-label text-lg hud-glow tabular-nums truncate ${pnlClass(totalPnl)}`}>{fmtMoney(totalPnl, { sign: totalPnl > 0 })}</div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -545,24 +604,101 @@ function InvestingPage() {
               </div>
             </div>
 
-            <div className="mt-1.5 text-[9px] hud-label text-muted-foreground text-right">
+            <div className="mt-1 text-[9px] hud-label text-muted-foreground text-right shrink-0">
               ↻ Accounts synced to Wealth
             </div>
           </Panel>
 
-          {/* Strategy Journal — below Accounts */}
-          <Panel title="STRATEGY JOURNAL">
-            <div className="flex items-center justify-end -mt-8 mb-3">
+          <Panel title="ADD TRANSACTION · TRADE REVIEW" className="shrink-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <button
+                    onClick={() => setTxTab("profit")}
+                    className={`hud-label text-[10px] py-1.5 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
+                  >
+                    ADD PROFIT
+                  </button>
+                  <button
+                    onClick={() => setTxTab("loss")}
+                    className={`hud-label text-[10px] py-1.5 rounded border transition-colors ${txTab === "loss" ? "bg-red-500/15 border-red-400/60 text-red-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
+                  >
+                    ADD LOSS
+                  </button>
+                </div>
+                <label className="block mb-1.5">
+                  <div className="hud-label text-[8px] text-muted-foreground mb-1">ACCOUNT</div>
+                  <select value={txAcc} onChange={(e) => setTxAcc(e.target.value)}
+                    className="h-8 w-full bg-input border border-border rounded px-2 text-xs">
+                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </label>
+                <label className="block mb-1.5">
+                  <div className="hud-label text-[8px] text-muted-foreground mb-1">AMOUNT ($)</div>
+                  <Input type="number" step="0.01" placeholder="Enter amount" value={txAmt} onChange={(e) => setTxAmt(e.target.value)} className="h-8 text-xs" />
+                </label>
+                <label className="block">
+                  <div className="hud-label text-[8px] text-muted-foreground mb-1">DATE</div>
+                  <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-8 text-xs" />
+                </label>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="hud-label text-[8px] text-muted-foreground">TRADE REVIEW</div>
+                  <button
+                    type="button"
+                    onClick={() => openReview(txDate)}
+                    className="hud-label text-[8px] text-primary hud-glow hover:underline flex items-center gap-1"
+                    title="Open the full trade review for this date"
+                  >
+                    <BookOpen className="h-3 w-3" /> OPEN FULL REVIEW
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <label className="block">
+                    <div className="hud-label text-[8px] text-muted-foreground mb-1">SESSION</div>
+                    <select
+                      value={txSession}
+                      onChange={(e) => setTxSession(e.target.value as TradingSessionKind)}
+                      className="h-8 w-full bg-input border border-border rounded px-2 text-xs"
+                    >
+                      {TRADING_SESSIONS.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </label>
+                  <div className="flex items-end">
+                    <div className="text-[8px] hud-label text-muted-foreground leading-tight">
+                      Saved to <span className="text-primary">Strategy Journal</span> &amp; <span className="text-primary">Monthly Calendar</span> for {txDate}.
+                    </div>
+                  </div>
+                </div>
+                <label className="block mb-2 flex-1">
+                  <Textarea
+                    rows={4}
+                    placeholder="Setup, execution, emotions, mistakes, lessons..."
+                    value={txReview}
+                    onChange={(e) => setTxReview(e.target.value)}
+                    className="text-xs h-full"
+                  />
+                </label>
+                <Button onClick={submitTx} className={`w-full hud-label text-[10px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
+                  {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
+                </Button>
+              </div>
+            </div>
+          </Panel>
+
+          <Panel title="STRATEGY JOURNAL" className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-end -mt-8 mb-2">
               <Button onClick={() => openNewJournal()} size="sm" variant="outline" className="hud-label text-[10px]">
                 <Plus className="h-3 w-3 mr-1" /> NEW ENTRY
               </Button>
             </div>
-            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+            <div className="space-y-2 overflow-y-auto pr-1">
               {journal.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">No entries yet.</div>
               )}
               {[...journal].sort((a, b) => b.date.localeCompare(a.date)).map((e) => (
-                <div key={e.id} className="border border-border rounded p-2.5 hover:border-primary/40 transition-colors group">
+                <div key={e.id} className="border border-border rounded p-2 hover:border-primary/40 transition-colors group">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="hud-label text-[10px] text-primary">{new Date(e.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</div>
@@ -572,9 +708,9 @@ function InvestingPage() {
                       <X className="h-3 w-3" />
                     </button>
                   </div>
-                  <button onClick={() => openReview(e.date)} className="block text-left w-full mt-2">
+                  <button onClick={() => openReview(e.date)} className="block text-left w-full mt-1.5">
                     <div className="text-xs text-foreground/85 leading-snug line-clamp-2">{e.review}</div>
-                    <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
+                    <div className="flex items-center justify-between mt-1.5 flex-wrap gap-2">
                       <div className="flex flex-wrap gap-1">
                         {e.tags.map((t) => (
                           <span key={t} className="hud-label text-[9px] text-primary/80">#{t.replace(/\s+/g, "")}</span>
@@ -588,156 +724,7 @@ function InvestingPage() {
             </div>
           </Panel>
         </div>
-
-        {/* Add Transaction — full width */}
-        <div className="xl:col-span-12">
-          <Panel title="ADD TRANSACTION · TRADE REVIEW">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <button
-                    onClick={() => setTxTab("profit")}
-                    className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
-                  >
-                    ADD PROFIT
-                  </button>
-                  <button
-                    onClick={() => setTxTab("loss")}
-                    className={`hud-label text-[11px] py-2 rounded border transition-colors ${txTab === "loss" ? "bg-red-500/15 border-red-400/60 text-red-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
-                  >
-                    ADD LOSS
-                  </button>
-                </div>
-                <label className="block mb-2">
-                  <div className="hud-label text-[9px] text-muted-foreground mb-1">ACCOUNT</div>
-                  <select value={txAcc} onChange={(e) => setTxAcc(e.target.value)}
-                    className="h-9 w-full bg-input border border-border rounded px-2 text-xs">
-                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-                  </select>
-                </label>
-                <label className="block mb-2">
-                  <div className="hud-label text-[9px] text-muted-foreground mb-1">AMOUNT ($)</div>
-                  <Input type="number" step="0.01" placeholder="Enter amount" value={txAmt} onChange={(e) => setTxAmt(e.target.value)} className="h-9 text-xs" />
-                </label>
-                <label className="block">
-                  <div className="hud-label text-[9px] text-muted-foreground mb-1">DATE</div>
-                  <Input type="date" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9 text-xs" />
-                </label>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="hud-label text-[9px] text-muted-foreground">TRADE REVIEW</div>
-                  <button
-                    type="button"
-                    onClick={() => openReview(txDate)}
-                    className="hud-label text-[9px] text-primary hud-glow hover:underline flex items-center gap-1"
-                    title="Open the full trade review for this date"
-                  >
-                    <BookOpen className="h-3 w-3" /> OPEN FULL REVIEW
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <label className="block">
-                    <div className="hud-label text-[9px] text-muted-foreground mb-1">SESSION</div>
-                    <select
-                      value={txSession}
-                      onChange={(e) => setTxSession(e.target.value as TradingSessionKind)}
-                      className="h-9 w-full bg-input border border-border rounded px-2 text-xs"
-                    >
-                      {TRADING_SESSIONS.map((s) => <option key={s}>{s}</option>)}
-                    </select>
-                  </label>
-                  <div className="flex items-end">
-                    <div className="text-[9px] hud-label text-muted-foreground leading-tight">
-                      Saved to <span className="text-primary">Strategy Journal</span> &amp; <span className="text-primary">Monthly Calendar</span> for {txDate}.
-                    </div>
-                  </div>
-                </div>
-                <label className="block mb-3 flex-1">
-                  <Textarea
-                    rows={6}
-                    placeholder="Setup, execution, emotions, mistakes, lessons... This posts to the day's Trade Review."
-                    value={txReview}
-                    onChange={(e) => setTxReview(e.target.value)}
-                    className="text-xs h-full"
-                  />
-                </label>
-                <Button onClick={submitTx} className={`w-full hud-label text-[11px] ${txTab === "profit" ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-400/50" : "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/50"}`}>
-                  {txTab === "profit" ? "ADD PROFIT" : "ADD LOSS"}
-                </Button>
-              </div>
-
-            </div>
-          </Panel>
-        </div>
       </div>
-
-
-      {/* ============ TRANSACTION HISTORY ============ */}
-      <Panel title="TRANSACTION HISTORY">
-        <div className="flex items-center justify-end -mt-8 mb-3 gap-2 flex-wrap">
-          <select value={histAcc} onChange={(e) => setHistAcc(e.target.value)}
-            className="h-8 bg-input border border-border rounded px-2 text-xs hud-label">
-            <option value="all">ALL ACCOUNTS</option>
-            {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-          <select value={histType} onChange={(e) => setHistType(e.target.value)}
-            className="h-8 bg-input border border-border rounded px-2 text-xs hud-label">
-            <option value="all">ALL TYPES</option>
-            <option value="profit">PROFIT</option>
-            <option value="loss">LOSS</option>
-          </select>
-          <Button onClick={exportCsv} size="sm" variant="outline" className="hud-label text-[10px]">
-            <Download className="h-3 w-3 mr-1" /> EXPORT
-          </Button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="hud-label text-[10px] text-muted-foreground text-left border-b border-border">
-                <th className="py-2 pr-3">DATE</th>
-                <th className="pr-3">ACCOUNT</th>
-                <th className="pr-3">TYPE</th>
-                <th className="pr-3 text-right">AMOUNT</th>
-                <th className="pr-3 text-right">P/L</th>
-                <th className="pr-3 text-right">BALANCE</th>
-                <th className="pr-3">NOTES</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredHistory.map((t) => {
-                const acc = accounts.find((a) => a.id === t.accountId);
-                const signed = t.type === "profit" ? t.amount : -t.amount;
-                const bal = runningBalances[t.id] ?? 0;
-                return (
-                  <tr key={t.id} className="border-b border-border/50 group">
-                    <td className="py-2 pr-3 text-muted-foreground">{new Date(t.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</td>
-                    <td className="pr-3">{acc?.name ?? "—"}</td>
-                    <td className="pr-3">
-                      <span className={`hud-label text-[10px] px-2 py-0.5 rounded border ${t.type === "profit" ? "text-emerald-400 border-emerald-400/40 bg-emerald-500/10" : "text-red-400 border-red-400/40 bg-red-500/10"}`}>
-                        {t.type.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="pr-3 text-right tabular-nums">${t.amount.toFixed(2)}</td>
-                    <td className={`pr-3 text-right tabular-nums hud-label ${pnlClass(signed)}`}>{fmtMoney(signed, { sign: true })}</td>
-                    <td className="pr-3 text-right tabular-nums text-muted-foreground">${bal.toFixed(2)}</td>
-                    <td className="pr-3 text-muted-foreground truncate max-w-[240px]">{t.notes ?? "—"}</td>
-                    <td>
-                      <button onClick={() => deleteTx(t.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {!filteredHistory.length && (
-            <div className="text-xs text-muted-foreground text-center py-6">No transactions match the current filters.</div>
-          )}
-        </div>
-      </Panel>
       </>
       )}
 
