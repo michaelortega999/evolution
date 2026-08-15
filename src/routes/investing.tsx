@@ -725,6 +725,8 @@ function InvestingPage() {
           </Panel>
         </div>
       </div>
+      </>
+      )}
 
       {/* ============ MODALS ============ */}
 
