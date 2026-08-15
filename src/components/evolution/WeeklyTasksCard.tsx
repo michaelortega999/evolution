@@ -143,7 +143,7 @@ export function WeeklyTasksCard() {
           <tbody>
             {habits.map((h) => (
               <tr key={h.id} className="group">
-                <td className="text-sm text-foreground/90 pr-3 py-1.5">
+                <td className="text-lg text-foreground/90 pr-3 py-1.5">
                   <span className="mr-2">{h.emoji ?? "•"}</span>
                   {h.name}
                 </td>
