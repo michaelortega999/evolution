@@ -376,22 +376,22 @@ function InvestingPage() {
   return (
     <ModuleLayout number="06" title="INVESTING" subtitle="Track performance. Refine strategy. Build freedom." icon={TrendingUp}>
       {/* ============ TOP STATS BAR ============ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="hud-card p-4 flex flex-col gap-2 border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="hud-card p-3 flex flex-col gap-1.5 border-[#00f0ff]/40 shadow-[0_0_12px_rgba(0,240,255,0.15)]">
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
-              <Layers className="h-5 w-5 text-[#00f0ff]" />
+            <div className="h-8 w-8 rounded-full border border-[#00f0ff]/60 bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
+              <Layers className="h-4 w-4 text-[#00f0ff]" />
             </div>
             <span className="hud-label text-[10px] text-muted-foreground uppercase tracking-wider">Total Assets</span>
           </div>
-          <div className="hud-label text-2xl text-[#00f0ff] hud-glow tabular-nums">{fmtBig(totals.balance)}</div>
+          <div className="hud-label text-xl text-[#00f0ff] hud-glow tabular-nums">{fmtBig(totals.balance)}</div>
         </div>
         <StatCard label="Win Rate" value={`${winRate}%`} valueClass="text-primary" />
         <StatCard label="Best Day" value={fmtMoney(bestDay.pnl, { sign: true })} valueClass="text-emerald-400" />
-        <div className="hud-card p-4">
+        <div className="hud-card p-3">
           <div className="hud-label text-[9px] text-muted-foreground">{dayStr}</div>
-          <div className="hud-label text-lg text-primary hud-glow leading-tight">{dateStr}</div>
-          <div className="hud-label text-xs text-muted-foreground mt-0.5">{timeStr}</div>
+          <div className="hud-label text-base text-primary hud-glow leading-tight">{dateStr}</div>
+          <div className="hud-label text-[10px] text-muted-foreground mt-0.5">{timeStr}</div>
         </div>
       </div>
 
