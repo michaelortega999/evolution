@@ -364,6 +364,13 @@
       ),
       linear-gradient(180deg, var(--hud-fill-a), var(--hud-fill-b));
   }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes spark-draw {
