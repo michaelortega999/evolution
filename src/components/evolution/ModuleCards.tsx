@@ -300,7 +300,7 @@ export function NotesCard() {
 
   return (
     <Card icon={NotebookPen} variant="notes" number="05" title="TASKS" href="/notes">
-      <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32">
+      <ul className="space-y-1.5 flex-1 overflow-y-auto max-h-32 no-scrollbar">
         {visible.map((t) => (
           <li key={t.id} className="flex items-start gap-2 text-xs group">
             <button
