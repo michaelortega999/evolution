@@ -202,7 +202,7 @@ export function WeekViewCard() {
         </div>
 
         {/* Body grid */}
-        <div className="overflow-auto max-h-[640px]">
+        <div className="overflow-auto max-h-[640px] no-scrollbar">
           <div
             className="relative grid"
             style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}
