@@ -670,11 +670,11 @@ function WeekView({
   );
 }
 
-function EventBlock({ event }: { event: CalendarEvent }) {
+function EventBlock({ event, onDuplicate }: { event: CalendarEvent; onDuplicate: () => void }) {
   const start = parseHM(event.time);
   const end = event.endTime ? parseHM(event.endTime) : start + 60;
   const top = (start / 60) * HOUR_PX;
-  const height = Math.max(20, ((end - start) / 60) * HOUR_PX - 2);
+  const height = Math.max(24, ((end - start) / 60) * HOUR_PX - 2);
   return (
     <div
       className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden cursor-default transition-all hover:bg-primary/35 hover:border-primary hover:z-10"
@@ -689,6 +689,20 @@ function EventBlock({ event }: { event: CalendarEvent }) {
         {fmt12(event.time)}
       </div>
       <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDuplicate();
+        }}
+        className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-primary hover:text-[#00f0ff] hover:drop-shadow-[0_0_4px_#00f0ff]"
+        aria-label="Duplicate event"
+        title="Duplicate event"
+        type="button"
+      >
+        <Files className="h-2.5 w-2.5" />
+      </button>
+
       {/* tooltip */}
       <div className="absolute z-20 left-full ml-2 top-0 hidden group-hover:block bg-popover border border-primary rounded px-2 py-1.5 shadow-lg whitespace-nowrap pointer-events-none">
         <div className="text-xs text-foreground font-medium">{event.title}</div>
