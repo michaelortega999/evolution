@@ -136,6 +136,25 @@ export function WeekViewCard() {
     setTitle("");
   }
 
+  function parseEventDate(ds: string) {
+    const [y, m, d] = ds.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function duplicateEvent(ev: CalendarEvent) {
+    const next = parseEventDate(ev.date);
+    next.setDate(next.getDate() + 1);
+    const copy: CalendarEvent = {
+      id: crypto.randomUUID(),
+      date: ymd(next),
+      time: ev.time,
+      endTime: ev.endTime,
+      title: ev.title,
+      reminder: ev.reminder,
+    };
+    mutate((p) => ({ calendar: [...(p.calendar ?? []), copy] }));
+  }
+
   function saveEvent() {
     if (!formDate || !title.trim()) return;
     if (editId) {
