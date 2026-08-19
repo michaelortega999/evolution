@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote } from "lucide-react";
+import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote, Files } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import {
@@ -110,6 +110,21 @@ function CalendarPage() {
     mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== id) }));
   }
 
+  function duplicateEvent(ev: CalendarEvent) {
+    const [y, m, d] = ev.date.split("-").map(Number);
+    const next = new Date(y, m - 1, d);
+    next.setDate(next.getDate() + 1);
+    const copy: CalendarEvent = {
+      id: crypto.randomUUID(),
+      date: ymd(next),
+      time: ev.time,
+      endTime: ev.endTime,
+      title: ev.title,
+      reminder: ev.reminder,
+    };
+    mutate((p) => ({ calendar: [...(p.calendar ?? []), copy] }));
+  }
+
   // Month overview stats derived from cursor month
   const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
   const monthEvents = useMemo(
@@ -189,6 +204,7 @@ function CalendarPage() {
                 setWeekCursor={setWeekCursor}
                 events={events}
                 onPickSlot={(ds, hm) => openForm(ds, hm)}
+                onDuplicate={duplicateEvent}
               />
             )}
           </div>
@@ -491,11 +507,13 @@ function WeekView({
   setWeekCursor,
   events,
   onPickSlot,
+  onDuplicate,
 }: {
   weekCursor: Date;
   setWeekCursor: (d: Date) => void;
   events: CalendarEvent[];
   onPickSlot: (ds: string, hm: string) => void;
+  onDuplicate: (event: CalendarEvent) => void;
 }) {
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekCursor, i)),
@@ -615,7 +633,7 @@ function WeekView({
                   />
                 ))}
                 {dayEvents.map((e) => (
-                  <EventBlock key={e.id} event={e} />
+                  <EventBlock key={e.id} event={e} onDuplicate={() => onDuplicate(e)} />
                 ))}
               </div>
             );
@@ -652,11 +670,11 @@ function WeekView({
   );
 }
 
-function EventBlock({ event }: { event: CalendarEvent }) {
+function EventBlock({ event, onDuplicate }: { event: CalendarEvent; onDuplicate: () => void }) {
   const start = parseHM(event.time);
   const end = event.endTime ? parseHM(event.endTime) : start + 60;
   const top = (start / 60) * HOUR_PX;
-  const height = Math.max(20, ((end - start) / 60) * HOUR_PX - 2);
+  const height = Math.max(24, ((end - start) / 60) * HOUR_PX - 2);
   return (
     <div
       className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden cursor-default transition-all hover:bg-primary/35 hover:border-primary hover:z-10"
@@ -671,6 +689,20 @@ function EventBlock({ event }: { event: CalendarEvent }) {
         {fmt12(event.time)}
       </div>
       <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDuplicate();
+        }}
+        className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-primary hover:text-[#00f0ff] hover:drop-shadow-[0_0_4px_#00f0ff]"
+        aria-label="Duplicate event"
+        title="Duplicate event"
+        type="button"
+      >
+        <Files className="h-2.5 w-2.5" />
+      </button>
+
       {/* tooltip */}
       <div className="absolute z-20 left-full ml-2 top-0 hidden group-hover:block bg-popover border border-primary rounded px-2 py-1.5 shadow-lg whitespace-nowrap pointer-events-none">
         <div className="text-xs text-foreground font-medium">{event.title}</div>
