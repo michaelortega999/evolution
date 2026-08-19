@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote } from "lucide-react";
+import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote, Files } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import {
