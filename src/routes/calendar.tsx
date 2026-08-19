@@ -204,6 +204,7 @@ function CalendarPage() {
                 setWeekCursor={setWeekCursor}
                 events={events}
                 onPickSlot={(ds, hm) => openForm(ds, hm)}
+                onDuplicate={duplicateEvent}
               />
             )}
           </div>
