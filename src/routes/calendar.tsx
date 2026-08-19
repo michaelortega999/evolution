@@ -506,11 +506,13 @@ function WeekView({
   setWeekCursor,
   events,
   onPickSlot,
+  onDuplicate,
 }: {
   weekCursor: Date;
   setWeekCursor: (d: Date) => void;
   events: CalendarEvent[];
   onPickSlot: (ds: string, hm: string) => void;
+  onDuplicate: (event: CalendarEvent) => void;
 }) {
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekCursor, i)),
