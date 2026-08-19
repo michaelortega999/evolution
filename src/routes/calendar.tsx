@@ -110,6 +110,21 @@ function CalendarPage() {
     mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== id) }));
   }
 
+  function duplicateEvent(ev: CalendarEvent) {
+    const [y, m, d] = ev.date.split("-").map(Number);
+    const next = new Date(y, m - 1, d);
+    next.setDate(next.getDate() + 1);
+    const copy: CalendarEvent = {
+      id: crypto.randomUUID(),
+      date: ymd(next),
+      time: ev.time,
+      endTime: ev.endTime,
+      title: ev.title,
+      reminder: ev.reminder,
+    };
+    mutate((p) => ({ calendar: [...(p.calendar ?? []), copy] }));
+  }
+
   // Month overview stats derived from cursor month
   const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
   const monthEvents = useMemo(
