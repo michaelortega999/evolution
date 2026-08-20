@@ -205,6 +205,8 @@ function InvestingPage() {
   const [jReview, setJReview] = useState("");
   const [jTags, setJTags] = useState("");
   const [jPnl, setJPnl] = useState("");
+  const [jImage, setJImage] = useState<string | undefined>(undefined);
+  const [jImageFit, setJImageFit] = useState<"cover" | "contain">("cover");
 
   // ---- In-page Journal Review view ----
   const [reviewDate, setReviewDate] = useState<string | null>(null);
@@ -214,10 +216,12 @@ function InvestingPage() {
       setJournalEditing(entry);
       setJDate(entry.date); setJSession(entry.session); setJReview(entry.review);
       setJTags(entry.tags.join(", ")); setJPnl(String(entry.pnl));
+      setJImage(entry.image); setJImageFit(entry.imageFit ?? "cover");
     } else {
       setJournalEditing(null);
       setJDate(date); setJSession("New York");
       setJReview(""); setJTags(""); setJPnl(String(dayMap.get(date) ?? ""));
+      setJImage(undefined); setJImageFit("cover");
     }
     setReviewDate(date);
   };
