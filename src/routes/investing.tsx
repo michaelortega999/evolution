@@ -422,27 +422,27 @@ function InvestingPage() {
               </div>
               <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
             </div>
-            <div className="grid grid-cols-7 gap-1 mb-1">
+            <div className="grid grid-cols-7 gap-1 mb-1 shrink-0">
               {["SUN","MON","TUE","WED","THU","FRI","SAT"].map((d) => (
                 <div key={d} className="hud-label text-[10px] text-muted-foreground text-center py-1">{d}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1 flex-1">
+            <div className="grid grid-cols-7 grid-rows-[repeat(6,minmax(0,1fr))] gap-1 flex-1 min-h-0">
               {calCells.map((cell, i) => {
-                if (!cell.date) return <div key={i} className="aspect-square" />;
+                if (!cell.date) return <div key={i} className="h-full min-h-0" />;
                 const pnl = dayMap.get(cell.date) ?? 0;
                 const hasJournal = journalByDate.has(cell.date);
                 const isToday = cell.date === todayDate();
                 return (
                   <div
                     key={i}
-                    className={`aspect-square border rounded p-1.5 flex flex-col justify-between text-[10px] transition-colors ${isToday ? "border-primary bg-primary/5" : "border-border"} ${pnl !== 0 ? "hover:bg-primary/5" : ""}`}
+                    className={`h-full min-h-0 border rounded p-1 flex flex-col justify-between text-[10px] transition-colors ${isToday ? "border-primary bg-primary/5" : "border-border"} ${pnl !== 0 ? "hover:bg-primary/5" : ""}`}
                   >
                     <div className="flex items-start justify-between">
                       <span className={`hud-label text-xs ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
                       <button
                         onClick={() => openReview(cell.date!)}
-                        className={`h-5 w-5 rounded flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
+                        className={`h-5 w-5 rounded flex items-center justify-center border transition-all shrink-0 ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
                         title={hasJournal ? "Open trade review" : "Add trade review"}
                       >
                         <BookOpen className="h-3 w-3" />
