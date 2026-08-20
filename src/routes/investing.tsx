@@ -205,6 +205,8 @@ function InvestingPage() {
   const [jReview, setJReview] = useState("");
   const [jTags, setJTags] = useState("");
   const [jPnl, setJPnl] = useState("");
+  const [jImage, setJImage] = useState<string | undefined>(undefined);
+  const [jImageFit, setJImageFit] = useState<"cover" | "contain">("cover");
 
   // ---- In-page Journal Review view ----
   const [reviewDate, setReviewDate] = useState<string | null>(null);
@@ -214,10 +216,12 @@ function InvestingPage() {
       setJournalEditing(entry);
       setJDate(entry.date); setJSession(entry.session); setJReview(entry.review);
       setJTags(entry.tags.join(", ")); setJPnl(String(entry.pnl));
+      setJImage(entry.image); setJImageFit(entry.imageFit ?? "cover");
     } else {
       setJournalEditing(null);
       setJDate(date); setJSession("New York");
       setJReview(""); setJTags(""); setJPnl(String(dayMap.get(date) ?? ""));
+      setJImage(undefined); setJImageFit("cover");
     }
     setReviewDate(date);
   };
@@ -230,11 +234,11 @@ function InvestingPage() {
     openReview(entry.date);
   };
   const submitJournal = () => {
-    if (!jReview.trim() && !jPnl.trim()) return;
+    if (!jReview.trim() && !jPnl.trim() && !jImage) return;
     const tags = jTags.split(",").map((s) => s.trim()).filter(Boolean);
     const pnlN = Number(jPnl) || 0;
     if (journalEditing) {
-      const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
+      const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN, image: jImage, imageFit: jImageFit };
       mutateTrading((prev) => {
         const replacingIds = new Set([journalDailyTxId(jDate), journalDailyTxId(journalEditing.date)]);
         const hasPnlInput = jPnl.trim() !== "" && Number.isFinite(Number(jPnl));
@@ -259,7 +263,7 @@ function InvestingPage() {
       });
       setJournalEditing(updated);
     } else {
-      const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
+      const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN, image: jImage, imageFit: jImageFit };
       mutateTrading((prev) => {
         const hasPnlInput = jPnl.trim() !== "" && Number.isFinite(Number(jPnl));
         let nextTxns = prev.tradingTxns.filter((t) => t.id !== journalDailyTxId(jDate));
@@ -405,6 +409,8 @@ function InvestingPage() {
           jSession={jSession} setJSession={setJSession}
           jReview={jReview} setJReview={setJReview}
           jTags={jTags} setJTags={setJTags}
+          jImage={jImage} setJImage={setJImage}
+          jImageFit={jImageFit} setJImageFit={setJImageFit}
           jPnl={jPnl} setJPnl={setJPnl}
         />
       ) : (
@@ -834,9 +840,11 @@ function JournalReviewView(props: {
   jSession: TradingSessionKind; setJSession: (v: TradingSessionKind) => void;
   jReview: string; setJReview: (v: string) => void;
   jTags: string; setJTags: (v: string) => void;
+  jImage?: string; setJImage: (v: string | undefined) => void;
+  jImageFit: "cover" | "contain"; setJImageFit: (v: "cover" | "contain") => void;
   jPnl: string; setJPnl: (v: string) => void;
 }) {
-  const { onBack, onSave, onDelete, isNew, jDate, setJDate, jSession, setJSession, jReview, setJReview, jTags, setJTags, jPnl, setJPnl } = props;
+  const { onBack, onSave, onDelete, isNew, jDate, setJDate, jSession, setJSession, jReview, setJReview, jTags, setJTags, jPnl, setJPnl, jImage, setJImage, jImageFit, setJImageFit } = props;
   const pnlN = Number(jPnl) || 0;
   return (
     <Panel title={isNew ? "NEW TRADE REVIEW" : "TRADE REVIEW"}>
@@ -886,10 +894,89 @@ function JournalReviewView(props: {
         />
       </label>
 
-      <label className="block">
+      <label className="block mb-4">
         <div className="hud-label text-[10px] text-muted-foreground mb-2">STRATEGY TAGS (comma separated)</div>
         <Input value={jTags} onChange={(e) => setJTags(e.target.value)} placeholder="ICT, Liquidity, FVG, SMT" className="h-9 text-xs" />
       </label>
+
+      <ChartImageBoard image={jImage} setImage={setJImage} fit={jImageFit} setFit={setJImageFit} />
     </Panel>
+  );
+}
+
+// ---------- Chart screenshot board ----------
+function ChartImageBoard(props: {
+  image?: string;
+  setImage: (v: string | undefined) => void;
+  fit: "cover" | "contain";
+  setFit: (v: "cover" | "contain") => void;
+}) {
+  const { image, setImage, fit, setFit } = props;
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const galleryRef = useRef<HTMLInputElement | null>(null);
+
+  const readFile = (f?: File | null) => {
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => setImage(String(reader.result));
+    reader.readAsDataURL(f);
+  };
+  const promptLink = () => {
+    const url = window.prompt("Paste image URL");
+    if (url && url.trim()) setImage(url.trim());
+  };
+
+  return (
+    <div className="block">
+      <div className="hud-label text-[10px] text-muted-foreground mb-2">CHART / SCREENSHOT</div>
+      <input ref={fileRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => { readFile(e.target.files?.[0]); e.target.value = ""; }} />
+      <input ref={galleryRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={(e) => { readFile(e.target.files?.[0]); e.target.value = ""; }} />
+
+      <div
+        className="group relative w-full h-56 rounded border border-border hover:border-primary/60 bg-black/20 overflow-hidden transition-colors"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); readFile(e.dataTransfer.files?.[0]); }}
+      >
+        {image ? (
+          <img src={image} alt="Trade chart screenshot" className={`w-full h-full ${fit === "cover" ? "object-cover" : "object-contain"}`} />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <ImageIcon className="h-10 w-10 text-primary/70" style={{ filter: "drop-shadow(0 0 8px rgba(0,240,255,0.5))" }} />
+            <div className="hud-label text-[9px]">ADD CHART IMAGE</div>
+          </div>
+        )}
+
+        <div className="absolute inset-0 hidden group-hover:flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={promptLink}>
+              <LinkIcon className="h-3 w-3 mr-1" /> LINK
+            </Button>
+            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => fileRef.current?.click()}>
+              <Upload className="h-3 w-3 mr-1" /> FILES
+            </Button>
+            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => galleryRef.current?.click()}>
+              <ImageIcon className="h-3 w-3 mr-1" /> GALLERY
+            </Button>
+          </div>
+          {image && (
+            <div className="flex items-center gap-2">
+              <Button type="button" size="sm" variant="outline"
+                className={`hud-label text-[9px] ${fit === "cover" ? "border-primary/60 text-primary" : ""}`}
+                onClick={() => setFit("cover")}>FILL RECTANGLE</Button>
+              <Button type="button" size="sm" variant="outline"
+                className={`hud-label text-[9px] ${fit === "contain" ? "border-primary/60 text-primary" : ""}`}
+                onClick={() => setFit("contain")}>FIT WHOLE</Button>
+              <Button type="button" size="sm" variant="outline"
+                className="hud-label text-[9px] text-red-400 border-red-400/40 hover:bg-red-500/10"
+                onClick={() => setImage(undefined)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
