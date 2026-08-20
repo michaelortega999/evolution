@@ -412,19 +412,19 @@ function InvestingPage() {
       {/* ============ MAIN GRID ============ */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 xl:h-[calc(100vh-14rem)]">
         {/* Left: Monthly Performance + Transaction History */}
-        <div className="xl:col-span-8 flex flex-col gap-3 h-full overflow-hidden">
-          <Panel title="MONTHLY PERFORMANCE" className="flex-1 min-h-0 flex flex-col">
+        <div className="xl:col-span-9 flex flex-col gap-3 h-full overflow-hidden">
+          <Panel title="MONTHLY PERFORMANCE" className="flex-[2] min-h-0 flex flex-col">
             <div className="flex items-center justify-between -mt-8 mb-2">
               <div className="flex items-center justify-center gap-3">
                 <button onClick={() => shiftMonth(-1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronLeft className="h-3 w-3" /></button>
-                <div className="hud-label text-xs text-primary hud-glow">{monthLabel}</div>
+                <div className="hud-label text-sm text-primary hud-glow">{monthLabel}</div>
                 <button onClick={() => shiftMonth(1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronRight className="h-3 w-3" /></button>
               </div>
               <Button onClick={goToday} size="sm" variant="outline" className="hud-label text-[10px]">TODAY</Button>
             </div>
             <div className="grid grid-cols-7 gap-1 mb-1">
               {["SUN","MON","TUE","WED","THU","FRI","SAT"].map((d) => (
-                <div key={d} className="hud-label text-[9px] text-muted-foreground text-center py-1">{d}</div>
+                <div key={d} className="hud-label text-[10px] text-muted-foreground text-center py-1">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1 flex-1">
@@ -436,10 +436,10 @@ function InvestingPage() {
                 return (
                   <div
                     key={i}
-                    className={`aspect-square border rounded p-1 flex flex-col justify-between text-[10px] transition-colors ${isToday ? "border-primary bg-primary/5" : "border-border"} ${pnl !== 0 ? "hover:bg-primary/5" : ""}`}
+                    className={`aspect-square border rounded p-1.5 flex flex-col justify-between text-[10px] transition-colors ${isToday ? "border-primary bg-primary/5" : "border-border"} ${pnl !== 0 ? "hover:bg-primary/5" : ""}`}
                   >
                     <div className="flex items-start justify-between">
-                      <span className={`hud-label ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
+                      <span className={`hud-label text-xs ${isToday ? "text-primary hud-glow" : "text-muted-foreground"}`}>{cell.day}</span>
                       <button
                         onClick={() => openReview(cell.date!)}
                         className={`h-5 w-5 rounded flex items-center justify-center border transition-all ${hasJournal ? "bg-primary/25 border-primary/70 text-primary hud-glow" : "bg-primary/10 border-primary/40 text-primary hover:bg-primary/25 hover:border-primary/70"}`}
@@ -449,7 +449,7 @@ function InvestingPage() {
                       </button>
                     </div>
                     {pnl !== 0 && (
-                      <div className={`hud-label tabular-nums text-[8px] leading-none ${pnlClass(pnl)}`}>
+                      <div className={`hud-label tabular-nums text-[10px] leading-none ${pnlClass(pnl)}`}>
                         {pnl > 0 ? "+" : ""}${Math.abs(pnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </div>
                     )}
@@ -471,7 +471,7 @@ function InvestingPage() {
             </div>
           </Panel>
 
-          <Panel title="TRANSACTION HISTORY" className="h-[42%] flex flex-col min-h-0">
+          <Panel title="TRANSACTION HISTORY" className="h-[30%] flex flex-col min-h-0">
             <div className="flex items-center justify-end -mt-8 mb-2 gap-2 flex-wrap">
               <select value={histAcc} onChange={(e) => setHistAcc(e.target.value)}
                 className="h-8 bg-input border border-border rounded px-2 text-xs hud-label">
@@ -492,7 +492,7 @@ function InvestingPage() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="hud-label text-[10px] text-muted-foreground text-left border-b border-border">
-                    <th className="py-1.5 pr-3">DATE</th>
+                    <th className="py-1 pr-3">DATE</th>
                     <th className="pr-3">ACCOUNT</th>
                     <th className="pr-3">TYPE</th>
                     <th className="pr-3 text-right">AMOUNT</th>
@@ -509,7 +509,7 @@ function InvestingPage() {
                     const bal = runningBalances[t.id] ?? 0;
                     return (
                       <tr key={t.id} className="border-b border-border/50 group">
-                        <td className="py-1.5 pr-3 text-muted-foreground">{new Date(t.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</td>
+                        <td className="py-1 pr-3 text-muted-foreground">{new Date(t.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</td>
                         <td className="pr-3">{acc?.name ?? "—"}</td>
                         <td className="pr-3">
                           <span className={`hud-label text-[10px] px-2 py-0.5 rounded border ${t.type === "profit" ? "text-emerald-400 border-emerald-400/40 bg-emerald-500/10" : "text-red-400 border-red-400/40 bg-red-500/10"}`}>
@@ -519,7 +519,7 @@ function InvestingPage() {
                         <td className="pr-3 text-right tabular-nums">${t.amount.toFixed(2)}</td>
                         <td className={`pr-3 text-right tabular-nums hud-label ${pnlClass(signed)}`}>{fmtMoney(signed, { sign: true })}</td>
                         <td className="pr-3 text-right tabular-nums text-muted-foreground">${bal.toFixed(2)}</td>
-                        <td className="pr-3 text-muted-foreground truncate max-w-[240px]">{t.notes ?? "—"}</td>
+                        <td className="pr-3 text-muted-foreground truncate max-w-[180px]">{t.notes ?? "—"}</td>
                         <td>
                           <button onClick={() => deleteTx(t.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
                             <Trash2 className="h-3 w-3" />
@@ -531,14 +531,14 @@ function InvestingPage() {
                 </tbody>
               </table>
               {!filteredHistory.length && (
-                <div className="text-xs text-muted-foreground text-center py-6">No transactions match the current filters.</div>
+                <div className="text-xs text-muted-foreground text-center py-4">No transactions match the current filters.</div>
               )}
             </div>
           </Panel>
         </div>
 
         {/* Right: Accounts + Add Transaction + Strategy Journal */}
-        <div className="xl:col-span-4 flex flex-col gap-3 h-full overflow-hidden">
+        <div className="xl:col-span-3 flex flex-col gap-3 h-full overflow-hidden">
           <Panel title="ACCOUNTS" className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <div className="flex items-center justify-end -mt-8 mb-2">
               <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
