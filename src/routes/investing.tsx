@@ -234,11 +234,11 @@ function InvestingPage() {
     openReview(entry.date);
   };
   const submitJournal = () => {
-    if (!jReview.trim() && !jPnl.trim()) return;
+    if (!jReview.trim() && !jPnl.trim() && !jImage) return;
     const tags = jTags.split(",").map((s) => s.trim()).filter(Boolean);
     const pnlN = Number(jPnl) || 0;
     if (journalEditing) {
-      const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
+      const updated = { ...journalEditing, date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN, image: jImage, imageFit: jImageFit };
       mutateTrading((prev) => {
         const replacingIds = new Set([journalDailyTxId(jDate), journalDailyTxId(journalEditing.date)]);
         const hasPnlInput = jPnl.trim() !== "" && Number.isFinite(Number(jPnl));
@@ -263,7 +263,7 @@ function InvestingPage() {
       });
       setJournalEditing(updated);
     } else {
-      const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN };
+      const fresh: TradeJournalEntry = { id: uid(), date: jDate, session: jSession, review: jReview.trim(), tags, pnl: pnlN, image: jImage, imageFit: jImageFit };
       mutateTrading((prev) => {
         const hasPnlInput = jPnl.trim() !== "" && Number.isFinite(Number(jPnl));
         let nextTxns = prev.tradingTxns.filter((t) => t.id !== journalDailyTxId(jDate));
@@ -409,6 +409,8 @@ function InvestingPage() {
           jSession={jSession} setJSession={setJSession}
           jReview={jReview} setJReview={setJReview}
           jTags={jTags} setJTags={setJTags}
+          jImage={jImage} setJImage={setJImage}
+          jImageFit={jImageFit} setJImageFit={setJImageFit}
           jPnl={jPnl} setJPnl={setJPnl}
         />
       ) : (
@@ -838,9 +840,11 @@ function JournalReviewView(props: {
   jSession: TradingSessionKind; setJSession: (v: TradingSessionKind) => void;
   jReview: string; setJReview: (v: string) => void;
   jTags: string; setJTags: (v: string) => void;
+  jImage?: string; setJImage: (v: string | undefined) => void;
+  jImageFit: "cover" | "contain"; setJImageFit: (v: "cover" | "contain") => void;
   jPnl: string; setJPnl: (v: string) => void;
 }) {
-  const { onBack, onSave, onDelete, isNew, jDate, setJDate, jSession, setJSession, jReview, setJReview, jTags, setJTags, jPnl, setJPnl } = props;
+  const { onBack, onSave, onDelete, isNew, jDate, setJDate, jSession, setJSession, jReview, setJReview, jTags, setJTags, jPnl, setJPnl, jImage, setJImage, jImageFit, setJImageFit } = props;
   const pnlN = Number(jPnl) || 0;
   return (
     <Panel title={isNew ? "NEW TRADE REVIEW" : "TRADE REVIEW"}>
