@@ -305,6 +305,8 @@ export interface TradeJournalEntry {
   review: string;
   tags: string[];
   pnl: number;
+  image?: string;
+  imageFit?: "cover" | "contain";
 }
 
 export interface WatchlistItem {
