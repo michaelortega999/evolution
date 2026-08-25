@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   TrendingUp, Plus, Trash2, BookOpen, ChevronLeft, ChevronRight,
   Download, X, Building2, ArrowLeft, Layers,
+  Image as ImageIcon, Link as LinkIcon, Upload,
 } from "lucide-react";
 
 
