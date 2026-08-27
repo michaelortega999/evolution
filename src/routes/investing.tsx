@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import {
   TrendingUp, Plus, Trash2, BookOpen, ChevronLeft, ChevronRight,
   Download, X, Building2, ArrowLeft, Layers,
-  Image as ImageIcon, Link as LinkIcon, Upload,
+  Image as ImageIcon, Link as LinkIcon, Upload, Pencil,
 } from "lucide-react";
 
 
