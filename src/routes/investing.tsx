@@ -914,17 +914,17 @@ function ChartImageBoard(props: {
 }) {
   const { image, setImage, fit, setFit } = props;
   const fileRef = useRef<HTMLInputElement | null>(null);
-  
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const readFile = (f?: File | null) => {
     if (!f) return;
     const reader = new FileReader();
-    reader.onload = () => setImage(String(reader.result));
+    reader.onload = () => { setImage(String(reader.result)); setPreviewOpen(true); };
     reader.readAsDataURL(f);
   };
   const promptLink = () => {
     const url = window.prompt("Paste image URL");
-    if (url && url.trim()) setImage(url.trim());
+    if (url && url.trim()) { setImage(url.trim()); setPreviewOpen(true); }
   };
 
   return (
@@ -939,7 +939,18 @@ function ChartImageBoard(props: {
         onDrop={(e) => { e.preventDefault(); readFile(e.dataTransfer.files?.[0]); }}
       >
         {image ? (
-          <img src={image} alt="Trade chart screenshot" className={`w-full h-full ${fit === "cover" ? "object-cover" : "object-contain"}`} />
+          <>
+            <img src={image} alt="Trade chart screenshot" className={`w-full h-full ${fit === "cover" ? "object-cover" : "object-contain"}`} />
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(true)}
+              aria-label="Edit chart image"
+              className="absolute top-1.5 right-1.5 z-10 h-6 w-6 rounded-full flex items-center justify-center bg-black/60 border border-primary/50 text-primary hover:bg-primary/20 transition-colors"
+              style={{ boxShadow: "0 0 8px rgba(0,240,255,0.4)" }}
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+          </>
         ) : (
           <button
             type="button"
@@ -953,33 +964,52 @@ function ChartImageBoard(props: {
             </div>
           </button>
         )}
+      </div>
 
-        {image && (
-        <div className="absolute inset-0 hidden group-hover:flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-sm">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-3 w-3 mr-1" /> UPLOAD PHOTO
-            </Button>
-            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={promptLink}>
-              <LinkIcon className="h-3 w-3 mr-1" /> LINK
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
+      {previewOpen && image && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setPreviewOpen(false)}>
+          <div className="w-full max-w-2xl rounded border border-primary/40 bg-background p-4 space-y-3"
+            style={{ boxShadow: "0 0 24px rgba(0,240,255,0.25)" }}
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div className="hud-label text-[10px] text-primary">CHART IMAGE PREVIEW</div>
+              <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPreviewOpen(false)}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            <div className="relative w-full h-64 rounded border border-border bg-black/30 overflow-hidden">
+              <img src={image} alt="Chart preview" className={`w-full h-full ${fit === "cover" ? "object-cover" : "object-contain"}`} />
+              <div className="absolute top-1.5 left-1.5 hud-label text-[8px] text-primary/90 bg-black/60 px-1.5 py-0.5 rounded border border-primary/40">
+                {fit === "cover" ? "FILL RECTANGLE" : "FIT WHOLE"}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <Button type="button" size="sm" variant="outline"
                 className={`hud-label text-[9px] ${fit === "cover" ? "border-primary/60 text-primary" : ""}`}
                 onClick={() => setFit("cover")}>FILL RECTANGLE</Button>
               <Button type="button" size="sm" variant="outline"
                 className={`hud-label text-[9px] ${fit === "contain" ? "border-primary/60 text-primary" : ""}`}
                 onClick={() => setFit("contain")}>FIT WHOLE</Button>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => fileRef.current?.click()}>
+                <Upload className="h-3 w-3 mr-1" /> REPLACE PHOTO
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={promptLink}>
+                <LinkIcon className="h-3 w-3 mr-1" /> LINK
+              </Button>
               <Button type="button" size="sm" variant="outline"
                 className="hud-label text-[9px] text-red-400 border-red-400/40 hover:bg-red-500/10"
-                onClick={() => setImage(undefined)}>
+                onClick={() => { setImage(undefined); setPreviewOpen(false); }}>
                 <Trash2 className="h-3 w-3" />
               </Button>
+            </div>
           </div>
         </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
