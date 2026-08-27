@@ -914,7 +914,7 @@ function ChartImageBoard(props: {
 }) {
   const { image, setImage, fit, setFit } = props;
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const galleryRef = useRef<HTMLInputElement | null>(null);
+  
 
   const readFile = (f?: File | null) => {
     if (!f) return;
