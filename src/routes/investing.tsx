@@ -964,8 +964,7 @@ function ChartImageBoard(props: {
               <LinkIcon className="h-3 w-3 mr-1" /> LINK
             </Button>
           </div>
-          {image && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
               <Button type="button" size="sm" variant="outline"
                 className={`hud-label text-[9px] ${fit === "cover" ? "border-primary/60 text-primary" : ""}`}
                 onClick={() => setFit("cover")}>FILL RECTANGLE</Button>
