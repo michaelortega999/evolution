@@ -932,8 +932,6 @@ function ChartImageBoard(props: {
       <div className="hud-label text-[10px] text-muted-foreground mb-2">CHART / SCREENSHOT</div>
       <input ref={fileRef} type="file" accept="image/*" className="hidden"
         onChange={(e) => { readFile(e.target.files?.[0]); e.target.value = ""; }} />
-      <input ref={galleryRef} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={(e) => { readFile(e.target.files?.[0]); e.target.value = ""; }} />
 
       <div
         className="group relative w-full h-56 rounded border border-border hover:border-primary/60 bg-black/20 overflow-hidden transition-colors"
@@ -943,22 +941,27 @@ function ChartImageBoard(props: {
         {image ? (
           <img src={image} alt="Trade chart screenshot" className={`w-full h-full ${fit === "cover" ? "object-cover" : "object-contain"}`} />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          >
             <ImageIcon className="h-10 w-10 text-primary/70" style={{ filter: "drop-shadow(0 0 8px rgba(0,240,255,0.5))" }} />
             <div className="hud-label text-[9px]">ADD CHART IMAGE</div>
-          </div>
+            <div className="hud-label text-[9px] text-primary/80 flex items-center">
+              <Upload className="h-3 w-3 mr-1" /> UPLOAD PHOTO
+            </div>
+          </button>
         )}
 
+        {image && (
         <div className="absolute inset-0 hidden group-hover:flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-sm">
           <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => fileRef.current?.click()}>
+              <Upload className="h-3 w-3 mr-1" /> UPLOAD PHOTO
+            </Button>
             <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={promptLink}>
               <LinkIcon className="h-3 w-3 mr-1" /> LINK
-            </Button>
-            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-3 w-3 mr-1" /> FILES
-            </Button>
-            <Button type="button" size="sm" variant="outline" className="hud-label text-[9px]" onClick={() => galleryRef.current?.click()}>
-              <ImageIcon className="h-3 w-3 mr-1" /> GALLERY
             </Button>
           </div>
           {image && (
