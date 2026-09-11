@@ -650,6 +650,33 @@ export function MobileDashboard() {
         </ul>
       </section>
 
+      {/* Floating bonsai — tap to return to first screen */}
+      <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom),8px))] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+        <button
+          onClick={() => setStage(0)}
+          className="relative h-14 w-14 rounded-full flex items-center justify-center"
+          aria-label="Back to lock screen"
+        >
+          <span
+            className="absolute inset-0 rounded-full border-2"
+            style={{
+              borderColor: "rgba(0,212,255,0.7)",
+              boxShadow: "0 0 18px rgba(0,212,255,0.45), inset 0 0 12px rgba(0,212,255,0.2)",
+            }}
+          />
+          <span
+            className="absolute inset-1 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
+            style={{ borderColor: "rgba(0,212,255,0.35)" }}
+          />
+          <img
+            src={bonsai}
+            alt=""
+            className="h-9 w-9 object-contain"
+            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 10px rgba(0,212,255,0.85))" }}
+          />
+        </button>
+      </div>
+
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
            style={{ background: "#02050b", borderTop: "1px solid rgba(0,212,255,0.15)" }}>
