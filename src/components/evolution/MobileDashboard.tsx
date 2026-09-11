@@ -55,184 +55,215 @@ function HoloArt({ icon: Icon, label, variant }: { icon: LucideIcon; label: stri
   );
 }
 
-const HUB_MODULES: { icon: LucideIcon; variant?: HoloVariant; label: string; to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal" }[] = [
-  { icon: Wallet, variant: "wealth", label: "WEALTH", to: "/wealth" },
-  { icon: Dumbbell, variant: "fitness", label: "FITNESS", to: "/fitness" },
-  { icon: Apple, variant: "nutrition", label: "NUTRITION", to: "/nutrition" },
-  { icon: Target, label: "FOCUS", to: "/focus" },
-  { icon: TrendingUp, variant: "investing", label: "INVESTING", to: "/investing" },
-  { icon: Briefcase, variant: "business", label: "BUSINESS", to: "/business" },
-  { icon: BookOpen, variant: "journal", label: "JOURNAL", to: "/journal" },
+/**
+ * Radial module hub — module rings arranged around the screen with
+ * chamfered conduit traces converging into the central bonsai emblem.
+ * Structure follows the reference: FOCUS top-center, NUTRITION/FITNESS
+ * upper sides, WEALTH/INVESTING mid sides, JOURNAL/BUSINESS lower sides,
+ * bonsai ring at bottom-center. All geometry lives in a 350×420 space.
+ */
+const HUB_NODES: { icon: LucideIcon; label: string; sys: string; to: string; x: number; y: number }[] = [
+  { icon: Target,     label: "FOCUS",     sys: "SYS·04", to: "/focus",     x: 175, y: 34 },
+  { icon: Apple,      label: "NUTRITION", sys: "SYS·03", to: "/nutrition", x: 72,  y: 108 },
+  { icon: Dumbbell,   label: "FITNESS",   sys: "SYS·02", to: "/fitness",   x: 278, y: 108 },
+  { icon: Wallet,     label: "WEALTH",    sys: "SYS·01", to: "/wealth",    x: 45,  y: 198 },
+  { icon: TrendingUp, label: "INVESTING", sys: "SYS·05", to: "/investing", x: 305, y: 198 },
+  { icon: BookOpen,   label: "JOURNAL",   sys: "SYS·07", to: "/journal",   x: 65,  y: 288 },
+  { icon: Briefcase,  label: "BUSINESS",  sys: "SYS·06", to: "/business",  x: 285, y: 288 },
 ];
 
-/** Rectangular module hub wired to the bonsai emblem with Jarvis circuit lines. */
+// chamfered conduit traces from each module ring down into the bonsai rim
+const HUB_TRACES: string[] = [
+  "M175 66 L175 304",                                    // focus — straight trunk
+  "M72 140 L72 168 L84 180 L136 180 L148 192 L148 312",  // nutrition
+  "M278 140 L278 168 L266 180 L214 180 L202 192 L202 312", // fitness
+  "M45 230 L45 258 L57 270 L124 270 L136 282 L136 325",  // wealth
+  "M305 230 L305 258 L293 270 L226 270 L214 282 L214 325", // investing
+  "M65 320 L65 340 L77 352 L128 352",                    // journal — into left rim
+  "M285 320 L285 340 L273 352 L222 352",                 // business — into right rim
+];
+
+const HUB_TERMINALS: [number, number][] = [
+  [175, 66], [72, 140], [278, 140], [45, 230], [305, 230], [65, 320], [285, 320],
+];
+
+const HUB_BENDS: [number, number][] = [
+  [72, 168], [84, 180], [136, 180], [148, 192],
+  [278, 168], [266, 180], [214, 180], [202, 192],
+  [45, 258], [57, 270], [124, 270], [136, 282],
+  [305, 258], [293, 270], [226, 270], [214, 282],
+  [65, 340], [77, 352], [285, 340], [273, 352],
+];
+
+const HUB_RIM_ENDS: [number, number][] = [
+  [175, 304], [148, 312], [202, 312], [136, 325], [214, 325], [128, 352], [222, 352],
+];
+
 function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
   const bonsai = hologramSrc("bonsai");
-  const n = HUB_MODULES.length;
-  // tile centers in a 350-unit-wide viewBox
-  const centers = HUB_MODULES.map((_, i) => ((i + 0.5) / n) * 350);
+  const px = (x: number) => `${(x / 350) * 100}%`;
+  const py = (y: number) => `${(y / 420) * 100}%`;
 
   return (
-    <div className="mt-auto flex flex-col pt-10 pb-6 animate-fade-in">
-      {/* rectangle module row + circuit wiring */}
-      <div className="relative px-3">
-        <div className="grid grid-cols-7 gap-1 relative z-10">
-          {HUB_MODULES.map(({ icon: Icon, variant, label, to }, moduleIndex) => (
-            <Link key={label} to={to} className="flex flex-col items-center gap-0.5 group">
-              <div
-                className="mobile-hub-item relative w-full flex flex-col items-center gap-1 transition-transform group-active:scale-95 py-1"
-                style={{ color: CYAN, "--glow": CYAN } as React.CSSProperties}
-              >
-                <div className="mobile-holo mobile-holo--hub">
-                  {variant ? <HoloIcon variant={variant} /> : <HoloArt icon={Icon} label={label} />}
-                </div>
-                <span className="hud-label text-[5px] tracking-[0.08em] text-foreground/90 text-center leading-none">{label}</span>
-                <span className="hud-label text-[4px] tracking-[0.2em] text-primary/50 leading-none">{`SYS·0${moduleIndex + 1}`}</span>
-                {/* connector stub into circuit */}
-                <span
-                  className="w-[3px] h-[3px] rounded-full"
-                  style={{ background: CYAN, boxShadow: "0 0 5px #00d4ff" }}
-                />
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Jarvis circuit traces: nested right-angle wiring converging into the bonsai */}
-        <div className="relative mb-12">
-          <svg viewBox="0 0 350 150" className="w-full block" aria-hidden="true">
-            <defs>
-              <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="2" result="b" />
-                <feMerge>
-                  <feMergeNode in="b" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            {/* base traces + parallel echo lines, chamfered conduit corners */}
-            <g filter="url(#hub-glow)" fill="none">
-              {centers.map((x, i) => {
-                const d = Math.abs(i - 3); // 0 center … 3 outermost
-                const jogY = 48 + (d - 1) * 14;
-                const dx = d * 10;
-                const dir = Math.sign(i - 3);
-                const trunkX = 175 + dir * dx;
-                const rimY = d === 0 ? 95 : 136 - Math.sqrt(41 * 41 - dx * dx);
-                const span = Math.abs(trunkX - x);
-                // chamfer size clamped so bends never overlap
-                const c = Math.max(3, Math.min(9, span / 2 - 1));
-                const hdir = Math.sign(trunkX - x) || 1;
-                const main =
-                  d === 0
-                    ? `M ${x} 4 L ${x} 95`
-                    : [
-                        `M ${x} 4`,
-                        `L ${x} ${jogY - c}`,
-                        `L ${x + hdir * c} ${jogY}`,
-                        `L ${trunkX - hdir * c} ${jogY}`,
-                        `L ${trunkX} ${jogY + c}`,
-                        `L ${trunkX} ${rimY}`,
-                      ].join(" ");
-                return (
-                  <g key={i}>
-                    {/* dim parallel echo trace (Jarvis double-wire look) */}
-                    <path d={main} stroke={CYAN} strokeWidth="0.5" opacity="0.3" transform="translate(1.6 1.6)" />
-                    {/* main trace */}
-                    <path
-                      id={`trace-${i}`}
-                      d={main}
-                      stroke={CYAN}
-                      strokeWidth="1"
-                      opacity="0.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    {/* dashed data segments overlaid on vertical drop */}
-                    <path
-                      d={`M ${x} 10 L ${x} ${d === 0 ? 60 : jogY - c - 4}`}
-                      stroke={CYAN}
-                      strokeWidth="0.6"
-                      opacity="0.5"
-                      strokeDasharray="3 4"
-                    />
-                  </g>
-                );
-              })}
-            </g>
-            {/* decorative side ticks near emblem */}
-            <g stroke={CYAN} strokeWidth="0.6" opacity="0.45" filter="url(#hub-glow)">
-              {[0, 1, 2].map((k) => (
-                <path key={k} d={`M ${140 - k * 7} ${104 + k * 4} h 6`} />
-              ))}
-              {[0, 1, 2].map((k) => (
-                <path key={`r${k}`} d={`M ${210 + k * 7} ${104 + k * 4} h -6`} />
-              ))}
-            </g>
-            <g>
-              {centers.map((x, i) => {
-                const d = Math.abs(i - 3);
-                const jogY = 48 + (d - 1) * 14;
-                const dx = d * 10;
-                const dir = Math.sign(i - 3);
-                const trunkX = 175 + dir * dx;
-                const span = Math.abs(trunkX - x);
-                const c = Math.max(3, Math.min(9, span / 2 - 1));
-                const hdir = Math.sign(trunkX - x) || 1;
-                return (
-                  <g key={i}>
-                    {/* hollow terminal ring at the card, like the reference */}
-                    <circle
-                      cx={x}
-                      cy={4}
-                      r="2.4"
-                      fill="none"
-                      stroke={CYAN}
-                      strokeWidth="0.9"
-                      style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }}
-                    />
-                    {d > 0 && (
-                      <>
-                        {/* glow nodes at each chamfered bend */}
-                        <circle cx={x} cy={jogY - c} r="1.2" fill={CYAN} opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
-                        <circle cx={x + hdir * c} cy={jogY} r="1.2" fill={CYAN} opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
-                        <circle cx={trunkX} cy={jogY + c} r="1.5" fill={CYAN} style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-                      </>
-                    )}
-                  </g>
-                );
-              })}
-            </g>
-
+    <div className="mt-auto flex-1 min-h-0 flex flex-col animate-fade-in">
+      <div className="relative flex-1 min-h-[400px]">
+        {/* corner frame brackets, like the reference HUD */}
+        {[
+          "top-0 left-0",
+          "top-0 right-0 -scale-x-100",
+          "bottom-0 left-0 -scale-y-100",
+          "bottom-0 right-0 -scale-100",
+        ].map((pos, i) => (
+          <svg key={i} viewBox="0 0 60 60" className={`absolute ${pos} h-12 w-12 pointer-events-none`} aria-hidden="true">
+            <path
+              d="M2 58 L2 18 L10 10 L18 2 L58 2"
+              fill="none"
+              stroke={CYAN}
+              strokeWidth="1.2"
+              opacity="0.55"
+              style={{ filter: "drop-shadow(0 0 4px rgba(0,212,255,0.6))" }}
+            />
+            <path d="M9 58 L9 24 L16 17 L24 9 L58 9" fill="none" stroke={CYAN} strokeWidth="0.5" opacity="0.3" />
+            <circle cx="2" cy="58" r="1.4" fill={CYAN} opacity="0.7" />
+            <circle cx="58" cy="2" r="1.4" fill={CYAN} opacity="0.7" />
           </svg>
+        ))}
 
-          {/* bonsai unlock emblem — traces land on its rim */}
-          <button
-            onClick={onUnlock}
-            className="absolute left-1/2 -translate-x-1/2 top-[63%] h-24 w-24 rounded-full flex items-center justify-center"
+        {/* conduit circuit traces */}
+        <svg viewBox="0 0 350 420" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden="true">
+          <defs>
+            <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <g filter="url(#hub-glow)" fill="none">
+            {HUB_TRACES.map((d, i) => (
+              <g key={i}>
+                {/* dim parallel echo trace (Jarvis double-wire look) */}
+                <path d={d} stroke={CYAN} strokeWidth="0.5" opacity="0.3" transform="translate(1.8 1.8)" />
+                {/* main trace */}
+                <path d={d} stroke={CYAN} strokeWidth="1" opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+              </g>
+            ))}
+          </g>
+          {/* hollow terminal rings where traces leave each module */}
+          {HUB_TERMINALS.map(([x, y], i) => (
+            <circle
+              key={`t${i}`}
+              cx={x}
+              cy={y}
+              r="2.6"
+              fill="none"
+              stroke={CYAN}
+              strokeWidth="0.9"
+              style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }}
+            />
+          ))}
+          {/* glow nodes at each chamfered bend */}
+          {HUB_BENDS.map(([x, y], i) => (
+            <circle key={`b${i}`} cx={x} cy={y} r="1.2" fill={CYAN} opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+          ))}
+          {/* bright junction nodes where traces land on the bonsai rim */}
+          {HUB_RIM_ENDS.map(([x, y], i) => (
+            <circle key={`r${i}`} cx={x} cy={y} r="1.8" fill={CYAN} style={{ filter: "drop-shadow(0 0 5px #00d4ff)" }} />
+          ))}
+        </svg>
+
+        {/* module rings */}
+        {HUB_NODES.map(({ icon: Icon, label, sys, to, x, y }) => (
+          <Link
+            key={label}
+            to={to}
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-10"
+            style={{ left: px(x), top: py(y) }}
           >
+            <div
+              className="relative h-16 w-16 transition-transform group-active:scale-95"
+              style={{ color: CYAN, "--glow": CYAN } as React.CSSProperties}
+            >
+              {/* outer ring */}
+              <span
+                className="absolute inset-0 rounded-full border"
+                style={{ borderColor: "rgba(0,212,255,0.55)", boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 12px rgba(0,212,255,0.15)" }}
+              />
+              {/* dashed inner ring */}
+              <span
+                className="absolute inset-1.5 rounded-full border border-dashed animate-[spin_14s_linear_infinite]"
+                style={{ borderColor: "rgba(0,212,255,0.3)" }}
+              />
+              {/* tilted orbital ellipse */}
+              <span
+                className="absolute rounded-[50%] border -rotate-12"
+                style={{
+                  width: "138%",
+                  height: "58%",
+                  left: "-19%",
+                  top: "21%",
+                  borderColor: "rgba(0,212,255,0.35)",
+                  transform: "rotate(-14deg)",
+                }}
+              />
+              <Icon
+                className="absolute inset-0 m-auto h-7 w-7"
+                strokeWidth={1.4}
+                style={{ filter: "drop-shadow(0 0 8px rgba(0,212,255,0.9))" }}
+              />
+              {/* top + bottom ring nodes */}
+              <span className="absolute left-1/2 -translate-x-1/2 -top-[3px] h-[5px] w-[5px] rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
+              <span className="absolute left-1/2 -translate-x-1/2 -bottom-[3px] h-[5px] w-[5px] rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
+            </div>
             <span
-              className="absolute inset-0 rounded-full border-2"
-              style={{ borderColor: "rgba(0,212,255,0.7)", boxShadow: "0 0 28px rgba(0,212,255,0.5), inset 0 0 20px rgba(0,212,255,0.25)" }}
-            />
-            <span
-              className="absolute inset-2 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
-              style={{ borderColor: "rgba(0,212,255,0.35)" }}
-            />
-            <img
-              src={bonsai}
-              alt="Unlock Evolution OS"
-              className="h-14 w-14 object-contain"
-              style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 12px rgba(0,212,255,0.9))" }}
-            />
-          </button>
-        </div>
+              className="hud-label text-[8px] tracking-[0.18em] mt-1.5 leading-none px-1 rounded bg-background/70 z-10"
+              style={{ color: CYAN, textShadow: glowText }}
+            >
+              {label}
+            </span>
+            <span className="hud-label text-[6px] tracking-[0.22em] text-primary/60 leading-none mt-0.5 px-1 rounded bg-background/70 z-10">
+              {sys}
+            </span>
+          </Link>
+        ))}
+
+        {/* bonsai unlock emblem — all traces land on its rim */}
+        <button
+          onClick={onUnlock}
+          className="absolute -translate-x-1/2 -translate-y-1/2 h-[104px] w-[104px] rounded-full flex items-center justify-center z-10"
+          style={{ left: px(175), top: py(350) }}
+        >
+          <span
+            className="absolute inset-0 rounded-full border-2"
+            style={{ borderColor: "rgba(0,212,255,0.75)", boxShadow: "0 0 30px rgba(0,212,255,0.55), inset 0 0 22px rgba(0,212,255,0.3)" }}
+          />
+          <span
+            className="absolute -inset-2 rounded-full border"
+            style={{ borderColor: "rgba(0,212,255,0.25)" }}
+          />
+          <span
+            className="absolute inset-2 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
+            style={{ borderColor: "rgba(0,212,255,0.4)" }}
+          />
+          <img
+            src={bonsai}
+            alt="Unlock Evolution OS"
+            className="h-16 w-16 object-contain"
+            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 14px rgba(0,212,255,0.95))" }}
+          />
+        </button>
       </div>
 
       {/* unlock label + footer */}
-      <div className="flex flex-col items-center mt-1">
-        <div className="hud-label text-[9px] tracking-[0.35em] text-muted-foreground mt-2">TAP TO UNLOCK</div>
-        <div className="w-full px-5 mt-3 flex items-end justify-between">
+      <div className="flex flex-col items-center">
+        <div
+          className="hud-label text-[10px] tracking-[0.4em]"
+          style={{ color: CYAN, textShadow: glowText }}
+        >
+          TAP TO UNLOCK
+        </div>
+        <div className="w-full px-5 mt-2 pb-2 flex items-end justify-between">
           <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground leading-relaxed">
             EVOLUTION OS
             <br />
@@ -273,7 +304,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const deepWork = fH > 0 ? `${fH}h ${fM}m` : `${fM}m`;
 
   return (
-    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-hidden">
+    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar">
       {/* ambient glow */}
       <div
         className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full"
