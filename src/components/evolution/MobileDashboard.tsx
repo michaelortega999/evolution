@@ -468,7 +468,7 @@ function fmtMoney(n: number) {
 export function MobileDashboard() {
   const { data } = useEvolutionData();
   const { pathname } = useLocation();
-  const [unlocked, setUnlocked] = useState(false);
+  const [stage, setStage] = useState(0);
   const name = data.profile.name || "Operator";
 
   const today = todayDate();
@@ -529,8 +529,14 @@ export function MobileDashboard() {
     { icon: Star, to: "/hobby" },
   ];
 
-  if (!unlocked) {
-    return <LockScreen onUnlock={() => setUnlocked(true)} />;
+  if (stage < 2) {
+    return (
+      <LockScreen
+        stage={stage}
+        onFirstTap={() => setStage(1)}
+        onUnlock={() => setStage(2)}
+      />
+    );
   }
 
   return (
