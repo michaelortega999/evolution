@@ -84,13 +84,26 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
           {HUB_MODULES.map(({ icon: Icon, label, to }) => (
             <Link key={label} to={to} className="flex flex-col items-center gap-1 group">
               <div
-                className="w-full aspect-[3/4] rounded-md flex flex-col items-center justify-center gap-1 transition-transform group-active:scale-95 px-0.5 py-2"
+                className="relative w-full aspect-[3/4] rounded-sm flex flex-col items-center justify-center gap-1 transition-transform group-active:scale-95 px-0.5 py-2"
                 style={{
                   background: "linear-gradient(180deg, rgba(0,212,255,0.18), rgba(0,212,255,0.04))",
-                  border: "1px solid rgba(0,212,255,0.55)",
-                  boxShadow: "0 0 10px rgba(0,212,255,0.3), inset 0 0 8px rgba(0,212,255,0.2)",
+                  border: "1px solid rgba(0,212,255,0.3)",
+                  boxShadow: "0 0 10px rgba(0,212,255,0.25), inset 0 0 8px rgba(0,212,255,0.15)",
                 }}
               >
+                {/* Jarvis corner brackets */}
+                {[
+                  "top-0 left-0 border-t border-l rounded-tl-sm",
+                  "top-0 right-0 border-t border-r rounded-tr-sm",
+                  "bottom-0 left-0 border-b border-l rounded-bl-sm",
+                  "bottom-0 right-0 border-b border-r rounded-br-sm",
+                ].map((pos) => (
+                  <span
+                    key={pos}
+                    className={`absolute h-1.5 w-1.5 ${pos}`}
+                    style={{ borderColor: CYAN, boxShadow: "0 0 4px rgba(0,212,255,0.9)" }}
+                  />
+                ))}
                 <Icon
                   className="h-4 w-4"
                   style={{ color: CYAN, filter: "drop-shadow(0 0 5px #00d4ff)" }}
@@ -102,8 +115,8 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
           ))}
         </div>
 
-        {/* Jarvis circuit lines converging to the bonsai */}
-        <svg viewBox="0 0 350 80" className="w-full block" aria-hidden="true">
+        {/* Jarvis circuit traces radiating from the bonsai to each card */}
+        <svg viewBox="0 0 350 90" className="w-full block" aria-hidden="true">
           <defs>
             <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="2" result="b" />
@@ -113,16 +126,32 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
               </feMerge>
             </filter>
           </defs>
-          <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.75">
-            {centers.map((x, i) => (
-              <polyline key={i} points={`${x},4 ${x},${18 + Math.abs(i - 3) * 6} 175,52 175,80`} />
-            ))}
+          <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.8">
+            {centers.map((x, i) => {
+              // stepped right-angle trace: up from bonsai, across a shared bus level, up to the card
+              const busY = 62 - Math.abs(i - 3) * 8;
+              return (
+                <g key={i}>
+                  <polyline points={`${x},2 ${x},${busY - 8} ${175 + (x > 175 ? 1 : x < 175 ? -1 : 0) * 0},${busY - 8} 175,${busY - 8}`} opacity="0" />
+                  <path d={`M 175 90 L 175 ${busY} L ${x} ${busY} L ${x} 4`} />
+                </g>
+              );
+            })}
           </g>
           <g fill={CYAN}>
-            {centers.map((x, i) => (
-              <circle key={i} cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-            ))}
-            <circle cx="175" cy="52" r="2.5" style={{ filter: "drop-shadow(0 0 5px #00d4ff)" }} />
+            {centers.map((x, i) => {
+              const busY = 62 - Math.abs(i - 3) * 8;
+              return (
+                <g key={i}>
+                  {/* node at card pin */}
+                  <circle cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+                  {/* junction node at the bus bend */}
+                  <circle cx={x} cy={busY} r="1.4" opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+                </g>
+              );
+            })}
+            {/* main junction at bonsai */}
+            <circle cx="175" cy="90" r="2.5" style={{ filter: "drop-shadow(0 0 5px #00d4ff)" }} />
           </g>
         </svg>
       </div>
