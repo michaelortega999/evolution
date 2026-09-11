@@ -88,7 +88,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
             key={label}
             to={to}
             aria-label={label}
-            className="hub-hotspot absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="hub-hotspot absolute rounded-full"
             style={{
               left: `${x}%`,
               top: `${y}%`,
@@ -106,7 +106,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
         <button
           onClick={onUnlock}
           aria-label="Tap to unlock"
-          className="hub-hotspot hub-hotspot--bonsai absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+          className="hub-hotspot hub-hotspot--bonsai absolute rounded-full"
           style={{ left: "50.8%", top: "73.8%", width: "30%", aspectRatio: "1 / 1" }}
         >
           <span className="hub-hotspot__ring hub-hotspot__ring--bonsai" />
