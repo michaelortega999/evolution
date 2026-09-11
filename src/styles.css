@@ -463,7 +463,7 @@
   /* Tasks hologram: lower-right, below the header, same 112px footprint as Focus hourglass */
   .mobile-holo--tasks {
     position: absolute;
-    top: 58%;
+    top: 50%;
     right: 2px;
     width: 112px;
     height: 112px;
