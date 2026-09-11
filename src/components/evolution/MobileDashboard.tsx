@@ -11,6 +11,8 @@ import {
   tradingTotals, wealthSummary,
 } from "@/lib/evolution-data";
 import { hologramSrc } from "@/lib/holograms";
+import hudHub from "@/assets/hud-hub.png.asset.json";
+
 import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import { HologramEmblem } from "./HologramEmblem";
