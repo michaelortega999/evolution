@@ -620,6 +620,56 @@
   }
 }
 
+/* Jarvis-style animated hotspot rings over the HUD hub artwork */
+.hub-hotspot {
+  animation: hub-bob 4s ease-in-out infinite;
+}
+.hub-hotspot__ring {
+  position: absolute;
+  inset: 6%;
+  border-radius: 9999px;
+  border: 1px dashed rgba(0, 212, 255, 0.55);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.35), inset 0 0 8px rgba(0, 212, 255, 0.15);
+  animation: hub-spin 14s linear infinite;
+  pointer-events: none;
+}
+.hub-hotspot__ring--inner {
+  inset: 16%;
+  border-style: solid;
+  border-color: rgba(0, 212, 255, 0.25);
+  border-top-color: rgba(0, 212, 255, 0.8);
+  animation: hub-spin-rev 7s linear infinite;
+}
+.hub-hotspot__ring--bonsai {
+  inset: 4%;
+  border-width: 1.5px;
+}
+.hub-hotspot__glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.18) 0%, transparent 65%);
+  animation: hub-pulse 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.hub-hotspot:active .hub-hotspot__glow {
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.35) 0%, transparent 65%);
+}
+@keyframes hub-bob {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, calc(-50% - 5px)); }
+}
+@keyframes hub-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes hub-spin-rev {
+  to { transform: rotate(-360deg); }
+}
+@keyframes hub-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
 @keyframes spark-draw {
   from { stroke-dashoffset: var(--spark-len, 1000); }
   to { stroke-dashoffset: 0; }
