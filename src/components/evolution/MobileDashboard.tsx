@@ -73,7 +73,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
   const centers = HUB_MODULES.map((_, i) => ((i + 0.5) / n) * 350);
 
   return (
-    <div className="mt-auto flex flex-col pt-3 pb-6 animate-fade-in">
+    <div className="mt-auto flex flex-col pt-10 pb-6 animate-fade-in">
       {/* rectangle module row + circuit wiring */}
       <div className="relative px-3">
         <div className="grid grid-cols-7 gap-1 relative z-10">
@@ -99,7 +99,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
         </div>
 
         {/* Jarvis circuit traces: nested right-angle wiring converging into the bonsai */}
-        <div className="relative mb-9">
+        <div className="relative mb-12">
           <svg viewBox="0 0 350 150" className="w-full block" aria-hidden="true">
             <defs>
               <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -348,7 +348,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       </div>
 
       {/* Tasks + Focus cards */}
-      <div className="mx-4 mt-3 grid grid-cols-2 gap-3">
+      <div className="mx-4 mt-8 grid grid-cols-2 gap-3">
         {/* Today's Tasks */}
         <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col relative">
           <div className="mobile-holo mobile-holo--tasks">
