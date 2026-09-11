@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
-  Hourglass, Play, Pause, RotateCcw, ChevronUp, ChevronRight,
+  Hourglass, Play, Pause, RotateCcw, ChevronUp, ChevronRight, BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -59,7 +59,112 @@ function HoloArt({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   );
 }
 
-function LockScreen({ onUnlock }: { onUnlock: () => void }) {
+const HUB_MODULES: { icon: LucideIcon; label: string; to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal" }[] = [
+  { icon: Wallet, label: "WEALTH", to: "/wealth" },
+  { icon: Dumbbell, label: "FITNESS", to: "/fitness" },
+  { icon: Apple, label: "NUTRITION", to: "/nutrition" },
+  { icon: Zap, label: "FOCUS", to: "/focus" },
+  { icon: TrendingUp, label: "INVESTING", to: "/investing" },
+  { icon: Briefcase, label: "BUSINESS", to: "/business" },
+  { icon: BookOpen, label: "JOURNAL", to: "/journal" },
+];
+
+/** Hexagonal module hub wired to the bonsai emblem with Jarvis circuit lines. */
+function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
+  const bonsai = hologramSrc("bonsai");
+  const n = HUB_MODULES.length;
+  // tile centers in a 350-unit-wide viewBox
+  const centers = HUB_MODULES.map((_, i) => ((i + 0.5) / n) * 350);
+
+  return (
+    <div className="mt-auto flex flex-col pt-3 pb-6 animate-fade-in">
+      {/* hex module row + circuit wiring */}
+      <div className="relative px-2">
+        <div className="grid grid-cols-7 gap-1 relative z-10">
+          {HUB_MODULES.map(({ icon: Icon, label, to }) => (
+            <Link key={label} to={to} className="flex flex-col items-center gap-1 group">
+              <div
+                className="w-full aspect-square flex items-center justify-center transition-transform group-active:scale-95"
+                style={{
+                  clipPath: "polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)",
+                  background: "linear-gradient(180deg, rgba(0,212,255,0.18), rgba(0,212,255,0.04))",
+                  border: "1px solid rgba(0,212,255,0.55)",
+                  boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 12px rgba(0,212,255,0.25)",
+                }}
+              >
+                <Icon
+                  className="h-5 w-5"
+                  style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }}
+                  strokeWidth={1.5}
+                />
+              </div>
+              <span className="hud-label text-[6px] tracking-[0.12em] text-foreground/70">{label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Jarvis circuit lines converging to the bonsai */}
+        <svg viewBox="0 0 350 80" className="w-full block" aria-hidden="true">
+          <defs>
+            <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.75">
+            {centers.map((x, i) => (
+              <polyline key={i} points={`${x},4 ${x},${18 + Math.abs(i - 3) * 6} 175,52 175,80`} />
+            ))}
+          </g>
+          <g fill={CYAN}>
+            {centers.map((x, i) => (
+              <circle key={i} cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+            ))}
+            <circle cx="175" cy="52" r="2.5" style={{ filter: "drop-shadow(0 0 5px #00d4ff)" }} />
+          </g>
+        </svg>
+      </div>
+
+      {/* bonsai unlock emblem */}
+      <div className="flex flex-col items-center mt-1">
+        <button onClick={onUnlock} className="relative h-24 w-24 rounded-full flex items-center justify-center">
+          <span
+            className="absolute inset-0 rounded-full border-2"
+            style={{ borderColor: "rgba(0,212,255,0.7)", boxShadow: "0 0 28px rgba(0,212,255,0.5), inset 0 0 20px rgba(0,212,255,0.25)" }}
+          />
+          <span
+            className="absolute inset-2 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
+            style={{ borderColor: "rgba(0,212,255,0.35)" }}
+          />
+          <img
+            src={bonsai}
+            alt="Unlock Evolution OS"
+            className="h-14 w-14 object-contain"
+            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 12px rgba(0,212,255,0.9))" }}
+          />
+        </button>
+        <div className="hud-label text-[9px] tracking-[0.35em] text-muted-foreground mt-2">TAP TO UNLOCK</div>
+        <div className="w-full px-5 mt-3 flex items-end justify-between">
+          <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground leading-relaxed">
+            EVOLUTION OS
+            <br />
+            v2.1.0
+          </div>
+          <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground text-right leading-relaxed">
+            HIGHER STANDARDS.
+            <br />
+            BRIGHTER DAYS.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap: () => void; onUnlock: () => void }) {
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
   const name = data.profile.name || "Operator";
