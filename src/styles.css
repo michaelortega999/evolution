@@ -460,22 +460,22 @@
   .mobile-holo--corner .holo-j-scan {
     display: none;
   }
-  /* Tasks hologram: centered near top of card, 25% larger than previous size */
+  /* Tasks hologram: centered near top of card, 50% larger than previous size */
   .mobile-holo--tasks {
     position: absolute;
     top: 22%;
     left: 50%;
     transform: translateX(-50%);
-    width: 225px;
-    height: 225px;
+    width: 338px;
+    height: 338px;
     pointer-events: none;
     z-index: 5;
     color: #00d4ff !important;
     --glow: #00d4ff !important;
   }
   .mobile-holo--tasks .mobile-holo--feature {
-    width: 225px;
-    height: 225px;
+    width: 338px;
+    height: 338px;
     margin: 0;
     color: #00d4ff !important;
     --glow: #00d4ff !important;
@@ -484,8 +484,8 @@
     top: 50%;
     left: 50%;
     right: auto;
-    width: 375px;
-    height: 375px;
+    width: 563px;
+    height: 563px;
     transform: translate(-50%, -50%) scale(0.6);
     transform-origin: center;
     animation: none;
@@ -495,9 +495,9 @@
     color: #00d4ff !important;
   }
   .mobile-holo--tasks .holo-j-base {
-    width: 148px;
-    height: 20px;
-    bottom: 9px;
+    width: 222px;
+    height: 30px;
+    bottom: 14px;
   }
   .mobile-holo--tasks .holo-j-base--inner {
     width: 72px;
