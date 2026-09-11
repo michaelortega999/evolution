@@ -73,7 +73,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
   const centers = HUB_MODULES.map((_, i) => ((i + 0.5) / n) * 350);
 
   return (
-    <div className="mt-auto flex flex-col pt-3 pb-6 animate-fade-in">
+    <div className="mt-auto flex flex-col pt-8 pb-6 animate-fade-in">
       {/* rectangle module row + circuit wiring */}
       <div className="relative px-3">
         <div className="grid grid-cols-7 gap-1 relative z-10">
