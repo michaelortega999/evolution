@@ -69,7 +69,7 @@ const HUB_MODULES: { icon: LucideIcon; label: string; to: "/wealth" | "/fitness"
   { icon: BookOpen, label: "JOURNAL", to: "/journal" },
 ];
 
-/** Hexagonal module hub wired to the bonsai emblem with Jarvis circuit lines. */
+/** Rectangular module hub wired to the bonsai emblem with Jarvis circuit lines. */
 function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
   const bonsai = hologramSrc("bonsai");
   const n = HUB_MODULES.length;
@@ -78,27 +78,26 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
 
   return (
     <div className="mt-auto flex flex-col pt-3 pb-6 animate-fade-in">
-      {/* hex module row + circuit wiring */}
-      <div className="relative px-2">
-        <div className="grid grid-cols-7 gap-1 relative z-10">
+      {/* rectangle module row + circuit wiring */}
+      <div className="relative px-3">
+        <div className="grid grid-cols-4 gap-2 relative z-10">
           {HUB_MODULES.map(({ icon: Icon, label, to }) => (
-            <Link key={label} to={to} className="flex flex-col items-center gap-1 group">
+            <Link key={label} to={to} className="flex flex-col items-center gap-1.5 group">
               <div
-                className="w-full aspect-square flex items-center justify-center transition-transform group-active:scale-95"
+                className="w-full aspect-[4/5] rounded-lg flex flex-col items-center justify-center gap-1.5 transition-transform group-active:scale-95 px-1"
                 style={{
-                  clipPath: "polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)",
                   background: "linear-gradient(180deg, rgba(0,212,255,0.18), rgba(0,212,255,0.04))",
                   border: "1px solid rgba(0,212,255,0.55)",
                   boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 12px rgba(0,212,255,0.25)",
                 }}
               >
                 <Icon
-                  className="h-5 w-5"
+                  className="h-6 w-6"
                   style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }}
                   strokeWidth={1.5}
                 />
+                <span className="hud-label text-[7px] tracking-[0.1em] text-foreground/90 text-center leading-none">{label}</span>
               </div>
-              <span className="hud-label text-[6px] tracking-[0.12em] text-foreground/70">{label}</span>
             </Link>
           ))}
         </div>
