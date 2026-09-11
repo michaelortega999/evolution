@@ -165,21 +165,50 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 </feMerge>
               </filter>
             </defs>
-            <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.85">
+            {/* base traces + parallel echo lines + traveling pulses */}
+            <g filter="url(#hub-glow)" fill="none">
               {centers.map((x, i) => {
                 const d = Math.abs(i - 3); // 0 center … 3 outermost
-                if (d === 0) {
-                  // center card: straight trunk all the way to the emblem rim
-                  return <path key={i} d={`M ${x} 4 L ${x} 95`} />;
-                }
-                // nested trace: outer cards drop lowest, then jog inward to their own trunk — no crossings
-                const jogY = 48 + (d - 1) * 14; // outer cards jog deepest so traces never cross
-                const dx = d * 10; // trunk offset from center
+                const jogY = 48 + (d - 1) * 14;
+                const dx = d * 10;
                 const trunkX = 175 + Math.sign(i - 3) * dx;
-                // rim of the emblem circle (center 175,136 r=41) at this trunk x
-                const rimY = 136 - Math.sqrt(41 * 41 - dx * dx);
-                return <path key={i} d={`M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} ${rimY}`} />;
+                const rimY = d === 0 ? 95 : 136 - Math.sqrt(41 * 41 - dx * dx);
+                const main =
+                  d === 0
+                    ? `M ${x} 4 L ${x} 95`
+                    : `M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} ${rimY}`;
+                return (
+                  <g key={i}>
+                    {/* dim parallel echo trace (Jarvis double-wire look) */}
+                    <path d={main} stroke={CYAN} strokeWidth="0.5" opacity="0.3" transform="translate(1.6 1.6)" />
+                    {/* main trace */}
+                    <path id={`trace-${i}`} d={main} stroke={CYAN} strokeWidth="1" opacity="0.85" />
+                    {/* dashed data segments overlaid on vertical drop */}
+                    <path
+                      d={`M ${x} 8 L ${x} ${d === 0 ? 60 : jogY - 4}`}
+                      stroke={CYAN}
+                      strokeWidth="0.6"
+                      opacity="0.5"
+                      strokeDasharray="3 4"
+                    />
+                    {/* traveling energy pulse along the trace */}
+                    <circle r="1.3" fill="#bffbff">
+                      <animateMotion dur={`${2.2 + d * 0.5}s`} repeatCount="indefinite" begin={`${i * 0.35}s`}>
+                        <mpath href={`#trace-${i}`} />
+                      </animateMotion>
+                    </circle>
+                  </g>
+                );
               })}
+            </g>
+            {/* decorative side ticks near emblem */}
+            <g stroke={CYAN} strokeWidth="0.6" opacity="0.45" filter="url(#hub-glow)">
+              {[0, 1, 2].map((k) => (
+                <path key={k} d={`M ${140 - k * 7} ${104 + k * 4} h 6`} />
+              ))}
+              {[0, 1, 2].map((k) => (
+                <path key={`r${k}`} d={`M ${210 + k * 7} ${104 + k * 4} h -6`} />
+              ))}
             </g>
             <g fill={CYAN}>
               {centers.map((x, i) => {
