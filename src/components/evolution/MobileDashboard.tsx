@@ -136,12 +136,6 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                       opacity="0.5"
                       strokeDasharray="3 4"
                     />
-                    {/* traveling energy pulse along the trace */}
-                    <circle r="1.3" fill="#bffbff">
-                      <animateMotion dur={`${2.2 + d * 0.5}s`} repeatCount="indefinite" begin={`${i * 0.35}s`}>
-                        <mpath href={`#trace-${i}`} />
-                      </animateMotion>
-                    </circle>
                   </g>
                 );
               })}
