@@ -63,40 +63,43 @@ function HoloArt({ icon: Icon, label, variant }: { icon: LucideIcon; label: stri
  * bonsai ring at bottom-center. All geometry lives in a 350×420 space.
  */
 const HUB_NODES: { icon: LucideIcon; label: string; sys: string; to: string; x: number; y: number }[] = [
-  { icon: Target,     label: "FOCUS",     sys: "SYS·04", to: "/focus",     x: 175, y: 34 },
-  { icon: Apple,      label: "NUTRITION", sys: "SYS·03", to: "/nutrition", x: 72,  y: 108 },
-  { icon: Dumbbell,   label: "FITNESS",   sys: "SYS·02", to: "/fitness",   x: 278, y: 108 },
-  { icon: Wallet,     label: "WEALTH",    sys: "SYS·01", to: "/wealth",    x: 45,  y: 198 },
-  { icon: TrendingUp, label: "INVESTING", sys: "SYS·05", to: "/investing", x: 305, y: 198 },
-  { icon: BookOpen,   label: "JOURNAL",   sys: "SYS·07", to: "/journal",   x: 65,  y: 288 },
-  { icon: Briefcase,  label: "BUSINESS",  sys: "SYS·06", to: "/business",  x: 285, y: 288 },
+  { icon: Target,     label: "FOCUS",     sys: "SYS·04", to: "/focus",     x: 175, y: 44 },
+  { icon: Apple,      label: "NUTRITION", sys: "SYS·03", to: "/nutrition", x: 70,  y: 150 },
+  { icon: Dumbbell,   label: "FITNESS",   sys: "SYS·02", to: "/fitness",   x: 284, y: 150 },
+  { icon: Wallet,     label: "WEALTH",    sys: "SYS·01", to: "/wealth",    x: 48,  y: 262 },
+  { icon: TrendingUp, label: "INVESTING", sys: "SYS·05", to: "/investing", x: 302, y: 262 },
+  { icon: BookOpen,   label: "JOURNAL",   sys: "SYS·07", to: "/journal",   x: 66,  y: 374 },
+  { icon: Briefcase,  label: "BUSINESS",  sys: "SYS·06", to: "/business",  x: 284, y: 374 },
 ];
 
-// chamfered conduit traces from each module ring down into the bonsai rim
+// chamfered conduit traces — each gets a dedicated vertical channel so no
+// trace ever crosses a module ring. Left channels: x=120 (wealth) / x=130
+// (nutrition); right channels: x=230 (investing) / x=224 (fitness).
 const HUB_TRACES: string[] = [
-  "M175 66 L175 304",                                    // focus — straight trunk
-  "M72 140 L72 168 L84 180 L136 180 L148 192 L148 312",  // nutrition
-  "M278 140 L278 168 L266 180 L214 180 L202 192 L202 312", // fitness
-  "M45 230 L45 258 L57 270 L124 270 L136 282 L136 325",  // wealth
-  "M305 230 L305 258 L293 270 L226 270 L214 282 L214 325", // investing
-  "M65 320 L65 340 L77 352 L128 352",                    // journal — into left rim
-  "M285 320 L285 340 L273 352 L222 352",                 // business — into right rim
+  "M175 76 L175 418",                                                            // focus — straight trunk
+  "M70 182 L70 204 L82 216 L118 216 L130 228 L130 425 L138 433",                 // nutrition
+  "M284 182 L284 204 L272 216 L236 216 L224 228 L224 425 L212 433",              // fitness
+  "M48 294 L48 318 L60 330 L108 330 L120 342 L120 457 L123 465",                 // wealth
+  "M302 294 L302 318 L290 330 L242 330 L230 342 L230 457 L227 465",              // investing
+  "M66 406 L66 472 L78 484 L128 484 L138 494 L138 500",                          // journal — low left rim
+  "M284 406 L284 472 L272 484 L222 484 L212 494 L212 500",                       // business — low right rim
 ];
 
 const HUB_TERMINALS: [number, number][] = [
-  [175, 66], [72, 140], [278, 140], [45, 230], [305, 230], [65, 320], [285, 320],
+  [175, 76], [70, 182], [284, 182], [48, 294], [302, 294], [66, 406], [284, 406],
 ];
 
 const HUB_BENDS: [number, number][] = [
-  [72, 168], [84, 180], [136, 180], [148, 192],
-  [278, 168], [266, 180], [214, 180], [202, 192],
-  [45, 258], [57, 270], [124, 270], [136, 282],
-  [305, 258], [293, 270], [226, 270], [214, 282],
-  [65, 340], [77, 352], [285, 340], [273, 352],
+  [70, 204], [82, 216], [118, 216], [130, 228], [130, 425],
+  [284, 204], [272, 216], [236, 216], [224, 228], [224, 425],
+  [48, 318], [60, 330], [108, 330], [120, 342], [120, 457],
+  [302, 318], [290, 330], [242, 330], [230, 342], [230, 457],
+  [66, 472], [78, 484], [128, 484], [138, 494],
+  [284, 472], [272, 484], [222, 484], [212, 494],
 ];
 
 const HUB_RIM_ENDS: [number, number][] = [
-  [175, 304], [148, 312], [202, 312], [136, 325], [214, 325], [128, 352], [222, 352],
+  [175, 418], [138, 433], [212, 433], [123, 465], [227, 465], [138, 500], [212, 500],
 ];
 
 function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
