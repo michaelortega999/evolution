@@ -170,7 +170,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
           {/* bonsai unlock emblem — traces land on its rim */}
           <button
             onClick={onUnlock}
-            className="absolute left-1/2 -translate-x-1/2 top-[calc(90.7%-48px)] h-24 w-24 rounded-full flex items-center justify-center"
+            className="absolute left-1/2 -translate-x-1/2 top-[63%] h-24 w-24 rounded-full flex items-center justify-center"
           >
             <span
               className="absolute inset-0 rounded-full border-2"
