@@ -1,7 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
-  Briefcase, Star, Home, Calendar,
+  Briefcase, Star, Home, Calendar, Bell, ClipboardList,
+  Hourglass, Play, Pause, RotateCcw, ChevronUp, ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -9,6 +11,7 @@ import {
   tradingTotals, wealthSummary,
 } from "@/lib/evolution-data";
 import { hologramSrc } from "@/lib/holograms";
+import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
 
 type Priority = "High" | "Medium" | "Low";
 
@@ -17,6 +20,299 @@ const PRIORITY_STYLES: Record<Priority, { badge: string; dot: string }> = {
   Medium: { badge: "text-orange-300 border-orange-400/60 bg-orange-500/10", dot: "#f97316" },
   Low:    { badge: "text-emerald-300 border-emerald-400/60 bg-emerald-500/10", dot: "#22c55e" },
 };
+
+const CYAN = "#00d4ff";
+const glowText = `0 0 10px rgba(0,212,255,0.6)`;
+
+function HoloArt({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+  // Holographic emblem: concentric rings + glowing icon
+  return (
+    <div className="relative mx-auto my-3 h-32 w-32 flex items-center justify-center">
+      <div
+        className="absolute inset-0 rounded-full border"
+        style={{ borderColor: "rgba(0,212,255,0.25)", boxShadow: "inset 0 0 24px rgba(0,212,255,0.12)" }}
+      />
+      <div
+        className="absolute inset-3 rounded-full border border-dashed"
+        style={{ borderColor: "rgba(0,212,255,0.2)" }}
+      />
+      <div
+        className="absolute inset-x-6 bottom-2 h-4 rounded-[50%]"
+        style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.35), transparent 70%)", filter: "blur(2px)" }}
+      />
+      <div
+        className="relative h-20 w-20 rounded-2xl border flex items-center justify-center"
+        style={{
+          borderColor: "rgba(0,212,255,0.5)",
+          background: "linear-gradient(180deg, rgba(0,212,255,0.12), rgba(0,212,255,0.03))",
+          boxShadow: "0 0 24px rgba(0,212,255,0.35), inset 0 0 16px rgba(0,212,255,0.18)",
+        }}
+      >
+        <Icon
+          className="h-11 w-11"
+          style={{ color: CYAN, filter: "drop-shadow(0 0 8px rgba(0,212,255,0.9))" }}
+          strokeWidth={1.4}
+          aria-label={label}
+        />
+      </div>
+    </div>
+  );
+}
+
+function LockScreen({ onUnlock }: { onUnlock: () => void }) {
+  const { data } = useEvolutionData();
+  const timer = useFocusTimer();
+  const name = data.profile.name || "Operator";
+  const now = new Date();
+  const dayName = now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase();
+  const dateStr = now
+    .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    .toUpperCase();
+
+  const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
+  const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
+
+  const today = todayDate();
+  const todayFocusSec = (data.focusSessions ?? [])
+    .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today)
+    .reduce((a, s) => a + s.durationSec, 0);
+  const totalRounds = data.focusSettings?.longEvery ?? 4;
+  const focusRate = totalRounds > 0 ? Math.min(100, Math.round(((timer.round - 1) / totalRounds) * 100)) : 0;
+  const fH = Math.floor(todayFocusSec / 3600);
+  const fM = Math.floor((todayFocusSec % 3600) / 60);
+  const deepWork = fH > 0 ? `${fH}h ${fM}m` : `${fM}m`;
+
+  const bonsai = hologramSrc("bonsai");
+
+  return (
+    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-hidden">
+      {/* ambient glow */}
+      <div
+        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%)" }}
+      />
+
+      {/* Top bar */}
+      <div className="px-5 pt-6 flex items-start justify-between">
+        <div>
+          <div className="hud-label text-lg tracking-[0.35em] text-foreground">EVOLUTION OS</div>
+          <div className="hud-label text-[9px] tracking-[0.2em] text-muted-foreground mt-1 leading-relaxed">
+            GROWING TODAY.
+            <br />
+            BUILDING TOMORROW.
+            <br />
+            FOREVER.
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <button className="text-foreground/80 relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
+          </button>
+          <div className="rounded-md border border-primary/40 px-2.5 py-1.5 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
+            <div className="hud-label text-[8px] text-muted-foreground tracking-[0.15em]">{dayName}</div>
+            <div className="hud-label text-[10px]" style={{ color: CYAN, textShadow: glowText }}>{dateStr}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero bonsai */}
+      <div className="relative px-5 mt-4">
+        <div className="absolute left-5 top-1/2 -translate-y-1/2 hud-label text-[9px] tracking-[0.25em] text-muted-foreground leading-loose">
+          DISCIPLINE
+          <br />
+          FOCUS
+          <br />
+          CONSISTENCY
+          <br />
+          FREEDOM
+        </div>
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 text-right hud-label text-[9px] tracking-[0.2em] leading-relaxed" style={{ color: CYAN, textShadow: glowText }}>
+          "A BETTER YOU
+          <br />
+          EVERYDAY."
+        </div>
+        <div className="relative mx-auto w-64 h-64 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border" style={{ borderColor: "rgba(0,212,255,0.18)" }} />
+          <div className="absolute inset-4 rounded-full border border-dashed" style={{ borderColor: "rgba(0,212,255,0.15)" }} />
+          <div
+            className="absolute inset-x-8 bottom-4 h-6 rounded-[50%]"
+            style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.4), transparent 70%)", filter: "blur(4px)" }}
+          />
+          <img
+            src={bonsai}
+            alt="Evolution bonsai hologram"
+            className="relative w-52 h-52 object-contain"
+            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 24px rgba(0,212,255,0.7))" }}
+          />
+        </div>
+      </div>
+
+      {/* Greeting bar */}
+      <div className="mx-4 mt-2 rounded-xl border border-primary/30 bg-[#050a14] px-4 py-3 flex items-center justify-between gap-3"
+           style={{ boxShadow: "0 0 16px rgba(0,212,255,0.1)" }}>
+        <div className="min-w-0">
+          <div className="hud-label text-sm tracking-[0.15em] text-foreground">GOOD MORNING, {name.toUpperCase()}.</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Discipline. Focus. Consistency. Freedom.</div>
+        </div>
+        <div className="shrink-0 flex items-center gap-2 rounded-lg border border-primary/30 px-2.5 py-1.5">
+          <div
+            className="h-8 w-8 rounded-full border-2"
+            style={{
+              borderColor: CYAN,
+              borderTopColor: "rgba(0,212,255,0.2)",
+              boxShadow: "0 0 10px rgba(0,212,255,0.4)",
+            }}
+          />
+          <div>
+            <div className="hud-label text-[7px] text-muted-foreground tracking-[0.2em]">SYSTEM STATUS</div>
+            <div className="hud-label text-[10px]" style={{ color: CYAN, textShadow: glowText }}>OPTIMAL</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tasks + Focus cards */}
+      <div className="mx-4 mt-3 grid grid-cols-2 gap-3">
+        {/* Today's Tasks */}
+        <div className="rounded-xl border border-primary/30 bg-[#050a14] p-3 flex flex-col"
+             style={{ boxShadow: "0 0 16px rgba(0,212,255,0.08)" }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <CheckSquare className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+              <span className="hud-label text-[10px] tracking-[0.15em] text-foreground truncate">TODAY'S TASKS</span>
+            </div>
+            <span className="hud-label text-[10px] px-1.5 py-0.5 rounded border border-primary/40" style={{ color: CYAN }}>{openCount}</span>
+          </div>
+          <HoloArt icon={ClipboardList} label="Tasks" />
+          <ul className="flex flex-col gap-2 mt-1">
+            {openTasks.map((t) => (
+              <li key={t.id} className="flex items-center gap-2 min-w-0">
+                <span className="h-3.5 w-3.5 rounded-full border border-white/30 shrink-0" />
+                <span className="text-[11px] text-foreground/85 truncate">{t.text}</span>
+              </li>
+            ))}
+            {openTasks.length === 0 && (
+              <li className="text-[10px] text-muted-foreground italic">No open tasks.</li>
+            )}
+          </ul>
+          <Link
+            to="/notes"
+            className="mt-auto pt-3 flex items-center justify-center gap-1.5 rounded-md border border-primary/40 py-2 hud-label text-[9px] tracking-[0.2em]"
+            style={{ color: CYAN, textShadow: glowText }}
+          >
+            VIEW ALL TASKS <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {/* Focus Mode */}
+        <div className="rounded-xl border border-primary/30 bg-[#050a14] p-3 flex flex-col"
+             style={{ boxShadow: "0 0 16px rgba(0,212,255,0.08)" }}>
+          <div className="flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+            <span className="hud-label text-[10px] tracking-[0.15em] text-foreground">FOCUS MODE</span>
+          </div>
+          <div className="hud-label text-[7px] tracking-[0.2em] text-muted-foreground mt-0.5">ONE TASK AT A TIME</div>
+          <HoloArt icon={Hourglass} label="Focus" />
+          <div className="text-center">
+            <div className="hud-label text-3xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 14px rgba(0,212,255,0.7)" }}>
+              {formatMmSs(timer.remainingMs)}
+            </div>
+            <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground mt-0.5">
+              ROUND {timer.round} OF {totalRounds}
+            </div>
+            <div className="flex items-center justify-center gap-1.5 mt-1.5">
+              {Array.from({ length: totalRounds }).map((_, i) => (
+                <span
+                  key={i}
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={
+                    i < timer.round
+                      ? { background: CYAN, boxShadow: "0 0 6px #00d4ff" }
+                      : { background: "rgba(255,255,255,0.12)" }
+                  }
+                />
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5 mt-2.5">
+            <button
+              onClick={() => timer.reset()}
+              className="rounded-md border border-primary/40 py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px]"
+              style={{ color: CYAN }}
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> RESTART
+            </button>
+            <button
+              onClick={() => timer.start()}
+              className="rounded-md py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px] text-[#02050b]"
+              style={{ background: CYAN, boxShadow: "0 0 12px rgba(0,212,255,0.5)" }}
+            >
+              <Play className="h-3.5 w-3.5" /> START
+            </button>
+            <button
+              onClick={() => timer.pause()}
+              className="rounded-md border border-primary/40 py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px]"
+              style={{ color: CYAN }}
+            >
+              <Pause className="h-3.5 w-3.5" /> PAUSE
+            </button>
+          </div>
+          <div className="mt-2.5 rounded-lg border border-primary/25 p-2">
+            <div className="hud-label text-[7px] tracking-[0.2em] text-muted-foreground mb-1.5">FOCUS STATS</div>
+            <div className="grid grid-cols-3 text-center">
+              <div>
+                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{timer.round - 1}/{totalRounds}</div>
+                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">SESSIONS</div>
+              </div>
+              <div>
+                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{focusRate}%</div>
+                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">FOCUS RATE</div>
+              </div>
+              <div>
+                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{deepWork}</div>
+                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">DEEP WORK</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Unlock */}
+      <div className="mt-auto flex flex-col items-center pt-6 pb-8">
+        <ChevronUp className="h-4 w-4 mb-1 animate-bounce" style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }} />
+        <button onClick={onUnlock} className="relative h-24 w-24 rounded-full flex items-center justify-center">
+          <span
+            className="absolute inset-0 rounded-full border-2"
+            style={{ borderColor: "rgba(0,212,255,0.6)", boxShadow: "0 0 24px rgba(0,212,255,0.4), inset 0 0 20px rgba(0,212,255,0.2)" }}
+          />
+          <span
+            className="absolute inset-x-4 bottom-2 h-3 rounded-[50%]"
+            style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.4), transparent 70%)", filter: "blur(2px)" }}
+          />
+          <img
+            src={bonsai}
+            alt="Unlock Evolution OS"
+            className="h-16 w-16 object-contain"
+            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 12px rgba(0,212,255,0.8))" }}
+          />
+        </button>
+        <div className="hud-label text-[9px] tracking-[0.35em] text-muted-foreground mt-2">TAP TO UNLOCK</div>
+        <div className="w-full px-5 mt-3 flex items-end justify-between">
+          <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground leading-relaxed">
+            EVOLUTION OS
+            <br />
+            v2.1.0
+          </div>
+          <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground text-right leading-relaxed">
+            HIGHER STANDARDS.
+            <br />
+            BRIGHTER DAYS.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ModuleTile({
   icon: Icon, label, value, sub, pct, to,
@@ -63,6 +359,7 @@ function fmtMoney(n: number) {
 export function MobileDashboard() {
   const { data } = useEvolutionData();
   const { pathname } = useLocation();
+  const [unlocked, setUnlocked] = useState(false);
   const name = data.profile.name || "Operator";
 
   const today = todayDate();
@@ -91,7 +388,6 @@ export function MobileDashboard() {
   const hobbyM = Math.round((hobbyHrs - hobbyH) * 60);
   const hobbyPct = Math.min(100, hobbyHrs * 5);
 
-  // Focus: current session length label
   const todayFocusSec = (data.focusSessions ?? [])
     .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today)
     .reduce((a, s) => a + s.durationSec, 0);
@@ -123,6 +419,10 @@ export function MobileDashboard() {
     { icon: Calendar, to: "/calendar" },
     { icon: Star, to: "/hobby" },
   ];
+
+  if (!unlocked) {
+    return <LockScreen onUnlock={() => setUnlocked(true)} />;
+  }
 
   return (
     <div className="md:hidden min-h-screen bg-[#02050b] text-foreground pb-24">
