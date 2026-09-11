@@ -83,22 +83,35 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
           className="absolute inset-0 h-full w-full object-contain select-none"
         />
 
-        {HUB_HOTSPOTS.map(({ label, to, x, y, size }) => (
+        {HUB_HOTSPOTS.map(({ label, to, x, y, size }, i) => (
           <Link
             key={label}
             to={to}
             aria-label={label}
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full active:bg-[rgba(0,212,255,0.12)]"
-            style={{ left: `${x}%`, top: `${y}%`, width: `${size}%`, aspectRatio: "1 / 1" }}
-          />
+            className="hub-hotspot absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              left: `${x}%`,
+              top: `${y}%`,
+              width: `${size}%`,
+              aspectRatio: "1 / 1",
+              animationDelay: `${i * 0.4}s`,
+            }}
+          >
+            <span className="hub-hotspot__ring" style={{ animationDelay: `${i * 0.55}s` }} />
+            <span className="hub-hotspot__ring hub-hotspot__ring--inner" style={{ animationDelay: `${i * 0.55 + 0.3}s` }} />
+            <span className="hub-hotspot__glow" style={{ animationDelay: `${i * 0.7}s` }} />
+          </Link>
         ))}
 
         <button
           onClick={onUnlock}
           aria-label="Tap to unlock"
-          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full active:bg-[rgba(0,212,255,0.12)]"
+          className="hub-hotspot hub-hotspot--bonsai absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{ left: "50.8%", top: "73.8%", width: "30%", aspectRatio: "1 / 1" }}
-        />
+        >
+          <span className="hub-hotspot__ring hub-hotspot__ring--bonsai" />
+          <span className="hub-hotspot__glow" />
+        </button>
       </div>
     </div>
   );
