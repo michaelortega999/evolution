@@ -515,6 +515,14 @@
     width: 26px;
     height: 26px;
     margin: 0;
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
+  }
+  .mobile-holo--hub .holo-jarvis,
+  .mobile-holo--hub .holo-j-svg,
+  .mobile-holo--hub .mobile-focus-holo {
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
   }
   /* Reduced motion for hub holograms: no float, slow orbits, no scan sweep. */
   .mobile-holo--hub .holo-jarvis {

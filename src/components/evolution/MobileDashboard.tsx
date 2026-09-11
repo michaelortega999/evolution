@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
-  Hourglass, Play, Pause, RotateCcw, ChevronUp, ChevronRight, BookOpen, Target,
+  Hourglass, Play, Pause, RotateCcw, ChevronRight, BookOpen, Target,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
