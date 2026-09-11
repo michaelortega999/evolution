@@ -548,6 +548,20 @@ function ModuleTile({
       className="relative rounded-xl border border-primary/25 bg-[#050a14] p-3 flex flex-col items-center text-center overflow-hidden"
       style={{ boxShadow: "0 0 12px rgba(0,212,255,0.08), inset 0 0 12px rgba(0,212,255,0.04)" }}
     >
+      {/* scanlines */}
+      <span
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "repeating-linear-gradient(0deg, transparent 0 4px, rgba(0,212,255,0.04) 4px 5px)" }}
+      />
+      {/* Jarvis corner brackets */}
+      {[
+        "top-1 left-1 border-t border-l rounded-tl",
+        "top-1 right-1 border-t border-r rounded-tr",
+        "bottom-1 left-1 border-b border-l rounded-bl",
+        "bottom-1 right-1 border-b border-r rounded-br",
+      ].map((pos) => (
+        <span key={pos} className={`absolute h-2 w-2 ${pos}`} style={{ borderColor: "rgba(0,212,255,0.7)" }} />
+      ))}
       <div className="hud-label text-[9px] tracking-[0.2em] text-foreground/60 self-start">{label}</div>
       <div className="my-1.5 h-12 w-12 rounded-full border border-primary/40 flex items-center justify-center"
            style={{ boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 10px rgba(0,212,255,0.2)" }}>
