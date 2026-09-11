@@ -55,16 +55,6 @@ function HoloArt({ icon: Icon, label, variant }: { icon: LucideIcon; label: stri
   );
 }
 
-const HUB_MODULES: { icon: LucideIcon; variant?: HoloVariant; label: string; to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal" }[] = [
-  { icon: Wallet, variant: "wealth", label: "WEALTH", to: "/wealth" },
-  { icon: Dumbbell, variant: "fitness", label: "FITNESS", to: "/fitness" },
-  { icon: Apple, variant: "nutrition", label: "NUTRITION", to: "/nutrition" },
-  { icon: Target, label: "FOCUS", to: "/focus" },
-  { icon: TrendingUp, variant: "investing", label: "INVESTING", to: "/investing" },
-  { icon: Briefcase, variant: "business", label: "BUSINESS", to: "/business" },
-  { icon: BookOpen, variant: "journal", label: "JOURNAL", to: "/journal" },
-];
-
 /**
  * Radial module hub — module rings arranged around the screen with
  * chamfered conduit traces converging into the central bonsai emblem.
