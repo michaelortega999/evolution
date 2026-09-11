@@ -463,7 +463,7 @@
   /* Tasks hologram: centered near top of card, sized to match Focus hourglass */
   .mobile-holo--tasks {
     position: absolute;
-    top: 10%;
+    top: 16%;
     left: 50%;
     transform: translateX(-50%);
     width: 128px;
