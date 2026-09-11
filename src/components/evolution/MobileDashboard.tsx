@@ -418,6 +418,7 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
