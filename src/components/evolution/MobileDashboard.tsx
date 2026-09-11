@@ -72,17 +72,17 @@ const HUB_NODES: { icon: LucideIcon; label: string; sys: string; to: string; x: 
   { icon: Briefcase,  label: "BUSINESS",  sys: "SYS·06", to: "/business",  x: 284, y: 374 },
 ];
 
-// chamfered conduit traces — each gets a dedicated vertical channel so no
-// trace ever crosses a module ring. Left channels: x=120 (wealth) / x=130
-// (nutrition); right channels: x=230 (investing) / x=224 (fitness).
+// chamfered conduit traces — each side conduit runs in its own channel, then
+// chamfers inward and merges into the central trunk at a staggered height.
+// Everything converges into one trunk that trails down into the bonsai.
 const HUB_TRACES: string[] = [
-  "M175 76 L175 418",                                                            // focus — straight trunk
-  "M70 182 L70 204 L82 216 L118 216 L130 228 L130 425 L138 433",                 // nutrition
-  "M284 182 L284 204 L272 216 L236 216 L224 228 L224 425 L212 433",              // fitness
-  "M48 294 L48 318 L60 330 L108 330 L120 342 L120 457 L123 465",                 // wealth
-  "M302 294 L302 318 L290 330 L242 330 L230 342 L230 457 L227 465",              // investing
-  "M66 406 L66 472 L78 484 L128 484 L138 494 L138 500",                          // journal — low left rim
-  "M284 406 L284 472 L272 484 L222 484 L212 494 L212 500",                       // business — low right rim
+  "M175 76 L175 418",                                                            // focus — central trunk
+  "M70 182 L70 204 L82 216 L118 216 L130 228 L130 252 L146 268 L175 268",        // nutrition → trunk
+  "M284 182 L284 204 L272 216 L236 216 L224 228 L224 262 L208 278 L175 278",     // fitness → trunk
+  "M48 294 L48 318 L60 330 L108 330 L120 342 L120 366 L136 382 L175 382",        // wealth → trunk
+  "M302 294 L302 318 L290 330 L242 330 L230 342 L230 372 L214 388 L175 388",     // investing → trunk
+  "M66 406 L66 436 L82 452 L175 452",                                            // journal → trunk base
+  "M284 406 L284 436 L268 452 L175 452",                                         // business → trunk base
 ];
 
 const HUB_TERMINALS: [number, number][] = [
@@ -90,16 +90,17 @@ const HUB_TERMINALS: [number, number][] = [
 ];
 
 const HUB_BENDS: [number, number][] = [
-  [70, 204], [82, 216], [118, 216], [130, 228], [130, 425],
-  [284, 204], [272, 216], [236, 216], [224, 228], [224, 425],
-  [48, 318], [60, 330], [108, 330], [120, 342], [120, 457],
-  [302, 318], [290, 330], [242, 330], [230, 342], [230, 457],
-  [66, 472], [78, 484], [128, 484], [138, 494],
-  [284, 472], [272, 484], [222, 484], [212, 494],
+  [70, 204], [82, 216], [118, 216], [130, 228], [130, 252], [146, 268],
+  [284, 204], [272, 216], [236, 216], [224, 228], [224, 262], [208, 278],
+  [48, 318], [60, 330], [108, 330], [120, 342], [120, 366], [136, 382],
+  [302, 318], [290, 330], [242, 330], [230, 342], [230, 372], [214, 388],
+  [66, 436], [82, 452],
+  [284, 436], [268, 452],
 ];
 
+// bright junction nodes where conduits merge into the trunk + trunk tip on rim
 const HUB_RIM_ENDS: [number, number][] = [
-  [175, 418], [138, 433], [212, 433], [123, 465], [227, 465], [138, 500], [212, 500],
+  [175, 268], [175, 278], [175, 382], [175, 388], [175, 452], [175, 418],
 ];
 
 function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
