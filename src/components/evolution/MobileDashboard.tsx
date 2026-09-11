@@ -382,10 +382,13 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
         </div>
       </div>
 
-      {/* Unlock */}
+      {/* Unlock — stage 0: simple emblem; stage 1: module hub wired to bonsai */}
+      {stage >= 1 ? (
+        <ModuleHub onUnlock={onUnlock} />
+      ) : (
       <div className="mt-auto flex flex-col items-center pt-6 pb-8">
         <ChevronUp className="h-4 w-4 mb-1 animate-bounce" style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }} />
-        <button onClick={onUnlock} className="relative h-24 w-24 rounded-full flex items-center justify-center">
+        <button onClick={onFirstTap} className="relative h-24 w-24 rounded-full flex items-center justify-center">
           <span
             className="absolute inset-0 rounded-full border-2"
             style={{ borderColor: "rgba(0,212,255,0.6)", boxShadow: "0 0 24px rgba(0,212,255,0.4), inset 0 0 20px rgba(0,212,255,0.2)" }}
@@ -415,6 +418,7 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
@@ -464,7 +468,7 @@ function fmtMoney(n: number) {
 export function MobileDashboard() {
   const { data } = useEvolutionData();
   const { pathname } = useLocation();
-  const [unlocked, setUnlocked] = useState(false);
+  const [stage, setStage] = useState(0);
   const name = data.profile.name || "Operator";
 
   const today = todayDate();
@@ -525,8 +529,14 @@ export function MobileDashboard() {
     { icon: Star, to: "/hobby" },
   ];
 
-  if (!unlocked) {
-    return <LockScreen onUnlock={() => setUnlocked(true)} />;
+  if (stage < 2) {
+    return (
+      <LockScreen
+        stage={stage}
+        onFirstTap={() => setStage(1)}
+        onUnlock={() => setStage(2)}
+      />
+    );
   }
 
   return (
