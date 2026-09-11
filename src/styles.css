@@ -460,6 +460,44 @@
   .mobile-holo--corner .holo-j-scan {
     display: none;
   }
+  /* Larger tasks hologram: sits lower-right, below the header, sized like the focus hourglass */
+  .mobile-holo--tasks {
+    position: absolute;
+    top: 42%;
+    right: 2px;
+    width: 96px;
+    height: 96px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .mobile-holo--tasks .mobile-holo--feature {
+    width: 96px;
+    height: 96px;
+    margin: 0;
+  }
+  .mobile-holo--tasks .holo-jarvis {
+    top: 0;
+    right: 0;
+    left: auto;
+    width: 160px;
+    height: 160px;
+    transform: translate(0, 0) scale(0.6);
+    transform-origin: top right;
+    animation: none;
+  }
+  .mobile-holo--tasks .holo-j-base {
+    width: 64px;
+    height: 9px;
+    bottom: 4px;
+  }
+  .mobile-holo--tasks .holo-j-base--inner {
+    width: 40px;
+    height: 5px;
+    bottom: 6px;
+  }
+  .mobile-holo--tasks .holo-j-scan {
+    display: none;
+  }
   .mobile-holo--hub {
     width: 26px;
     height: 26px;
