@@ -76,7 +76,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const todayFocusSec = (data.focusSessions ?? [])
     .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today)
     .reduce((a, s) => a + s.durationSec, 0);
-  const totalRounds = data.focusSettings?.rounds ?? 4;
+  const totalRounds = data.focusSettings?.longEvery ?? 4;
   const focusRate = totalRounds > 0 ? Math.min(100, Math.round(((timer.round - 1) / totalRounds) * 100)) : 0;
   const fH = Math.floor(todayFocusSec / 3600);
   const fM = Math.floor((todayFocusSec % 3600) / 60);
