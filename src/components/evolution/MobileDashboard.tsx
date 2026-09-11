@@ -91,7 +91,19 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                   boxShadow: "0 0 10px rgba(0,212,255,0.25), inset 0 0 8px rgba(0,212,255,0.15)",
                 }}
               >
-                {/* Jarvis corner brackets */}
+                {/* scanline sweep */}
+                <span
+                  className="absolute inset-0 rounded-sm pointer-events-none"
+                  style={{
+                    background: "repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,212,255,0.05) 3px 4px)",
+                  }}
+                />
+                {/* top micro-bar */}
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-1/2"
+                  style={{ background: "linear-gradient(90deg, transparent, #00d4ff, transparent)", boxShadow: "0 0 6px #00d4ff" }}
+                />
+                {/* Jarvis corner brackets with tick marks */}
                 {[
                   "top-0 left-0 border-t border-l rounded-tl-sm",
                   "top-0 right-0 border-t border-r rounded-tr-sm",
@@ -100,16 +112,42 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 ].map((pos) => (
                   <span
                     key={pos}
-                    className={`absolute h-1.5 w-1.5 ${pos}`}
-                    style={{ borderColor: CYAN, boxShadow: "0 0 4px rgba(0,212,255,0.9)" }}
+                    className={`absolute h-2 w-2 ${pos}`}
+                    style={{ borderColor: CYAN, boxShadow: "0 0 5px rgba(0,212,255,0.9)" }}
                   />
                 ))}
-                <Icon
-                  className="h-4 w-4"
-                  style={{ color: CYAN, filter: "drop-shadow(0 0 5px #00d4ff)" }}
-                  strokeWidth={1.5}
-                />
+                {/* side tick marks */}
+                {[18, 34, 50].map((t) => (
+                  <span
+                    key={t}
+                    className="absolute left-0 w-[3px] h-px"
+                    style={{ top: `${t}%`, background: CYAN, opacity: 0.55, boxShadow: "0 0 3px #00d4ff" }}
+                  />
+                ))}
+                {[18, 34, 50].map((t) => (
+                  <span
+                    key={`r${t}`}
+                    className="absolute right-0 w-[3px] h-px"
+                    style={{ top: `${t}%`, background: CYAN, opacity: 0.55, boxShadow: "0 0 3px #00d4ff" }}
+                  />
+                ))}
+                {/* icon with micro-ring */}
+                <div className="relative flex items-center justify-center">
+                  <span className="absolute h-6 w-6 rounded-full border border-dashed" style={{ borderColor: "rgba(0,212,255,0.4)" }} />
+                  <Icon
+                    className="h-4 w-4"
+                    style={{ color: CYAN, filter: "drop-shadow(0 0 5px #00d4ff)" }}
+                    strokeWidth={1.5}
+                  />
+                </div>
                 <span className="hud-label text-[5px] tracking-[0.08em] text-foreground/90 text-center leading-none">{label}</span>
+                {/* bottom data strip */}
+                <span className="hud-label text-[4px] tracking-[0.2em] text-primary/50 leading-none">{`SYS·0${HUB_MODULES.findIndex((m) => m.label === label) + 1}`}</span>
+                {/* connector stub into circuit */}
+                <span
+                  className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full"
+                  style={{ background: CYAN, boxShadow: "0 0 5px #00d4ff" }}
+                />
               </div>
             </Link>
           ))}
