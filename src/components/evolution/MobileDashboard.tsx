@@ -78,9 +78,9 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
       <div className="relative px-3">
         <div className="grid grid-cols-7 gap-1 relative z-10">
           {HUB_MODULES.map(({ icon: Icon, variant, label, to }, moduleIndex) => (
-            <Link key={label} to={to} className="flex flex-col items-center gap-1 group">
+            <Link key={label} to={to} className="flex flex-col items-center gap-0.5 group">
               <div
-                className="hud-card hud-scan mobile-hud-card mobile-hub-card relative w-full aspect-[3/4] flex flex-col items-center justify-end gap-0.5 transition-transform group-active:scale-95 px-0.5 pb-1.5"
+                className="mobile-hub-item relative w-full flex flex-col items-center gap-1 transition-transform group-active:scale-95 py-1"
                 style={{ "--glow": MODULE_ACCENTS[variant ?? "focus"] } as React.CSSProperties}
               >
                 <div className="mobile-holo mobile-holo--hub">
@@ -90,7 +90,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 <span className="hud-label text-[4px] tracking-[0.2em] text-primary/50 leading-none">{`SYS·0${moduleIndex + 1}`}</span>
                 {/* connector stub into circuit */}
                 <span
-                  className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full"
+                  className="w-[3px] h-[3px] rounded-full"
                   style={{ background: CYAN, boxShadow: "0 0 5px #00d4ff" }}
                 />
               </div>
