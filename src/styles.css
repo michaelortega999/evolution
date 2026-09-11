@@ -469,15 +469,15 @@
     height: 112px;
     pointer-events: none;
     z-index: 5;
-    color: #00d4ff;
-    --glow: #00d4ff;
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
   }
   .mobile-holo--tasks .mobile-holo--feature {
     width: 112px;
     height: 112px;
     margin: 0;
-    color: inherit;
-    --glow: #00d4ff;
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
   }
   .mobile-holo--tasks .holo-jarvis {
     top: 0;
@@ -488,10 +488,10 @@
     transform: translate(0, 0) scale(0.6);
     transform-origin: top right;
     animation: none;
-    color: inherit;
+    color: #00d4ff !important;
   }
   .mobile-holo--tasks .holo-j-svg {
-    color: inherit;
+    color: #00d4ff !important;
   }
   .mobile-holo--tasks .holo-j-base {
     width: 74px;
