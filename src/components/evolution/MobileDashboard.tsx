@@ -99,7 +99,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
         </div>
 
         {/* Jarvis circuit traces: nested right-angle wiring converging into the bonsai */}
-        <div className="relative mb-9">
+        <div className="relative mb-12">
           <svg viewBox="0 0 350 150" className="w-full block" aria-hidden="true">
             <defs>
               <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
