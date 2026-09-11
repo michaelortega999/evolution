@@ -622,6 +622,7 @@
 
 /* Jarvis-style animated hotspot rings over the HUD hub artwork */
 .hub-hotspot {
+  transform: translate(-50%, -50%);
   animation: hub-bob 4s ease-in-out infinite;
 }
 .hub-hotspot__ring {
