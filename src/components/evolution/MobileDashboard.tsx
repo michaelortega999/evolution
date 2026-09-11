@@ -348,7 +348,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       </div>
 
       {/* Tasks + Focus cards */}
-      <div className="mx-4 mt-3 grid grid-cols-2 gap-3">
+      <div className="mx-4 mt-5 grid grid-cols-2 gap-3">
         {/* Today's Tasks */}
         <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col relative">
           <div className="mobile-holo mobile-holo--tasks">
