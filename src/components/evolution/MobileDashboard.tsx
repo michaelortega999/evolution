@@ -329,7 +329,7 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
               <span className="hud-label text-[10px] tracking-[0.15em] text-foreground truncate">TODAY'S TASKS</span>
             </div>
           </div>
-          <ul className="flex flex-col gap-2 mt-1">
+          <ul className="flex flex-col gap-2 mt-24">
             {openTasks.map((t) => (
               <li key={t.id} className="flex items-center gap-2 min-w-0">
                 <span className="h-3.5 w-3.5 rounded-full border border-white/30 shrink-0" />
