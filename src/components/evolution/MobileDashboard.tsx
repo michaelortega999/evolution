@@ -116,73 +116,82 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
         </div>
 
         {/* Jarvis circuit traces: nested right-angle wiring converging into the bonsai */}
-        <svg viewBox="0 0 350 90" className="w-full block" aria-hidden="true">
-          <defs>
-            <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="b" />
-              <feMerge>
-                <feMergeNode in="b" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.85">
-            {centers.map((x, i) => {
-              const d = Math.abs(i - 3); // 0 center … 3 outermost
-              if (d === 0) {
-                // center card: straight trunk
-                return <path key={i} d={`M ${x} 4 L ${x} 90`} />;
-              }
-              // nested trace: outer cards drop lowest, then jog inward to their own trunk — no crossings
-              const jogY = 48 + (d - 1) * 14; // outer cards jog deepest so traces never cross
-              const trunkX = 175 + Math.sign(i - 3) * (14 + (d - 1) * 25);
-              return <path key={i} d={`M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} 90`} />;
-            })}
-          </g>
-          <g fill={CYAN}>
-            {centers.map((x, i) => {
-              const d = Math.abs(i - 3);
-              const jogY = 48 + (d - 1) * 14;
-              const trunkX = 175 + Math.sign(i - 3) * (14 + (d - 1) * 25);
-              return (
-                <g key={i}>
-                  {/* pin node at the card */}
-                  <circle cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-                  {d > 0 && (
-                    <>
-                      {/* bend node where the trace jogs inward */}
-                      <circle cx={x} cy={jogY} r="1.4" opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
-                      {/* junction node where the trace meets its trunk */}
-                      <circle cx={trunkX} cy={jogY} r="1.6" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-                    </>
-                  )}
-                </g>
-              );
-            })}
-            {/* root node feeding the bonsai emblem */}
-            <circle cx="175" cy="90" r="2.5" style={{ filter: "drop-shadow(0 0 5px #00d4ff)" }} />
-          </g>
-        </svg>
+        <div className="relative pb-10">
+          <svg viewBox="0 0 350 150" className="w-full block" aria-hidden="true">
+            <defs>
+              <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.85">
+              {centers.map((x, i) => {
+                const d = Math.abs(i - 3); // 0 center … 3 outermost
+                if (d === 0) {
+                  // center card: straight trunk all the way to the emblem rim
+                  return <path key={i} d={`M ${x} 4 L ${x} 95`} />;
+                }
+                // nested trace: outer cards drop lowest, then jog inward to their own trunk — no crossings
+                const jogY = 48 + (d - 1) * 14; // outer cards jog deepest so traces never cross
+                const dx = d * 10; // trunk offset from center
+                const trunkX = 175 + Math.sign(i - 3) * dx;
+                // rim of the emblem circle (center 175,136 r=41) at this trunk x
+                const rimY = 136 - Math.sqrt(41 * 41 - dx * dx);
+                return <path key={i} d={`M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} ${rimY}`} />;
+              })}
+            </g>
+            <g fill={CYAN}>
+              {centers.map((x, i) => {
+                const d = Math.abs(i - 3);
+                const jogY = 48 + (d - 1) * 14;
+                const dx = d * 10;
+                const trunkX = 175 + Math.sign(i - 3) * dx;
+                return (
+                  <g key={i}>
+                    {/* pin node at the card */}
+                    <circle cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+                    {d > 0 && (
+                      <>
+                        {/* bend node where the trace jogs inward */}
+                        <circle cx={x} cy={jogY} r="1.4" opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+                        {/* junction node where the trace meets its trunk */}
+                        <circle cx={trunkX} cy={jogY} r="1.6" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+                      </>
+                    )}
+                  </g>
+                );
+              })}
+            </g>
+          </svg>
+
+          {/* bonsai unlock emblem — traces land on its rim */}
+          <button
+            onClick={onUnlock}
+            className="absolute left-1/2 -translate-x-1/2 top-[calc(90.7%-48px)] h-24 w-24 rounded-full flex items-center justify-center"
+          >
+            <span
+              className="absolute inset-0 rounded-full border-2"
+              style={{ borderColor: "rgba(0,212,255,0.7)", boxShadow: "0 0 28px rgba(0,212,255,0.5), inset 0 0 20px rgba(0,212,255,0.25)" }}
+            />
+            <span
+              className="absolute inset-2 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
+              style={{ borderColor: "rgba(0,212,255,0.35)" }}
+            />
+            <img
+              src={bonsai}
+              alt="Unlock Evolution OS"
+              className="h-14 w-14 object-contain"
+              style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 12px rgba(0,212,255,0.9))" }}
+            />
+          </button>
+        </div>
       </div>
 
-      {/* bonsai unlock emblem */}
+      {/* unlock label + footer */}
       <div className="flex flex-col items-center mt-1">
-        <button onClick={onUnlock} className="relative h-24 w-24 rounded-full flex items-center justify-center">
-          <span
-            className="absolute inset-0 rounded-full border-2"
-            style={{ borderColor: "rgba(0,212,255,0.7)", boxShadow: "0 0 28px rgba(0,212,255,0.5), inset 0 0 20px rgba(0,212,255,0.25)" }}
-          />
-          <span
-            className="absolute inset-2 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
-            style={{ borderColor: "rgba(0,212,255,0.35)" }}
-          />
-          <img
-            src={bonsai}
-            alt="Unlock Evolution OS"
-            className="h-14 w-14 object-contain"
-            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 12px rgba(0,212,255,0.9))" }}
-          />
-        </button>
         <div className="hud-label text-[9px] tracking-[0.35em] text-muted-foreground mt-2">TAP TO UNLOCK</div>
         <div className="w-full px-5 mt-3 flex items-end justify-between">
           <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground leading-relaxed">
