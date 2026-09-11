@@ -63,13 +63,13 @@ function HoloArt({ icon: Icon, label, variant }: { icon: LucideIcon; label: stri
  * bonsai emblem. No geometry is redrawn.
  */
 const HUB_HOTSPOTS: { label: string; to: string; x: number; y: number; size: number }[] = [
-  { label: "Focus",     to: "/focus",     x: 50.5, y: 9.8,  size: 20 },
-  { label: "Nutrition", to: "/nutrition", x: 25.5, y: 17.8, size: 20 },
-  { label: "Fitness",   to: "/fitness",   x: 75.4, y: 17.8, size: 20 },
-  { label: "Wealth",    to: "/wealth",    x: 13.6, y: 35.5, size: 20 },
-  { label: "Investing", to: "/investing", x: 87.5, y: 35.7, size: 20 },
-  { label: "Journal",   to: "/journal",   x: 15.5, y: 56.0, size: 20 },
-  { label: "Business",  to: "/business",  x: 85.4, y: 56.0, size: 20 },
+  { label: "Focus",     to: "/focus",     x: 50.0, y: 9.7,  size: 20 },
+  { label: "Nutrition", to: "/nutrition", x: 25.3, y: 18.0, size: 20 },
+  { label: "Fitness",   to: "/fitness",   x: 74.6, y: 18.0, size: 20 },
+  { label: "Wealth",    to: "/wealth",    x: 13.4, y: 35.7, size: 20 },
+  { label: "Investing", to: "/investing", x: 86.6, y: 35.8, size: 20 },
+  { label: "Journal",   to: "/journal",   x: 15.0, y: 55.6, size: 20 },
+  { label: "Business",  to: "/business",  x: 84.9, y: 55.6, size: 20 },
 ];
 
 function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
@@ -107,7 +107,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
           onClick={onUnlock}
           aria-label="Tap to unlock"
           className="hub-hotspot hub-hotspot--bonsai absolute rounded-full"
-          style={{ left: "50.8%", top: "73.8%", width: "30%", aspectRatio: "1 / 1" }}
+          style={{ left: "50%", top: "74.6%", width: "30%", aspectRatio: "1 / 1" }}
         >
           <span className="hub-hotspot__ring hub-hotspot__ring--bonsai" />
           <span className="hub-hotspot__glow" />

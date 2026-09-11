@@ -623,7 +623,6 @@
 /* Jarvis-style animated hotspot rings over the HUD hub artwork */
 .hub-hotspot {
   transform: translate(-50%, -50%);
-  animation: hub-bob 4s ease-in-out infinite;
 }
 .hub-hotspot__ring {
   position: absolute;
@@ -655,10 +654,6 @@
 }
 .hub-hotspot:active .hub-hotspot__glow {
   background: radial-gradient(circle, rgba(0, 212, 255, 0.35) 0%, transparent 65%);
-}
-@keyframes hub-bob {
-  0%, 100% { transform: translate(-50%, -50%); }
-  50% { transform: translate(-50%, calc(-50% - 5px)); }
 }
 @keyframes hub-spin {
   to { transform: rotate(360deg); }
