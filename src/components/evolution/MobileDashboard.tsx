@@ -91,7 +91,19 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                   boxShadow: "0 0 10px rgba(0,212,255,0.25), inset 0 0 8px rgba(0,212,255,0.15)",
                 }}
               >
-                {/* Jarvis corner brackets */}
+                {/* scanline sweep */}
+                <span
+                  className="absolute inset-0 rounded-sm pointer-events-none"
+                  style={{
+                    background: "repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,212,255,0.05) 3px 4px)",
+                  }}
+                />
+                {/* top micro-bar */}
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-1/2"
+                  style={{ background: "linear-gradient(90deg, transparent, #00d4ff, transparent)", boxShadow: "0 0 6px #00d4ff" }}
+                />
+                {/* Jarvis corner brackets with tick marks */}
                 {[
                   "top-0 left-0 border-t border-l rounded-tl-sm",
                   "top-0 right-0 border-t border-r rounded-tr-sm",
@@ -100,16 +112,42 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 ].map((pos) => (
                   <span
                     key={pos}
-                    className={`absolute h-1.5 w-1.5 ${pos}`}
-                    style={{ borderColor: CYAN, boxShadow: "0 0 4px rgba(0,212,255,0.9)" }}
+                    className={`absolute h-2 w-2 ${pos}`}
+                    style={{ borderColor: CYAN, boxShadow: "0 0 5px rgba(0,212,255,0.9)" }}
                   />
                 ))}
-                <Icon
-                  className="h-4 w-4"
-                  style={{ color: CYAN, filter: "drop-shadow(0 0 5px #00d4ff)" }}
-                  strokeWidth={1.5}
-                />
+                {/* side tick marks */}
+                {[18, 34, 50].map((t) => (
+                  <span
+                    key={t}
+                    className="absolute left-0 w-[3px] h-px"
+                    style={{ top: `${t}%`, background: CYAN, opacity: 0.55, boxShadow: "0 0 3px #00d4ff" }}
+                  />
+                ))}
+                {[18, 34, 50].map((t) => (
+                  <span
+                    key={`r${t}`}
+                    className="absolute right-0 w-[3px] h-px"
+                    style={{ top: `${t}%`, background: CYAN, opacity: 0.55, boxShadow: "0 0 3px #00d4ff" }}
+                  />
+                ))}
+                {/* icon with micro-ring */}
+                <div className="relative flex items-center justify-center">
+                  <span className="absolute h-6 w-6 rounded-full border border-dashed" style={{ borderColor: "rgba(0,212,255,0.4)" }} />
+                  <Icon
+                    className="h-4 w-4"
+                    style={{ color: CYAN, filter: "drop-shadow(0 0 5px #00d4ff)" }}
+                    strokeWidth={1.5}
+                  />
+                </div>
                 <span className="hud-label text-[5px] tracking-[0.08em] text-foreground/90 text-center leading-none">{label}</span>
+                {/* bottom data strip */}
+                <span className="hud-label text-[4px] tracking-[0.2em] text-primary/50 leading-none">{`SYS·0${HUB_MODULES.findIndex((m) => m.label === label) + 1}`}</span>
+                {/* connector stub into circuit */}
+                <span
+                  className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full"
+                  style={{ background: CYAN, boxShadow: "0 0 5px #00d4ff" }}
+                />
               </div>
             </Link>
           ))}
@@ -127,21 +165,50 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 </feMerge>
               </filter>
             </defs>
-            <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.85">
+            {/* base traces + parallel echo lines + traveling pulses */}
+            <g filter="url(#hub-glow)" fill="none">
               {centers.map((x, i) => {
                 const d = Math.abs(i - 3); // 0 center … 3 outermost
-                if (d === 0) {
-                  // center card: straight trunk all the way to the emblem rim
-                  return <path key={i} d={`M ${x} 4 L ${x} 95`} />;
-                }
-                // nested trace: outer cards drop lowest, then jog inward to their own trunk — no crossings
-                const jogY = 48 + (d - 1) * 14; // outer cards jog deepest so traces never cross
-                const dx = d * 10; // trunk offset from center
+                const jogY = 48 + (d - 1) * 14;
+                const dx = d * 10;
                 const trunkX = 175 + Math.sign(i - 3) * dx;
-                // rim of the emblem circle (center 175,136 r=41) at this trunk x
-                const rimY = 136 - Math.sqrt(41 * 41 - dx * dx);
-                return <path key={i} d={`M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} ${rimY}`} />;
+                const rimY = d === 0 ? 95 : 136 - Math.sqrt(41 * 41 - dx * dx);
+                const main =
+                  d === 0
+                    ? `M ${x} 4 L ${x} 95`
+                    : `M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} ${rimY}`;
+                return (
+                  <g key={i}>
+                    {/* dim parallel echo trace (Jarvis double-wire look) */}
+                    <path d={main} stroke={CYAN} strokeWidth="0.5" opacity="0.3" transform="translate(1.6 1.6)" />
+                    {/* main trace */}
+                    <path id={`trace-${i}`} d={main} stroke={CYAN} strokeWidth="1" opacity="0.85" />
+                    {/* dashed data segments overlaid on vertical drop */}
+                    <path
+                      d={`M ${x} 8 L ${x} ${d === 0 ? 60 : jogY - 4}`}
+                      stroke={CYAN}
+                      strokeWidth="0.6"
+                      opacity="0.5"
+                      strokeDasharray="3 4"
+                    />
+                    {/* traveling energy pulse along the trace */}
+                    <circle r="1.3" fill="#bffbff">
+                      <animateMotion dur={`${2.2 + d * 0.5}s`} repeatCount="indefinite" begin={`${i * 0.35}s`}>
+                        <mpath href={`#trace-${i}`} />
+                      </animateMotion>
+                    </circle>
+                  </g>
+                );
               })}
+            </g>
+            {/* decorative side ticks near emblem */}
+            <g stroke={CYAN} strokeWidth="0.6" opacity="0.45" filter="url(#hub-glow)">
+              {[0, 1, 2].map((k) => (
+                <path key={k} d={`M ${140 - k * 7} ${104 + k * 4} h 6`} />
+              ))}
+              {[0, 1, 2].map((k) => (
+                <path key={`r${k}`} d={`M ${210 + k * 7} ${104 + k * 4} h -6`} />
+              ))}
             </g>
             <g fill={CYAN}>
               {centers.map((x, i) => {
@@ -481,6 +548,20 @@ function ModuleTile({
       className="relative rounded-xl border border-primary/25 bg-[#050a14] p-3 flex flex-col items-center text-center overflow-hidden"
       style={{ boxShadow: "0 0 12px rgba(0,212,255,0.08), inset 0 0 12px rgba(0,212,255,0.04)" }}
     >
+      {/* scanlines */}
+      <span
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "repeating-linear-gradient(0deg, transparent 0 4px, rgba(0,212,255,0.04) 4px 5px)" }}
+      />
+      {/* Jarvis corner brackets */}
+      {[
+        "top-1 left-1 border-t border-l rounded-tl",
+        "top-1 right-1 border-t border-r rounded-tr",
+        "bottom-1 left-1 border-b border-l rounded-bl",
+        "bottom-1 right-1 border-b border-r rounded-br",
+      ].map((pos) => (
+        <span key={pos} className={`absolute h-2 w-2 ${pos}`} style={{ borderColor: "rgba(0,212,255,0.7)" }} />
+      ))}
       <div className="hud-label text-[9px] tracking-[0.2em] text-foreground/60 self-start">{label}</div>
       <div className="my-1.5 h-12 w-12 rounded-full border border-primary/40 flex items-center justify-center"
            style={{ boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 10px rgba(0,212,255,0.2)" }}>
