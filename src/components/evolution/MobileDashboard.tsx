@@ -115,7 +115,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
           ))}
         </div>
 
-        {/* Jarvis circuit traces radiating from the bonsai to each card */}
+        {/* Jarvis circuit traces: nested right-angle wiring converging into the bonsai */}
         <svg viewBox="0 0 350 90" className="w-full block" aria-hidden="true">
           <defs>
             <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -126,31 +126,40 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
               </feMerge>
             </filter>
           </defs>
-          <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.8">
+          <g filter="url(#hub-glow)" stroke={CYAN} strokeWidth="1" fill="none" opacity="0.85">
             {centers.map((x, i) => {
-              // stepped right-angle trace: up from bonsai, across a shared bus level, up to the card
-              const busY = 62 - Math.abs(i - 3) * 8;
-              return (
-                <g key={i}>
-                  <polyline points={`${x},2 ${x},${busY - 8} ${175 + (x > 175 ? 1 : x < 175 ? -1 : 0) * 0},${busY - 8} 175,${busY - 8}`} opacity="0" />
-                  <path d={`M 175 90 L 175 ${busY} L ${x} ${busY} L ${x} 4`} />
-                </g>
-              );
+              const d = Math.abs(i - 3); // 0 center … 3 outermost
+              if (d === 0) {
+                // center card: straight trunk
+                return <path key={i} d={`M ${x} 4 L ${x} 90`} />;
+              }
+              // nested trace: outer cards drop lowest, then jog inward to their own trunk — no crossings
+              const jogY = 90 - d * 14; // outer 48 … inner 76? -> outer drops deeper
+              const trunkX = 175 + Math.sign(i - 3) * (14 + (3 - d) * 25);
+              return <path key={i} d={`M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} 90`} />;
             })}
           </g>
           <g fill={CYAN}>
             {centers.map((x, i) => {
-              const busY = 62 - Math.abs(i - 3) * 8;
+              const d = Math.abs(i - 3);
+              const jogY = 90 - d * 14;
+              const trunkX = 175 + Math.sign(i - 3) * (14 + (3 - d) * 25);
               return (
                 <g key={i}>
-                  {/* node at card pin */}
+                  {/* pin node at the card */}
                   <circle cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-                  {/* junction node at the bus bend */}
-                  <circle cx={x} cy={busY} r="1.4" opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+                  {d > 0 && (
+                    <>
+                      {/* bend node where the trace jogs inward */}
+                      <circle cx={x} cy={jogY} r="1.4" opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+                      {/* junction node where the trace meets its trunk */}
+                      <circle cx={trunkX} cy={jogY} r="1.6" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+                    </>
+                  )}
                 </g>
               );
             })}
-            {/* main junction at bonsai */}
+            {/* root node feeding the bonsai emblem */}
             <circle cx="175" cy="90" r="2.5" style={{ filter: "drop-shadow(0 0 5px #00d4ff)" }} />
           </g>
         </svg>
