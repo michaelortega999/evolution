@@ -134,16 +134,16 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 return <path key={i} d={`M ${x} 4 L ${x} 90`} />;
               }
               // nested trace: outer cards drop lowest, then jog inward to their own trunk — no crossings
-              const jogY = 90 - d * 14; // outer 48 … inner 76? -> outer drops deeper
-              const trunkX = 175 + Math.sign(i - 3) * (14 + (3 - d) * 25);
+              const jogY = 48 + (d - 1) * 14; // outer cards jog deepest so traces never cross
+              const trunkX = 175 + Math.sign(i - 3) * (14 + (d - 1) * 25);
               return <path key={i} d={`M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} 90`} />;
             })}
           </g>
           <g fill={CYAN}>
             {centers.map((x, i) => {
               const d = Math.abs(i - 3);
-              const jogY = 90 - d * 14;
-              const trunkX = 175 + Math.sign(i - 3) * (14 + (3 - d) * 25);
+              const jogY = 48 + (d - 1) * 14;
+              const trunkX = 175 + Math.sign(i - 3) * (14 + (d - 1) * 25);
               return (
                 <g key={i}>
                   {/* pin node at the card */}
