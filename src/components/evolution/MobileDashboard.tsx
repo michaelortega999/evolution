@@ -105,11 +105,11 @@ const HUB_RIM_ENDS: [number, number][] = [
 function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
   const bonsai = hologramSrc("bonsai");
   const px = (x: number) => `${(x / 350) * 100}%`;
-  const py = (y: number) => `${(y / 420) * 100}%`;
+  const py = (y: number) => `${(y / 530) * 100}%`;
 
   return (
     <div className="mt-auto flex-1 min-h-0 flex flex-col animate-fade-in">
-      <div className="relative flex-1 min-h-[400px]">
+      <div className="relative flex-1 min-h-[560px]">
         {/* corner frame brackets, like the reference HUD */}
         {[
           "top-0 left-0",
@@ -133,7 +133,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
         ))}
 
         {/* conduit circuit traces */}
-        <svg viewBox="0 0 350 420" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden="true">
+        <svg viewBox="0 0 350 530" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden="true">
           <defs>
             <filter id="hub-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="2" result="b" />
@@ -235,7 +235,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
         <button
           onClick={onUnlock}
           className="absolute -translate-x-1/2 -translate-y-1/2 h-[104px] w-[104px] rounded-full flex items-center justify-center z-10"
-          style={{ left: px(175), top: py(350) }}
+          style={{ left: px(175), top: py(470) }}
         >
           <span
             className="absolute inset-0 rounded-full border-2"
