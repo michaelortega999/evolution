@@ -319,15 +319,16 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
       {/* Tasks + Focus cards */}
       <div className="mx-4 mt-3 grid grid-cols-2 gap-3">
         {/* Today's Tasks */}
-        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col">
-          <div className="flex items-center justify-between">
+        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col relative">
+          <div className="mobile-holo mobile-holo--corner">
+            <HoloArt icon={ClipboardList} label="Tasks" variant="notes" />
+          </div>
+          <div className="flex items-center justify-between pr-14">
             <div className="flex items-center gap-1.5 min-w-0">
               <CheckSquare className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
               <span className="hud-label text-[10px] tracking-[0.15em] text-foreground truncate">TODAY'S TASKS</span>
             </div>
-            <span className="hud-label text-[10px] px-1.5 py-0.5 rounded border border-primary/40" style={{ color: CYAN }}>{openCount}</span>
           </div>
-          <HoloArt icon={ClipboardList} label="Tasks" variant="notes" />
           <ul className="flex flex-col gap-2 mt-1">
             {openTasks.map((t) => (
               <li key={t.id} className="flex items-center gap-2 min-w-0">
