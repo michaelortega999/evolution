@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
-  Hourglass, Play, Pause, RotateCcw, ChevronUp, ChevronRight, BookOpen,
+  Hourglass, Play, Pause, RotateCcw, ChevronUp, ChevronRight, BookOpen, Target,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -12,6 +12,8 @@ import {
 } from "@/lib/evolution-data";
 import { hologramSrc } from "@/lib/holograms";
 import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
+import { HoloIcon, type HoloVariant } from "./HoloIcon";
+import { HologramEmblem } from "./HologramEmblem";
 
 type Priority = "High" | "Medium" | "Low";
 
@@ -24,49 +26,43 @@ const PRIORITY_STYLES: Record<Priority, { badge: string; dot: string }> = {
 const CYAN = "#00d4ff";
 const glowText = `0 0 10px rgba(0,212,255,0.6)`;
 
-function HoloArt({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
-  // Holographic emblem: concentric rings + glowing icon
+const MODULE_ACCENTS: Record<HoloVariant | "focus", string> = {
+  wealth: "var(--module-wealth)",
+  nutrition: "var(--module-nutrition)",
+  fitness: "var(--module-fitness)",
+  journal: "var(--module-journal)",
+  notes: "var(--module-notes)",
+  investing: "var(--module-investing)",
+  business: "var(--module-business)",
+  hobby: "var(--module-hobby)",
+  focus: "var(--module-focus)",
+};
+
+function HoloArt({ icon: Icon, label, variant }: { icon: LucideIcon; label: string; variant?: HoloVariant }) {
+  const accent = MODULE_ACCENTS[variant ?? "focus"];
   return (
-    <div className="relative mx-auto my-3 h-32 w-32 flex items-center justify-center">
-      <div
-        className="absolute inset-0 rounded-full border"
-        style={{ borderColor: "rgba(0,212,255,0.25)", boxShadow: "inset 0 0 24px rgba(0,212,255,0.12)" }}
-      />
-      <div
-        className="absolute inset-3 rounded-full border border-dashed"
-        style={{ borderColor: "rgba(0,212,255,0.2)" }}
-      />
-      <div
-        className="absolute inset-x-6 bottom-2 h-4 rounded-[50%]"
-        style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.35), transparent 70%)", filter: "blur(2px)" }}
-      />
-      <div
-        className="relative h-20 w-20 rounded-2xl border flex items-center justify-center"
-        style={{
-          borderColor: "rgba(0,212,255,0.5)",
-          background: "linear-gradient(180deg, rgba(0,212,255,0.12), rgba(0,212,255,0.03))",
-          boxShadow: "0 0 24px rgba(0,212,255,0.35), inset 0 0 16px rgba(0,212,255,0.18)",
-        }}
-      >
-        <Icon
-          className="h-11 w-11"
-          style={{ color: CYAN, filter: "drop-shadow(0 0 8px rgba(0,212,255,0.9))" }}
-          strokeWidth={1.4}
-          aria-label={label}
-        />
-      </div>
+    <div className="mobile-holo mobile-holo--feature" style={{ color: accent, "--glow": accent } as React.CSSProperties} aria-label={label}>
+      {variant ? <HoloIcon variant={variant} /> : (
+        <div className="mobile-focus-holo" aria-hidden="true">
+          <span className="mobile-focus-holo__orbit" />
+          <span className="mobile-focus-holo__orbit mobile-focus-holo__orbit--tilted" />
+          <Icon className="mobile-focus-holo__icon" strokeWidth={1.2} />
+          <span className="mobile-focus-holo__base" />
+          <span className="mobile-focus-holo__scan" />
+        </div>
+      )}
     </div>
   );
 }
 
-const HUB_MODULES: { icon: LucideIcon; label: string; to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal" }[] = [
-  { icon: Wallet, label: "WEALTH", to: "/wealth" },
-  { icon: Dumbbell, label: "FITNESS", to: "/fitness" },
-  { icon: Apple, label: "NUTRITION", to: "/nutrition" },
-  { icon: Zap, label: "FOCUS", to: "/focus" },
-  { icon: TrendingUp, label: "INVESTING", to: "/investing" },
-  { icon: Briefcase, label: "BUSINESS", to: "/business" },
-  { icon: BookOpen, label: "JOURNAL", to: "/journal" },
+const HUB_MODULES: { icon: LucideIcon; variant?: HoloVariant; label: string; to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal" }[] = [
+  { icon: Wallet, variant: "wealth", label: "WEALTH", to: "/wealth" },
+  { icon: Dumbbell, variant: "fitness", label: "FITNESS", to: "/fitness" },
+  { icon: Apple, variant: "nutrition", label: "NUTRITION", to: "/nutrition" },
+  { icon: Target, label: "FOCUS", to: "/focus" },
+  { icon: TrendingUp, variant: "investing", label: "INVESTING", to: "/investing" },
+  { icon: Briefcase, variant: "business", label: "BUSINESS", to: "/business" },
+  { icon: BookOpen, variant: "journal", label: "JOURNAL", to: "/journal" },
 ];
 
 /** Rectangular module hub wired to the bonsai emblem with Jarvis circuit lines. */
@@ -81,68 +77,17 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
       {/* rectangle module row + circuit wiring */}
       <div className="relative px-3">
         <div className="grid grid-cols-7 gap-1 relative z-10">
-          {HUB_MODULES.map(({ icon: Icon, label, to }) => (
+          {HUB_MODULES.map(({ icon: Icon, variant, label, to }, moduleIndex) => (
             <Link key={label} to={to} className="flex flex-col items-center gap-1 group">
               <div
-                className="relative w-full aspect-[3/4] rounded-sm flex flex-col items-center justify-center gap-1 transition-transform group-active:scale-95 px-0.5 py-2"
-                style={{
-                  background: "linear-gradient(180deg, rgba(0,212,255,0.18), rgba(0,212,255,0.04))",
-                  border: "1px solid rgba(0,212,255,0.3)",
-                  boxShadow: "0 0 10px rgba(0,212,255,0.25), inset 0 0 8px rgba(0,212,255,0.15)",
-                }}
+                className="hud-card hud-scan mobile-hud-card mobile-hub-card relative w-full aspect-[3/4] flex flex-col items-center justify-end gap-0.5 transition-transform group-active:scale-95 px-0.5 pb-1.5"
+                style={{ "--glow": MODULE_ACCENTS[variant ?? "focus"] } as React.CSSProperties}
               >
-                {/* scanline sweep */}
-                <span
-                  className="absolute inset-0 rounded-sm pointer-events-none"
-                  style={{
-                    background: "repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,212,255,0.05) 3px 4px)",
-                  }}
-                />
-                {/* top micro-bar */}
-                <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-1/2"
-                  style={{ background: "linear-gradient(90deg, transparent, #00d4ff, transparent)", boxShadow: "0 0 6px #00d4ff" }}
-                />
-                {/* Jarvis corner brackets with tick marks */}
-                {[
-                  "top-0 left-0 border-t border-l rounded-tl-sm",
-                  "top-0 right-0 border-t border-r rounded-tr-sm",
-                  "bottom-0 left-0 border-b border-l rounded-bl-sm",
-                  "bottom-0 right-0 border-b border-r rounded-br-sm",
-                ].map((pos) => (
-                  <span
-                    key={pos}
-                    className={`absolute h-2 w-2 ${pos}`}
-                    style={{ borderColor: CYAN, boxShadow: "0 0 5px rgba(0,212,255,0.9)" }}
-                  />
-                ))}
-                {/* side tick marks */}
-                {[18, 34, 50].map((t) => (
-                  <span
-                    key={t}
-                    className="absolute left-0 w-[3px] h-px"
-                    style={{ top: `${t}%`, background: CYAN, opacity: 0.55, boxShadow: "0 0 3px #00d4ff" }}
-                  />
-                ))}
-                {[18, 34, 50].map((t) => (
-                  <span
-                    key={`r${t}`}
-                    className="absolute right-0 w-[3px] h-px"
-                    style={{ top: `${t}%`, background: CYAN, opacity: 0.55, boxShadow: "0 0 3px #00d4ff" }}
-                  />
-                ))}
-                {/* icon with micro-ring */}
-                <div className="relative flex items-center justify-center">
-                  <span className="absolute h-6 w-6 rounded-full border border-dashed" style={{ borderColor: "rgba(0,212,255,0.4)" }} />
-                  <Icon
-                    className="h-4 w-4"
-                    style={{ color: CYAN, filter: "drop-shadow(0 0 5px #00d4ff)" }}
-                    strokeWidth={1.5}
-                  />
+                <div className="mobile-holo mobile-holo--hub">
+                  {variant ? <HoloIcon variant={variant} /> : <HoloArt icon={Icon} label={label} />}
                 </div>
                 <span className="hud-label text-[5px] tracking-[0.08em] text-foreground/90 text-center leading-none">{label}</span>
-                {/* bottom data strip */}
-                <span className="hud-label text-[4px] tracking-[0.2em] text-primary/50 leading-none">{`SYS·0${HUB_MODULES.findIndex((m) => m.label === label) + 1}`}</span>
+                <span className="hud-label text-[4px] tracking-[0.2em] text-primary/50 leading-none">{`SYS·0${moduleIndex + 1}`}</span>
                 {/* connector stub into circuit */}
                 <span
                   className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full"
@@ -350,25 +295,13 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
           <br />
           EVERYDAY."
         </div>
-        <div className="relative mx-auto w-64 h-64 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border" style={{ borderColor: "rgba(0,212,255,0.18)" }} />
-          <div className="absolute inset-4 rounded-full border border-dashed" style={{ borderColor: "rgba(0,212,255,0.15)" }} />
-          <div
-            className="absolute inset-x-8 bottom-4 h-6 rounded-[50%]"
-            style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.4), transparent 70%)", filter: "blur(4px)" }}
-          />
-          <img
-            src={bonsai}
-            alt="Evolution bonsai hologram"
-            className="relative w-52 h-52 object-contain"
-            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 24px rgba(0,212,255,0.7))" }}
-          />
+        <div className="relative mx-auto w-64 h-64 flex items-center justify-center mobile-bonsai-hero">
+          <HologramEmblem kind="bonsai" size={250} />
         </div>
       </div>
 
       {/* Greeting bar */}
-      <div className="mx-4 mt-2 rounded-xl border border-primary/30 bg-[#050a14] px-4 py-3 flex items-center justify-between gap-3"
-           style={{ boxShadow: "0 0 16px rgba(0,212,255,0.1)" }}>
+      <div className="mx-4 mt-2 hud-card hud-scan mobile-hud-card px-4 py-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="hud-label text-sm tracking-[0.15em] text-foreground">GOOD MORNING, {name.toUpperCase()}.</div>
           <div className="text-[11px] text-muted-foreground mt-0.5">Discipline. Focus. Consistency. Freedom.</div>
@@ -392,8 +325,7 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
       {/* Tasks + Focus cards */}
       <div className="mx-4 mt-3 grid grid-cols-2 gap-3">
         {/* Today's Tasks */}
-        <div className="rounded-xl border border-primary/30 bg-[#050a14] p-3 flex flex-col"
-             style={{ boxShadow: "0 0 16px rgba(0,212,255,0.08)" }}>
+        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 min-w-0">
               <CheckSquare className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
@@ -401,7 +333,7 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
             </div>
             <span className="hud-label text-[10px] px-1.5 py-0.5 rounded border border-primary/40" style={{ color: CYAN }}>{openCount}</span>
           </div>
-          <HoloArt icon={ClipboardList} label="Tasks" />
+          <HoloArt icon={ClipboardList} label="Tasks" variant="notes" />
           <ul className="flex flex-col gap-2 mt-1">
             {openTasks.map((t) => (
               <li key={t.id} className="flex items-center gap-2 min-w-0">
@@ -423,8 +355,7 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
         </div>
 
         {/* Focus Mode */}
-        <div className="rounded-xl border border-primary/30 bg-[#050a14] p-3 flex flex-col"
-             style={{ boxShadow: "0 0 16px rgba(0,212,255,0.08)" }}>
+        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col">
           <div className="flex items-center gap-1.5">
             <Zap className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
             <span className="hud-label text-[10px] tracking-[0.15em] text-foreground">FOCUS MODE</span>
@@ -537,37 +468,22 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
 }
 
 function ModuleTile({
-  icon: Icon, label, value, sub, pct, to,
+  icon: Icon, variant, label, value, sub, pct, to,
 }: {
-  icon: LucideIcon; label: string; value: string; sub: string; pct: number;
+  icon: LucideIcon; variant?: HoloVariant; label: string; value: string; sub: string; pct: number;
   to: "/notes" | "/focus" | "/wealth" | "/nutrition" | "/fitness" | "/investing" | "/business" | "/hobby";
 }) {
   return (
     <Link
       to={to}
-      className="relative rounded-xl border border-primary/25 bg-[#050a14] p-3 flex flex-col items-center text-center overflow-hidden"
-      style={{ boxShadow: "0 0 12px rgba(0,212,255,0.08), inset 0 0 12px rgba(0,212,255,0.04)" }}
+      className="hud-card hud-scan mobile-hud-card mobile-module-card relative p-3 flex flex-col items-center text-center overflow-hidden"
+      style={{ "--glow": MODULE_ACCENTS[variant ?? "focus"] } as React.CSSProperties}
     >
-      {/* scanlines */}
-      <span
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: "repeating-linear-gradient(0deg, transparent 0 4px, rgba(0,212,255,0.04) 4px 5px)" }}
-      />
-      {/* Jarvis corner brackets */}
-      {[
-        "top-1 left-1 border-t border-l rounded-tl",
-        "top-1 right-1 border-t border-r rounded-tr",
-        "bottom-1 left-1 border-b border-l rounded-bl",
-        "bottom-1 right-1 border-b border-r rounded-br",
-      ].map((pos) => (
-        <span key={pos} className={`absolute h-2 w-2 ${pos}`} style={{ borderColor: "rgba(0,212,255,0.7)" }} />
-      ))}
       <div className="hud-label text-[9px] tracking-[0.2em] text-foreground/60 self-start">{label}</div>
-      <div className="my-1.5 h-12 w-12 rounded-full border border-primary/40 flex items-center justify-center"
-           style={{ boxShadow: "0 0 14px rgba(0,212,255,0.35), inset 0 0 10px rgba(0,212,255,0.2)" }}>
-        <Icon className="h-6 w-6" style={{ color: "#00d4ff", filter: "drop-shadow(0 0 6px #00d4ff)" }} />
+      <div className="mobile-holo mobile-holo--tile">
+        {variant ? <HoloIcon variant={variant} /> : <HoloArt icon={Icon} label={label} />}
       </div>
-      <div className="hud-label text-base leading-tight" style={{ color: "#00d4ff", textShadow: "0 0 10px rgba(0,212,255,0.5)" }}>{value}</div>
+      <div className="hud-label text-base leading-tight" style={{ color: MODULE_ACCENTS[variant ?? "focus"], textShadow: "0 0 10px color-mix(in oklab, var(--glow) 55%, transparent)" }}>{value}</div>
       <div className="text-[9px] text-muted-foreground mt-0.5">{sub}</div>
       <div className="mt-2 w-full flex items-center gap-2">
         <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
@@ -714,28 +630,28 @@ export function MobileDashboard() {
 
       {/* Module grid */}
       <section className="px-4 grid grid-cols-4 gap-2">
-        <ModuleTile icon={CheckSquare} label="TASKS" value={String(openTasks.length)} sub="Tasks Today" pct={tasksPct} to="/notes" />
-        <ModuleTile icon={Zap} label="FOCUS" value={focusStr} sub="Current Session" pct={focusPct} to="/focus" />
-        <ModuleTile icon={Wallet} label="WEALTH" value={fmtMoney(wealth.netWorth)} sub="Net Worth" pct={wealthPct} to="/wealth" />
-        <ModuleTile icon={Apple} label="NUTRITION" value={t.kcal.toLocaleString()} sub="Calories Today" pct={calPct} to="/nutrition" />
+        <ModuleTile icon={CheckSquare} variant="notes" label="TASKS" value={String(openTasks.length)} sub="Tasks Today" pct={tasksPct} to="/notes" />
+        <ModuleTile icon={Target} label="FOCUS" value={focusStr} sub="Current Session" pct={focusPct} to="/focus" />
+        <ModuleTile icon={Wallet} variant="wealth" label="WEALTH" value={fmtMoney(wealth.netWorth)} sub="Net Worth" pct={wealthPct} to="/wealth" />
+        <ModuleTile icon={Apple} variant="nutrition" label="NUTRITION" value={t.kcal.toLocaleString()} sub="Calories Today" pct={calPct} to="/nutrition" />
       </section>
       <section className="px-4 mt-2 grid grid-cols-4 gap-2">
-        <ModuleTile icon={Dumbbell} label="FITNESS" value={String(fit.daysHit)} sub="Sessions" pct={fitPct} to="/fitness" />
+        <ModuleTile icon={Dumbbell} variant="fitness" label="FITNESS" value={String(fit.daysHit)} sub="Sessions" pct={fitPct} to="/fitness" />
         <ModuleTile
           icon={TrendingUp}
+          variant="investing"
           label="INVESTING"
           value={`${investPnl >= 0 ? "+" : "-"}${fmtMoney(Math.abs(investPnl))}`}
           sub="Today's P/L"
           pct={investPct}
           to="/investing"
         />
-        <ModuleTile icon={Briefcase} label="BUSINESS" value={String(activeProjects)} sub="Active Projects" pct={avgProgress} to="/business" />
-        <ModuleTile icon={Star} label="HOBBY" value={`${hobbyH}h ${hobbyM}m`} sub="Time Today" pct={hobbyPct} to="/hobby" />
+        <ModuleTile icon={Briefcase} variant="business" label="BUSINESS" value={String(activeProjects)} sub="Active Projects" pct={avgProgress} to="/business" />
+        <ModuleTile icon={Star} variant="hobby" label="HOBBY" value={`${hobbyH}h ${hobbyM}m`} sub="Time Today" pct={hobbyPct} to="/hobby" />
       </section>
 
       {/* Tasks & To Do */}
-      <section className="mx-4 mt-5 rounded-2xl border border-primary/25 bg-[#050a14] p-4"
-               style={{ boxShadow: "0 0 16px rgba(0,212,255,0.08)" }}>
+      <section className="mx-4 mt-5 hud-card hud-scan mobile-hud-card p-4">
         <div className="flex items-center justify-between">
           <div className="hud-label text-sm text-foreground tracking-[0.2em]">TASKS &amp; TO DO</div>
           <Link to="/notes" className="text-xs" style={{ color: "#00d4ff" }}>

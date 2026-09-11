@@ -59,6 +59,15 @@
   --ring: oklch(0.78 0.22 240);
   --glow: oklch(0.78 0.22 240);
   --grid-line: oklch(0.6 0.2 260 / 0.10);
+  --module-wealth: oklch(0.78 0.18 78);
+  --module-nutrition: oklch(0.72 0.20 145);
+  --module-fitness: oklch(0.72 0.20 48);
+  --module-journal: oklch(0.68 0.21 305);
+  --module-notes: oklch(0.80 0.18 95);
+  --module-investing: oklch(0.73 0.16 210);
+  --module-business: oklch(0.67 0.18 250);
+  --module-hobby: oklch(0.68 0.20 345);
+  --module-focus: var(--primary);
 }
 
 .dark {
@@ -370,6 +379,137 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Mobile uses the exact desktop HUD construction at a compact scale. */
+  .mobile-hud-card {
+    --hud-chamfer: 14px;
+    --hud-chamfer-sm: 6px;
+    filter: drop-shadow(0 0 6px color-mix(in oklab, var(--glow) 28%, transparent));
+  }
+  .mobile-hud-card::after {
+    background-size: 36px 36px, 36px 36px, 24px 24px, 24px 24px;
+    opacity: 0.9;
+  }
+  .mobile-hub-card {
+    --hud-chamfer: 7px;
+    --hud-chamfer-sm: 3px;
+  }
+  .mobile-hub-card::after {
+    background-size: 18px 18px, 18px 18px, 12px 12px, 12px 12px;
+    opacity: 0.75;
+  }
+  .mobile-holo {
+    position: relative;
+    flex: none;
+    color: var(--glow);
+  }
+  .mobile-holo .holo-jarvis {
+    top: 50%;
+    right: auto;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    color: inherit;
+    animation: holo-j-float 3.5s ease-in-out infinite;
+  }
+  .mobile-holo .holo-j-svg {
+    color: inherit;
+  }
+  .mobile-holo--feature {
+    width: 112px;
+    height: 112px;
+    margin: 0.35rem auto;
+  }
+  .mobile-holo--hub {
+    width: 36px;
+    height: 36px;
+  }
+  .mobile-holo--hub .mobile-holo--feature {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+  }
+  .mobile-holo--hub .holo-j-base {
+    width: 28px;
+    height: 5px;
+    bottom: 1px;
+  }
+  .mobile-holo--hub .holo-j-base--inner {
+    width: 16px;
+    height: 3px;
+  }
+  .mobile-holo--hub .holo-j-node {
+    width: 2px;
+    height: 2px;
+    margin: -1px 0 0 -1px;
+  }
+  .mobile-holo--tile {
+    width: 54px;
+    height: 54px;
+    margin: 0.1rem auto;
+  }
+  .mobile-holo--tile .mobile-holo--feature {
+    width: 54px;
+    height: 54px;
+    margin: 0;
+  }
+  .mobile-holo--tile .holo-j-base {
+    width: 38px;
+    height: 6px;
+    bottom: 2px;
+  }
+  .mobile-module-card {
+    min-width: 0;
+  }
+  .mobile-focus-holo {
+    position: absolute;
+    inset: 7%;
+    display: grid;
+    place-items: center;
+    perspective: 600px;
+    animation: holo-j-float 3.5s ease-in-out infinite;
+  }
+  .mobile-focus-holo__orbit {
+    position: absolute;
+    inset: 5%;
+    border: 1px solid color-mix(in oklab, currentColor 55%, transparent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px color-mix(in oklab, currentColor 45%, transparent);
+    animation: holo-j-orbit-1 9s linear infinite;
+  }
+  .mobile-focus-holo__orbit--tilted {
+    inset: 16%;
+    animation: holo-j-orbit-2 12s linear infinite reverse;
+  }
+  .mobile-focus-holo__icon {
+    width: 54%;
+    height: 54%;
+    color: currentColor;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+  .mobile-focus-holo__base {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 2%;
+    height: 10%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, color-mix(in oklab, currentColor 70%, transparent), transparent 72%);
+    filter: blur(2px);
+  }
+  .mobile-focus-holo__scan {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: currentColor;
+    box-shadow: 0 0 7px currentColor;
+    animation: holo-j-scan-sweep 2.6s ease-in-out infinite;
+  }
+  .mobile-bonsai-hero .holo-emblem {
+    transform: scale(0.96);
   }
 }
 
