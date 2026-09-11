@@ -434,6 +434,7 @@
   /* Reduced motion for hub holograms: no float, slow orbits, no scan sweep. */
   .mobile-holo--hub .holo-jarvis {
     animation: none;
+    transform: translate(-50%, -50%) scale(0.62);
   }
   .mobile-holo--hub .holo-j-orbit {
     animation-duration: 14s !important;
