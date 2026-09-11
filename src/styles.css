@@ -460,6 +460,52 @@
   .mobile-holo--corner .holo-j-scan {
     display: none;
   }
+  /* Tasks hologram: lower-right, below the header, same 112px footprint as Focus hourglass */
+  .mobile-holo--tasks {
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    width: 112px;
+    height: 112px;
+    pointer-events: none;
+    z-index: 5;
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
+  }
+  .mobile-holo--tasks .mobile-holo--feature {
+    width: 112px;
+    height: 112px;
+    margin: 0;
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
+  }
+  .mobile-holo--tasks .holo-jarvis {
+    top: 0;
+    right: 0;
+    left: auto;
+    width: 186px;
+    height: 186px;
+    transform: translate(0, 0) scale(0.6);
+    transform-origin: top right;
+    animation: none;
+    color: #00d4ff !important;
+  }
+  .mobile-holo--tasks .holo-j-svg {
+    color: #00d4ff !important;
+  }
+  .mobile-holo--tasks .holo-j-base {
+    width: 74px;
+    height: 10px;
+    bottom: 5px;
+  }
+  .mobile-holo--tasks .holo-j-base--inner {
+    width: 46px;
+    height: 6px;
+    bottom: 7px;
+  }
+  .mobile-holo--tasks .holo-j-scan {
+    display: none;
+  }
   .mobile-holo--hub {
     width: 26px;
     height: 26px;
