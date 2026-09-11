@@ -81,7 +81,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
             <Link key={label} to={to} className="flex flex-col items-center gap-0.5 group">
               <div
                 className="mobile-hub-item relative w-full flex flex-col items-center gap-1 transition-transform group-active:scale-95 py-1"
-                style={{ "--glow": MODULE_ACCENTS[variant ?? "focus"] } as React.CSSProperties}
+                style={{ color: CYAN, "--glow": CYAN } as React.CSSProperties}
               >
                 <div className="mobile-holo mobile-holo--hub">
                   {variant ? <HoloIcon variant={variant} /> : <HoloArt icon={Icon} label={label} />}
@@ -216,7 +216,7 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
-function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap: () => void; onUnlock: () => void }) {
+function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
   const name = data.profile.name || "Operator";
@@ -238,8 +238,6 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
   const fH = Math.floor(todayFocusSec / 3600);
   const fM = Math.floor((todayFocusSec % 3600) / 60);
   const deepWork = fH > 0 ? `${fH}h ${fM}m` : `${fM}m`;
-
-  const bonsai = hologramSrc("bonsai");
 
   return (
     <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-hidden">
@@ -421,43 +419,8 @@ function LockScreen({ stage, onFirstTap, onUnlock }: { stage: number; onFirstTap
         </div>
       </div>
 
-      {/* Unlock — stage 0: simple emblem; stage 1: module hub wired to bonsai */}
-      {stage >= 1 ? (
-        <ModuleHub onUnlock={onUnlock} />
-      ) : (
-      <div className="mt-auto flex flex-col items-center pt-6 pb-8">
-        <ChevronUp className="h-4 w-4 mb-1 animate-bounce" style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }} />
-        <button onClick={onFirstTap} className="relative h-24 w-24 rounded-full flex items-center justify-center">
-          <span
-            className="absolute inset-0 rounded-full border-2"
-            style={{ borderColor: "rgba(0,212,255,0.6)", boxShadow: "0 0 24px rgba(0,212,255,0.4), inset 0 0 20px rgba(0,212,255,0.2)" }}
-          />
-          <span
-            className="absolute inset-x-4 bottom-2 h-3 rounded-[50%]"
-            style={{ background: "radial-gradient(ellipse, rgba(0,212,255,0.4), transparent 70%)", filter: "blur(2px)" }}
-          />
-          <img
-            src={bonsai}
-            alt="Unlock Evolution OS"
-            className="h-16 w-16 object-contain"
-            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 12px rgba(0,212,255,0.8))" }}
-          />
-        </button>
-        <div className="hud-label text-[9px] tracking-[0.35em] text-muted-foreground mt-2">TAP TO UNLOCK</div>
-        <div className="w-full px-5 mt-3 flex items-end justify-between">
-          <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground leading-relaxed">
-            EVOLUTION OS
-            <br />
-            v2.1.0
-          </div>
-          <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground text-right leading-relaxed">
-            HIGHER STANDARDS.
-            <br />
-            BRIGHTER DAYS.
-          </div>
-        </div>
-      </div>
-      )}
+      {/* Default unlock layer: module holograms wired to the bonsai. */}
+      <ModuleHub onUnlock={onUnlock} />
     </div>
   );
 }
@@ -506,7 +469,7 @@ function fmtMoney(n: number) {
 export function MobileDashboard() {
   const { data } = useEvolutionData();
   const { pathname } = useLocation();
-  const [stage, setStage] = useState(0);
+  const [stage, setStage] = useState(1);
   const name = data.profile.name || "Operator";
 
   const today = todayDate();
@@ -568,13 +531,9 @@ export function MobileDashboard() {
     { icon: Star, to: "/hobby" },
   ];
 
-  if (stage < 2) {
+  if (stage === 1) {
     return (
-      <LockScreen
-        stage={stage}
-        onFirstTap={() => setStage(1)}
-        onUnlock={() => setStage(2)}
-      />
+      <LockScreen onUnlock={() => setStage(2)} />
     );
   }
 
@@ -691,7 +650,7 @@ export function MobileDashboard() {
       {/* Floating bonsai — tap to return to first screen */}
       <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom),8px))] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
         <button
-          onClick={() => setStage(0)}
+          onClick={() => setStage(1)}
           className="relative h-14 w-14 rounded-full flex items-center justify-center"
           aria-label="Back to lock screen"
         >
