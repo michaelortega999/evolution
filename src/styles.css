@@ -460,22 +460,22 @@
   .mobile-holo--corner .holo-j-scan {
     display: none;
   }
-  /* Tasks hologram: centered near top of card with an intentionally oversized projection. */
+  /* Tasks hologram: same size as the Focus card hologram. */
   .mobile-holo--tasks {
     position: absolute;
-    top: 18%;
+    top: 22%;
     left: 50%;
     transform: translateX(-50%);
-    width: 180px;
-    height: 180px;
+    width: 112px;
+    height: 112px;
     pointer-events: none;
     z-index: 5;
     color: #00d4ff !important;
     --glow: #00d4ff !important;
   }
   .mobile-holo--tasks .mobile-holo--feature {
-    width: 180px;
-    height: 180px;
+    width: 112px;
+    height: 112px;
     margin: 0;
     color: #00d4ff !important;
     --glow: #00d4ff !important;
@@ -484,25 +484,25 @@
     top: 50%;
     left: 50%;
     right: auto;
-    width: 280px !important;
-    height: 280px !important;
-    transform: translate(-50%, -50%) scale(0.6);
+    width: 112px !important;
+    height: 112px !important;
+    transform: translate(-50%, -50%);
     transform-origin: center;
-    animation: none;
+    animation: holo-j-float 3.5s ease-in-out infinite;
     color: #00d4ff !important;
   }
   .mobile-holo--tasks .holo-j-svg {
     color: #00d4ff !important;
   }
   .mobile-holo--tasks .holo-j-base {
-    width: 222px;
-    height: 30px;
-    bottom: 14px;
+    width: 80px;
+    height: 10px;
+    bottom: 4px;
   }
   .mobile-holo--tasks .holo-j-base--inner {
-    width: 72px;
-    height: 10px;
-    bottom: 10px;
+    width: 48px;
+    height: 5px;
+    bottom: 6px;
   }
   .mobile-holo--tasks .holo-j-scan {
     display: none;
