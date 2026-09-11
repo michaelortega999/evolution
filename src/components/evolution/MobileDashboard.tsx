@@ -110,27 +110,47 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 </feMerge>
               </filter>
             </defs>
-            {/* base traces + parallel echo lines + traveling pulses */}
+            {/* base traces + parallel echo lines, chamfered conduit corners */}
             <g filter="url(#hub-glow)" fill="none">
               {centers.map((x, i) => {
                 const d = Math.abs(i - 3); // 0 center … 3 outermost
                 const jogY = 48 + (d - 1) * 14;
                 const dx = d * 10;
-                const trunkX = 175 + Math.sign(i - 3) * dx;
+                const dir = Math.sign(i - 3);
+                const trunkX = 175 + dir * dx;
                 const rimY = d === 0 ? 95 : 136 - Math.sqrt(41 * 41 - dx * dx);
+                const span = Math.abs(trunkX - x);
+                // chamfer size clamped so bends never overlap
+                const c = Math.max(3, Math.min(9, span / 2 - 1));
+                const hdir = Math.sign(trunkX - x) || 1;
                 const main =
                   d === 0
                     ? `M ${x} 4 L ${x} 95`
-                    : `M ${x} 4 L ${x} ${jogY} L ${trunkX} ${jogY} L ${trunkX} ${rimY}`;
+                    : [
+                        `M ${x} 4`,
+                        `L ${x} ${jogY - c}`,
+                        `L ${x + hdir * c} ${jogY}`,
+                        `L ${trunkX - hdir * c} ${jogY}`,
+                        `L ${trunkX} ${jogY + c}`,
+                        `L ${trunkX} ${rimY}`,
+                      ].join(" ");
                 return (
                   <g key={i}>
                     {/* dim parallel echo trace (Jarvis double-wire look) */}
                     <path d={main} stroke={CYAN} strokeWidth="0.5" opacity="0.3" transform="translate(1.6 1.6)" />
                     {/* main trace */}
-                    <path id={`trace-${i}`} d={main} stroke={CYAN} strokeWidth="1" opacity="0.85" />
+                    <path
+                      id={`trace-${i}`}
+                      d={main}
+                      stroke={CYAN}
+                      strokeWidth="1"
+                      opacity="0.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                     {/* dashed data segments overlaid on vertical drop */}
                     <path
-                      d={`M ${x} 8 L ${x} ${d === 0 ? 60 : jogY - 4}`}
+                      d={`M ${x} 10 L ${x} ${d === 0 ? 60 : jogY - c - 4}`}
                       stroke={CYAN}
                       strokeWidth="0.6"
                       opacity="0.5"
@@ -149,28 +169,41 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
                 <path key={`r${k}`} d={`M ${210 + k * 7} ${104 + k * 4} h -6`} />
               ))}
             </g>
-            <g fill={CYAN}>
+            <g>
               {centers.map((x, i) => {
                 const d = Math.abs(i - 3);
                 const jogY = 48 + (d - 1) * 14;
                 const dx = d * 10;
-                const trunkX = 175 + Math.sign(i - 3) * dx;
+                const dir = Math.sign(i - 3);
+                const trunkX = 175 + dir * dx;
+                const span = Math.abs(trunkX - x);
+                const c = Math.max(3, Math.min(9, span / 2 - 1));
+                const hdir = Math.sign(trunkX - x) || 1;
                 return (
                   <g key={i}>
-                    {/* pin node at the card */}
-                    <circle cx={x} cy={4} r="2" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+                    {/* hollow terminal ring at the card, like the reference */}
+                    <circle
+                      cx={x}
+                      cy={4}
+                      r="2.4"
+                      fill="none"
+                      stroke={CYAN}
+                      strokeWidth="0.9"
+                      style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }}
+                    />
                     {d > 0 && (
                       <>
-                        {/* bend node where the trace jogs inward */}
-                        <circle cx={x} cy={jogY} r="1.4" opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
-                        {/* junction node where the trace meets its trunk */}
-                        <circle cx={trunkX} cy={jogY} r="1.6" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
+                        {/* glow nodes at each chamfered bend */}
+                        <circle cx={x} cy={jogY - c} r="1.2" fill={CYAN} opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+                        <circle cx={x + hdir * c} cy={jogY} r="1.2" fill={CYAN} opacity="0.9" style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }} />
+                        <circle cx={trunkX} cy={jogY + c} r="1.5" fill={CYAN} style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }} />
                       </>
                     )}
                   </g>
                 );
               })}
             </g>
+
           </svg>
 
           {/* bonsai unlock emblem — traces land on its rim */}
