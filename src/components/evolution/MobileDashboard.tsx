@@ -177,28 +177,6 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
         </div>
       </div>
 
-      {/* Hero bonsai */}
-      <div className="relative px-5 mt-4">
-        <div className="absolute left-5 top-1/2 -translate-y-1/2 hud-label text-[9px] tracking-[0.25em] text-muted-foreground leading-loose">
-          DISCIPLINE
-          <br />
-          FOCUS
-          <br />
-          CONSISTENCY
-          <br />
-          FREEDOM
-        </div>
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 text-right hud-label text-[9px] tracking-[0.2em] leading-relaxed" style={{ color: CYAN, textShadow: glowText }}>
-          "A BETTER YOU
-          <br />
-          EVERYDAY."
-        </div>
-        <div className="relative mx-auto w-64 h-64 flex items-center justify-center mobile-bonsai-hero">
-          <HologramEmblem kind="bonsai" size={250} />
-        </div>
-      </div>
-
-
       {/* Default unlock layer: module holograms wired to the bonsai. */}
       <ModuleHub onUnlock={onUnlock} />
 
