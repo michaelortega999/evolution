@@ -377,6 +377,7 @@ export function MobileDashboard() {
   const investPct = Math.min(100, Math.abs(investPnl) / 100);
 
   const heroSrc = hologramSrc(data.profile.hologram);
+  const bonsai = hologramSrc("bonsai");
 
   const bottomNav: {
     icon: LucideIcon;
