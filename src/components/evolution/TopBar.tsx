@@ -50,11 +50,6 @@ export function TopBar() {
           </div>
         </div>
 
-        <div className="hidden md:block px-4 py-2 border border-border rounded-md">
-          <div className="hud-label text-[9px] text-muted-foreground">{dayName}</div>
-          <div className="hud-label text-xs text-foreground">{dateStr}</div>
-          <div className="hud-label text-[10px] text-primary hud-glow">{timeStr}</div>
-        </div>
 
         <button className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-primary hover:bg-primary/10 transition-colors relative">
           <Bell className="h-4 w-4" />
