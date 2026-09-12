@@ -220,17 +220,17 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       />
 
       {/* Top bar */}
-      <div className="px-5 pt-6 flex items-start justify-between gap-4">
-        <div>
-          <div className="hud-label text-lg tracking-[0.35em] text-foreground" style={{ textShadow: "0 0 10px rgba(0,212,255,0.5)" }}>EVOLUTION OS</div>
-          <div className="hud-label text-[8px] tracking-[0.3em] mt-1" style={{ color: CYAN, textShadow: "0 0 8px rgba(0,212,255,0.6)" }}>
+      <div className="px-4 pt-4 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="hud-label text-base tracking-[0.3em] text-foreground" style={{ textShadow: "0 0 10px rgba(0,212,255,0.5)" }}>EVOLUTION OS</div>
+          <div className="hud-label text-[7px] tracking-[0.25em] mt-0.5" style={{ color: CYAN, textShadow: "0 0 8px rgba(0,212,255,0.6)" }}>
             HIGHER STANDARDS. BRIGHTER DAYS.
           </div>
         </div>
-        <div className="flex flex-col items-end gap-3">
-          <button className="text-foreground/80 relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
+        <div className="flex items-center gap-2 shrink-0">
+          <button className="text-foreground/80 relative p-1">
+            <Bell className="h-4 w-4" />
+            <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
           </button>
           <DateTimeCard />
         </div>
