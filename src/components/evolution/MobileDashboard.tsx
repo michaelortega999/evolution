@@ -122,12 +122,6 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
   const name = data.profile.name || "Operator";
-  const now = new Date();
-  const dayName = now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase();
-  const dateStr = now
-    .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    .toUpperCase();
-  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
   const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
@@ -151,25 +145,16 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       />
 
       {/* Top bar */}
-      <div className="px-5 pt-6 flex items-start justify-between">
-        <div>
-          <div className="hud-label text-lg tracking-[0.35em] text-foreground">EVOLUTION OS</div>
-          <div className="hud-label text-[9px] tracking-[0.2em] text-muted-foreground mt-1 leading-relaxed">
-            GROWING TODAY.
-            <br />
-            BUILDING TOMORROW.
-            <br />
-            FOREVER.
-          </div>
-        </div>
+      <div className="px-5 pt-6 flex items-start justify-between gap-4">
+        <div className="hud-label text-lg tracking-[0.35em] text-foreground">EVOLUTION OS</div>
         <div className="flex flex-col items-end gap-3">
           <button className="text-foreground/80 relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
           </button>
-          <div className="rounded-md border border-primary/40 px-2.5 py-1.5 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
-            <div className="hud-label text-[8px] text-muted-foreground tracking-[0.15em]">{dayName}</div>
-            <div className="hud-label text-[10px]" style={{ color: CYAN, textShadow: glowText }}>{dateStr}</div>
+          <div className="rounded-md border border-primary/40 px-3 py-1.5 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
+            <div className="hud-label text-[10px] tracking-[0.15em] text-foreground">GOOD MORNING,</div>
+            <div className="hud-label text-sm" style={{ color: CYAN, textShadow: glowText }}>{name.toUpperCase()}.</div>
           </div>
         </div>
       </div>
@@ -195,18 +180,6 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
         </div>
       </div>
 
-      {/* Greeting bar */}
-      <div className="mx-4 mt-2 hud-card hud-scan mobile-hud-card px-4 py-3 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="hud-label text-sm tracking-[0.15em] text-foreground">GOOD MORNING, {name.toUpperCase()}.</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Discipline. Focus. Consistency. Freedom.</div>
-        </div>
-        <div className="shrink-0 rounded-lg border border-primary/30 px-3 py-1.5 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
-          <div className="hud-label text-[7px] text-muted-foreground tracking-[0.2em]">{dayName}</div>
-          <div className="hud-label text-[10px]" style={{ color: CYAN, textShadow: glowText }}>{dateStr}</div>
-          <div className="hud-label text-[13px] tabular-nums tracking-wider" style={{ color: CYAN, textShadow: glowText }}>{timeStr}</div>
-        </div>
-      </div>
 
       {/* Default unlock layer: module holograms wired to the bonsai. */}
       <ModuleHub onUnlock={onUnlock} />
