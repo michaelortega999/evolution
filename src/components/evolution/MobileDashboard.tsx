@@ -40,43 +40,54 @@ function DateTimeCard() {
   const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   return (
-    <div className="rounded-md border border-primary/40 px-3 py-2 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
-      <div className="flex items-center justify-end gap-1.5">
-        <Calendar className="h-3 w-3 text-primary" />
-        <span className="hud-label text-[9px] text-primary tracking-[0.3em]">DATE</span>
+    <div className="rounded-md border border-primary/40 px-2 py-1 text-right" style={{ boxShadow: "0 0 8px rgba(0,212,255,0.12)" }}>
+      <div className="flex items-center justify-end gap-1">
+        <Calendar className="h-2.5 w-2.5 text-primary" />
+        <span className="hud-label text-[7px] text-primary tracking-[0.25em]">DATE</span>
       </div>
-      <div className="hud-label text-[9px] text-muted-foreground mt-1">{dayName}</div>
-      <div className="hud-label text-xs text-foreground">{dateStr}</div>
-      <div className="hud-label text-base text-primary hud-glow">{timeStr}</div>
+      <div className="hud-label text-[8px] text-muted-foreground mt-0.5">{dayName}</div>
+      <div className="hud-label text-[10px] text-foreground leading-tight">{dateStr}</div>
+      <div className="hud-label text-sm text-primary hud-glow leading-tight">{timeStr}</div>
     </div>
   );
 }
 
 function MonthBar() {
   const { month, setMonth } = useSelectedMonth();
+  const currentMonth = new Date().getMonth();
   return (
     <div
-      className="mx-4 mt-4 rounded-md border border-primary/40 bg-primary/5 px-2 py-2 relative"
-      style={{ boxShadow: "inset 0 0 18px rgba(0,212,255,0.08), 0 0 12px rgba(0,212,255,0.12)" }}
+      className="mx-3 mt-2 rounded-md border border-primary/40 bg-primary/5 px-1.5 py-1.5 relative"
+      style={{ boxShadow: "inset 0 0 14px rgba(0,212,255,0.06), 0 0 10px rgba(0,212,255,0.1)" }}
     >
       <div className="flex items-center gap-1">
-        <ChevronLeft className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(0,212,255,0.5)" }} />
-        <div className="flex flex-1 items-center justify-between">
+        <button onClick={() => setMonth(Math.max(0, month - 1))} className="shrink-0 p-0.5" aria-label="Previous month">
+          <ChevronLeft className="h-3 w-3" style={{ color: "rgba(0,212,255,0.6)" }} />
+        </button>
+        <div className="grid flex-1 grid-cols-12 gap-0.5 min-w-0">
           {MONTH_LABELS.map((label, i) => {
             const active = i === month;
+            const past = i < currentMonth;
+            const future = i > currentMonth;
             return (
               <button
                 key={label}
                 onClick={() => setMonth(i)}
                 aria-pressed={active}
-                className={`hud-label px-1 py-0.5 rounded transition-all ${
+                className={`hud-label min-w-0 rounded px-0.5 py-0.5 text-[7px] leading-none transition-all ${
                   active
-                    ? "border border-primary text-primary text-[10px]"
-                    : "text-primary/40 text-[9px] hover:text-primary/70"
+                    ? "border border-primary bg-primary/10 text-primary"
+                    : past
+                    ? "text-muted-foreground/50"
+                    : future
+                    ? "text-primary/90"
+                    : "text-primary"
                 }`}
                 style={
                   active
-                    ? { boxShadow: "0 0 10px rgba(0,212,255,0.35)", textShadow: "0 0 8px rgba(0,212,255,0.7)" }
+                    ? { boxShadow: "0 0 8px rgba(0,212,255,0.35)", textShadow: "0 0 6px rgba(0,212,255,0.7)" }
+                    : future || i === currentMonth
+                    ? { textShadow: "0 0 6px rgba(0,212,255,0.45)" }
                     : undefined
                 }
               >
@@ -85,7 +96,9 @@ function MonthBar() {
             );
           })}
         </div>
-        <ChevronRight className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(0,212,255,0.5)" }} />
+        <button onClick={() => setMonth(Math.min(11, month + 1))} className="shrink-0 p-0.5" aria-label="Next month">
+          <ChevronRight className="h-3 w-3" style={{ color: "rgba(0,212,255,0.6)" }} />
+        </button>
       </div>
     </div>
   );
