@@ -52,6 +52,45 @@ function DateTimeCard() {
   );
 }
 
+function MonthBar() {
+  const { month, setMonth } = useSelectedMonth();
+  return (
+    <div
+      className="mx-4 mt-4 rounded-md border border-primary/40 bg-primary/5 px-2 py-2 relative"
+      style={{ boxShadow: "inset 0 0 18px rgba(0,212,255,0.08), 0 0 12px rgba(0,212,255,0.12)" }}
+    >
+      <div className="flex items-center gap-1">
+        <ChevronLeft className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(0,212,255,0.5)" }} />
+        <div className="flex flex-1 items-center justify-between">
+          {MONTH_LABELS.map((label, i) => {
+            const active = i === month;
+            return (
+              <button
+                key={label}
+                onClick={() => setMonth(i)}
+                aria-pressed={active}
+                className={`hud-label px-1 py-0.5 rounded transition-all ${
+                  active
+                    ? "border border-primary text-primary text-[10px]"
+                    : "text-primary/40 text-[9px] hover:text-primary/70"
+                }`}
+                style={
+                  active
+                    ? { boxShadow: "0 0 10px rgba(0,212,255,0.35)", textShadow: "0 0 8px rgba(0,212,255,0.7)" }
+                    : undefined
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(0,212,255,0.5)" }} />
+      </div>
+    </div>
+  );
+}
+
 const MODULE_ACCENTS: Record<HoloVariant | "focus", string> = {
   wealth: "var(--module-wealth)",
   nutrition: "var(--module-nutrition)",
