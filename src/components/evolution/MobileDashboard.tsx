@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
