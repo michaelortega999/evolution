@@ -5,10 +5,6 @@ import { useEvolutionData } from "@/lib/evolution-data";
 export function TopBar() {
   const { data, reset } = useEvolutionData();
   const name = data.profile.name || "Operator";
-  const now = new Date();
-  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
-  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   const totalTodos = data.notes.length;
   const doneTodos = data.notes.filter((n) => n.done).length;
