@@ -127,6 +127,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const dateStr = now
     .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
     .toUpperCase();
+  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
   const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
@@ -200,19 +201,10 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
           <div className="hud-label text-sm tracking-[0.15em] text-foreground">GOOD MORNING, {name.toUpperCase()}.</div>
           <div className="text-[11px] text-muted-foreground mt-0.5">Discipline. Focus. Consistency. Freedom.</div>
         </div>
-        <div className="shrink-0 flex items-center gap-2 rounded-lg border border-primary/30 px-2.5 py-1.5">
-          <div
-            className="h-8 w-8 rounded-full border-2"
-            style={{
-              borderColor: CYAN,
-              borderTopColor: "rgba(0,212,255,0.2)",
-              boxShadow: "0 0 10px rgba(0,212,255,0.4)",
-            }}
-          />
-          <div>
-            <div className="hud-label text-[7px] text-muted-foreground tracking-[0.2em]">SYSTEM STATUS</div>
-            <div className="hud-label text-[10px]" style={{ color: CYAN, textShadow: glowText }}>OPTIMAL</div>
-          </div>
+        <div className="shrink-0 rounded-lg border border-primary/30 px-3 py-1.5 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
+          <div className="hud-label text-[7px] text-muted-foreground tracking-[0.2em]">{dayName}</div>
+          <div className="hud-label text-[10px]" style={{ color: CYAN, textShadow: glowText }}>{dateStr}</div>
+          <div className="hud-label text-[13px] tabular-nums tracking-wider" style={{ color: CYAN, textShadow: glowText }}>{timeStr}</div>
         </div>
       </div>
 
