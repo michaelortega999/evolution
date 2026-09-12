@@ -143,7 +143,6 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
 function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
-  const name = data.profile.name || "Operator";
 
   const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
   const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
