@@ -15,7 +15,7 @@ import hudHub from "@/assets/hud-hub.png.asset.json";
 
 import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
-import { HologramEmblem } from "./HologramEmblem";
+
 
 type Priority = "High" | "Medium" | "Low";
 
@@ -377,7 +377,6 @@ export function MobileDashboard() {
   const investPct = Math.min(100, Math.abs(investPnl) / 100);
 
   const heroSrc = hologramSrc(data.profile.hologram);
-  const bonsai = hologramSrc("bonsai");
 
   const bottomNav: {
     icon: LucideIcon;
