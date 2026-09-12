@@ -122,12 +122,6 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
   const name = data.profile.name || "Operator";
-  const now = new Date();
-  const dayName = now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase();
-  const dateStr = now
-    .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    .toUpperCase();
-  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
   const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
