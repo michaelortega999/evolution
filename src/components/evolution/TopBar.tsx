@@ -5,10 +5,6 @@ import { useEvolutionData } from "@/lib/evolution-data";
 export function TopBar() {
   const { data, reset } = useEvolutionData();
   const name = data.profile.name || "Operator";
-  const now = new Date();
-  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
-  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   const totalTodos = data.notes.length;
   const doneTodos = data.notes.filter((n) => n.done).length;
@@ -50,11 +46,6 @@ export function TopBar() {
           </div>
         </div>
 
-        <div className="hidden md:block px-4 py-2 border border-border rounded-md">
-          <div className="hud-label text-[9px] text-muted-foreground">{dayName}</div>
-          <div className="hud-label text-xs text-foreground">{dateStr}</div>
-          <div className="hud-label text-[10px] text-primary hud-glow">{timeStr}</div>
-        </div>
 
         <button className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-primary hover:bg-primary/10 transition-colors relative">
           <Bell className="h-4 w-4" />

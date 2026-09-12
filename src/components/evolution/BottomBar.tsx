@@ -1,7 +1,7 @@
 import { Sparkline } from "./Sparkline";
 import { useEvolutionData } from "@/lib/evolution-data";
-import { SystemStatus } from "./SystemStatus";
 import { CoreMindset } from "./CoreMindset";
+import { Calendar } from "lucide-react";
 
 const markets = [
   { name: "S&P 500", change: "+0.85%", data: [10, 12, 11, 14, 13, 16, 17, 19] },
@@ -14,6 +14,10 @@ const markets = [
 export function BottomBar() {
   const { data } = useEvolutionData();
   void data;
+  const now = new Date();
+  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
+  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -32,7 +36,15 @@ export function BottomBar() {
 
       <CoreMindset />
 
-      <SystemStatus />
+      <div className="hud-card p-5 flex flex-col justify-center gap-3">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          <span className="hud-label text-[10px] text-primary tracking-[0.3em]">DATE</span>
+        </div>
+        <div className="hud-label text-[9px] text-muted-foreground">{dayName}</div>
+        <div className="hud-label text-sm text-foreground">{dateStr}</div>
+        <div className="hud-label text-lg text-primary hud-glow">{timeStr}</div>
+      </div>
     </section>
   );
 }
