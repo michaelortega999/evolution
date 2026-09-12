@@ -28,6 +28,28 @@ const PRIORITY_STYLES: Record<Priority, { badge: string; dot: string }> = {
 const CYAN = "#00d4ff";
 const glowText = `0 0 10px rgba(0,212,255,0.6)`;
 
+function DateTimeCard() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
+  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return (
+    <div className="rounded-md border border-primary/40 px-3 py-2 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
+      <div className="flex items-center justify-end gap-1.5">
+        <Calendar className="h-3 w-3 text-primary" />
+        <span className="hud-label text-[9px] text-primary tracking-[0.3em]">DATE</span>
+      </div>
+      <div className="hud-label text-[9px] text-muted-foreground mt-1">{dayName}</div>
+      <div className="hud-label text-xs text-foreground">{dateStr}</div>
+      <div className="hud-label text-base text-primary hud-glow">{timeStr}</div>
+    </div>
+  );
+}
+
 const MODULE_ACCENTS: Record<HoloVariant | "focus", string> = {
   wealth: "var(--module-wealth)",
   nutrition: "var(--module-nutrition)",
