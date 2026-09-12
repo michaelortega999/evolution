@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
@@ -27,6 +27,28 @@ const PRIORITY_STYLES: Record<Priority, { badge: string; dot: string }> = {
 
 const CYAN = "#00d4ff";
 const glowText = `0 0 10px rgba(0,212,255,0.6)`;
+
+function DateTimeCard() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
+  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return (
+    <div className="rounded-md border border-primary/40 px-3 py-2 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
+      <div className="flex items-center justify-end gap-1.5">
+        <Calendar className="h-3 w-3 text-primary" />
+        <span className="hud-label text-[9px] text-primary tracking-[0.3em]">DATE</span>
+      </div>
+      <div className="hud-label text-[9px] text-muted-foreground mt-1">{dayName}</div>
+      <div className="hud-label text-xs text-foreground">{dateStr}</div>
+      <div className="hud-label text-base text-primary hud-glow">{timeStr}</div>
+    </div>
+  );
+}
 
 const MODULE_ACCENTS: Record<HoloVariant | "focus", string> = {
   wealth: "var(--module-wealth)",
@@ -121,7 +143,6 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
 function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
-  const name = data.profile.name || "Operator";
 
   const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
   const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
@@ -152,10 +173,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
           </button>
-          <div className="rounded-md border border-primary/40 px-3 py-1.5 text-right" style={{ boxShadow: "0 0 10px rgba(0,212,255,0.15)" }}>
-            <div className="hud-label text-[10px] tracking-[0.15em] text-foreground">GOOD MORNING,</div>
-            <div className="hud-label text-sm" style={{ color: CYAN, textShadow: glowText }}>{name.toUpperCase()}.</div>
-          </div>
+          <DateTimeCard />
         </div>
       </div>
 
