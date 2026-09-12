@@ -52,8 +52,17 @@ export function useSelectedMonth() {
   useEffect(() => {
     const l = () => setState(current);
     listeners.add(l);
+    // Keep the selection tied to the real date: if the calendar month rolls
+    // over while the app is open, advance automatically.
+    const t = setInterval(() => {
+      const tdy = todayState();
+      if (tdy.year * 12 + tdy.month > current.year * 12 + current.month) {
+        setSelectedMonth(tdy.month, tdy.year);
+      }
+    }, 60_000);
     return () => {
       listeners.delete(l);
+      clearInterval(t);
     };
   }, []);
   const key = `${state.year}-${String(state.month + 1).padStart(2, "0")}`;
