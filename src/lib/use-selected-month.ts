@@ -21,7 +21,12 @@ if (typeof window !== "undefined") {
     if (raw) {
       const p = JSON.parse(raw) as Partial<State>;
       if (typeof p.year === "number" && typeof p.month === "number") {
-        current = { year: p.year, month: p.month };
+        const storedIdx = p.year * 12 + p.month;
+        const todayIdx = current.year * 12 + current.month;
+        // Auto-roll forward with the real calendar: a stored month that is now
+        // in the past is replaced by the current month (e.g. SEP -> OCT).
+        current = storedIdx < todayIdx ? todayState() : { year: p.year, month: p.month };
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
       }
     }
   } catch {}
