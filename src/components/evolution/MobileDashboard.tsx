@@ -15,6 +15,8 @@ import hudHub from "@/assets/hud-hub.png.asset.json";
 
 import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
+import { MONTH_LABELS, useSelectedMonth } from "@/lib/use-selected-month";
+import { ChevronLeft } from "lucide-react";
 
 
 type Priority = "High" | "Medium" | "Low";
