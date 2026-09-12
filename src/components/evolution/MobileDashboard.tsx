@@ -15,6 +15,8 @@ import hudHub from "@/assets/hud-hub.png.asset.json";
 
 import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
+import { MONTH_LABELS, useSelectedMonth } from "@/lib/use-selected-month";
+import { ChevronLeft } from "lucide-react";
 
 
 type Priority = "High" | "Medium" | "Low";
@@ -46,6 +48,45 @@ function DateTimeCard() {
       <div className="hud-label text-[9px] text-muted-foreground mt-1">{dayName}</div>
       <div className="hud-label text-xs text-foreground">{dateStr}</div>
       <div className="hud-label text-base text-primary hud-glow">{timeStr}</div>
+    </div>
+  );
+}
+
+function MonthBar() {
+  const { month, setMonth } = useSelectedMonth();
+  return (
+    <div
+      className="mx-4 mt-4 rounded-md border border-primary/40 bg-primary/5 px-2 py-2 relative"
+      style={{ boxShadow: "inset 0 0 18px rgba(0,212,255,0.08), 0 0 12px rgba(0,212,255,0.12)" }}
+    >
+      <div className="flex items-center gap-1">
+        <ChevronLeft className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(0,212,255,0.5)" }} />
+        <div className="flex flex-1 items-center justify-between">
+          {MONTH_LABELS.map((label, i) => {
+            const active = i === month;
+            return (
+              <button
+                key={label}
+                onClick={() => setMonth(i)}
+                aria-pressed={active}
+                className={`hud-label px-1 py-0.5 rounded transition-all ${
+                  active
+                    ? "border border-primary text-primary text-[10px]"
+                    : "text-primary/40 text-[9px] hover:text-primary/70"
+                }`}
+                style={
+                  active
+                    ? { boxShadow: "0 0 10px rgba(0,212,255,0.35)", textShadow: "0 0 8px rgba(0,212,255,0.7)" }
+                    : undefined
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(0,212,255,0.5)" }} />
+      </div>
     </div>
   );
 }
@@ -167,7 +208,12 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
 
       {/* Top bar */}
       <div className="px-5 pt-6 flex items-start justify-between gap-4">
-        <div className="hud-label text-lg tracking-[0.35em] text-foreground">EVOLUTION OS</div>
+        <div>
+          <div className="hud-label text-lg tracking-[0.35em] text-foreground" style={{ textShadow: "0 0 10px rgba(0,212,255,0.5)" }}>EVOLUTION OS</div>
+          <div className="hud-label text-[8px] tracking-[0.3em] mt-1" style={{ color: CYAN, textShadow: "0 0 8px rgba(0,212,255,0.6)" }}>
+            HIGHER STANDARDS. BRIGHTER DAYS.
+          </div>
+        </div>
         <div className="flex flex-col items-end gap-3">
           <button className="text-foreground/80 relative">
             <Bell className="h-5 w-5" />
@@ -176,6 +222,8 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
           <DateTimeCard />
         </div>
       </div>
+
+      <MonthBar />
 
       {/* Default unlock layer: module holograms wired to the bonsai. */}
       <ModuleHub onUnlock={onUnlock} />
