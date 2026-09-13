@@ -389,110 +389,11 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       {/* Default unlock layer: module holograms wired to the bonsai. */}
       <ModuleHub onUnlock={onUnlock} />
 
-      {/* Tasks + Focus cards */}
-      <div className="mx-4 mt-8 mb-8 grid grid-cols-2 gap-3">
-        {/* Today's Tasks */}
-        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col relative">
-          <div className="mobile-holo mobile-holo--tasks">
-            <HoloArt icon={ClipboardList} label="Tasks" variant="notes" />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <CheckSquare className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-              <span className="hud-label text-[10px] tracking-[0.15em] text-foreground truncate">TODAY'S TASKS</span>
-            </div>
-          </div>
-          <ul className="flex flex-col gap-2 mt-24">
-            {openTasks.map((t) => (
-              <li key={t.id} className="flex items-center gap-2 min-w-0">
-                <span className="h-3.5 w-3.5 rounded-full border border-white/30 shrink-0" />
-                <span className="text-[11px] text-foreground/85 truncate">{t.text}</span>
-              </li>
-            ))}
-            {openTasks.length === 0 && (
-              <li className="text-[10px] text-muted-foreground italic">No open tasks.</li>
-            )}
-          </ul>
-          <Link
-            to="/notes"
-            className="mt-auto pt-3 flex items-center justify-center gap-1.5 rounded-md border border-primary/40 py-2 hud-label text-[9px] tracking-[0.2em]"
-            style={{ color: CYAN, textShadow: glowText }}
-          >
-            VIEW ALL TASKS <ChevronRight className="h-3 w-3" />
-          </Link>
-        </div>
+      {/* Focus card */}
+      <FocusCard />
 
-        {/* Focus Mode */}
-        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col">
-          <div className="flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-            <span className="hud-label text-[10px] tracking-[0.15em] text-foreground">FOCUS MODE</span>
-          </div>
-          <div className="hud-label text-[7px] tracking-[0.2em] text-muted-foreground mt-0.5">ONE TASK AT A TIME</div>
-          <HoloArt icon={Hourglass} label="Focus" />
-          <div className="text-center">
-            <div className="hud-label text-3xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 14px rgba(0,212,255,0.7)" }}>
-              {formatMmSs(timer.remainingMs)}
-            </div>
-            <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground mt-0.5">
-              ROUND {timer.round} OF {totalRounds}
-            </div>
-            <div className="flex items-center justify-center gap-1.5 mt-1.5">
-              {Array.from({ length: totalRounds }).map((_, i) => (
-                <span
-                  key={i}
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={
-                    i < timer.round
-                      ? { background: CYAN, boxShadow: "0 0 6px #00d4ff" }
-                      : { background: "rgba(255,255,255,0.12)" }
-                  }
-                />
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-1.5 mt-2.5">
-            <button
-              onClick={() => timer.reset()}
-              className="rounded-md border border-primary/40 py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px]"
-              style={{ color: CYAN }}
-            >
-              <RotateCcw className="h-3.5 w-3.5" /> RESTART
-            </button>
-            <button
-              onClick={() => timer.start()}
-              className="rounded-md py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px] text-[#02050b]"
-              style={{ background: CYAN, boxShadow: "0 0 12px rgba(0,212,255,0.5)" }}
-            >
-              <Play className="h-3.5 w-3.5" /> START
-            </button>
-            <button
-              onClick={() => timer.pause()}
-              className="rounded-md border border-primary/40 py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px]"
-              style={{ color: CYAN }}
-            >
-              <Pause className="h-3.5 w-3.5" /> PAUSE
-            </button>
-          </div>
-          <div className="mt-2.5 rounded-lg border border-primary/25 p-2">
-            <div className="hud-label text-[7px] tracking-[0.2em] text-muted-foreground mb-1.5">FOCUS STATS</div>
-            <div className="grid grid-cols-3 text-center">
-              <div>
-                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{timer.round - 1}/{totalRounds}</div>
-                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">SESSIONS</div>
-              </div>
-              <div>
-                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{focusRate}%</div>
-                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">FOCUS RATE</div>
-              </div>
-              <div>
-                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{deepWork}</div>
-                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">DEEP WORK</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* App-like bottom nav */}
+      <BottomAppNav onBonsai={scrollTop} />
     </div>
   );
 }
