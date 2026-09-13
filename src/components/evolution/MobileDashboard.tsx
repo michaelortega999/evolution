@@ -150,7 +150,7 @@ function FocusCard() {
       </div>
 
       {/* round dots */}
-      <div className="flex items-center justify-center gap-1.5 mt-2.5">
+      <div className="flex items-center justify-center gap-1.5 mt-1.5">
         {Array.from({ length: totalRounds }).map((_, i) => (
           <span
             key={i}
