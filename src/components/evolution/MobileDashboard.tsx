@@ -399,7 +399,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       <FocusCard />
 
       {/* App-like bottom nav */}
-      <BottomAppNav onBonsai={scrollTop} />
+      <BottomAppNav fixed onBonsai={scrollTop} />
     </div>
   );
 }
