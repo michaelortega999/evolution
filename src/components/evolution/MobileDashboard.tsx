@@ -366,7 +366,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   };
 
   return (
-    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar">
+    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar pb-[calc(72px+max(env(safe-area-inset-bottom),12px))]">
       {/* ambient glow */}
       <div
         className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full"
