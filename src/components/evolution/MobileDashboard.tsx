@@ -165,22 +165,22 @@ function FocusCard() {
       </div>
 
       {/* controls */}
-      <div className="mt-5 flex items-center justify-center gap-5">
-        <button onClick={() => timer.reset()} className="flex flex-col items-center gap-1.5 group">
-          <span className="h-12 w-12 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-            <RotateCcw className="h-5 w-5" style={{ color: CYAN }} />
+      <div className="mt-3 flex items-center justify-center gap-4">
+        <button onClick={() => timer.reset()} className="flex flex-col items-center gap-1 group">
+          <span className="h-10 w-10 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+            <RotateCcw className="h-4 w-4" style={{ color: CYAN }} />
           </span>
           <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>RESTART</span>
         </button>
-        <button onClick={() => timer.start()} className="flex flex-col items-center gap-1.5 group">
-          <span className="h-16 w-16 rounded-full flex items-center justify-center transition-all group-active:scale-95" style={{ background: CYAN, boxShadow: "0 0 24px rgba(0,212,255,0.55)" }}>
-            <Play className="h-7 w-7 text-[#02050b] fill-current ml-0.5" />
+        <button onClick={() => timer.start()} className="flex flex-col items-center gap-1 group">
+          <span className="h-14 w-14 rounded-full flex items-center justify-center transition-all group-active:scale-95" style={{ background: CYAN, boxShadow: "0 0 24px rgba(0,212,255,0.55)" }}>
+            <Play className="h-6 w-6 text-[#02050b] fill-current ml-0.5" />
           </span>
           <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>START</span>
         </button>
-        <button onClick={() => timer.pause()} className="flex flex-col items-center gap-1.5 group">
-          <span className="h-12 w-12 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-            <Pause className="h-5 w-5" style={{ color: CYAN }} />
+        <button onClick={() => timer.pause()} className="flex flex-col items-center gap-1 group">
+          <span className="h-10 w-10 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+            <Pause className="h-4 w-4" style={{ color: CYAN }} />
           </span>
           <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>PAUSE</span>
         </button>
