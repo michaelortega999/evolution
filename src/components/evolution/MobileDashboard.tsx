@@ -189,7 +189,7 @@ function FocusCard() {
   );
 }
 
-function BottomAppNav({ onBonsai }: { onBonsai?: () => void }) {
+function BottomAppNav({ onBonsai, fixed }: { onBonsai?: () => void; fixed?: boolean }) {
   const { pathname } = useLocation();
   const bonsai = hologramSrc("bonsai");
 
