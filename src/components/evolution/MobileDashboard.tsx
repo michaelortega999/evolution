@@ -202,7 +202,13 @@ function BottomAppNav({ onBonsai, fixed }: { onBonsai?: () => void; fixed?: bool
   ];
 
   return (
-    <nav className="mx-4 mt-4 mb-[max(env(safe-area-inset-bottom),12px)] hud-card mobile-hub-card p-2 relative">
+    <nav
+      className={`hud-card mobile-hub-card p-2 relative ${
+        fixed
+          ? "fixed bottom-0 left-0 right-0 z-40 mx-4 mb-[max(env(safe-area-inset-bottom),12px)]"
+          : "mx-4 mt-4 mb-[max(env(safe-area-inset-bottom),12px)]"
+      }`}
+    >
       <div className="flex items-center justify-between px-1">
         {items.map((item, idx) => {
           if (item.bonsai) {
