@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import "../styles.css";
 import { useTheme } from "@/lib/use-theme";
 import { FocusNotification } from "@/components/evolution/FocusNotification";
+import { MobileBottomNav } from "@/components/evolution/MobileBottomNav";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -73,6 +74,7 @@ function RootComponent() {
   return (
     <>
       <Outlet />
+      <MobileBottomNav fixed />
       <FocusNotification />
       <Toaster theme="dark" position="top-right" />
     </>

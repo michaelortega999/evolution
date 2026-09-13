@@ -1,25 +1,22 @@
 import { Link } from "@tanstack/react-router";
 import {
-  BarChart3,
   Bell,
   BookOpen,
   BriefcaseBusiness,
   CalendarDays,
-  CheckSquare,
   Coins,
   Dumbbell,
-  Home,
   Hourglass,
   Leaf,
   Pause,
   Play,
   RotateCcw,
   TrendingUp,
-  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MobileBottomNav } from "./MobileBottomNav";
 import { formatMmSs, useFocusTimer } from "@/lib/use-focus-timer";
 import { MONTH_LABELS, useSelectedMonth } from "@/lib/use-selected-month";
 
@@ -171,23 +168,6 @@ function FocusPanel() {
   );
 }
 
-const NAV_ITEMS = [
-  { label: "Home", to: "/" as const, icon: Home },
-  { label: "Stats", to: "/reports" as const, icon: BarChart3 },
-  { label: "Tasks", to: "/notes" as const, icon: CheckSquare },
-  { label: "Profile", to: "/settings" as const, icon: UserRound },
-];
-
-function BottomNav({ onBonsai }: { onBonsai: () => void }) {
-  return (
-    <nav className="code-bottom-nav" aria-label="Mobile navigation">
-      {NAV_ITEMS.slice(0, 2).map(({ label, to, icon: Icon }) => <Link key={label} to={to}><Icon /><span>{label}</span></Link>)}
-      <Button type="button" variant="ghost" className="code-bottom-bonsai" onClick={onBonsai} aria-label="Home hub"><BonsaiMark /></Button>
-      {NAV_ITEMS.slice(2).map(({ label, to, icon: Icon }) => <Link key={label} to={to}><Icon /><span>{label}</span></Link>)}
-    </nav>
-  );
-}
-
 export function MobileDashboard() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   return (
@@ -206,7 +186,7 @@ export function MobileDashboard() {
           <CenterBonsai onActivate={scrollToTop} />
         </section>
         <FocusPanel />
-        <BottomNav onBonsai={scrollToTop} />
+        <MobileBottomNav onCenter={scrollToTop} />
       </main>
     </div>
   );
