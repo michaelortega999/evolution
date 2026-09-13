@@ -423,8 +423,8 @@
     margin: 0.35rem auto;
   }
   .mobile-holo--focus-feature {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     margin: 0.15rem auto;
     color: #00d4ff !important;
     --glow: #00d4ff !important;
