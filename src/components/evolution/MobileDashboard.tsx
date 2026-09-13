@@ -230,7 +230,7 @@ function BottomAppNav({ onBonsai, fixed }: { onBonsai?: () => void; fixed?: bool
                   <img
                     src={bonsai}
                     alt=""
-                    className="h-9 w-9 object-contain"
+                    className="h-11 w-11 object-contain"
                     style={{ filter: "drop-shadow(0 0 10px rgba(0,212,255,0.9))" }}
                   />
                 </span>
