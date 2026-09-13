@@ -493,22 +493,6 @@ export function MobileDashboard() {
   const investPct = Math.min(100, Math.abs(investPnl) / 100);
 
   const heroSrc = hologramSrc(data.profile.hologram);
-  const bonsai = hologramSrc("bonsai");
-
-  const bottomNav: {
-    icon: LucideIcon;
-    to: "/" | "/notes" | "/focus" | "/wealth" | "/nutrition" | "/fitness" | "/investing" | "/calendar" | "/hobby";
-  }[] = [
-    { icon: Home, to: "/" },
-    { icon: CheckSquare, to: "/notes" },
-    { icon: Zap, to: "/focus" },
-    { icon: Wallet, to: "/wealth" },
-    { icon: Apple, to: "/nutrition" },
-    { icon: Dumbbell, to: "/fitness" },
-    { icon: TrendingUp, to: "/investing" },
-    { icon: Calendar, to: "/calendar" },
-    { icon: Star, to: "/hobby" },
-  ];
 
   if (stage === 1) {
     return (
