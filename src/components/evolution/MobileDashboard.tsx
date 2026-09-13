@@ -111,7 +111,7 @@ function FocusCard() {
   const totalRounds = data.focusSettings?.longEvery ?? 4;
 
   return (
-    <div className="mx-4 mt-5 hud-card hud-scan mobile-hud-card p-4 relative overflow-hidden">
+    <div className="mx-4 mt-3 hud-card hud-scan mobile-hud-card p-3 relative overflow-hidden">
       {/* header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2.5">
