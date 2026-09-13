@@ -355,21 +355,9 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
 
 
 function LockScreen({ onUnlock }: { onUnlock: () => void }) {
-  const { data } = useEvolutionData();
-  const timer = useFocusTimer();
-
-  const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
-  const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
-
-  const today = todayDate();
-  const todayFocusSec = (data.focusSessions ?? [])
-    .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today)
-    .reduce((a, s) => a + s.durationSec, 0);
-  const totalRounds = data.focusSettings?.longEvery ?? 4;
-  const focusRate = totalRounds > 0 ? Math.min(100, Math.round(((timer.round - 1) / totalRounds) * 100)) : 0;
-  const fH = Math.floor(todayFocusSec / 3600);
-  const fM = Math.floor((todayFocusSec % 3600) / 60);
-  const deepWork = fH > 0 ? `${fH}h ${fM}m` : `${fM}m`;
+  const scrollTop = () => {
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar">
