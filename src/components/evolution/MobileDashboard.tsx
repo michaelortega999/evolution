@@ -626,66 +626,8 @@ export function MobileDashboard() {
         </ul>
       </section>
 
-      {/* Floating bonsai — tap to return to first screen */}
-      <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom),8px))] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
-        <button
-          onClick={() => setStage(1)}
-          className="relative h-14 w-14 rounded-full flex items-center justify-center"
-          aria-label="Back to lock screen"
-        >
-          <span
-            className="absolute inset-0 rounded-full border-2"
-            style={{
-              borderColor: "rgba(0,212,255,0.7)",
-              boxShadow: "0 0 18px rgba(0,212,255,0.45), inset 0 0 12px rgba(0,212,255,0.2)",
-            }}
-          />
-          <span
-            className="absolute inset-1 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
-            style={{ borderColor: "rgba(0,212,255,0.35)" }}
-          />
-          <img
-            src={bonsai}
-            alt=""
-            className="h-9 w-9 object-contain"
-            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 10px rgba(0,212,255,0.85))" }}
-          />
-        </button>
-      </div>
-
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
-           style={{ background: "#02050b", borderTop: "1px solid rgba(0,212,255,0.15)" }}>
-        <div className="flex items-center justify-between px-3 py-2 pb-[max(env(safe-area-inset-bottom),8px)]">
-          {bottomNav.map(({ icon: Icon, to }) => {
-            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-            return (
-              <Link
-                key={to}
-                to={to}
-                className="h-10 w-10 rounded-md flex items-center justify-center"
-                style={
-                  active
-                    ? {
-                        border: "1px solid #00d4ff",
-                        background: "rgba(0,212,255,0.12)",
-                        boxShadow: "0 0 10px rgba(0,212,255,0.5)",
-                      }
-                    : undefined
-                }
-              >
-                <Icon
-                  className="h-5 w-5"
-                  style={{
-                    color: active ? "#00d4ff" : "#6b7a8a",
-                    filter: active ? "drop-shadow(0 0 6px #00d4ff)" : undefined,
-                  }}
-                />
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* App-like bottom nav */}
+      <BottomAppNav fixed onBonsai={() => setStage(1)} />
     </div>
   );
 }
