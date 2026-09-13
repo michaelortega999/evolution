@@ -1,617 +1,150 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import {
-  CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
-  Briefcase, Star, Home, Calendar, Bell, ClipboardList,
-  Hourglass, Play, Pause, RotateCcw, ChevronRight, BookOpen, Target,
-  Settings, BarChart3, MoreHorizontal,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import {
-  useEvolutionData, todayDate, dayTotals, fitnessSummary,
-  tradingTotals, wealthSummary,
-} from "@/lib/evolution-data";
-import { hologramSrc } from "@/lib/holograms";
-import hudHub from "@/assets/hud-hub.png.asset.json";
+import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import mobileHud from "@/assets/evolution-mobile-hud.png.asset.json";
+import { formatMmSs, useFocusTimer } from "@/lib/use-focus-timer";
 
-import { useFocusTimer, formatMmSs } from "@/lib/use-focus-timer";
-import { HoloIcon, type HoloVariant } from "./HoloIcon";
-import { MONTH_LABELS, useSelectedMonth } from "@/lib/use-selected-month";
-import { ChevronLeft } from "lucide-react";
-
-
-type Priority = "High" | "Medium" | "Low";
-
-const PRIORITY_STYLES: Record<Priority, { badge: string; dot: string }> = {
-  High:   { badge: "text-purple-300 border-purple-400/60 bg-purple-500/10", dot: "#a855f7" },
-  Medium: { badge: "text-orange-300 border-orange-400/60 bg-orange-500/10", dot: "#f97316" },
-  Low:    { badge: "text-emerald-300 border-emerald-400/60 bg-emerald-500/10", dot: "#22c55e" },
+type Hotspot = {
+  label: string;
+  to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal";
+  x: number;
+  y: number;
+  size: number;
 };
 
-const CYAN = "#00d4ff";
-const glowText = `0 0 10px rgba(0,212,255,0.6)`;
-
-function DateTimeCard() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
-  const dateStr = now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  const timeStr = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-  return (
-    <div className="rounded-md border border-primary/40 px-2 py-1 text-right" style={{ boxShadow: "0 0 8px rgba(0,212,255,0.12)" }}>
-      <div className="flex items-center justify-end gap-1">
-        <Calendar className="h-2.5 w-2.5 text-primary" />
-        <span className="hud-label text-[7px] text-primary tracking-[0.25em]">DATE</span>
-      </div>
-      <div className="hud-label text-[8px] text-muted-foreground mt-0.5">{dayName}</div>
-      <div className="hud-label text-[10px] text-foreground leading-tight">{dateStr}</div>
-      <div className="hud-label text-sm text-primary hud-glow leading-tight">{timeStr}</div>
-    </div>
-  );
-}
-
-function MonthBar() {
-  const { month, setMonth } = useSelectedMonth();
-  const currentMonth = new Date().getMonth();
-  return (
-    <div
-      className="mx-3 mt-2 rounded-md border border-primary/40 bg-primary/5 px-1.5 py-1.5 relative"
-      style={{ boxShadow: "inset 0 0 14px rgba(0,212,255,0.06), 0 0 10px rgba(0,212,255,0.1)" }}
-    >
-      <div className="flex items-center gap-1">
-        <button onClick={() => setMonth(Math.max(0, month - 1))} className="shrink-0 p-0.5" aria-label="Previous month">
-          <ChevronLeft className="h-3 w-3" style={{ color: "rgba(0,212,255,0.6)" }} />
-        </button>
-        <div className="grid flex-1 grid-cols-12 gap-0.5 min-w-0">
-          {MONTH_LABELS.map((label, i) => {
-            const active = i === month;
-            const past = i < currentMonth;
-            const future = i > currentMonth;
-            return (
-              <button
-                key={label}
-                onClick={() => setMonth(i)}
-                aria-pressed={active}
-                className={`hud-label min-w-0 rounded px-0.5 py-0.5 text-[7px] leading-none transition-all ${
-                  active
-                    ? "border border-primary bg-primary/10 text-primary"
-                    : past
-                    ? "text-muted-foreground/50"
-                    : future
-                    ? "text-primary/90"
-                    : "text-primary"
-                }`}
-                style={
-                  active
-                    ? { boxShadow: "0 0 8px rgba(0,212,255,0.35)", textShadow: "0 0 6px rgba(0,212,255,0.7)" }
-                    : future || i === currentMonth
-                    ? { textShadow: "0 0 6px rgba(0,212,255,0.45)" }
-                    : undefined
-                }
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-        <button onClick={() => setMonth(Math.min(11, month + 1))} className="shrink-0 p-0.5" aria-label="Next month">
-          <ChevronRight className="h-3 w-3" style={{ color: "rgba(0,212,255,0.6)" }} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function FocusCard() {
-  const timer = useFocusTimer();
-  const { data } = useEvolutionData();
-  const totalRounds = data.focusSettings?.longEvery ?? 4;
-
-  return (
-    <div className="mx-4 mt-3 mb-3 hud-card hud-scan mobile-hud-card p-3 relative overflow-hidden">
-      {/* header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2.5">
-          <Hourglass className="h-5 w-5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }} />
-          <div>
-            <div className="hud-label text-sm tracking-[0.2em]" style={{ color: CYAN, textShadow: glowText }}>FOCUS</div>
-            <div className="hud-label text-[8px] tracking-[0.12em] text-muted-foreground mt-0.5">TURN INTENTION INTO PROGRESS.</div>
-          </div>
-        </div>
-        <button aria-label="Focus options" className="p-1 text-foreground/60 hover:text-foreground">
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* quotes + hologram */}
-      <div className="relative mt-3 flex items-center justify-center">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20">
-          <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“FOCUS TODAY.”</div>
-          <div className="mt-1.5 h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
-        </div>
-        <div className="mobile-holo mobile-holo--focus-feature" style={{ color: CYAN, width: 84, height: 84 }}>
-          <HoloArt icon={Hourglass} label="Focus" />
-        </div>
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-20 text-right">
-          <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“A BRIGHTER TOMORROW.”</div>
-          <div className="mt-1.5 ml-auto h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
-        </div>
-      </div>
-
-      {/* timer */}
-      <div className="text-center mt-0.5">
-        <div className="hud-label text-3xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 18px rgba(0,212,255,0.75)" }}>
-          {formatMmSs(timer.remainingMs)}
-        </div>
-        <div className="hud-label text-[9px] tracking-[0.25em] text-muted-foreground mt-0.5">DEEP WORK</div>
-      </div>
-
-      {/* round dots */}
-      <div className="flex items-center justify-center gap-1.5 mt-1.5">
-        {Array.from({ length: totalRounds }).map((_, i) => (
-          <span
-            key={i}
-            className="h-1.5 w-1.5 rounded-full"
-            style={
-              i < timer.round
-                ? { background: CYAN, boxShadow: "0 0 6px #00d4ff" }
-                : { background: "rgba(255,255,255,0.12)" }
-            }
-          />
-        ))}
-      </div>
-
-      {/* controls */}
-      <div className="mt-3 flex items-center justify-center gap-4">
-        <button onClick={() => timer.reset()} className="flex flex-col items-center gap-1 group">
-          <span className="h-10 w-10 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-            <RotateCcw className="h-4 w-4" style={{ color: CYAN }} />
-          </span>
-          <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>RESTART</span>
-        </button>
-        <button onClick={() => timer.start()} className="flex flex-col items-center gap-1 group">
-          <span className="h-14 w-14 rounded-full flex items-center justify-center transition-all group-active:scale-95" style={{ background: CYAN, boxShadow: "0 0 24px rgba(0,212,255,0.55)" }}>
-            <Play className="h-6 w-6 text-[#02050b] fill-current ml-0.5" />
-          </span>
-          <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>START</span>
-        </button>
-        <button onClick={() => timer.pause()} className="flex flex-col items-center gap-1 group">
-          <span className="h-10 w-10 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-            <Pause className="h-4 w-4" style={{ color: CYAN }} />
-          </span>
-          <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>PAUSE</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function BottomAppNav({ onBonsai, fixed }: { onBonsai?: () => void; fixed?: boolean }) {
-  const { pathname } = useLocation();
-  const bonsai = hologramSrc("bonsai");
-
-  const items: { icon?: LucideIcon; label: string; to?: string; bonsai?: boolean }[] = [
-    { icon: Home, label: "HOME", to: "/" },
-    { icon: BarChart3, label: "STATS", to: "/reports" },
-    { label: "", bonsai: true },
-    { icon: CheckSquare, label: "TASKS", to: "/notes" },
-    { icon: Settings, label: "SETTINGS", to: "/settings" },
-  ];
-
-  return (
-    <nav
-      className={`hud-card mobile-hub-card p-2 relative ${
-        fixed
-          ? "fixed bottom-0 left-0 right-0 z-40 mx-4 mb-[max(env(safe-area-inset-bottom),12px)]"
-          : "mx-4 mt-4 mb-[max(env(safe-area-inset-bottom),12px)]"
-      }`}
-    >
-      <div className="flex items-center justify-between px-1">
-        {items.map((item, idx) => {
-          if (item.bonsai) {
-            return (
-              <button
-                key="bonsai"
-                onClick={onBonsai}
-                className="relative -mt-5 flex flex-col items-center group"
-                aria-label="Back to hub"
-              >
-                <span
-                  className="h-14 w-14 rounded-full border flex items-center justify-center transition-all group-active:scale-95"
-                  style={{
-                    borderColor: "rgba(0,212,255,0.75)",
-                    background: "rgba(0,212,255,0.06)",
-                    boxShadow: "0 0 20px rgba(0,212,255,0.45), inset 0 0 14px rgba(0,212,255,0.18)",
-                  }}
-                >
-                  <img
-                    src={bonsai}
-                    alt=""
-                    className="h-11 w-11 object-contain"
-                    style={{ filter: "drop-shadow(0 0 10px rgba(0,212,255,0.9))" }}
-                  />
-                </span>
-              </button>
-            );
-          }
-          const to = item.to!;
-          const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          const Icon = item.icon!;
-          return (
-            <Link
-              key={item.label}
-              to={to}
-              className="flex flex-col items-center gap-1 py-1 min-w-[52px]"
-            >
-              <Icon
-                className="h-5 w-5 transition-all"
-                style={{
-                  color: active ? CYAN : "rgba(107,122,138,0.85)",
-                  filter: active ? "drop-shadow(0 0 6px #00d4ff)" : undefined,
-                }}
-              />
-              <span
-                className="hud-label text-[7px] tracking-[0.08em] transition-all"
-                style={{ color: active ? CYAN : "rgba(107,122,138,0.85)" }}
-              >
-                {item.label}
-              </span>
-              {active && (
-                <span className="h-1 w-1 rounded-full" style={{ background: CYAN, boxShadow: "0 0 4px #00d4ff" }} />
-              )}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-const MODULE_ACCENTS: Record<HoloVariant | "focus", string> = {
-  wealth: "var(--module-wealth)",
-  nutrition: "var(--module-nutrition)",
-  fitness: "var(--module-fitness)",
-  journal: "var(--module-journal)",
-  notes: "var(--module-notes)",
-  investing: "var(--module-investing)",
-  business: "var(--module-business)",
-  hobby: "var(--module-hobby)",
-  focus: "var(--module-focus)",
-};
-
-function HoloArt({ icon: Icon, label, variant }: { icon: LucideIcon; label: string; variant?: HoloVariant }) {
-  const accent = MODULE_ACCENTS[variant ?? "focus"];
-  return (
-    <div className="mobile-holo mobile-holo--feature" style={{ color: accent, "--glow": accent } as React.CSSProperties} aria-label={label}>
-      {variant ? <HoloIcon variant={variant} /> : (
-        <div className="mobile-focus-holo" aria-hidden="true">
-          <span className="mobile-focus-holo__orbit" />
-          <span className="mobile-focus-holo__orbit mobile-focus-holo__orbit--tilted" />
-          <Icon className="mobile-focus-holo__icon" strokeWidth={1.2} />
-          <span className="mobile-focus-holo__base" />
-          <span className="mobile-focus-holo__scan" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Radial module hub — the uploaded HUD artwork is used as-is as the
- * background. Invisible hotspots sit over each hologram icon and the
- * bonsai emblem. No geometry is redrawn.
- */
-const HUB_HOTSPOTS: { label: string; to: string; x: number; y: number; size: number }[] = [
-  { label: "Focus",     to: "/focus",     x: 50.0, y: 9.7,  size: 20 },
-  { label: "Nutrition", to: "/nutrition", x: 25.3, y: 18.0, size: 20 },
-  { label: "Fitness",   to: "/fitness",   x: 74.6, y: 18.0, size: 20 },
-  { label: "Wealth",    to: "/wealth",    x: 13.4, y: 35.7, size: 20 },
-  { label: "Investing", to: "/investing", x: 86.6, y: 35.8, size: 20 },
-  { label: "Journal",   to: "/journal",   x: 15.0, y: 55.6, size: 20 },
-  { label: "Business",  to: "/business",  x: 84.9, y: 55.6, size: 20 },
+const MODULE_HOTSPOTS: Hotspot[] = [
+  { label: "Focus", to: "/focus", x: 50, y: 21.1, size: 17 },
+  { label: "Nutrition", to: "/nutrition", x: 25.5, y: 24.6, size: 18 },
+  { label: "Wealth", to: "/wealth", x: 74.6, y: 24.6, size: 18 },
+  { label: "Fitness", to: "/fitness", x: 14.5, y: 34.9, size: 18 },
+  { label: "Investing", to: "/investing", x: 85.9, y: 34.9, size: 18 },
+  { label: "Journal", to: "/journal", x: 23.2, y: 44.4, size: 18 },
+  { label: "Business", to: "/business", x: 76.8, y: 44.4, size: 18 },
 ];
 
-function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
+const BOTTOM_LINKS = [
+  { label: "Home", to: "/" as const, x: 11.2 },
+  { label: "Stats", to: "/reports" as const, x: 29.6 },
+  { label: "Tasks", to: "/notes" as const, x: 69 },
+  { label: "Profile", to: "/settings" as const, x: 89 },
+];
+
+function LiveDateTime() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  const weekday = now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase();
+  const date = now.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).toUpperCase();
+  const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+
   return (
-    <div className="mt-auto flex-1 min-h-0 flex flex-col animate-fade-in">
-      <div className="relative w-full" style={{ aspectRatio: "1068 / 1450" }}>
+    <div className="mobile-image-date" aria-label={`${weekday}, ${date}, ${time}`}>
+      <span>{weekday}</span>
+      <strong>{date}</strong>
+      <span>{time}</span>
+    </div>
+  );
+}
+
+function FocusTimerOverlay() {
+  const timer = useFocusTimer();
+
+  return (
+    <>
+      <Link
+        to="/focus"
+        aria-label="Open Focus"
+        className="mobile-image-focus-link absolute"
+      />
+      <output className="mobile-image-timer" aria-live="polite">
+        {formatMmSs(timer.remainingMs)}
+      </output>
+      <button
+        type="button"
+        aria-label="Restart focus timer"
+        className="mobile-image-control mobile-image-control--reset"
+        onClick={timer.reset}
+      />
+      <button
+        type="button"
+        aria-label="Start focus timer"
+        className="mobile-image-control mobile-image-control--start"
+        onClick={timer.start}
+      />
+      <button
+        type="button"
+        aria-label="Pause focus timer"
+        className="mobile-image-control mobile-image-control--pause"
+        onClick={timer.pause}
+      />
+    </>
+  );
+}
+
+export function MobileDashboard() {
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  return (
+    <div className="mobile-image-screen md:hidden">
+      <main className="mobile-image-stage">
         <img
-          src={hudHub.url}
-          alt="Evolution OS module hub"
+          src={mobileHud.url}
+          alt="Evolution OS mobile dashboard"
+          className="mobile-image-art"
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain select-none"
         />
 
-        {HUB_HOTSPOTS.map(({ label, to, x, y, size }, i) => (
+        <LiveDateTime />
+
+        {MODULE_HOTSPOTS.map(({ label, to, x, y, size }, index) => (
           <Link
             key={label}
             to={to}
-            aria-label={label}
-            className="hub-hotspot absolute rounded-full"
+            aria-label={`Open ${label}`}
+            className="mobile-image-module"
             style={{
               left: `${x}%`,
               top: `${y}%`,
               width: `${size}%`,
-              aspectRatio: "1 / 1",
-              animationDelay: `${i * 0.4}s`,
+              animationDelay: `${index * -1.35}s`,
             }}
           >
-            <span className="hub-hotspot__ring" style={{ animationDelay: `${i * 0.55}s` }} />
-            <span className="hub-hotspot__ring hub-hotspot__ring--inner" style={{ animationDelay: `${i * 0.55 + 0.3}s` }} />
-            <span className="hub-hotspot__glow" style={{ animationDelay: `${i * 0.7}s` }} />
+            <span className="mobile-image-module__ring" />
           </Link>
         ))}
 
         <button
-          onClick={onUnlock}
-          aria-label="Tap to unlock"
-          className="hub-hotspot hub-hotspot--bonsai absolute rounded-full"
-          style={{ left: "50%", top: "74.6%", width: "30%", aspectRatio: "1 / 1" }}
-        >
-          <span className="hub-hotspot__ring hub-hotspot__ring--bonsai" />
-          <span className="hub-hotspot__glow" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-
-function LockScreen({ onUnlock }: { onUnlock: () => void }) {
-  const scrollTop = () => {
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  return (
-    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar pb-[calc(72px+max(env(safe-area-inset-bottom),12px))]">
-      {/* ambient glow */}
-      <div
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%)" }}
-      />
-
-      {/* Top bar */}
-      <div className="px-4 pt-4 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="hud-label text-base tracking-[0.3em] text-foreground" style={{ textShadow: "0 0 10px rgba(0,212,255,0.5)" }}>EVOLUTION OS</div>
-          <div className="hud-label text-[7px] tracking-[0.25em] mt-0.5" style={{ color: CYAN, textShadow: "0 0 8px rgba(0,212,255,0.6)" }}>
-            HIGHER STANDARDS. BRIGHTER DAYS.
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button className="text-foreground/80 relative p-1">
-            <Bell className="h-4 w-4" />
-            <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
-          </button>
-          <DateTimeCard />
-        </div>
-      </div>
-
-      <MonthBar />
-
-      {/* Default unlock layer: module holograms wired to the bonsai. */}
-      <ModuleHub onUnlock={onUnlock} />
-
-      {/* Focus card */}
-      <FocusCard />
-
-      {/* App-like bottom nav */}
-      <BottomAppNav fixed onBonsai={scrollTop} />
-    </div>
-  );
-}
-
-function ModuleTile({
-  icon: Icon, variant, label, value, sub, pct, to,
-}: {
-  icon: LucideIcon; variant?: HoloVariant; label: string; value: string; sub: string; pct: number;
-  to: "/notes" | "/focus" | "/wealth" | "/nutrition" | "/fitness" | "/investing" | "/business" | "/hobby";
-}) {
-  return (
-    <Link
-      to={to}
-      className="hud-card hud-scan mobile-hud-card mobile-module-card relative p-3 flex flex-col items-center text-center overflow-hidden"
-      style={{ "--glow": MODULE_ACCENTS[variant ?? "focus"] } as React.CSSProperties}
-    >
-      <div className="hud-label text-[9px] tracking-[0.2em] text-foreground/60 self-start">{label}</div>
-      <div className="mobile-holo mobile-holo--tile">
-        {variant ? <HoloIcon variant={variant} /> : <HoloArt icon={Icon} label={label} />}
-      </div>
-      <div className="hud-label text-base leading-tight" style={{ color: MODULE_ACCENTS[variant ?? "focus"], textShadow: "0 0 10px color-mix(in oklab, var(--glow) 55%, transparent)" }}>{value}</div>
-      <div className="text-[9px] text-muted-foreground mt-0.5">{sub}</div>
-      <div className="mt-2 w-full flex items-center gap-2">
-        <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: `${Math.min(100, Math.max(0, pct))}%`,
-              background: "linear-gradient(90deg, #00d4ff, #7cf6ff)",
-              boxShadow: "0 0 6px #00d4ff",
-            }}
-          />
-        </div>
-        <span className="text-[9px] text-muted-foreground">{Math.round(pct)}%</span>
-      </div>
-    </Link>
-  );
-}
-
-function fmtMoney(n: number) {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
-  return `$${Math.round(n).toLocaleString()}`;
-}
-
-export function MobileDashboard() {
-  const { data } = useEvolutionData();
-  const { pathname } = useLocation();
-  const [stage, setStage] = useState(1);
-  const name = data.profile.name || "Operator";
-
-  const today = todayDate();
-  const t = dayTotals(today, data.mealLogs);
-  const calTarget = data.profile.calorieTarget || 2000;
-  const calPct = Math.min(100, Math.round((t.kcal / calTarget) * 100));
-
-  const fit = fitnessSummary(data.fitness, data.profile.gymSessionsTarget);
-  const fitPct = fit.target ? Math.min(100, Math.round((fit.daysHit / fit.target) * 100)) : 0;
-
-  const trading = tradingTotals(data.tradingAccounts, data.tradingTxns);
-  const wealth = wealthSummary(data);
-
-  const openTasks = (data.evoTasks ?? []).filter((x) => x.status !== "Done");
-  const tasksDone = (data.evoTasks ?? []).filter((x) => x.status === "Done").length;
-  const totalTasks = (data.evoTasks ?? []).length;
-  const tasksPct = totalTasks ? Math.round((tasksDone / totalTasks) * 100) : 0;
-
-  const activeProjects = data.projects.filter((p) => p.status !== "Completed").length;
-  const avgProgress = data.projects.length
-    ? Math.round(data.projects.reduce((a, p) => a + p.progress, 0) / data.projects.length)
-    : 0;
-
-  const hobbyHrs = data.hobby.hours || 0;
-  const hobbyH = Math.floor(hobbyHrs);
-  const hobbyM = Math.round((hobbyHrs - hobbyH) * 60);
-  const hobbyPct = Math.min(100, hobbyHrs * 5);
-
-  const todayFocusSec = (data.focusSessions ?? [])
-    .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today)
-    .reduce((a, s) => a + s.durationSec, 0);
-  const fH = Math.floor(todayFocusSec / 3600);
-  const fM = Math.floor((todayFocusSec % 3600) / 60);
-  let focusStr = "";
-  if (fH > 0 && fM > 0) focusStr = `${fH}hr${fM}m`;
-  else if (fH > 0) focusStr = `${fH}hr`;
-  else focusStr = `${fM}m`;
-  const focusPct = Math.min(100, Math.round((todayFocusSec / (2 * 3600)) * 100));
-
-  const wealthPct = Math.min(100, Math.round((wealth.netWorth / (data.profile.goal || 1)) * 100));
-  const investPnl = trading.todayPnl;
-  const investPct = Math.min(100, Math.abs(investPnl) / 100);
-
-  const heroSrc = hologramSrc(data.profile.hologram);
-
-  if (stage === 1) {
-    return (
-      <LockScreen onUnlock={() => setStage(2)} />
-    );
-  }
-
-  return (
-    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground pb-24">
-      {/* Header */}
-      <header className="px-5 pt-6 pb-3 relative">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="inline-block">
-              <div
-                className="hud-label text-sm tracking-[0.35em]"
-                style={{ color: "#00d4ff", textShadow: "0 0 10px rgba(0,212,255,0.6)" }}
-              >
-                EVOLUTION OS
-              </div>
-              <div
-                className="h-[2px] mt-1 rounded-full"
-                style={{ background: "linear-gradient(90deg,#00d4ff,transparent)", boxShadow: "0 0 6px #00d4ff" }}
-              />
-            </div>
-            <h1 className="mt-5 text-2xl font-light leading-tight text-foreground">
-              Welcome back,
-              <br />
-              <span style={{ color: "#00d4ff", textShadow: "0 0 12px rgba(0,212,255,0.55)" }}>
-                {name}.
-              </span>
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed">
-              <span style={{ color: "#00d4ff" }}>Discipline</span>
-              <span className="text-muted-foreground"> today.</span>
-              <br />
-              <span style={{ color: "#00d4ff" }}>Freedom</span>
-              <span className="text-muted-foreground"> tomorrow.</span>
-            </p>
-          </div>
-          <div className="shrink-0 -mt-2 -mr-2">
-            <img
-              src={heroSrc}
-              alt=""
-              aria-hidden="true"
-              className="w-40 h-40 object-contain"
-              style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 18px rgba(0,212,255,0.6))" }}
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Module grid */}
-      <section className="px-4 grid grid-cols-4 gap-2">
-        <ModuleTile icon={CheckSquare} variant="notes" label="TASKS" value={String(openTasks.length)} sub="Tasks Today" pct={tasksPct} to="/notes" />
-        <ModuleTile icon={Target} label="FOCUS" value={focusStr} sub="Current Session" pct={focusPct} to="/focus" />
-        <ModuleTile icon={Wallet} variant="wealth" label="WEALTH" value={fmtMoney(wealth.netWorth)} sub="Net Worth" pct={wealthPct} to="/wealth" />
-        <ModuleTile icon={Apple} variant="nutrition" label="NUTRITION" value={t.kcal.toLocaleString()} sub="Calories Today" pct={calPct} to="/nutrition" />
-      </section>
-      <section className="px-4 mt-2 grid grid-cols-4 gap-2">
-        <ModuleTile icon={Dumbbell} variant="fitness" label="FITNESS" value={String(fit.daysHit)} sub="Sessions" pct={fitPct} to="/fitness" />
-        <ModuleTile
-          icon={TrendingUp}
-          variant="investing"
-          label="INVESTING"
-          value={`${investPnl >= 0 ? "+" : "-"}${fmtMoney(Math.abs(investPnl))}`}
-          sub="Today's P/L"
-          pct={investPct}
-          to="/investing"
+          type="button"
+          aria-label="Return to top"
+          onClick={scrollToTop}
+          className="mobile-image-bonsai"
         />
-        <ModuleTile icon={Briefcase} variant="business" label="BUSINESS" value={String(activeProjects)} sub="Active Projects" pct={avgProgress} to="/business" />
-        <ModuleTile icon={Star} variant="hobby" label="HOBBY" value={`${hobbyH}h ${hobbyM}m`} sub="Time Today" pct={hobbyPct} to="/hobby" />
-      </section>
 
-      {/* Tasks & To Do */}
-      <section className="mx-4 mt-5 hud-card hud-scan mobile-hud-card p-4">
-        <div className="flex items-center justify-between">
-          <div className="hud-label text-sm text-foreground tracking-[0.2em]">TASKS &amp; TO DO</div>
-          <Link to="/notes" className="text-xs" style={{ color: "#00d4ff" }}>
-            View All ›
-          </Link>
-        </div>
+        <FocusTimerOverlay />
 
-        <div className="mt-3 flex items-center gap-6 border-b border-white/5 text-[11px] hud-label">
-          <div className="pb-2 border-b-2" style={{ borderColor: "#00d4ff", color: "#00d4ff" }}>TODAY</div>
-          <div className="pb-2 text-muted-foreground">UPCOMING</div>
-          <div className="pb-2 text-muted-foreground">COMPLETED</div>
-        </div>
-
-        <ul className="mt-3 relative">
-          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/10" />
-          {openTasks.slice(0, 5).map((task) => {
-            const p = PRIORITY_STYLES[task.priority as Priority] ?? PRIORITY_STYLES.Medium;
-            return (
-              <li key={task.id} className="relative flex items-center gap-3 py-2.5">
-                <span
-                  className="h-3.5 w-3.5 rounded-full shrink-0 z-10"
-                  style={{ background: p.dot, boxShadow: `0 0 8px ${p.dot}` }}
-                />
-                <span className="h-4 w-4 rounded-full border border-white/25 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-foreground truncate">{task.text}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">{task.category}</div>
-                </div>
-                <div className="text-xs text-muted-foreground shrink-0">{task.due?.slice(5) ?? ""}</div>
-                <span className={`shrink-0 text-[10px] hud-label px-2 py-0.5 rounded border ${p.badge}`}>
-                  {task.priority.toUpperCase()}
-                </span>
-              </li>
-            );
-          })}
-          {openTasks.length === 0 && (
-            <li className="text-xs text-muted-foreground italic py-2">No open tasks.</li>
-          )}
-        </ul>
-      </section>
-
-      {/* App-like bottom nav */}
-      <BottomAppNav fixed onBonsai={() => setStage(1)} />
+        {BOTTOM_LINKS.map(({ label, to, x }) => (
+          <Link
+            key={label}
+            to={to}
+            aria-label={label}
+            className="mobile-image-bottom-link"
+            style={{ left: `${x}%` }}
+          />
+        ))}
+        <button
+          type="button"
+          aria-label="Home hub"
+          onClick={scrollToTop}
+          className="mobile-image-bottom-bonsai"
+        />
+      </main>
     </div>
   );
 }

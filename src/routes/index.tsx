@@ -20,6 +20,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Evolution — Life Operating System" },
       { name: "description", content: "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD." },
+      { property: "og:title", content: "Evolution — Life Operating System" },
+      { property: "og:description", content: "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,

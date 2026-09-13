@@ -52,7 +52,7 @@ function loadTimer(settings: FocusSettings): PersistedTimer {
 function saveTimer(state: PersistedTimer) {
   if (typeof window === "undefined") return;
   localStorage.setItem(TIMER_KEY, JSON.stringify(state));
-  window.dispatchEvent(new CustomEvent("evolution:focus-timer-updated"));
+  queueMicrotask(() => window.dispatchEvent(new CustomEvent("evolution:focus-timer-updated")));
 }
 
 export function modeDurationMs(mode: FocusMode, settings: FocusSettings) {
