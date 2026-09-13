@@ -4,6 +4,7 @@ import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
   Hourglass, Play, Pause, RotateCcw, ChevronRight, BookOpen, Target,
+  Settings, BarChart3, MoreHorizontal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
