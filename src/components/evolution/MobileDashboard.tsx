@@ -142,11 +142,11 @@ function FocusCard() {
       </div>
 
       {/* timer */}
-      <div className="text-center mt-1">
-        <div className="hud-label text-4xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 18px rgba(0,212,255,0.75)" }}>
+      <div className="text-center mt-0.5">
+        <div className="hud-label text-3xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 18px rgba(0,212,255,0.75)" }}>
           {formatMmSs(timer.remainingMs)}
         </div>
-        <div className="hud-label text-[9px] tracking-[0.25em] text-muted-foreground mt-1">DEEP WORK</div>
+        <div className="hud-label text-[9px] tracking-[0.25em] text-muted-foreground mt-0.5">DEEP WORK</div>
       </div>
 
       {/* round dots */}
