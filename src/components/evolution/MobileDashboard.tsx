@@ -111,7 +111,7 @@ function FocusCard() {
   const totalRounds = data.focusSettings?.longEvery ?? 4;
 
   return (
-    <div className="mx-4 mt-3 hud-card hud-scan mobile-hud-card p-3 relative overflow-hidden">
+    <div className="mx-4 mt-3 mb-3 hud-card hud-scan mobile-hud-card p-3 relative overflow-hidden">
       {/* header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2.5">
@@ -127,15 +127,15 @@ function FocusCard() {
       </div>
 
       {/* quotes + hologram */}
-      <div className="relative mt-3 flex items-center justify-between">
-        <div className="w-24">
+      <div className="relative mt-3 flex items-center justify-center">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20">
           <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“FOCUS TODAY.”</div>
           <div className="mt-1.5 h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
         </div>
         <div className="mobile-holo mobile-holo--focus-feature" style={{ color: CYAN, width: 84, height: 84 }}>
           <HoloArt icon={Hourglass} label="Focus" />
         </div>
-        <div className="w-24 text-right">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-20 text-right">
           <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“A BRIGHTER TOMORROW.”</div>
           <div className="mt-1.5 ml-auto h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
         </div>
