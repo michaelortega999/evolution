@@ -4,6 +4,7 @@ import {
   CheckSquare, Zap, Wallet, Apple, Dumbbell, TrendingUp,
   Briefcase, Star, Home, Calendar, Bell, ClipboardList,
   Hourglass, Play, Pause, RotateCcw, ChevronRight, BookOpen, Target,
+  Settings, BarChart3, MoreHorizontal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -104,6 +105,171 @@ function MonthBar() {
   );
 }
 
+function FocusCard() {
+  const timer = useFocusTimer();
+  const { data } = useEvolutionData();
+  const totalRounds = data.focusSettings?.longEvery ?? 4;
+
+  return (
+    <div className="mx-4 mt-5 hud-card hud-scan mobile-hud-card p-4 relative overflow-hidden">
+      {/* header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2.5">
+          <Hourglass className="h-5 w-5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 6px #00d4ff)" }} />
+          <div>
+            <div className="hud-label text-sm tracking-[0.2em]" style={{ color: CYAN, textShadow: glowText }}>FOCUS</div>
+            <div className="hud-label text-[8px] tracking-[0.12em] text-muted-foreground mt-0.5">TURN INTENTION INTO PROGRESS.</div>
+          </div>
+        </div>
+        <button aria-label="Focus options" className="p-1 text-foreground/60 hover:text-foreground">
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* quotes + hologram */}
+      <div className="relative mt-5 flex items-center justify-between">
+        <div className="w-20">
+          <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“FOCUS TODAY.”</div>
+          <div className="mt-1.5 h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
+        </div>
+        <div className="mobile-holo mobile-holo--focus-feature" style={{ color: CYAN, width: 100, height: 100 }}>
+          <HoloArt icon={Hourglass} label="Focus" />
+        </div>
+        <div className="w-20 text-right">
+          <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“A BRIGHTER TOMORROW.”</div>
+          <div className="mt-1.5 ml-auto h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
+        </div>
+      </div>
+
+      {/* timer */}
+      <div className="text-center mt-1">
+        <div className="hud-label text-4xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 18px rgba(0,212,255,0.75)" }}>
+          {formatMmSs(timer.remainingMs)}
+        </div>
+        <div className="hud-label text-[9px] tracking-[0.25em] text-muted-foreground mt-1">DEEP WORK</div>
+      </div>
+
+      {/* round dots */}
+      <div className="flex items-center justify-center gap-1.5 mt-2.5">
+        {Array.from({ length: totalRounds }).map((_, i) => (
+          <span
+            key={i}
+            className="h-1.5 w-1.5 rounded-full"
+            style={
+              i < timer.round
+                ? { background: CYAN, boxShadow: "0 0 6px #00d4ff" }
+                : { background: "rgba(255,255,255,0.12)" }
+            }
+          />
+        ))}
+      </div>
+
+      {/* controls */}
+      <div className="mt-5 flex items-center justify-center gap-5">
+        <button onClick={() => timer.reset()} className="flex flex-col items-center gap-1.5 group">
+          <span className="h-12 w-12 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+            <RotateCcw className="h-5 w-5" style={{ color: CYAN }} />
+          </span>
+          <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>RESTART</span>
+        </button>
+        <button onClick={() => timer.start()} className="flex flex-col items-center gap-1.5 group">
+          <span className="h-16 w-16 rounded-full flex items-center justify-center transition-all group-active:scale-95" style={{ background: CYAN, boxShadow: "0 0 24px rgba(0,212,255,0.55)" }}>
+            <Play className="h-7 w-7 text-[#02050b] fill-current ml-0.5" />
+          </span>
+          <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>START</span>
+        </button>
+        <button onClick={() => timer.pause()} className="flex flex-col items-center gap-1.5 group">
+          <span className="h-12 w-12 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+            <Pause className="h-5 w-5" style={{ color: CYAN }} />
+          </span>
+          <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>PAUSE</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BottomAppNav({ onBonsai, fixed }: { onBonsai?: () => void; fixed?: boolean }) {
+  const { pathname } = useLocation();
+  const bonsai = hologramSrc("bonsai");
+
+  const items: { icon?: LucideIcon; label: string; to?: string; bonsai?: boolean }[] = [
+    { icon: Home, label: "HOME", to: "/" },
+    { icon: BarChart3, label: "STATS", to: "/reports" },
+    { label: "", bonsai: true },
+    { icon: CheckSquare, label: "TASKS", to: "/notes" },
+    { icon: Settings, label: "SETTINGS", to: "/settings" },
+  ];
+
+  return (
+    <nav
+      className={`hud-card mobile-hub-card p-2 relative ${
+        fixed
+          ? "fixed bottom-0 left-0 right-0 z-40 mx-4 mb-[max(env(safe-area-inset-bottom),12px)]"
+          : "mx-4 mt-4 mb-[max(env(safe-area-inset-bottom),12px)]"
+      }`}
+    >
+      <div className="flex items-center justify-between px-1">
+        {items.map((item, idx) => {
+          if (item.bonsai) {
+            return (
+              <button
+                key="bonsai"
+                onClick={onBonsai}
+                className="relative -mt-5 flex flex-col items-center group"
+                aria-label="Back to hub"
+              >
+                <span
+                  className="h-14 w-14 rounded-full border flex items-center justify-center transition-all group-active:scale-95"
+                  style={{
+                    borderColor: "rgba(0,212,255,0.75)",
+                    background: "rgba(0,212,255,0.06)",
+                    boxShadow: "0 0 20px rgba(0,212,255,0.45), inset 0 0 14px rgba(0,212,255,0.18)",
+                  }}
+                >
+                  <img
+                    src={bonsai}
+                    alt=""
+                    className="h-9 w-9 object-contain"
+                    style={{ filter: "drop-shadow(0 0 10px rgba(0,212,255,0.9))" }}
+                  />
+                </span>
+              </button>
+            );
+          }
+          const to = item.to!;
+          const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+          const Icon = item.icon!;
+          return (
+            <Link
+              key={item.label}
+              to={to}
+              className="flex flex-col items-center gap-1 py-1 min-w-[52px]"
+            >
+              <Icon
+                className="h-5 w-5 transition-all"
+                style={{
+                  color: active ? CYAN : "rgba(107,122,138,0.85)",
+                  filter: active ? "drop-shadow(0 0 6px #00d4ff)" : undefined,
+                }}
+              />
+              <span
+                className="hud-label text-[7px] tracking-[0.08em] transition-all"
+                style={{ color: active ? CYAN : "rgba(107,122,138,0.85)" }}
+              >
+                {item.label}
+              </span>
+              {active && (
+                <span className="h-1 w-1 rounded-full" style={{ background: CYAN, boxShadow: "0 0 4px #00d4ff" }} />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 const MODULE_ACCENTS: Record<HoloVariant | "focus", string> = {
   wealth: "var(--module-wealth)",
   nutrition: "var(--module-nutrition)",
@@ -195,24 +361,12 @@ function ModuleHub({ onUnlock }: { onUnlock: () => void }) {
 
 
 function LockScreen({ onUnlock }: { onUnlock: () => void }) {
-  const { data } = useEvolutionData();
-  const timer = useFocusTimer();
-
-  const openTasks = (data.evoTasks ?? []).filter((t) => t.status !== "Done").slice(0, 5);
-  const openCount = (data.evoTasks ?? []).filter((t) => t.status !== "Done").length;
-
-  const today = todayDate();
-  const todayFocusSec = (data.focusSessions ?? [])
-    .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today)
-    .reduce((a, s) => a + s.durationSec, 0);
-  const totalRounds = data.focusSettings?.longEvery ?? 4;
-  const focusRate = totalRounds > 0 ? Math.min(100, Math.round(((timer.round - 1) / totalRounds) * 100)) : 0;
-  const fH = Math.floor(todayFocusSec / 3600);
-  const fM = Math.floor((todayFocusSec % 3600) / 60);
-  const deepWork = fH > 0 ? `${fH}h ${fM}m` : `${fM}m`;
+  const scrollTop = () => {
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar">
+    <div className="md:hidden min-h-screen bg-[#02050b] text-foreground flex flex-col relative overflow-x-hidden overflow-y-auto no-scrollbar pb-[calc(72px+max(env(safe-area-inset-bottom),12px))]">
       {/* ambient glow */}
       <div
         className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full"
@@ -241,110 +395,11 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       {/* Default unlock layer: module holograms wired to the bonsai. */}
       <ModuleHub onUnlock={onUnlock} />
 
-      {/* Tasks + Focus cards */}
-      <div className="mx-4 mt-8 mb-8 grid grid-cols-2 gap-3">
-        {/* Today's Tasks */}
-        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col relative">
-          <div className="mobile-holo mobile-holo--tasks">
-            <HoloArt icon={ClipboardList} label="Tasks" variant="notes" />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <CheckSquare className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-              <span className="hud-label text-[10px] tracking-[0.15em] text-foreground truncate">TODAY'S TASKS</span>
-            </div>
-          </div>
-          <ul className="flex flex-col gap-2 mt-24">
-            {openTasks.map((t) => (
-              <li key={t.id} className="flex items-center gap-2 min-w-0">
-                <span className="h-3.5 w-3.5 rounded-full border border-white/30 shrink-0" />
-                <span className="text-[11px] text-foreground/85 truncate">{t.text}</span>
-              </li>
-            ))}
-            {openTasks.length === 0 && (
-              <li className="text-[10px] text-muted-foreground italic">No open tasks.</li>
-            )}
-          </ul>
-          <Link
-            to="/notes"
-            className="mt-auto pt-3 flex items-center justify-center gap-1.5 rounded-md border border-primary/40 py-2 hud-label text-[9px] tracking-[0.2em]"
-            style={{ color: CYAN, textShadow: glowText }}
-          >
-            VIEW ALL TASKS <ChevronRight className="h-3 w-3" />
-          </Link>
-        </div>
+      {/* Focus card */}
+      <FocusCard />
 
-        {/* Focus Mode */}
-        <div className="hud-card hud-scan mobile-hud-card p-3 flex flex-col">
-          <div className="flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 shrink-0" style={{ color: CYAN, filter: "drop-shadow(0 0 4px #00d4ff)" }} />
-            <span className="hud-label text-[10px] tracking-[0.15em] text-foreground">FOCUS MODE</span>
-          </div>
-          <div className="hud-label text-[7px] tracking-[0.2em] text-muted-foreground mt-0.5">ONE TASK AT A TIME</div>
-          <HoloArt icon={Hourglass} label="Focus" />
-          <div className="text-center">
-            <div className="hud-label text-3xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 14px rgba(0,212,255,0.7)" }}>
-              {formatMmSs(timer.remainingMs)}
-            </div>
-            <div className="hud-label text-[8px] tracking-[0.2em] text-muted-foreground mt-0.5">
-              ROUND {timer.round} OF {totalRounds}
-            </div>
-            <div className="flex items-center justify-center gap-1.5 mt-1.5">
-              {Array.from({ length: totalRounds }).map((_, i) => (
-                <span
-                  key={i}
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={
-                    i < timer.round
-                      ? { background: CYAN, boxShadow: "0 0 6px #00d4ff" }
-                      : { background: "rgba(255,255,255,0.12)" }
-                  }
-                />
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-1.5 mt-2.5">
-            <button
-              onClick={() => timer.reset()}
-              className="rounded-md border border-primary/40 py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px]"
-              style={{ color: CYAN }}
-            >
-              <RotateCcw className="h-3.5 w-3.5" /> RESTART
-            </button>
-            <button
-              onClick={() => timer.start()}
-              className="rounded-md py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px] text-[#02050b]"
-              style={{ background: CYAN, boxShadow: "0 0 12px rgba(0,212,255,0.5)" }}
-            >
-              <Play className="h-3.5 w-3.5" /> START
-            </button>
-            <button
-              onClick={() => timer.pause()}
-              className="rounded-md border border-primary/40 py-1.5 flex flex-col items-center gap-0.5 hud-label text-[7px]"
-              style={{ color: CYAN }}
-            >
-              <Pause className="h-3.5 w-3.5" /> PAUSE
-            </button>
-          </div>
-          <div className="mt-2.5 rounded-lg border border-primary/25 p-2">
-            <div className="hud-label text-[7px] tracking-[0.2em] text-muted-foreground mb-1.5">FOCUS STATS</div>
-            <div className="grid grid-cols-3 text-center">
-              <div>
-                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{timer.round - 1}/{totalRounds}</div>
-                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">SESSIONS</div>
-              </div>
-              <div>
-                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{focusRate}%</div>
-                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">FOCUS RATE</div>
-              </div>
-              <div>
-                <div className="hud-label text-xs" style={{ color: CYAN, textShadow: glowText }}>{deepWork}</div>
-                <div className="hud-label text-[6px] text-muted-foreground tracking-[0.15em]">DEEP WORK</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* App-like bottom nav */}
+      <BottomAppNav fixed onBonsai={scrollTop} />
     </div>
   );
 }
@@ -438,22 +493,6 @@ export function MobileDashboard() {
   const investPct = Math.min(100, Math.abs(investPnl) / 100);
 
   const heroSrc = hologramSrc(data.profile.hologram);
-  const bonsai = hologramSrc("bonsai");
-
-  const bottomNav: {
-    icon: LucideIcon;
-    to: "/" | "/notes" | "/focus" | "/wealth" | "/nutrition" | "/fitness" | "/investing" | "/calendar" | "/hobby";
-  }[] = [
-    { icon: Home, to: "/" },
-    { icon: CheckSquare, to: "/notes" },
-    { icon: Zap, to: "/focus" },
-    { icon: Wallet, to: "/wealth" },
-    { icon: Apple, to: "/nutrition" },
-    { icon: Dumbbell, to: "/fitness" },
-    { icon: TrendingUp, to: "/investing" },
-    { icon: Calendar, to: "/calendar" },
-    { icon: Star, to: "/hobby" },
-  ];
 
   if (stage === 1) {
     return (
@@ -571,66 +610,8 @@ export function MobileDashboard() {
         </ul>
       </section>
 
-      {/* Floating bonsai — tap to return to first screen */}
-      <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom),8px))] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
-        <button
-          onClick={() => setStage(1)}
-          className="relative h-14 w-14 rounded-full flex items-center justify-center"
-          aria-label="Back to lock screen"
-        >
-          <span
-            className="absolute inset-0 rounded-full border-2"
-            style={{
-              borderColor: "rgba(0,212,255,0.7)",
-              boxShadow: "0 0 18px rgba(0,212,255,0.45), inset 0 0 12px rgba(0,212,255,0.2)",
-            }}
-          />
-          <span
-            className="absolute inset-1 rounded-full border border-dashed animate-[spin_12s_linear_infinite]"
-            style={{ borderColor: "rgba(0,212,255,0.35)" }}
-          />
-          <img
-            src={bonsai}
-            alt=""
-            className="h-9 w-9 object-contain"
-            style={{ mixBlendMode: "screen", filter: "drop-shadow(0 0 10px rgba(0,212,255,0.85))" }}
-          />
-        </button>
-      </div>
-
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
-           style={{ background: "#02050b", borderTop: "1px solid rgba(0,212,255,0.15)" }}>
-        <div className="flex items-center justify-between px-3 py-2 pb-[max(env(safe-area-inset-bottom),8px)]">
-          {bottomNav.map(({ icon: Icon, to }) => {
-            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-            return (
-              <Link
-                key={to}
-                to={to}
-                className="h-10 w-10 rounded-md flex items-center justify-center"
-                style={
-                  active
-                    ? {
-                        border: "1px solid #00d4ff",
-                        background: "rgba(0,212,255,0.12)",
-                        boxShadow: "0 0 10px rgba(0,212,255,0.5)",
-                      }
-                    : undefined
-                }
-              >
-                <Icon
-                  className="h-5 w-5"
-                  style={{
-                    color: active ? "#00d4ff" : "#6b7a8a",
-                    filter: active ? "drop-shadow(0 0 6px #00d4ff)" : undefined,
-                  }}
-                />
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* App-like bottom nav */}
+      <BottomAppNav fixed onBonsai={() => setStage(1)} />
     </div>
   );
 }

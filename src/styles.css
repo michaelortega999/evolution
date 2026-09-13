@@ -422,6 +422,19 @@
     height: 112px;
     margin: 0.35rem auto;
   }
+  .mobile-holo--focus-feature {
+    width: 100px;
+    height: 100px;
+    margin: 0.15rem auto;
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
+  }
+  .mobile-holo--focus-feature .holo-jarvis,
+  .mobile-holo--focus-feature .holo-j-svg,
+  .mobile-holo--focus-feature .mobile-focus-holo {
+    color: #00d4ff !important;
+    --glow: #00d4ff !important;
+  }
   /* Compact corner hologram for mobile card headers */
   .mobile-holo--corner {
     position: absolute;
