@@ -26,6 +26,8 @@ export function MobileBottomNav({ fixed = false, onCenter }: { fixed?: boolean; 
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navClassName = fixed ? "code-bottom-nav code-bottom-nav--fixed md:hidden" : "code-bottom-nav";
 
+  if (fixed && (pathname === "/" || pathname === "/auth")) return null;
+
   const navLink = ({ label, to, icon: Icon }: (typeof NAV_ITEMS)[number]) => {
     const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
     return (
@@ -37,18 +39,21 @@ export function MobileBottomNav({ fixed = false, onCenter }: { fixed?: boolean; 
   };
 
   return (
-    <nav className={navClassName} aria-label="Mobile navigation">
-      {NAV_ITEMS.slice(0, 2).map(navLink)}
-      {onCenter ? (
-        <Button type="button" variant="ghost" className="code-bottom-bonsai" onClick={onCenter} aria-label="Home hub">
-          <BonsaiMark />
-        </Button>
-      ) : (
-        <Link to="/" className="code-bottom-bonsai" aria-label="Home hub">
-          <BonsaiMark />
-        </Link>
-      )}
-      {NAV_ITEMS.slice(2).map(navLink)}
-    </nav>
+    <>
+      {fixed && <div className="mobile-bottom-nav-spacer md:hidden" aria-hidden="true" />}
+      <nav className={navClassName} aria-label="Mobile navigation">
+        {NAV_ITEMS.slice(0, 2).map(navLink)}
+        {onCenter ? (
+          <Button type="button" variant="ghost" className="code-bottom-bonsai" onClick={onCenter} aria-label="Home hub">
+            <BonsaiMark />
+          </Button>
+        ) : (
+          <Link to="/" className="code-bottom-bonsai" aria-label="Home hub">
+            <BonsaiMark />
+          </Link>
+        )}
+        {NAV_ITEMS.slice(2).map(navLink)}
+      </nav>
+    </>
   );
 }
