@@ -233,13 +233,14 @@ function BottomAppNav({ onBonsai }: { onBonsai?: () => void }) {
           }
           const to = item.to!;
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+          const Icon = item.icon!;
           return (
             <Link
               key={item.label}
               to={to}
               className="flex flex-col items-center gap-1 py-1 min-w-[52px]"
             >
-              <item.icon!
+              <Icon
                 className="h-5 w-5 transition-all"
                 style={{
                   color: active ? CYAN : "rgba(107,122,138,0.85)",
