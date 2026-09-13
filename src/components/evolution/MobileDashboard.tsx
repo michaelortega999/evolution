@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import mobileHud from "@/assets/evolution-mobile-hud.png.asset.json";
+import mobileHud from "@/assets/evolution-mobile-hud-cropped.webp.asset.json";
 import { formatMmSs, useFocusTimer } from "@/lib/use-focus-timer";
 
 type Hotspot = {
@@ -12,13 +12,13 @@ type Hotspot = {
 };
 
 const MODULE_HOTSPOTS: Hotspot[] = [
-  { label: "Focus", to: "/focus", x: 50, y: 21.1, size: 17 },
-  { label: "Nutrition", to: "/nutrition", x: 25.5, y: 24.6, size: 18 },
-  { label: "Wealth", to: "/wealth", x: 74.6, y: 24.6, size: 18 },
-  { label: "Fitness", to: "/fitness", x: 14.5, y: 34.9, size: 18 },
-  { label: "Investing", to: "/investing", x: 85.9, y: 34.9, size: 18 },
-  { label: "Journal", to: "/journal", x: 23.2, y: 44.4, size: 18 },
-  { label: "Business", to: "/business", x: 76.8, y: 44.4, size: 18 },
+  { label: "Focus", to: "/focus", x: 50, y: 16.9, size: 17 },
+  { label: "Nutrition", to: "/nutrition", x: 25.5, y: 20.9, size: 18 },
+  { label: "Wealth", to: "/wealth", x: 74.6, y: 20.9, size: 18 },
+  { label: "Fitness", to: "/fitness", x: 14.5, y: 31.9, size: 18 },
+  { label: "Investing", to: "/investing", x: 85.9, y: 31.9, size: 18 },
+  { label: "Journal", to: "/journal", x: 23.2, y: 41.6, size: 18 },
+  { label: "Business", to: "/business", x: 76.8, y: 41.6, size: 18 },
 ];
 
 const BOTTOM_LINKS = [

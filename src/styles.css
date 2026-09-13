@@ -390,7 +390,7 @@
   .mobile-image-stage {
     position: relative;
     width: min(100%, 430px);
-    aspect-ratio: 886 / 1920;
+    aspect-ratio: 886 / 1824;
     margin-inline: auto;
     overflow: hidden;
     background: var(--background);
@@ -407,7 +407,7 @@
   .mobile-image-date {
     position: absolute;
     left: 65.4%;
-    top: 5.7%;
+    top: 0.7%;
     width: 18.6%;
     height: 5.1%;
     display: flex;
@@ -473,7 +473,7 @@
     position: absolute;
     z-index: 3;
     left: 50%;
-    top: 52%;
+    top: 49.5%;
     width: 22%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
@@ -486,7 +486,7 @@
   .mobile-image-focus-link {
     z-index: 3;
     left: 31%;
-    top: 65.3%;
+    top: 63.5%;
     width: 38%;
     height: 10%;
     border-radius: 50%;
@@ -496,7 +496,7 @@
     position: absolute;
     z-index: 4;
     left: 50%;
-    top: 74.25%;
+    top: 73%;
     min-width: 27%;
     transform: translate(-50%, -50%);
     padding: 0.2% 1%;
@@ -512,7 +512,7 @@
   .mobile-image-control {
     position: absolute;
     z-index: 5;
-    top: 80.5%;
+    top: 79.5%;
     width: 15%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
@@ -533,7 +533,7 @@
   .mobile-image-bottom-bonsai {
     position: absolute;
     z-index: 5;
-    top: 93.4%;
+    top: 93%;
     width: 17%;
     height: 7.5%;
     transform: translate(-50%, -50%);
