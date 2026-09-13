@@ -111,7 +111,7 @@ function FocusCard() {
   const totalRounds = data.focusSettings?.longEvery ?? 4;
 
   return (
-    <div className="mx-4 mt-5 hud-card hud-scan mobile-hud-card p-4 relative overflow-hidden">
+    <div className="mx-4 mt-3 hud-card hud-scan mobile-hud-card p-3 relative overflow-hidden">
       {/* header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2.5">
@@ -127,30 +127,30 @@ function FocusCard() {
       </div>
 
       {/* quotes + hologram */}
-      <div className="relative mt-5 flex items-center justify-between">
-        <div className="w-20">
+      <div className="relative mt-3 flex items-center justify-between">
+        <div className="w-24">
           <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“FOCUS TODAY.”</div>
           <div className="mt-1.5 h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
         </div>
-        <div className="mobile-holo mobile-holo--focus-feature" style={{ color: CYAN, width: 100, height: 100 }}>
+        <div className="mobile-holo mobile-holo--focus-feature" style={{ color: CYAN, width: 84, height: 84 }}>
           <HoloArt icon={Hourglass} label="Focus" />
         </div>
-        <div className="w-20 text-right">
+        <div className="w-24 text-right">
           <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“A BRIGHTER TOMORROW.”</div>
           <div className="mt-1.5 ml-auto h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
         </div>
       </div>
 
       {/* timer */}
-      <div className="text-center mt-1">
-        <div className="hud-label text-4xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 18px rgba(0,212,255,0.75)" }}>
+      <div className="text-center mt-0.5">
+        <div className="hud-label text-3xl tabular-nums tracking-wider" style={{ color: CYAN, textShadow: "0 0 18px rgba(0,212,255,0.75)" }}>
           {formatMmSs(timer.remainingMs)}
         </div>
-        <div className="hud-label text-[9px] tracking-[0.25em] text-muted-foreground mt-1">DEEP WORK</div>
+        <div className="hud-label text-[9px] tracking-[0.25em] text-muted-foreground mt-0.5">DEEP WORK</div>
       </div>
 
       {/* round dots */}
-      <div className="flex items-center justify-center gap-1.5 mt-2.5">
+      <div className="flex items-center justify-center gap-1.5 mt-1.5">
         {Array.from({ length: totalRounds }).map((_, i) => (
           <span
             key={i}
@@ -165,22 +165,22 @@ function FocusCard() {
       </div>
 
       {/* controls */}
-      <div className="mt-5 flex items-center justify-center gap-5">
-        <button onClick={() => timer.reset()} className="flex flex-col items-center gap-1.5 group">
-          <span className="h-12 w-12 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-            <RotateCcw className="h-5 w-5" style={{ color: CYAN }} />
+      <div className="mt-3 flex items-center justify-center gap-4">
+        <button onClick={() => timer.reset()} className="flex flex-col items-center gap-1 group">
+          <span className="h-10 w-10 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+            <RotateCcw className="h-4 w-4" style={{ color: CYAN }} />
           </span>
           <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>RESTART</span>
         </button>
-        <button onClick={() => timer.start()} className="flex flex-col items-center gap-1.5 group">
-          <span className="h-16 w-16 rounded-full flex items-center justify-center transition-all group-active:scale-95" style={{ background: CYAN, boxShadow: "0 0 24px rgba(0,212,255,0.55)" }}>
-            <Play className="h-7 w-7 text-[#02050b] fill-current ml-0.5" />
+        <button onClick={() => timer.start()} className="flex flex-col items-center gap-1 group">
+          <span className="h-14 w-14 rounded-full flex items-center justify-center transition-all group-active:scale-95" style={{ background: CYAN, boxShadow: "0 0 24px rgba(0,212,255,0.55)" }}>
+            <Play className="h-6 w-6 text-[#02050b] fill-current ml-0.5" />
           </span>
           <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>START</span>
         </button>
-        <button onClick={() => timer.pause()} className="flex flex-col items-center gap-1.5 group">
-          <span className="h-12 w-12 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-            <Pause className="h-5 w-5" style={{ color: CYAN }} />
+        <button onClick={() => timer.pause()} className="flex flex-col items-center gap-1 group">
+          <span className="h-10 w-10 rounded-full border flex items-center justify-center transition-all group-active:scale-95" style={{ borderColor: "rgba(0,212,255,0.5)", boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+            <Pause className="h-4 w-4" style={{ color: CYAN }} />
           </span>
           <span className="hud-label text-[8px] tracking-[0.12em]" style={{ color: CYAN }}>PAUSE</span>
         </button>
@@ -230,7 +230,7 @@ function BottomAppNav({ onBonsai, fixed }: { onBonsai?: () => void; fixed?: bool
                   <img
                     src={bonsai}
                     alt=""
-                    className="h-9 w-9 object-contain"
+                    className="h-11 w-11 object-contain"
                     style={{ filter: "drop-shadow(0 0 10px rgba(0,212,255,0.9))" }}
                   />
                 </span>
