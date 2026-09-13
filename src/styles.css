@@ -381,6 +381,186 @@
     display: none;
   }
 
+  /* Exact uploaded mobile HUD with interaction-only overlays. */
+  .mobile-image-screen {
+    min-height: 100vh;
+    background: var(--background);
+    overflow-x: hidden;
+  }
+  .mobile-image-stage {
+    position: relative;
+    width: min(100%, 430px);
+    aspect-ratio: 886 / 1920;
+    margin-inline: auto;
+    overflow: hidden;
+    background: var(--background);
+  }
+  .mobile-image-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .mobile-image-date {
+    position: absolute;
+    left: 65.4%;
+    top: 5.7%;
+    width: 18.6%;
+    height: 5.1%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    padding-left: 1%;
+    color: var(--primary);
+    background: color-mix(in oklab, var(--background) 96%, transparent);
+    font-family: var(--font-mono);
+    letter-spacing: 0;
+    line-height: 1.05;
+    text-shadow: 0 0 6px color-mix(in oklab, var(--primary) 70%, transparent);
+  }
+  .mobile-image-date span:first-child {
+    font-size: clamp(7px, 2.3vw, 10px);
+    font-weight: 700;
+  }
+  .mobile-image-date strong {
+    color: var(--foreground);
+    font-size: clamp(8px, 2.7vw, 12px);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .mobile-image-date span:last-child {
+    font-size: clamp(7px, 2.25vw, 10px);
+  }
+  .mobile-image-module {
+    position: absolute;
+    z-index: 3;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-image-module__ring {
+    position: absolute;
+    inset: 7%;
+    border: 1px solid color-mix(in oklab, var(--primary) 68%, transparent);
+    border-radius: 50%;
+    box-shadow:
+      0 0 5px color-mix(in oklab, var(--primary) 55%, transparent),
+      inset 0 0 5px color-mix(in oklab, var(--primary) 34%, transparent);
+    opacity: 0.46;
+    animation: mobile-image-ring-spin 18s linear infinite;
+  }
+  .mobile-image-module__ring::before,
+  .mobile-image-module__ring::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 8%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
+    transform: translateY(-50%);
+  }
+  .mobile-image-module__ring::before { left: -4%; }
+  .mobile-image-module__ring::after { right: -4%; }
+  .mobile-image-bonsai {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 52%;
+    width: 22%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    animation: mobile-image-bonsai-pulse 3.8s ease-in-out infinite;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-image-focus-link {
+    z-index: 3;
+    left: 31%;
+    top: 65.3%;
+    width: 38%;
+    height: 10%;
+    border-radius: 50%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-image-timer {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    top: 74.25%;
+    min-width: 27%;
+    transform: translate(-50%, -50%);
+    padding: 0.2% 1%;
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--background) 96%, transparent);
+    font-family: var(--font-mono);
+    font-size: clamp(18px, 7vw, 30px);
+    line-height: 1;
+    letter-spacing: 0;
+    text-align: center;
+    text-shadow: 0 0 9px color-mix(in oklab, var(--primary) 72%, transparent);
+  }
+  .mobile-image-control {
+    position: absolute;
+    z-index: 5;
+    top: 80.5%;
+    width: 15%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-image-control:active,
+  .mobile-image-bottom-link:active,
+  .mobile-image-bottom-bonsai:active {
+    background: color-mix(in oklab, var(--primary) 11%, transparent);
+  }
+  .mobile-image-control--reset { left: 27.3%; }
+  .mobile-image-control--start { left: 50%; width: 17%; }
+  .mobile-image-control--pause { left: 72.5%; }
+  .mobile-image-bottom-link,
+  .mobile-image-bottom-bonsai {
+    position: absolute;
+    z-index: 5;
+    top: 93.4%;
+    width: 17%;
+    height: 7.5%;
+    transform: translate(-50%, -50%);
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-image-bottom-bonsai {
+    left: 50%;
+    width: 18%;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+  }
+  @keyframes mobile-image-ring-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes mobile-image-bonsai-pulse {
+    0%, 100% { box-shadow: 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent); }
+    50% { box-shadow: 0 0 18px color-mix(in oklab, var(--primary) 52%, transparent); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-image-module__ring,
+    .mobile-image-bonsai {
+      animation: none;
+    }
+  }
+
   /* Mobile uses the exact desktop HUD construction at a compact scale. */
   .mobile-hud-card {
     --hud-chamfer: 14px;
