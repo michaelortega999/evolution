@@ -33,13 +33,13 @@ type ModuleNode = {
 };
 
 const MODULES: ModuleNode[] = [
-  { label: "Focus", system: "SYS-04", to: "/focus", icon: Hourglass, x: 50, y: 19.4 },
-  { label: "Nutrition", system: "SYS-03", to: "/nutrition", icon: Leaf, x: 25.5, y: 24.6 },
-  { label: "Wealth", system: "SYS-02", to: "/wealth", icon: Coins, x: 74.5, y: 24.6 },
-  { label: "Fitness", system: "SYS-01", to: "/fitness", icon: Dumbbell, x: 14.8, y: 36.1 },
-  { label: "Investing", system: "SYS-05", to: "/investing", icon: TrendingUp, x: 85.2, y: 36.1 },
-  { label: "Journal", system: "SYS-07", to: "/journal", icon: BookOpen, x: 23.3, y: 47.6 },
-  { label: "Business", system: "SYS-06", to: "/business", icon: BriefcaseBusiness, x: 76.7, y: 47.6 },
+  { label: "Focus", system: "SYS-04", to: "/focus", icon: Hourglass, x: 50, y: 11 },
+  { label: "Nutrition", system: "SYS-03", to: "/nutrition", icon: Leaf, x: 25.5, y: 28 },
+  { label: "Wealth", system: "SYS-02", to: "/wealth", icon: Coins, x: 74.5, y: 28 },
+  { label: "Fitness", system: "SYS-01", to: "/fitness", icon: Dumbbell, x: 14.8, y: 52 },
+  { label: "Investing", system: "SYS-05", to: "/investing", icon: TrendingUp, x: 85.2, y: 52 },
+  { label: "Journal", system: "SYS-07", to: "/journal", icon: BookOpen, x: 23.3, y: 76 },
+  { label: "Business", system: "SYS-06", to: "/business", icon: BriefcaseBusiness, x: 76.7, y: 76 },
 ];
 
 function LiveDateTime() {
@@ -77,7 +77,7 @@ function CircuitLayer() {
         <path d="M37 1120V1480M849 1120V1480M443 1064V1518" />
       </g>
       <g className="code-hud-nodes">
-        {[292, 402, 540, 642, 785, 842, 968, 1064, 1518].map((y) => <circle key={y} cx="443" cy={y} r="4" />)}
+        {[292, 402, 540, 642, 785, 842, 968, 1064, 1518].map((y, index) => <circle key={`node-${index}-${y}`} cx="443" cy={y} r="4" />)}
         <circle cx="226" cy="629" r="3" /><circle cx="660" cy="629" r="3" />
         <circle cx="194" cy="792" r="3" /><circle cx="692" cy="792" r="3" />
       </g>
