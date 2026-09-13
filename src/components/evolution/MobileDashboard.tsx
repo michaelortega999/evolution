@@ -128,14 +128,14 @@ function FocusCard() {
 
       {/* quotes + hologram */}
       <div className="relative mt-3 flex items-center justify-between">
-        <div className="w-20">
+        <div className="w-24">
           <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“FOCUS TODAY.”</div>
           <div className="mt-1.5 h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
         </div>
         <div className="mobile-holo mobile-holo--focus-feature" style={{ color: CYAN, width: 84, height: 84 }}>
           <HoloArt icon={Hourglass} label="Focus" />
         </div>
-        <div className="w-20 text-right">
+        <div className="w-24 text-right">
           <div className="hud-label text-[9px] leading-tight" style={{ color: CYAN }}>“A BRIGHTER TOMORROW.”</div>
           <div className="mt-1.5 ml-auto h-px w-5" style={{ background: CYAN, boxShadow: "0 0 6px #00d4ff" }} />
         </div>
