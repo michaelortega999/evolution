@@ -215,7 +215,9 @@ export function useFocusTimer(): UseFocusTimer {
         ...prev,
         running: false,
         startedAt: null,
-        remainingMs: modeDurationMs(prev.mode, settings),
+        mode: "focus",
+        round: 1,
+        remainingMs: modeDurationMs("focus", settings),
       };
       saveTimer(next);
       return next;
