@@ -201,19 +201,27 @@ function FocusPage() {
               </div>
             )}
 
-            {/* main controls */}
+            {/* main controls: Pause / Start / Restart */}
             <div className="flex gap-3">
               <button
-                onClick={() => (timer.running ? timer.pause() : timer.start())}
-                className="h-11 px-6 rounded-md border border-primary/60 bg-primary/15 text-primary hud-label text-xs hover:bg-primary/25 flex items-center gap-2 hud-glow"
+                onClick={() => timer.pause()}
+                disabled={!timer.running}
+                className="h-11 px-6 rounded-md border border-border text-foreground/80 hud-label text-xs hover:text-primary hover:border-primary/40 flex items-center gap-2 disabled:opacity-40 disabled:hover:text-foreground/80 disabled:hover:border-border"
               >
-                {timer.running ? <><Pause className="h-4 w-4" /> Pause</> : <><Play className="h-4 w-4" /> Start</>}
+                <Pause className="h-4 w-4" /> Pause
+              </button>
+              <button
+                onClick={() => timer.start()}
+                disabled={timer.running}
+                className="h-11 px-6 rounded-md border border-primary/60 bg-primary/15 text-primary hud-label text-xs hover:bg-primary/25 flex items-center gap-2 hud-glow disabled:opacity-40 disabled:hover:bg-primary/15"
+              >
+                <Play className="h-4 w-4" /> Start
               </button>
               <button
                 onClick={() => timer.reset()}
                 className="h-11 px-5 rounded-md border border-border text-foreground/80 hud-label text-xs hover:text-primary hover:border-primary/40 flex items-center gap-2"
               >
-                <RotateCcw className="h-4 w-4" /> Reset
+                <RotateCcw className="h-4 w-4" /> Restart
               </button>
               <button
                 onClick={() => timer.logSession()}
