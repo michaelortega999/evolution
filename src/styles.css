@@ -396,9 +396,9 @@
   .image-hud-focus-link { position:absolute; z-index:5; left:20%; top:63.9%; width:60%; height:16%; border-radius:50%; }
   .image-hud-timer { position:absolute; z-index:6; top:76.6%; left:50%; transform:translate(-50%,-50%); min-width:30%; padding:.4% 1%; color:var(--foreground); background:color-mix(in oklab,var(--background) 96%,transparent); font-family:var(--font-mono); font-size:clamp(22px,8.2cqw,35px); line-height:1; text-align:center; letter-spacing:0; text-shadow:0 0 8px var(--primary); }
   .image-hud-control { position:absolute; z-index:7; top:83.15%; width:16%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; background:transparent; }
-  .image-hud-control--reset { left:27.5%; }
+  .image-hud-control--pause { left:27.5%; }
   .image-hud-control--start { left:50%; width:19%; }
-  .image-hud-control--pause { left:72.7%; }
+  .image-hud-control--reset { left:72.7%; }
   .image-hud-bottom-link { position:absolute; z-index:7; top:92.2%; width:17%; height:7.2%; transform:translateX(-50%); }
   .image-hud-bottom-bonsai { position:absolute; z-index:7; left:50%; top:93.2%; width:19%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; background:transparent; }
   @keyframes image-hud-spin { to { transform:rotate(360deg); } }
