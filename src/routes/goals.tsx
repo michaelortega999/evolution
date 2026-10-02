@@ -1,4 +1,5 @@
 import { localISO } from "@/lib/utils";
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { Target, Plus, Trash2, Check } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -54,7 +55,8 @@ function GoalsPage() {
   const [unit, setUnit] = useState("");
 
   function addGoal() {
-    if (!title.trim() || target <= 0) return;
+    if (!title.trim()) { toast.error("Give the goal a title."); return; }
+    if (!(Number(target) > 0)) { toast.error("Target must be above 0."); return; }
     const g: Goal = {
       id: crypto.randomUUID(),
       title: title.trim(),

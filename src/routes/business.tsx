@@ -1,4 +1,5 @@
 import { localISO } from "@/lib/utils";
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { Briefcase, Trash2, Plus } from "lucide-react";
@@ -53,7 +54,8 @@ function BusinessPage() {
     setProjOpen(true);
   };
   const saveProj = () => {
-    if (!pName.trim()) return;
+    if (!pName.trim()) { toast.error("Give the project a name."); return; }
+    if (pRevTarget && !(Number(pRevTarget) >= 0)) { toast.error("Revenue target must be 0 or more."); return; }
     mutate((prev) => ({
       projects: editId
         ? prev.projects.map((x) => x.id === editId ? { ...x, name: pName.trim(), description: pDesc, status: pStatus, progress: pProg, deadline: pDeadline, revenueTarget: Number(pRevTarget) || 0 } : x)
@@ -66,7 +68,8 @@ function BusinessPage() {
   // Revenue
   const [rAmt, setRAmt] = useState(""); const [rSrc, setRSrc] = useState(""); const [rDate, setRDate] = useState(todayDate()); const [rCat, setRCat] = useState("Sales");
   const addRev = () => {
-    if (!Number(rAmt) || !rSrc.trim()) return;
+    if (!rSrc.trim()) { toast.error("Add a revenue source."); return; }
+    if (!(Number(rAmt) > 0)) { toast.error("Enter an amount above 0."); return; }
     mutate((prev) => ({ revenue: [...prev.revenue, { id: uid(), date: rDate, amount: Number(rAmt), source: rSrc.trim(), category: rCat }] }));
     setRAmt(""); setRSrc("");
   };
@@ -84,7 +87,7 @@ function BusinessPage() {
   const [taskDue, setTaskDue] = useState(""); const [taskCat, setTaskCat] = useState("General");
   const [taskFilter, setTaskFilter] = useState<TaskPriority | "All">("All");
   const addTask = () => {
-    if (!taskText.trim()) return;
+    if (!taskText.trim()) { toast.error("Write the task first."); return; }
     mutate((prev) => ({ bizTasks: [...prev.bizTasks, { id: uid(), text: taskText.trim(), priority: taskPri, due: taskDue || todayDate(), category: taskCat, done: false }] }));
     setTaskText("");
   };
@@ -96,7 +99,8 @@ function BusinessPage() {
   const bizGoals = data.goals.filter((g) => g.category === "Business");
   const [gTitle, setGTitle] = useState(""); const [gTarget, setGTarget] = useState(""); const [gCurrent, setGCurrent] = useState(""); const [gDeadline, setGDeadline] = useState("");
   const addGoal = () => {
-    if (!gTitle.trim() || !Number(gTarget)) return;
+    if (!gTitle.trim()) { toast.error("Give the goal a title."); return; }
+    if (!(Number(gTarget) > 0)) { toast.error("Target must be above 0."); return; }
     mutate((prev) => ({ goals: [...prev.goals, { id: uid(), title: gTitle.trim(), category: "Business", target: Number(gTarget), current: Number(gCurrent) || 0, deadline: gDeadline || todayDate(), completed: false }] }));
     setGTitle(""); setGTarget(""); setGCurrent(""); setGDeadline("");
   };
