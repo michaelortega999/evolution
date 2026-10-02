@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Settings as SettingsIcon, User, Bell, Database, Palette, Trash2, Download, Timer } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,14 @@ import { THEME_OPTIONS, applyTheme } from "@/lib/use-theme";
 import { cn, localISO } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings — Evolution" }] }),
+  head: () => ({ meta: [
+    { title: "Settings — Evolution" },
+    { name: "description", content: "Profile, theme, focus timer and data settings for Evolution OS." },
+    { property: "og:title", content: "Settings — Evolution" },
+    { property: "og:description", content: "Profile, theme, focus timer and data settings for Evolution OS." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: SettingsPage,
 });
 
@@ -18,6 +26,9 @@ function SettingsPage() {
   const settings = data.settings;
   const fs = data.focusSettings;
   const [name, setName] = useState(data.profile.name);
+  // Saved data loads after first render: show the stored name unless the user is already typing.
+  const nameTouched = useRef(false);
+  useEffect(() => { if (!nameTouched.current) setName(data.profile.name); }, [data.profile.name]);
   const [confirmClear, setConfirmClear] = useState(false);
 
   const setTheme = (theme: ThemeKey) => {
@@ -39,7 +50,8 @@ function SettingsPage() {
     a.href = url;
     a.download = `evolution-data-${localISO(new Date())}.json`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success("Export downloaded.");
   };
 
   return (
@@ -51,8 +63,11 @@ function SettingsPage() {
           </div>
           <div className="flex-1 min-w-[200px]">
             <label className="hud-label text-[10px] text-muted-foreground">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} className="mt-1" />
-            <Button onClick={() => updateProfile({ name: name.trim() })} className="mt-3 hud-label text-[10px]">
+            <Input value={name} onChange={(e) => { nameTouched.current = true; setName(e.target.value); }} maxLength={60} className="mt-1" />
+            <Button onClick={() => {
+              if (!name.trim()) { toast.error("Name can't be empty."); return; }
+              updateProfile({ name: name.trim() }); nameTouched.current = false; toast.success("Profile saved.");
+            }} className="mt-3 hud-label text-[10px]">
               Save Profile
             </Button>
           </div>
@@ -103,6 +118,7 @@ function SettingsPage() {
       </Panel>
 
       <Panel title="NOTIFICATIONS">
+        <p className="mb-3 text-xs text-muted-foreground">Your choices are saved. Reminder delivery isn't set up yet, so no alerts are sent.</p>
         <div className="flex flex-col gap-2">
           {([
             ["daily", "Daily progress reminders"],
@@ -132,7 +148,7 @@ function SettingsPage() {
           </Button>
           {confirmClear ? (
             <>
-              <Button onClick={() => { reset(); setConfirmClear(false); }} variant="destructive" className="hud-label text-[10px]">
+              <Button onClick={() => { reset(); nameTouched.current = false; setConfirmClear(false); toast.success("All data cleared, including phone tasks and calendar."); }} variant="destructive" className="hud-label text-[10px]">
                 Confirm Clear
               </Button>
               <Button onClick={() => setConfirmClear(false)} variant="outline" className="hud-label text-[10px]">Cancel</Button>
