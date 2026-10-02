@@ -4,6 +4,7 @@ import "../styles.css";
 import { useTheme } from "@/lib/use-theme";
 import { FocusNotification } from "@/components/evolution/FocusNotification";
 import { MobileBottomNav } from "@/components/evolution/MobileBottomNav";
+import { MobileApp, useIsPhone } from "@/components/evolution/MobileApp";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -71,6 +72,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useTheme();
+  const isPhone = useIsPhone();
+  if (isPhone) return <MobileApp />;
   return (
     <>
       <Outlet />
