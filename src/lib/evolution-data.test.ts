@@ -61,6 +61,7 @@ describe("cloud sync", () => {
     mem["evolution:data:owner"] = "U";
     cloud.U = { ...defaultData, evoTasks: [task("r1", "remote")], _version: 6 };
     mem["evolution:data:synced:U"] = JSON.stringify({ ...defaultData, evoTasks: [task("r1", "remote")], _version: 6 });
+    mem[KEY] = mem["evolution:data:synced:U"]; // device was in sync before going offline
     failReads = 2;
     await __cloudTest.activateCloudForUser("U");
     expect(uploads.length).toBe(0);
