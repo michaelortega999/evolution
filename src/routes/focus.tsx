@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -370,7 +371,7 @@ function FocusPage() {
                 {timeWeek.days.map((d, i) => {
                   const mins = timeWeek.byDay[d] ?? 0;
                   const pct = Math.round((mins / timeWeek.dayMax) * 100);
-                  const isToday = d === new Date().toISOString().slice(0, 10);
+                  const isToday = d === localISO(new Date());
                   return (
                     <div key={d} className="flex-1 flex flex-col items-center gap-1.5">
                       <div className="hud-label text-[9px] text-primary tabular-nums">{mins > 0 ? formatHm(mins) : "—"}</div>

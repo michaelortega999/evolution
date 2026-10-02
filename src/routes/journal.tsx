@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { FileText, Trash2 } from "lucide-react";
@@ -88,7 +89,7 @@ function JournalPage() {
     const now = new Date();
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now); d.setDate(now.getDate() - i);
-      const date = d.toISOString().slice(0, 10);
+      const date = localISO(d);
       const entries = data.journalEntries.filter((e) => e.date === date);
       const avg = entries.length
         ? entries.reduce((a, e) => a + MOOD_VALUE[e.mood], 0) / entries.length

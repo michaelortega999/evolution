@@ -28,7 +28,7 @@ export function WeeklyTasksCard() {
     [data.customHabits, data.habitOrder, data.hiddenHabits],
   );
   const days = useMemo(() => weekDates(), []);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localISO(new Date());
 
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");

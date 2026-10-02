@@ -1,3 +1,4 @@
+import { localISO } from "./utils";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -731,14 +732,14 @@ export const defaultData: EvolutionData = {
   tradeJournal: seedTradeJournal(),
 };
 
-function _today(): string { return new Date().toISOString().slice(0, 10); }
+function _today(): string { return localISO(new Date()); }
 function _firstOfMonth(): string {
   const d = new Date(); d.setDate(1);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
 function _midMonth(): string {
   const d = new Date(); d.setDate(Math.max(2, Math.floor(d.getDate() / 2)));
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
 
 function seedTradingAccounts(): TradingAccount[] {
@@ -757,13 +758,13 @@ function seedTradeJournal(): TradeJournalEntry[] {
 function futureISO(daysAhead: number): string {
   const d = new Date();
   d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
 function nextSatISO(): string {
   const d = new Date();
   const diff = (6 - d.getDay() + 7) % 7 || 7;
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
 
 function hydrate(parsed: StoredShape): EvolutionData {
@@ -962,7 +963,7 @@ export function useEvolutionData() {
 // ---------- Derived metrics ----------
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return localISO(new Date());
 }
 
 export function uid() {
@@ -1087,7 +1088,7 @@ export function nutritionStreak(mealLogs: MealLog[], target: number) {
   const d = new Date();
   // walk back day-by-day; today only counts if hit
   for (let i = 0; i < 365; i++) {
-    const iso = new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10);
+    const iso = localISO(new Date(d.getTime() - i * 86400000));
     const total = dayTotals(iso, mealLogs).kcal;
     const hit = total > 0 && total <= target * 1.05 && total >= target * 0.85;
     if (hit) streak++;
@@ -1099,7 +1100,7 @@ export function nutritionStreak(mealLogs: MealLog[], target: number) {
 export function weeklyAverage(mealLogs: MealLog[]) {
   const days: string[] = [];
   const d = new Date();
-  for (let i = 6; i >= 0; i--) days.push(new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10));
+  for (let i = 6; i >= 0; i--) days.push(localISO(new Date(d.getTime() - i * 86400000)));
   const totals = days.map((iso) => dayTotals(iso, mealLogs).kcal);
   const logged = totals.filter((t) => t > 0);
   const avg = logged.length ? Math.round(logged.reduce((a, b) => a + b, 0) / logged.length) : 0;
@@ -1131,7 +1132,7 @@ export function weekDaysMonSun(start: Date = weekStartMonday()): string[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
-    return d.toISOString().slice(0, 10);
+    return localISO(d);
   });
 }
 

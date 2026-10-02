@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, Download } from "lucide-react";
 import { useMemo } from "react";
@@ -67,7 +68,7 @@ function ReportsPage() {
   const focusCount = focus.length;
   const focusByDay = new Map<string, number>();
   focus.forEach((s) => {
-    const k = new Date(s.completedAt).toISOString().slice(0, 10);
+    const k = localISO(new Date(s.completedAt));
     focusByDay.set(k, (focusByDay.get(k) ?? 0) + s.durationSec);
   });
   let mostFocusedDay = "—"; let mostFocusedSec = 0;

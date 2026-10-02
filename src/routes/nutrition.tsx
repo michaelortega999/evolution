@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check, Undo2, RotateCcw, TrendingDown, Pill } from "lucide-react";
@@ -238,7 +239,7 @@ function NutritionPage() {
     const out: { date: string; kcal: number; p: number; c: number; f: number; water: number }[] = [];
     const d = new Date();
     for (let i = 6; i >= 0; i--) {
-      const iso = new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10);
+      const iso = localISO(new Date(d.getTime() - i * 86400000));
       const tot = dayTotals(iso, data.mealLogs);
       out.push({
         date: iso, kcal: tot.kcal, p: tot.p, c: tot.c, f: tot.f,
@@ -322,7 +323,7 @@ function NutritionPage() {
       let kcal = 0, p = 0, c = 0, f = 0, water = 0, days = 0;
       for (let i = 0; i < 7; i++) {
         const dayOffset = w * 7 + i;
-        const iso = new Date(Date.now() - dayOffset * 86400000).toISOString().slice(0, 10);
+        const iso = localISO(new Date(Date.now() - dayOffset * 86400000));
         const tot = dayTotals(iso, data.mealLogs);
         if (tot.kcal > 0) {
           kcal += tot.kcal; p += tot.p; c += tot.c; f += tot.f;

@@ -1,3 +1,4 @@
+import { localISO } from "./utils";
 // Two-way sync of Tasks + Calendar between the phone design's store
 // (evolution05:userdata:v4 → tk.tasks / tk.events) and the desktop store
 // (evoTasks / calendar), which itself syncs to the user's account.
@@ -24,7 +25,7 @@ const toMobTaskCat = (c: EvoCategory) =>
 
 const toMin = (t?: string) => { if (!t) return null; const [h, m] = t.split(":"); return +h * 60 + (+m || 0); };
 const fromMin = (n: number) => `${String(Math.floor(n / 60) % 24).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => localISO(new Date());
 const deskIdOf = (x: { id: number; extId?: string }) => x.extId ?? `m${x.id}`;
 
 function readMobile(): Record<string, any> | null {
