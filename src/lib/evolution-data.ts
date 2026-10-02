@@ -851,74 +851,183 @@ function load(): EvolutionData {
 }
 
 // ------------- Cloud sync -------------
-let cloudUserId: string | null = null;
+// Safety rules:
+//  • Nothing is pushed until the account's cloud copy has been read successfully.
+//  • A failed read never counts as an "empty account" (so the cloud is never overwritten on error).
+//  • Local data owned by a different account is backed up and never uploaded to the new account.
+//  • Pending saves are cancelled on sign-out / account switch and re-checked right before sending.
+const OWNER_KEY = "evolution:data:owner";
+export type CloudStatus = "signed-out" | "loading" | "synced" | "saving" | "error";
+let cloudStatus: CloudStatus = "loading";
+let cloudUserId: string | null = null;      // pushes allowed only for this user
+let activatingFor: string | null = null;    // user currently being loaded
+let localDirtyDuringLoad = false;
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingSave: { uid: string; data: EvolutionData } | null = null;
+let readyResolved = false;
 let resolveCloudReady: () => void = () => {};
-/** Resolves once the signed-in user's cloud data has been pulled (or no session exists). */
+/** Resolves once the signed-in user's cloud data has been pulled (or no session / load failed). */
 export const cloudReady: Promise<void> =
   typeof window === "undefined" ? Promise.resolve() : new Promise((r) => { resolveCloudReady = r; });
+function markReady() {
+  if (readyResolved) return;
+  readyResolved = true;
+  resolveCloudReady();
+}
+function setCloudStatus(s: CloudStatus) {
+  cloudStatus = s;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("evolution:cloud-status", { detail: s }));
+}
+export function getCloudStatus(): CloudStatus { return cloudStatus; }
 
-async function pullCloud(userId: string): Promise<EvolutionData | null> {
+type PullResult = { kind: "ok"; data: EvolutionData } | { kind: "empty" } | { kind: "error" };
+async function pullCloud(userId: string): Promise<PullResult> {
   try {
     const { data, error } = await supabase
       .from("user_data")
       .select("data")
       .eq("user_id", userId)
       .maybeSingle();
-    if (error || !data?.data) return null;
-    return hydrate(migrate(data.data as StoredShape));
+    if (error) return { kind: "error" };
+    if (!data) return { kind: "empty" };
+    return { kind: "ok", data: hydrate(migrate((data.data ?? {}) as StoredShape)) };
   } catch {
-    return null;
+    return { kind: "error" };
   }
 }
 
 async function pushCloud(userId: string, data: EvolutionData) {
+  if (cloudUserId !== userId) return; // account changed / signed out since scheduling
+  setCloudStatus("saving");
   try {
     const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
-    await supabase.from("user_data").upsert({ user_id: userId, data: payload });
+    const { error } = await supabase.from("user_data").upsert({ user_id: userId, data: payload });
+    if (cloudUserId === userId) setCloudStatus(error ? "error" : "synced");
   } catch {
     /* offline / network — localStorage still holds the truth */
+    if (cloudUserId === userId) setCloudStatus("error");
   }
+}
+
+function cancelPendingSave() {
+  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = null;
+  pendingSave = null;
 }
 
 function scheduleCloudSave(data: EvolutionData) {
+  if (activatingFor) localDirtyDuringLoad = true;
   if (!cloudUserId) return;
-  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  cancelPendingSave();
   const uid = cloudUserId;
-  cloudSaveTimer = setTimeout(() => pushCloud(uid, data), 800);
+  pendingSave = { uid, data };
+  cloudSaveTimer = setTimeout(() => {
+    pendingSave = null;
+    cloudSaveTimer = null;
+    void pushCloud(uid, data);
+  }, 800);
 }
 
-async function activateCloudForUser(userId: string) {
-  cloudUserId = userId;
-  const cloud = await pullCloud(userId);
-  if (cloud) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...cloud, _version: STORAGE_VERSION }));
-    window.dispatchEvent(new CustomEvent("evolution:data-updated"));
-  } else {
-    // First sign-in: seed cloud with whatever is local
-    await pushCloud(userId, load());
+function writeLocal(data: EvolutionData) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
+  window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+}
+
+async function activateCloudForUser(userId: string, attempt = 0): Promise<void> {
+  if (cloudUserId === userId || (activatingFor === userId && attempt === 0)) return;
+  cancelPendingSave();
+  cloudUserId = null;
+  activatingFor = userId;
+  localDirtyDuringLoad = false;
+  setCloudStatus("loading");
+  const res = await pullCloud(userId);
+  if (activatingFor !== userId) return; // signed out / switched during load
+
+  if (res.kind === "error") {
+    setCloudStatus("error");
+    markReady(); // let the UI run on local data; uploads stay disabled
+    if (attempt < 4) {
+      setTimeout(() => { if (activatingFor === userId) void activateCloudForUser(userId, attempt + 1); }, 3000 * (attempt + 1));
+    }
+    return;
   }
-  resolveCloudReady();
+
+  const owner = localStorage.getItem(OWNER_KEY);
+  const foreignLocal = !!owner && owner !== userId;
+  if (foreignLocal) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) localStorage.setItem(`evolution:data:backup:${owner}`, raw);
+  }
+  localStorage.setItem(OWNER_KEY, userId);
+  activatingFor = null;
+  cloudUserId = userId;
+
+  if (res.kind === "ok") {
+    if (!foreignLocal && localDirtyDuringLoad) {
+      // User edited while we were loading — keep their newer local copy and upload it.
+      setCloudStatus("synced");
+      scheduleCloudSave(load());
+    } else {
+      writeLocal(res.data);
+      setCloudStatus("synced");
+      window.dispatchEvent(new CustomEvent("evolution:cloud-loaded"));
+    }
+  } else {
+    // Brand-new account: seed it with local data only if that data is ours (or unowned).
+    const seed = foreignLocal ? defaultData : load();
+    if (foreignLocal) writeLocal(seed);
+    await pushCloud(userId, seed);
+    window.dispatchEvent(new CustomEvent("evolution:cloud-loaded"));
+  }
+  markReady();
+}
+
+function deactivateCloud() {
+  cancelPendingSave();
+  cloudUserId = null;
+  activatingFor = null;
+  setCloudStatus("signed-out");
+  markReady();
 }
 
 if (typeof window !== "undefined") {
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) void activateCloudForUser(data.session.user.id);
-    else resolveCloudReady();
-  }).catch(() => resolveCloudReady());
+    else deactivateCloud();
+  }).catch(() => deactivateCloud());
   supabase.auth.onAuthStateChange((event, session) => {
-    if (event === "SIGNED_IN" && session) {
+    if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
       void activateCloudForUser(session.user.id);
     } else if (event === "SIGNED_OUT") {
-      cloudUserId = null;
+      deactivateCloud();
     }
   });
+  // Flush a pending save when the tab is hidden/closed so recent edits aren't lost.
+  const flush = () => {
+    if (!pendingSave) return;
+    const { uid, data } = pendingSave;
+    cancelPendingSave();
+    void pushCloud(uid, data);
+  };
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
+}
+
+/** Hook: current cloud sync status for UI badges. */
+export function useCloudStatus(): CloudStatus {
+  const [s, setS] = useState<CloudStatus>("loading");
+  useEffect(() => {
+    setS(cloudStatus);
+    const h = () => setS(cloudStatus);
+    window.addEventListener("evolution:cloud-status", h);
+    return () => window.removeEventListener("evolution:cloud-status", h);
+  }, []);
+  return s;
 }
 
 function save(data: EvolutionData) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
-  window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+  writeLocal(data);
   scheduleCloudSave(data);
 }
 
