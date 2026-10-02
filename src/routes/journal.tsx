@@ -90,6 +90,8 @@ function JournalPage() {
           : [...prev.reflections, entry],
       };
     });
+    refTouched.current = false;
+    toast.success("Reflection saved.");
   };
 
   // Mood chart — last 7 days
@@ -193,7 +195,7 @@ function JournalPage() {
               {(["wins", "challenges", "lessons"] as const).map((key, i) => (
                 <label key={key} className="block">
                   <span className="hud-label text-[10px] text-muted-foreground">{prompts[i]}</span>
-                  <textarea value={refDraft[key]} onChange={(e) => setRefDraft((d) => ({ ...d, [key]: e.target.value }))}
+                  <textarea value={refDraft[key]} onChange={(e) => { refTouched.current = true; setRefDraft((d) => ({ ...d, [key]: e.target.value })); }}
                     rows={3} className="w-full mt-1 bg-transparent border border-border rounded p-2 text-sm resize-none focus:outline-none focus:border-primary/50" />
                 </label>
               ))}
