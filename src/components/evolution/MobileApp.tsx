@@ -33,8 +33,10 @@ export function MobileApp() {
     let alive = true;
     let poll: ReturnType<typeof setInterval> | null = null;
     const flush = () => { if (readyRef.current) pullMobileIntoDesktop(); };
+    let started = false;
     const start = () => {
       if (!alive) return;
+      started = true;
       pushDesktopIntoMobile(); // aligns phone store/base to the current account first
       readyRef.current = true;
       setFrameKey((k) => k + 1);
@@ -57,7 +59,7 @@ export function MobileApp() {
       setReady(false);
     };
     // Desktop data now belongs to the new account → swap phone stores and restart.
-    const onOwnerChanged = () => start();
+    const onOwnerChanged = () => { if (started) start(); };
     // Cloud data that arrives later (re-login, retry after error): save the phone's
     // latest edits first, merge both ways, then reload the phone design with the result.
     const onCloudLoaded = () => {
