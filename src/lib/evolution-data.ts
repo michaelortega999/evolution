@@ -835,6 +835,9 @@ function hydrate(parsed: StoredShape): EvolutionData {
   return syncTradingAssets(loaded);
 }
 
+export function loadEvolutionData(): EvolutionData { return load(); }
+export function saveEvolutionData(d: EvolutionData) { save(d); }
+
 function load(): EvolutionData {
   if (typeof window === "undefined") return defaultData;
   try {
@@ -849,6 +852,10 @@ function load(): EvolutionData {
 // ------------- Cloud sync -------------
 let cloudUserId: string | null = null;
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let resolveCloudReady: () => void = () => {};
+/** Resolves once the signed-in user's cloud data has been pulled (or no session exists). */
+export const cloudReady: Promise<void> =
+  typeof window === "undefined" ? Promise.resolve() : new Promise((r) => { resolveCloudReady = r; });
 
 async function pullCloud(userId: string): Promise<EvolutionData | null> {
   try {
@@ -890,12 +897,14 @@ async function activateCloudForUser(userId: string) {
     // First sign-in: seed cloud with whatever is local
     await pushCloud(userId, load());
   }
+  resolveCloudReady();
 }
 
 if (typeof window !== "undefined") {
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) void activateCloudForUser(data.session.user.id);
-  });
+    else resolveCloudReady();
+  }).catch(() => resolveCloudReady());
   supabase.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_IN" && session) {
       void activateCloudForUser(session.user.id);

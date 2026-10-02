@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 
 import "../styles.css";
 import { useTheme } from "@/lib/use-theme";
@@ -73,7 +73,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   useTheme();
   const isPhone = useIsPhone();
-  if (isPhone) return <MobileApp />;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (isPhone && pathname !== "/auth") return <MobileApp />;
   return (
     <>
       <Outlet />
