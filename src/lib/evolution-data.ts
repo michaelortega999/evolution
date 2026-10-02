@@ -1061,8 +1061,8 @@ export function useEvolutionData() {
   }, []);
 
   const reset = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+    // Save defaults (also to the cloud) so cleared data does not come back on next load.
+    save(defaultData);
     setData(defaultData);
   }, []);
 
