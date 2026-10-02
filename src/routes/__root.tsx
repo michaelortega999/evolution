@@ -73,7 +73,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   useTheme();
   const isPhone = useIsPhone();
-  if (isPhone) return <MobileApp />;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (isPhone && pathname !== "/auth") return <MobileApp />;
   return (
     <>
       <Outlet />
