@@ -834,6 +834,8 @@ function hydrate(parsed: StoredShape): EvolutionData {
     tradingAccounts: parsed.tradingAccounts ?? defaultData.tradingAccounts,
     tradingTxns: parsed.tradingTxns ?? defaultData.tradingTxns,
     tradeJournal: parsed.tradeJournal ?? defaultData.tradeJournal,
+    supplementList: Array.isArray(parsed.supplementList) ? parsed.supplementList : defaultData.supplementList,
+    supplementDone: parsed.supplementDone && typeof parsed.supplementDone === "object" ? parsed.supplementDone : defaultData.supplementDone,
   };
   return syncTradingAssets(loaded);
 }
@@ -856,15 +858,25 @@ function load(): EvolutionData {
 // Safety rules:
 //  • Nothing is pushed until the account's cloud copy has been read successfully.
 //  • A failed read never counts as an "empty account" (so the cloud is never overwritten on error).
-//  • Local data owned by a different account is backed up and never uploaded to the new account.
-//  • Pending saves are cancelled on sign-out / account switch and re-checked right before sending.
-const OWNER_KEY = "evolution:data:owner";
+//  • Local data is tagged with its owner. When a different account signs in, the previous
+//    owner's local data is archived (evolution:data:backup:<owner>) BEFORE anything is read,
+//    so it is never shown to, merged into, or uploaded for the new account.
+//  • A per-account "synced snapshot" (last state the cloud acknowledged) is the merge base:
+//    local edits since then (including edits made offline, during a failed read, across retries
+//    or before a reload) are applied record-by-record on top of the cloud copy — unrelated
+//    remote records are never replaced.
+//  • Failed saves keep the local changes dirty (snapshot not advanced) and retry later.
+export const OWNER_KEY = "evolution:data:owner";
+const BACKUP_PREFIX = "evolution:data:backup:";
+const SYNCED_PREFIX = "evolution:data:synced:";
 export type CloudStatus = "signed-out" | "loading" | "synced" | "saving" | "error";
 let cloudStatus: CloudStatus = "loading";
 let cloudUserId: string | null = null;      // pushes allowed only for this user
 let activatingFor: string | null = null;    // user currently being loaded
-let localDirtyDuringLoad = false;
+let loadBaseline: { uid: string; data: EvolutionData } | null = null; // kept across retries
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let retryCount = 0;
 let pendingSave: { uid: string; data: EvolutionData } | null = null;
 let readyResolved = false;
 let resolveCloudReady: () => void = () => {};
@@ -881,6 +893,62 @@ function setCloudStatus(s: CloudStatus) {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("evolution:cloud-status", { detail: s }));
 }
 export function getCloudStatus(): CloudStatus { return cloudStatus; }
+export function getLocalOwner(): string | null {
+  try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
+}
+
+const sameJSON = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const isIdArray = (v: unknown): v is { id: unknown }[] =>
+  Array.isArray(v) && v.length > 0 && v.every((x) => x && typeof x === "object" && "id" in (x as object));
+const isPlainObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+
+function mergeById(b: unknown[], l: unknown[], r: unknown[]): unknown[] {
+  const key = (x: unknown) => String((x as { id: unknown }).id);
+  const B = new Map(b.map((x) => [key(x), x])), L = new Map(l.map((x) => [key(x), x])), R = new Map(r.map((x) => [key(x), x]));
+  const order = [...r.map(key), ...l.map(key).filter((k) => !R.has(k))];
+  const out: unknown[] = [];
+  for (const k of order) {
+    const lb = B.get(k), ll = L.get(k), lr = R.get(k);
+    if (ll !== undefined && lr !== undefined) out.push(lb !== undefined && sameJSON(ll, lb) ? lr : ll);
+    else if (ll !== undefined) { if (lb === undefined || !sameJSON(ll, lb)) out.push(ll); }       // local add / local edit of remote-deleted
+    else if (lr !== undefined) { if (lb === undefined || !sameJSON(lr, lb)) out.push(lr); }       // remote add / keep if remote edited it
+  }
+  return out;
+}
+
+function mergeValue(b: unknown, l: unknown, r: unknown, depth: number): unknown {
+  if (sameJSON(l, b)) return r;          // not changed locally → cloud
+  if (sameJSON(r, b)) return l;          // changed locally only → local
+  const arr = (x: unknown) => (Array.isArray(x) ? x : []);
+  if ((isIdArray(l) || isIdArray(r) || isIdArray(b)) && [b, l, r].every((x) => x === undefined || Array.isArray(x)))
+    return mergeById(arr(b), arr(l), arr(r));
+  if (depth < 2 && isPlainObj(l) && isPlainObj(r)) {
+    const bo = isPlainObj(b) ? b : {};
+    const out: Record<string, unknown> = {};
+    for (const k of new Set([...Object.keys(r), ...Object.keys(l)])) {
+      const v = mergeValue(bo[k], l[k], r[k], depth + 1);
+      if (v !== undefined) out[k] = v;
+    }
+    return out;
+  }
+  return l;                              // true conflict on a scalar → this device's latest edit
+}
+
+/** Three-way merge of whole data sets: local edits since `base` applied on top of `remote`. */
+export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData): EvolutionData {
+  return hydrate(mergeValue(base, local, remote, 0) as StoredShape);
+}
+
+function readSynced(uid: string): EvolutionData | null {
+  try {
+    const raw = localStorage.getItem(SYNCED_PREFIX + uid);
+    return raw ? hydrate(migrate(JSON.parse(raw) as StoredShape)) : null;
+  } catch { return null; }
+}
+function writeSynced(uid: string, data: EvolutionData) {
+  try { localStorage.setItem(SYNCED_PREFIX + uid, JSON.stringify({ ...data, _version: STORAGE_VERSION })); }
+  catch { try { localStorage.removeItem(SYNCED_PREFIX + uid); } catch { /* ignore */ } }
+}
 
 type PullResult = { kind: "ok"; data: EvolutionData } | { kind: "empty" } | { kind: "error" };
 async function pullCloud(userId: string): Promise<PullResult> {
@@ -898,28 +966,43 @@ async function pullCloud(userId: string): Promise<PullResult> {
   }
 }
 
-async function pushCloud(userId: string, data: EvolutionData) {
-  if (cloudUserId !== userId) return; // account changed / signed out since scheduling
+function scheduleRetry(uid: string) {
+  if (retryTimer) clearTimeout(retryTimer);
+  const delay = Math.min(60_000, 3000 * 2 ** retryCount++);
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    if (cloudUserId === uid && getLocalOwner() === uid) void pushCloud(uid, load());
+  }, delay);
+}
+
+async function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
+  if (cloudUserId !== userId || getLocalOwner() !== userId) return false; // account changed since scheduling
   setCloudStatus("saving");
   try {
     const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
     const { error } = await supabase.from("user_data").upsert({ user_id: userId, data: payload });
-    if (cloudUserId === userId) setCloudStatus(error ? "error" : "synced");
+    if (error) throw error;
+    writeSynced(userId, data);          // cloud acknowledged → new merge base
+    retryCount = 0;
+    if (cloudUserId === userId) setCloudStatus(pendingSave ? "saving" : "synced");
+    return true;
   } catch {
-    /* offline / network — localStorage still holds the truth */
-    if (cloudUserId === userId) setCloudStatus("error");
+    // Offline / rejected: local copy stays dirty (snapshot not advanced) and is retried.
+    if (cloudUserId === userId) { setCloudStatus("error"); scheduleRetry(userId); }
+    return false;
   }
 }
 
 function cancelPendingSave() {
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  if (retryTimer) clearTimeout(retryTimer);
   cloudSaveTimer = null;
+  retryTimer = null;
   pendingSave = null;
 }
 
 function scheduleCloudSave(data: EvolutionData) {
-  if (activatingFor) localDirtyDuringLoad = true;
-  if (!cloudUserId) return;
+  if (!cloudUserId) return; // not verified yet → stays local; merged in on the next successful read
   cancelPendingSave();
   const uid = cloudUserId;
   pendingSave = { uid, data };
@@ -935,50 +1018,60 @@ function writeLocal(data: EvolutionData) {
   window.dispatchEvent(new CustomEvent("evolution:data-updated"));
 }
 
+/** Archive the previous owner's local data and load this account's own device copy (or a clean slate). */
+function switchLocalOwner(userId: string) {
+  const owner = getLocalOwner();
+  if (owner === userId) return;
+  if (owner) {
+    window.dispatchEvent(new CustomEvent("evolution:owner-changing", { detail: { from: owner, to: userId } }));
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) localStorage.setItem(BACKUP_PREFIX + owner, raw);
+    const mine = localStorage.getItem(BACKUP_PREFIX + userId);
+    if (mine) localStorage.setItem(STORAGE_KEY, mine);
+    else localStorage.removeItem(STORAGE_KEY);
+  }
+  localStorage.setItem(OWNER_KEY, userId);
+  window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+  if (owner) window.dispatchEvent(new CustomEvent("evolution:owner-changed", { detail: { from: owner, to: userId } }));
+}
+
 async function activateCloudForUser(userId: string, attempt = 0): Promise<void> {
   if (cloudUserId === userId || (activatingFor === userId && attempt === 0)) return;
+  if (attempt > 0 && activatingFor !== userId) return;
   cancelPendingSave();
   cloudUserId = null;
   activatingFor = userId;
-  localDirtyDuringLoad = false;
   setCloudStatus("loading");
+  switchLocalOwner(userId);
+  if (!loadBaseline || loadBaseline.uid !== userId) loadBaseline = { uid: userId, data: load() };
   const res = await pullCloud(userId);
-  if (activatingFor !== userId) return; // signed out / switched during load
+  if (activatingFor !== userId || getLocalOwner() !== userId) return; // signed out / switched during load
 
   if (res.kind === "error") {
     setCloudStatus("error");
-    markReady(); // let the UI run on local data; uploads stay disabled
+    markReady(); // UI runs on this account's local data; uploads stay disabled, edits stay local
     if (attempt < 4) {
       setTimeout(() => { if (activatingFor === userId) void activateCloudForUser(userId, attempt + 1); }, 3000 * (attempt + 1));
     }
     return;
   }
 
-  const owner = localStorage.getItem(OWNER_KEY);
-  const foreignLocal = !!owner && owner !== userId;
-  if (foreignLocal) {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) localStorage.setItem(`evolution:data:backup:${owner}`, raw);
-  }
-  localStorage.setItem(OWNER_KEY, userId);
   activatingFor = null;
   cloudUserId = userId;
+  const local = load();
+  const base = readSynced(userId) ?? loadBaseline.data;
+  loadBaseline = null;
 
   if (res.kind === "ok") {
-    if (!foreignLocal && localDirtyDuringLoad) {
-      // User edited while we were loading — keep their newer local copy and upload it.
-      setCloudStatus("synced");
-      scheduleCloudSave(load());
-    } else {
-      writeLocal(res.data);
-      setCloudStatus("synced");
-      window.dispatchEvent(new CustomEvent("evolution:cloud-loaded"));
-    }
+    writeSynced(userId, res.data);
+    const merged = mergeEvolutionData(base, local, res.data);
+    writeLocal(merged);
+    setCloudStatus("synced");
+    if (!sameJSON(merged, res.data)) scheduleCloudSave(merged);
+    window.dispatchEvent(new CustomEvent("evolution:cloud-loaded"));
   } else {
-    // Brand-new account: seed it with local data only if that data is ours (or unowned).
-    const seed = foreignLocal ? defaultData : load();
-    if (foreignLocal) writeLocal(seed);
-    await pushCloud(userId, seed);
+    // Brand-new account: seed it with this account's local data.
+    await pushCloud(userId, local);
     window.dispatchEvent(new CustomEvent("evolution:cloud-loaded"));
   }
   markReady();
@@ -988,11 +1081,15 @@ function deactivateCloud() {
   cancelPendingSave();
   cloudUserId = null;
   activatingFor = null;
+  loadBaseline = null;
   setCloudStatus("signed-out");
   markReady();
 }
 
-if (typeof window !== "undefined") {
+/** Test hooks (not used by the app). */
+export const __cloudTest = { activateCloudForUser, deactivateCloud, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
+
+if (typeof window !== "undefined" && typeof document !== "undefined" && !(globalThis as { __EVO_NO_AUTO_CLOUD__?: boolean }).__EVO_NO_AUTO_CLOUD__) {
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) void activateCloudForUser(data.session.user.id);
     else deactivateCloud();
@@ -1004,7 +1101,8 @@ if (typeof window !== "undefined") {
       deactivateCloud();
     }
   });
-  // Flush a pending save when the tab is hidden/closed so recent edits aren't lost.
+  // Best-effort: start a pending save when the tab is hidden/closed. Not guaranteed to finish —
+  // if it doesn't, the change stays dirty locally and is merged up on the next load.
   const flush = () => {
     if (!pendingSave) return;
     const { uid, data } = pendingSave;
@@ -1013,6 +1111,7 @@ if (typeof window !== "undefined") {
   };
   window.addEventListener("pagehide", flush);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
+  window.addEventListener("online", () => { if (cloudUserId && cloudStatus === "error") void pushCloud(cloudUserId, load()); });
 }
 
 /** Hook: current cloud sync status for UI badges. */
@@ -1025,6 +1124,23 @@ export function useCloudStatus(): CloudStatus {
     return () => window.removeEventListener("evolution:cloud-status", h);
   }, []);
   return s;
+}
+
+const PHONE_KEY = "evolution05:userdata:v4";          // phone design store (see mobile-bridge.ts)
+const PHONE_BASE_KEY = "evolution:mobile-bridge:base:v1";
+/** Archive the phone store, then empty its tasks/events and the bridge base. */
+export function clearPhoneTasksForReset() {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(PHONE_KEY);
+    if (raw) {
+      localStorage.setItem(`${PHONE_KEY}:cleared:${getLocalOwner() ?? "local"}`, raw);
+      const store = JSON.parse(raw);
+      if (store?.tk) { store.tk.tasks = []; store.tk.events = []; }
+      localStorage.setItem(PHONE_KEY, JSON.stringify(store));
+    }
+    localStorage.removeItem(PHONE_BASE_KEY);
+  } catch { /* ignore */ }
 }
 
 function save(data: EvolutionData) {
@@ -1063,7 +1179,9 @@ export function useEvolutionData() {
   }, []);
 
   const reset = useCallback(() => {
-    // Save defaults (also to the cloud) so cleared data does not come back on next load.
+    // Save defaults (also to the cloud) so cleared data does not come back on next load,
+    // and clear the phone design's tasks/events + bridge base so they cannot sync back.
+    clearPhoneTasksForReset();
     save(defaultData);
     setData(defaultData);
   }, []);
