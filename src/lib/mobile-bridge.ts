@@ -65,11 +65,8 @@ function merge3<C>(
   for (const id of ids) {
     const p = phone.get(id), d = desk.get(id), b = base[id];
     if (p && d) {
-      const pChanged = !b || !same(p, b);
-      out.set(id, pChanged && (b ? true : !same(p, d)) && !(b && !same(d, b) && !pChanged) ? { core: p, from: "phone" } : { core: d, from: "desk" });
-      // If both changed since base, desktop wins (it's the account's source of truth) unless only phone changed.
-      if (b && !same(p, b) && same(d, b)) out.set(id, { core: p, from: "phone" });
-      else if (b && !same(d, b)) out.set(id, { core: d, from: "desk" });
+      // Phone wins only when it alone changed since the last sync; otherwise desktop (account) wins.
+      out.set(id, b && !same(p, b) && same(d, b) ? { core: p, from: "phone" } : { core: d, from: "desk" });
     } else if (p && !d) {
       // Absent on desktop: deleted there if it was synced before (keep only if phone edited it since).
       if (!b || !same(p, b)) out.set(id, { core: p, from: "phone" });
@@ -163,7 +160,7 @@ export function syncMobileBridge(writePhone: boolean): boolean {
         doneAt: core.done ? (m?.doneAt ?? localISO()) : null,
       } as MTask;
     });
-    let evId = Math.max(Date.now(), ...mEvents.map((e) => e.id || 0) .map((n) => n + 1));
+    let evId = Math.max(Date.now(), ...mEvents.map((e) => (e.id || 0) + 1));
     const phoneEventOrder = [...mEvents.map(deskIdOf), ...dEvents.map((e) => e.id).filter((id) => !meById.has(id))];
     const nextPhoneEvents: MEvent[] = phoneEventOrder.filter((id) => eMerged.has(id)).map((id) => {
       const { core } = eMerged.get(id)!;
@@ -184,8 +181,10 @@ export function syncMobileBridge(writePhone: boolean): boolean {
   }
 
   const nextBase: Base = {
-    tasks: Object.fromEntries([...tMerged].map(([k, v]) => [k, v.core])),
-    events: Object.fromEntries([...eMerged].map(([k, v]) => [k, v.core])),
+    // While the phone design is running, only record items the phone actually has —
+    // otherwise desktop-only items would look "deleted on phone" on the next pass.
+    tasks: Object.fromEntries([...tMerged].filter(([k]) => writePhone || mtById.has(k)).map(([k, v]) => [k, v.core])),
+    events: Object.fromEntries([...eMerged].filter(([k]) => writePhone || meById.has(k)).map(([k, v]) => [k, v.core])),
   };
   if (!same(nextBase, base)) localStorage.setItem(BASE_KEY, JSON.stringify(nextBase));
   return changed;
