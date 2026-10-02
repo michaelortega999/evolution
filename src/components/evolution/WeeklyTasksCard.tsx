@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { useEvolutionData, uid, type EvoCategory, type EvoHabit } from "@/lib/evolution-data";
 import { resolveHabits, DEFAULT_HABITS } from "@/lib/habits";
-import { cn } from "@/lib/utils";
+import { cn, localISO } from "@/lib/utils";
 
 const DAY_LABELS = ["M", "T", "W", "TH", "F", "SA", "SU"];
 
@@ -28,7 +28,7 @@ export function WeeklyTasksCard() {
     [data.customHabits, data.habitOrder, data.hiddenHabits],
   );
   const days = useMemo(() => weekDates(), []);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localISO(new Date());
 
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");

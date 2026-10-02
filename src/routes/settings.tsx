@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEvolutionData, type ThemeKey } from "@/lib/evolution-data";
 import { THEME_OPTIONS, applyTheme } from "@/lib/use-theme";
-import { cn } from "@/lib/utils";
+import { cn, localISO } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Evolution" }] }),
@@ -37,7 +37,7 @@ function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `evolution-data-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `evolution-data-${localISO(new Date())}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

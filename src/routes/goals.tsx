@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Target, Plus, Trash2, Check } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -33,7 +34,7 @@ function GoalsPage() {
     const monthKey = today.slice(0, 7);
     const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
     const weeklyHobbyHours = data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0) / 60
-      + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(new Date(s.completedAt).toISOString().slice(0, 10))).reduce((a, s) => a + s.durationSec / 3600, 0);
+      + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 3600, 0);
 
     return [
       { category: "Investing", title: "Portfolio Goal", current: investingCurrent, target: data.profile.goal || 50000, unit: "$" },

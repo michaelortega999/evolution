@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
@@ -63,7 +64,7 @@ function weekStartISO() {
   const d = new Date();
   const diff = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - diff); d.setHours(0, 0, 0, 0);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
 function isThisWeek(dateStr: string) {
   return dateStr >= weekStartISO();
@@ -79,7 +80,7 @@ function HobbyPage() {
   const weeklyTravelHrs = data.trips.filter((t) => isThisWeek(t.startDate)).length * 6; // approx 6h prep per upcoming trip
   const weeklyCarsHrs = data.carMeets.filter((m) => isThisWeek(m.date)).length * 2;
   const weeklyGuitarMin = data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0)
-    + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(new Date(s.completedAt).toISOString().slice(0, 10))).reduce((a, s) => a + s.durationSec / 60, 0);
+    + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 60, 0);
   const weeklyGuitarHrs = weeklyGuitarMin / 60;
   const totalWeekHrs = weeklyTravelHrs + weeklyCarsHrs + weeklyGuitarHrs;
 
@@ -94,7 +95,7 @@ function HobbyPage() {
     });
     data.guitarSessions.forEach((g) => items.push({ date: g.date, kind: "Guitar", text: `Practice: ${g.practiced} (${g.durationMin}m)`, icon: Music }));
     data.focusSessions.filter((s) => s.tag === "Guitar").forEach((s) => {
-      const d = new Date(s.completedAt).toISOString().slice(0, 10);
+      const d = localISO(new Date(s.completedAt));
       items.push({ date: d, kind: "Guitar", text: `Focus session · ${Math.round(s.durationSec / 60)}m`, icon: Music });
     });
     return items.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
@@ -619,7 +620,7 @@ function CarsSection() {
   // Per-car aggregations
   const carStats = (carId: string) => {
     const expenses = data.carExpenses.filter((e) => e.carId === carId);
-    const monthIso = new Date().toISOString().slice(0, 7);
+    const monthIso = localISO().slice(0, 7);
     const monthly = expenses.filter((e) => e.date.startsWith(monthIso)).reduce((a, e) => a + e.amount, 0);
     const total = expenses.reduce((a, e) => a + e.amount, 0);
     const gas = expenses.filter((e) => e.type === "Gas" && e.gallons && e.mileage);
@@ -948,7 +949,7 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
   // Listen for completed guitar focus sessions and mark today's to-do done
   // (we detect via the most recent focus session tagged Guitar today)
   const todayGuitarFocus = data.focusSessions.filter(
-    (s) => s.tag === "Guitar" && new Date(s.completedAt).toISOString().slice(0, 10) === todayDate()
+    (s) => s.tag === "Guitar" && localISO(new Date(s.completedAt)) === todayDate()
   );
   const todoCompleted = data.notes.find((n) => n.id === guitarTodoIdFor(todayDate()))?.done;
   if (todayGuitarFocus.length > 0 && todoCompleted === false) {
@@ -1007,12 +1008,12 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
     const days = new Set<string>();
     data.guitarSessions.forEach((s) => days.add(s.date));
     data.focusSessions.filter((s) => s.tag === "Guitar").forEach((s) =>
-      days.add(new Date(s.completedAt).toISOString().slice(0, 10))
+      days.add(localISO(new Date(s.completedAt)))
     );
     let n = 0;
     const cursor = new Date();
-    if (!days.has(cursor.toISOString().slice(0, 10))) cursor.setDate(cursor.getDate() - 1);
-    while (days.has(cursor.toISOString().slice(0, 10))) { n++; cursor.setDate(cursor.getDate() - 1); }
+    if (!days.has(localISO(cursor))) cursor.setDate(cursor.getDate() - 1);
+    while (days.has(localISO(cursor))) { n++; cursor.setDate(cursor.getDate() - 1); }
     return n;
   }, [data.guitarSessions, data.focusSessions]);
 
@@ -1324,7 +1325,7 @@ function InteractiveVehicleHud({
         ◢ SYS · ONLINE
       </div>
       <div className="pointer-events-none absolute top-2 right-2 text-[10px] hud-label text-primary/80 tabular-nums">
-        VHX-{String(garageCount).padStart(2, "0")} · {new Date().toISOString().slice(0,10)}
+        VHX-{String(garageCount).padStart(2, "0")} · {localISO(new Date())}
       </div>
       <div className="pointer-events-none absolute bottom-2 left-2 text-[10px] hud-label text-muted-foreground">
         Tap nodes to interact

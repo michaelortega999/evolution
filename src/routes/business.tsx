@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { Briefcase, Trash2, Plus } from "lucide-react";
@@ -28,7 +29,7 @@ function BusinessPage() {
 
   const totalRevenue = data.revenue.reduce((a, r) => a + r.amount, 0);
   const monthRevenue = useMemo(() => {
-    const m = new Date().toISOString().slice(0, 7);
+    const m = localISO().slice(0, 7);
     return data.revenue.filter((r) => r.date.startsWith(m)).reduce((a, r) => a + r.amount, 0);
   }, [data.revenue]);
   const activeProjects = data.projects.filter((p) => p.status !== "Completed").length;

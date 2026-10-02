@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check, Undo2, RotateCcw, TrendingDown, Pill } from "lucide-react";
@@ -238,7 +239,7 @@ function NutritionPage() {
     const out: { date: string; kcal: number; p: number; c: number; f: number; water: number }[] = [];
     const d = new Date();
     for (let i = 6; i >= 0; i--) {
-      const iso = new Date(d.getTime() - i * 86400000).toISOString().slice(0, 10);
+      const iso = localISO(new Date(d.getTime() - i * 86400000));
       const tot = dayTotals(iso, data.mealLogs);
       out.push({
         date: iso, kcal: tot.kcal, p: tot.p, c: tot.c, f: tot.f,
@@ -322,7 +323,7 @@ function NutritionPage() {
       let kcal = 0, p = 0, c = 0, f = 0, water = 0, days = 0;
       for (let i = 0; i < 7; i++) {
         const dayOffset = w * 7 + i;
-        const iso = new Date(Date.now() - dayOffset * 86400000).toISOString().slice(0, 10);
+        const iso = localISO(new Date(Date.now() - dayOffset * 86400000));
         const tot = dayTotals(iso, data.mealLogs);
         if (tot.kcal > 0) {
           kcal += tot.kcal; p += tot.p; c += tot.c; f += tot.f;
@@ -430,15 +431,36 @@ function NutritionPage() {
 
   // ------- Overview: supplements -------
   type Supplement = { id: string; name: string; time: string; dose: string; done: boolean };
-  const [supplements, setSupplements] = useState<Supplement[]>([
-    { id: "s1", name: "Whey Protein",       time: "8:30 AM",  dose: "1 scoop",   done: true },
-    { id: "s2", name: "Creatine Monohydrate", time: "11:00 AM", dose: "5g",       done: true },
-    { id: "s3", name: "Omega 3",            time: "1:00 PM",  dose: "2 softgels", done: true },
-    { id: "s4", name: "Vitamin D3",         time: "1:00 PM",  dose: "5000 IU",   done: true },
-    { id: "s5", name: "Magnesium",          time: "9:00 PM",  dose: "400mg",     done: true },
-  ]);
+  const DEFAULT_SUPPS = [
+    { id: "s1", name: "Whey Protein",       time: "8:30 AM",  dose: "1 scoop" },
+    { id: "s2", name: "Creatine Monohydrate", time: "11:00 AM", dose: "5g" },
+    { id: "s3", name: "Omega 3",            time: "1:00 PM",  dose: "2 softgels" },
+    { id: "s4", name: "Vitamin D3",         time: "1:00 PM",  dose: "5000 IU" },
+    { id: "s5", name: "Magnesium",          time: "9:00 PM",  dose: "400mg" },
+  ];
+  // Saved with the rest of your data; check-offs reset each day.
+  const suppList = data.supplementList ?? DEFAULT_SUPPS;
+  const suppDone = data.supplementDone?.[today] ?? [];
+  const supplements: Supplement[] = suppList.map((x) => ({ ...x, done: suppDone.includes(x.id) }));
   const toggleSupp = (id: string) =>
-    setSupplements((s) => s.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+    mutate((p) => {
+      const all = { ...(p.supplementDone ?? {}) };
+      const cur = new Set(all[today] ?? []);
+      if (cur.has(id)) cur.delete(id); else cur.add(id);
+      all[today] = [...cur];
+      return { supplementDone: all };
+    });
+  const [suppOpen, setSuppOpen] = useState(false);
+  const [suppAll, setSuppAll] = useState(false);
+  const [sName, setSName] = useState(""); const [sDose, setSDose] = useState(""); const [sTime, setSTime] = useState("");
+  const addSupp = () => {
+    const n = sName.trim();
+    if (!n) return;
+    mutate((p) => ({ supplementList: [...(p.supplementList ?? DEFAULT_SUPPS), { id: `s-${uid()}`, name: n.slice(0, 60), dose: sDose.trim().slice(0, 30), time: sTime.trim().slice(0, 20) }] }));
+    setSName(""); setSDose(""); setSTime(""); setSuppOpen(false);
+  };
+  const delSupp = (id: string) =>
+    mutate((p) => ({ supplementList: (p.supplementList ?? DEFAULT_SUPPS).filter((x) => x.id !== id) }));
 
 
 
@@ -596,12 +618,13 @@ function NutritionPage() {
                   );
                 })}
               </div>
-              <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW MACRO DETAILS ›</button>
+              <button onClick={() => document.getElementById("food-diary")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW MACRO DETAILS ›</button>
             </Panel>
           </div>
 
           {/* Row 2: Food Diary + Quick Add */}
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr] gap-6">
+            <div id="food-diary" className="contents" />
             <Panel title="Food Diary">
               <div className="grid grid-cols-[70px_1fr_50px_45px_50px_45px] gap-x-2 gap-y-1 text-[10px]">
                 <div className="hud-label text-muted-foreground">MEAL</div>
@@ -680,13 +703,22 @@ function NutritionPage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
             <Panel title="Supplements">
               <div className="flex items-center justify-end mb-2">
-                <Button size="sm" variant="outline" className="hud-label text-[10px] h-7">
-                  <Plus className="h-3 w-3 mr-1" /> ADD SUPPLEMENT
+                <Button size="sm" variant="outline" onClick={() => setSuppOpen((o) => !o)} className="hud-label text-[10px] h-7">
+                  <Plus className="h-3 w-3 mr-1" /> {suppOpen ? "CANCEL" : "ADD SUPPLEMENT"}
                 </Button>
               </div>
+              {suppOpen && (
+                <div className="grid grid-cols-[1fr_80px_80px_auto] gap-2 mb-3">
+                  <Input autoFocus value={sName} onChange={(e) => setSName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSupp()} placeholder="Name" className="h-7 text-xs" />
+                  <Input value={sDose} onChange={(e) => setSDose(e.target.value)} placeholder="Dose" className="h-7 text-xs" />
+                  <Input value={sTime} onChange={(e) => setSTime(e.target.value)} placeholder="Time" className="h-7 text-xs" />
+                  <Button size="sm" onClick={addSupp} disabled={!sName.trim()} className="hud-label text-[10px] h-7">SAVE</Button>
+                </div>
+              )}
               <ul className="space-y-2">
-                {supplements.map((s) => (
-                  <li key={s.id} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-2 text-[11px]">
+                {!supplements.length && <li className="text-xs text-muted-foreground italic">No supplements yet.</li>}
+                {(suppAll ? supplements : supplements.slice(0, 5)).map((s) => (
+                  <li key={s.id} className="group grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-2 text-[11px]">
                     <button onClick={() => toggleSupp(s.id)}
                       className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${s.done ? "bg-primary border-primary" : "border-primary/50"}`}>
                       {s.done && <Check className="h-3 w-3 text-primary-foreground" />}
@@ -694,10 +726,15 @@ function NutritionPage() {
                     <span className={`truncate ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
                     <span className="hud-label text-[9px] text-muted-foreground tabular-nums">{s.time}</span>
                     <span className="hud-label text-[10px] text-primary tabular-nums">{s.dose}</span>
+                    <button onClick={() => delSupp(s.id)} aria-label={`Remove ${s.name}`} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
                   </li>
                 ))}
               </ul>
-              <button className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW ALL SUPPLEMENTS ›</button>
+              {supplements.length > 5 && (
+                <button onClick={() => setSuppAll((v) => !v)} className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">{suppAll ? "SHOW LESS ‹" : `VIEW ALL SUPPLEMENTS (${supplements.length}) ›`}</button>
+              )}
             </Panel>
 
             <Panel title="Weekly Nutrition Summary">

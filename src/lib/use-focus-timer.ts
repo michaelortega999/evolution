@@ -1,3 +1,4 @@
+import { localISO } from "./utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useEvolutionData,
@@ -140,7 +141,7 @@ export function useFocusTimer(): UseFocusTimer {
       };
       const timeLog: TimeLog = {
         id: crypto.randomUUID(),
-        date: new Date(completedAt).toISOString().slice(0, 10),
+        date: localISO(new Date(completedAt)),
         minutes: Math.max(1, Math.round(totalMs / 60000)),
         module: tagToModule(state.tag),
         source: "focus",
@@ -238,7 +239,7 @@ export function useFocusTimer(): UseFocusTimer {
     };
     const timeLog: TimeLog = {
       id: crypto.randomUUID(),
-      date: new Date(completedAt).toISOString().slice(0, 10),
+      date: localISO(new Date(completedAt)),
       minutes: Math.max(1, Math.round(totalMs / 60000)),
       module: tagToModule(state.tag),
       source: "focus",
@@ -355,8 +356,8 @@ export function formatMmSs(ms: number) {
 // ---------- Stats helpers ----------
 
 export function focusStatsToday(sessions: FocusSession[]) {
-  const today = new Date().toISOString().slice(0, 10);
-  const todays = sessions.filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === today);
+  const today = localISO(new Date());
+  const todays = sessions.filter((s) => localISO(new Date(s.completedAt)) === today);
   const totalSec = todays.reduce((sum, s) => sum + s.durationSec, 0);
   const longest = todays.reduce((m, s) => Math.max(m, s.durationSec), 0);
   return { todays, totalSec, longest, count: todays.length };
@@ -370,9 +371,9 @@ export function focusWeeklyMinutes(sessions: FocusSession[]) {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(now.getDate() - i);
-    const date = d.toISOString().slice(0, 10);
+    const date = localISO(d);
     const minutes = sessions
-      .filter((s) => new Date(s.completedAt).toISOString().slice(0, 10) === date)
+      .filter((s) => localISO(new Date(s.completedAt)) === date)
       .reduce((sum, s) => sum + s.durationSec / 60, 0);
     out.push({ label: labels[d.getDay()], minutes: Math.round(minutes), date });
   }
@@ -381,14 +382,14 @@ export function focusWeeklyMinutes(sessions: FocusSession[]) {
 
 export function focusStreak(sessions: FocusSession[]) {
   if (sessions.length === 0) return 0;
-  const days = new Set(sessions.map((s) => new Date(s.completedAt).toISOString().slice(0, 10)));
+  const days = new Set(sessions.map((s) => localISO(new Date(s.completedAt))));
   let streak = 0;
   const cursor = new Date();
   // allow today even if no session yet
-  if (!days.has(cursor.toISOString().slice(0, 10))) {
+  if (!days.has(localISO(cursor))) {
     cursor.setDate(cursor.getDate() - 1);
   }
-  while (days.has(cursor.toISOString().slice(0, 10))) {
+  while (days.has(localISO(cursor))) {
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
