@@ -127,3 +127,14 @@ describe("cloud sync", () => {
     expect(cloud.U.evoTasks.map((t: any) => t.id)).toEqual(["x1"]);
   });
 });
+describe("clear all", () => {
+  it("empties phone tasks/events and bridge base (archived) so they can't sync back", () => {
+    mem["evolution05:userdata:v4"] = JSON.stringify({ seedv: 3, tk: { tasks: [{ id: 1, title: "t" }], events: [{ id: 2, title: "e" }] }, fit: { x: 1 } });
+    mem["evolution:mobile-bridge:base:v1"] = JSON.stringify({ tasks: { m1: {} }, events: {} });
+    mod.clearPhoneTasksForReset();
+    const s = JSON.parse(mem["evolution05:userdata:v4"]);
+    expect(s.tk.tasks).toEqual([]); expect(s.tk.events).toEqual([]); expect(s.fit).toEqual({ x: 1 });
+    expect(mem["evolution:mobile-bridge:base:v1"]).toBeUndefined();
+    expect(mem["evolution05:userdata:v4:cleared:local"]).toContain('"title":"t"');
+  });
+});
