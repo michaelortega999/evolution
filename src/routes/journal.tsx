@@ -12,7 +12,7 @@ import { useEvolutionData, todayDate, uid, type Mood } from "@/lib/evolution-dat
 import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/journal")({
-  head: () => ({ meta: [{ title: "Journal — Evolution" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
+  head: () => ({ meta: [{ title: "Journal — Evolution" }, { property: "og:title", content: "Journal — Evolution" }, { property: "og:description", content: "Daily reflections, mood tracking, and prompts." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
   component: JournalPage,
 });
 

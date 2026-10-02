@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/wealth")({
-  head: () => ({ meta: [{ title: "Wealth — Evolution" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
+  head: () => ({ meta: [{ title: "Wealth — Evolution" }, { property: "og:title", content: "Wealth — Evolution" }, { property: "og:description", content: "Net worth, assets, transactions, and goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
   component: WealthPage,
 });
 

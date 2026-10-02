@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Evolution" },
+      { title: "Sign in — Evolution" }, { property: "og:title", content: "Sign in — Evolution" }, { property: "og:description", content: "Sign in to your Evolution life operating system." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
       { name: "description", content: "Sign in to your Evolution life operating system." },
     ],
   }),

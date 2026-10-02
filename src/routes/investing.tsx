@@ -22,7 +22,7 @@ import {
 
 export const Route = createFileRoute("/investing")({
   head: () => ({ meta: [
-    { title: "Investing — Evolution" },
+    { title: "Investing — Evolution" }, { property: "og:title", content: "Investing — Evolution" }, { property: "og:description", content: "Prop trading terminal. Accounts, calendar, journal — all synced to Wealth." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     { name: "description", content: "Prop trading terminal. Accounts, calendar, journal — all synced to Wealth." },
   ] }),
   component: InvestingPage,

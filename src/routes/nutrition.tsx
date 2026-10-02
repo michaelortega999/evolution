@@ -16,7 +16,7 @@ import {
 import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/nutrition")({
-  head: () => ({ meta: [{ title: "Nutrition — Evolution" }, { name: "description", content: "Daily calories, macros, meals, water, grocery, history." }] }),
+  head: () => ({ meta: [{ title: "Nutrition — Evolution" }, { property: "og:title", content: "Nutrition — Evolution" }, { property: "og:description", content: "Daily calories, macros, meals, water, grocery, history." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Daily calories, macros, meals, water, grocery, history." }] }),
   component: NutritionPage,
 });
 

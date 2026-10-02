@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import mountainImg from "@/assets/calendar-mountain.jpg";
 
 export const Route = createFileRoute("/calendar")({
-  head: () => ({ meta: [{ title: "Calendar — Evolution" }] }),
+  head: () => ({ meta: [{ title: "Calendar — Evolution" }, { name: "description", content: "Calendar module of Evolution OS." }, { property: "og:title", content: "Calendar — Evolution" }, { property: "og:description", content: "Calendar module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: CalendarPage,
 });
 

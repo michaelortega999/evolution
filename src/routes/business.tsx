@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useEvolutionData, todayDate, uid, type ProjectStatus, type TaskPriority } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/business")({
-  head: () => ({ meta: [{ title: "Business — Evolution" }, { name: "description", content: "Projects, revenue, tasks, and business goals." }] }),
+  head: () => ({ meta: [{ title: "Business — Evolution" }, { property: "og:title", content: "Business — Evolution" }, { property: "og:description", content: "Projects, revenue, tasks, and business goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Projects, revenue, tasks, and business goals." }] }),
   component: BusinessPage,
 });
 
