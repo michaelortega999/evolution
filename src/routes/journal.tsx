@@ -1,6 +1,7 @@
 import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { FileText, Trash2 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
@@ -46,7 +47,7 @@ function JournalPage() {
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
   const save = () => {
-    if (!text.trim()) return;
+    if (!text.trim()) { toast.error("Write something before saving the entry."); return; }
     mutate((prev) => ({
       journalEntries: [...prev.journalEntries, {
         id: uid(), date: todayDate(),
@@ -56,6 +57,7 @@ function JournalPage() {
       }],
     }));
     setTitle(""); setText(""); setTagsRaw(""); setMood("Good");
+    toast.success("Journal entry saved.");
   };
 
   const remove = (id: string) =>
@@ -70,6 +72,13 @@ function JournalPage() {
     challenges: todayReflection?.challenges ?? "",
     lessons: todayReflection?.lessons ?? "",
   });
+  // Saved data loads after the first render — fill the draft once it arrives (unless the user
+  // already started typing), so a saved reflection isn't shown blank and then overwritten.
+  const refTouched = useRef(false);
+  useEffect(() => {
+    if (refTouched.current || !todayReflection) return;
+    setRefDraft({ wins: todayReflection.wins ?? "", challenges: todayReflection.challenges ?? "", lessons: todayReflection.lessons ?? "" });
+  }, [todayReflection?.id, todayReflection?.wins, todayReflection?.challenges, todayReflection?.lessons]);
   const saveReflection = () => {
     mutate((prev) => {
       const today = todayDate();
