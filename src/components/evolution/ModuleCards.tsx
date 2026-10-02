@@ -1,3 +1,4 @@
+import { localISO } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -396,7 +397,7 @@ export function InvestingCard() {
 export function BusinessCard() {
   const { data } = useEvolutionData();
   const activeProjects = data.projects.filter((p) => p.status !== "Completed").length;
-  const monthKey = new Date().toISOString().slice(0, 7);
+  const monthKey = localISO().slice(0, 7);
   const monthRevenue = data.revenue
     .filter((r) => r.date.startsWith(monthKey))
     .reduce((a, r) => a + r.amount, 0);

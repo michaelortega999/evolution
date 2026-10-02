@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { useEvolutionData, uid, type EvoCategory, type EvoHabit } from "@/lib/evolution-data";
 import { resolveHabits, DEFAULT_HABITS } from "@/lib/habits";
-import { cn } from "@/lib/utils";
+import { cn, localISO } from "@/lib/utils";
 
 const DAY_LABELS = ["M", "T", "W", "TH", "F", "SA", "SU"];
 

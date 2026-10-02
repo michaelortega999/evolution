@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEvolutionData, type ThemeKey } from "@/lib/evolution-data";
 import { THEME_OPTIONS, applyTheme } from "@/lib/use-theme";
-import { cn } from "@/lib/utils";
+import { cn, localISO } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Evolution" }] }),

@@ -620,7 +620,7 @@ function CarsSection() {
   // Per-car aggregations
   const carStats = (carId: string) => {
     const expenses = data.carExpenses.filter((e) => e.carId === carId);
-    const monthIso = new Date().toISOString().slice(0, 7);
+    const monthIso = localISO().slice(0, 7);
     const monthly = expenses.filter((e) => e.date.startsWith(monthIso)).reduce((a, e) => a + e.amount, 0);
     const total = expenses.reduce((a, e) => a + e.amount, 0);
     const gas = expenses.filter((e) => e.type === "Gas" && e.gallons && e.mileage);
