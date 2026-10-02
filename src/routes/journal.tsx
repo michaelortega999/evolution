@@ -1,6 +1,7 @@
 import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { FileText, Trash2 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
@@ -11,7 +12,7 @@ import { useEvolutionData, todayDate, uid, type Mood } from "@/lib/evolution-dat
 import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/journal")({
-  head: () => ({ meta: [{ title: "Journal — Evolution" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
+  head: () => ({ meta: [{ title: "Journal — Evolution" }, { property: "og:title", content: "Journal — Evolution" }, { property: "og:description", content: "Daily reflections, mood tracking, and prompts." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
   component: JournalPage,
 });
 
@@ -46,7 +47,7 @@ function JournalPage() {
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
   const save = () => {
-    if (!text.trim()) return;
+    if (!text.trim()) { toast.error("Write something before saving the entry."); return; }
     mutate((prev) => ({
       journalEntries: [...prev.journalEntries, {
         id: uid(), date: todayDate(),
@@ -56,6 +57,7 @@ function JournalPage() {
       }],
     }));
     setTitle(""); setText(""); setTagsRaw(""); setMood("Good");
+    toast.success("Journal entry saved.");
   };
 
   const remove = (id: string) =>
@@ -70,6 +72,13 @@ function JournalPage() {
     challenges: todayReflection?.challenges ?? "",
     lessons: todayReflection?.lessons ?? "",
   });
+  // Saved data loads after the first render — fill the draft once it arrives (unless the user
+  // already started typing), so a saved reflection isn't shown blank and then overwritten.
+  const refTouched = useRef(false);
+  useEffect(() => {
+    if (refTouched.current || !todayReflection) return;
+    setRefDraft({ wins: todayReflection.wins ?? "", challenges: todayReflection.challenges ?? "", lessons: todayReflection.lessons ?? "" });
+  }, [todayReflection?.id, todayReflection?.wins, todayReflection?.challenges, todayReflection?.lessons]);
   const saveReflection = () => {
     mutate((prev) => {
       const today = todayDate();
@@ -81,6 +90,8 @@ function JournalPage() {
           : [...prev.reflections, entry],
       };
     });
+    refTouched.current = false;
+    toast.success("Reflection saved.");
   };
 
   // Mood chart — last 7 days
@@ -184,7 +195,7 @@ function JournalPage() {
               {(["wins", "challenges", "lessons"] as const).map((key, i) => (
                 <label key={key} className="block">
                   <span className="hud-label text-[10px] text-muted-foreground">{prompts[i]}</span>
-                  <textarea value={refDraft[key]} onChange={(e) => setRefDraft((d) => ({ ...d, [key]: e.target.value }))}
+                  <textarea value={refDraft[key]} onChange={(e) => { refTouched.current = true; setRefDraft((d) => ({ ...d, [key]: e.target.value })); }}
                     rows={3} className="w-full mt-1 bg-transparent border border-border rounded p-2 text-sm resize-none focus:outline-none focus:border-primary/50" />
                 </label>
               ))}

@@ -34,7 +34,7 @@ import { HoloFloat } from "@/components/evolution/HoloFloat";
 export const Route = createFileRoute("/hobby")({
   head: () => ({
     meta: [
-      { title: "Hobby — Evolution" },
+      { title: "Hobby — Evolution" }, { property: "og:title", content: "Hobby — Evolution" }, { property: "og:description", content: "Travel, Cars, Guitar — connected to wealth, focus, calendar, and to-do." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
       { name: "description", content: "Travel, Cars, Guitar — connected to wealth, focus, calendar, and to-do." },
     ],
   }),

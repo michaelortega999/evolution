@@ -13,8 +13,38 @@ import {
 } from "./evolution-data";
 
 export const MOBILE_KEY = "evolution05:userdata:v4";
-const BASE_KEY = "evolution:mobile-bridge:base:v1";
+export const BASE_KEY = "evolution:mobile-bridge:base:v1";
+/** Which account the phone store + base belong to. */
+export const PHONE_OWNER_KEY = "evolution:mobile-bridge:owner";
+const DESK_OWNER_KEY = "evolution:data:owner"; // = OWNER_KEY in evolution-data.ts
 const MOBILE_SEED_V = 3;
+const archiveKey = (key: string, owner: string) => `${key}:owner:${owner}`;
+
+/**
+ * Make the phone store and bridge base belong to the desktop data's current owner.
+ * The previous owner's copies are archived (and restored next time they sign in),
+ * so one account's phone items are never merged into another account.
+ * Call only while the phone design is NOT running.
+ */
+export function alignMobileOwner(): void {
+  const owner = localStorage.getItem(DESK_OWNER_KEY);
+  const cur = localStorage.getItem(PHONE_OWNER_KEY);
+  if (!owner || cur === owner) return;
+  if (cur === null) { localStorage.setItem(PHONE_OWNER_KEY, owner); return; } // first run: adopt existing store
+  for (const key of [MOBILE_KEY, BASE_KEY]) {
+    const raw = localStorage.getItem(key);
+    if (raw) localStorage.setItem(archiveKey(key, cur), raw);
+    const mine = localStorage.getItem(archiveKey(key, owner));
+    if (mine) localStorage.setItem(key, mine); else localStorage.removeItem(key);
+  }
+  localStorage.setItem(PHONE_OWNER_KEY, owner);
+}
+/** True when phone store and desktop data belong to the same account (or are both unowned). */
+export function mobileOwnerMatches(): boolean {
+  const owner = localStorage.getItem(DESK_OWNER_KEY);
+  const cur = localStorage.getItem(PHONE_OWNER_KEY);
+  return !owner || !cur || owner === cur;
+}
 
 type MTask = { id: number; title: string; sub?: string; cat?: string; time?: string; done: boolean; date: string; doneAt?: string | null; extId?: string };
 type MEvent = { id: number; title: string; sub?: string; date: string; time: string; dur: number; cat: string; done?: boolean; extId?: string };
@@ -84,6 +114,8 @@ function merge3<C>(
  * @returns true if anything changed.
  */
 export function syncMobileBridge(writePhone: boolean): boolean {
+  if (writePhone) alignMobileOwner();
+  if (!mobileOwnerMatches()) return false; // never reconcile one account's phone data into another's
   const desk = loadEvolutionData();
   const store = readMobile() ?? (writePhone ? { seedv: MOBILE_SEED_V } : null);
   if (!store) return false;
@@ -180,17 +212,25 @@ export function syncMobileBridge(writePhone: boolean): boolean {
     }
   }
 
-  const nextBase: Base = {
-    // While the phone design is running, only record items the phone actually has —
-    // otherwise desktop-only items would look "deleted on phone" on the next pass.
-    tasks: Object.fromEntries([...tMerged].filter(([k]) => writePhone || mtById.has(k)).map(([k, v]) => [k, v.core])),
-    events: Object.fromEntries([...eMerged].filter(([k]) => writePhone || meById.has(k)).map(([k, v]) => [k, v.core])),
-  };
-  if (!writePhone) {
-    // Desktop-side deletes can't reach the running phone design yet; remember them so
-    // the phone's stale copy isn't re-added to desktop on the next pass.
-    for (const k of mtById.keys()) if (!tMerged.has(k) && base.tasks[k]) nextBase.tasks[k] = base.tasks[k];
-    for (const k of meById.keys()) if (!eMerged.has(k) && base.events[k]) nextBase.events[k] = base.events[k];
+  // Base = the value both sides actually share. While the phone design is running we
+  // can't update it, so an item only advances its base when the phone already holds the
+  // merged value; otherwise the old base is kept (the stale phone copy then reads as
+  // "unchanged" and the desktop value keeps winning instead of being reverted).
+  const nextBase: Base = { tasks: {}, events: {} };
+  if (writePhone) {
+    for (const [k, v] of tMerged) nextBase.tasks[k] = v.core;
+    for (const [k, v] of eMerged) nextBase.events[k] = v.core;
+  } else {
+    for (const [k, m] of mtById) {
+      const v = tMerged.get(k), pc = mTaskCore(m);
+      if (v && same(v.core, pc)) nextBase.tasks[k] = pc;
+      else if (base.tasks[k]) nextBase.tasks[k] = base.tasks[k];
+    }
+    for (const [k, m] of meById) {
+      const v = eMerged.get(k), pc = mEventCore(m);
+      if (v && same(v.core, pc)) nextBase.events[k] = pc;
+      else if (base.events[k]) nextBase.events[k] = base.events[k];
+    }
   }
   if (!same(nextBase, base)) localStorage.setItem(BASE_KEY, JSON.stringify(nextBase));
   return changed;

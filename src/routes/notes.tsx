@@ -16,7 +16,7 @@ import { DEFAULT_HABITS } from "@/lib/habits";
 
 
 export const Route = createFileRoute("/notes")({
-  head: () => ({ meta: [{ title: "Tasks — Evolution" }, { name: "description", content: "Goals, tasks, and daily habits." }] }),
+  head: () => ({ meta: [{ title: "Tasks — Evolution" }, { property: "og:title", content: "Tasks — Evolution" }, { property: "og:description", content: "Goals, tasks, and daily habits." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Goals, tasks, and daily habits." }] }),
   component: TasksPage,
 });
 

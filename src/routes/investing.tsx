@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useState, useMemo, useEffect, useRef } from "react";
 import {
   TrendingUp, Plus, Trash2, BookOpen, ChevronLeft, ChevronRight,
@@ -21,7 +22,7 @@ import {
 
 export const Route = createFileRoute("/investing")({
   head: () => ({ meta: [
-    { title: "Investing — Evolution" },
+    { title: "Investing — Evolution" }, { property: "og:title", content: "Investing — Evolution" }, { property: "og:description", content: "Prop trading terminal. Accounts, calendar, journal — all synced to Wealth." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     { name: "description", content: "Prop trading terminal. Accounts, calendar, journal — all synced to Wealth." },
   ] }),
   component: InvestingPage,
@@ -114,7 +115,8 @@ function InvestingPage() {
   const [accStart, setAccStart] = useState("");
 
   const submitAccount = () => {
-    if (!accName.trim() || !Number(accSize)) return;
+    if (!accName.trim()) { toast.error("Give the account a name."); return; }
+    if (!(Number(accSize) > 0)) { toast.error("Account size must be above 0."); return; }
     const start = Number(accStart) || Number(accSize);
     const newAcc: TradingAccount = {
       id: uid(),
@@ -155,7 +157,8 @@ function InvestingPage() {
   const submitTx = () => {
     const amt = Number(txAmt);
     const accId = txAcc || accounts[0]?.id;
-    if (!Number.isFinite(amt) || amt === 0 || !accId) return;
+    if (!accId) { toast.error("Add a trading account first."); return; }
+    if (!Number.isFinite(amt) || amt === 0) { toast.error("Enter a profit or loss amount."); return; }
     const resolvedType: TradingTxType = amt < 0 ? "loss" : txTab;
     const newTx: TradingTx = {
       id: uid(),
@@ -235,7 +238,8 @@ function InvestingPage() {
     openReview(entry.date);
   };
   const submitJournal = () => {
-    if (!jReview.trim() && !jPnl.trim() && !jImage) return;
+    if (!jReview.trim() && !jPnl.trim() && !jImage) { toast.error("Add a review, P/L or chart before saving."); return; }
+    if (jPnl.trim() && !Number.isFinite(Number(jPnl))) { toast.error("P/L must be a number."); return; }
     const tags = jTags.split(",").map((s) => s.trim()).filter(Boolean);
     const pnlN = Number(jPnl) || 0;
     if (journalEditing) {

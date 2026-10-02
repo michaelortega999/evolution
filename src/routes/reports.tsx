@@ -8,7 +8,7 @@ import { useEvolutionData, todayDate, dayTotals } from "@/lib/evolution-data";
 import { useSelectedMonth, MONTH_LABELS } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/reports")({
-  head: () => ({ meta: [{ title: "Reports — Evolution" }] }),
+  head: () => ({ meta: [{ title: "Reports — Evolution" }, { name: "description", content: "Reports module of Evolution OS." }, { property: "og:title", content: "Reports — Evolution" }, { property: "og:description", content: "Reports module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: ReportsPage,
 });
 

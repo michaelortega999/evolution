@@ -27,30 +27,48 @@ export function MobileApp() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const status = useCloudStatus();
   const readyRef = useRef(false);
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     let alive = true;
     let poll: ReturnType<typeof setInterval> | null = null;
     const flush = () => { if (readyRef.current) pullMobileIntoDesktop(); };
+    let started = false;
+    const start = () => {
+      if (!alive) return;
+      started = true;
+      pushDesktopIntoMobile(); // aligns phone store/base to the current account first
+      readyRef.current = true;
+      setFrameKey((k) => k + 1);
+      setReady(true);
+      if (!poll) poll = setInterval(flush, 1500);
+    };
 
     // Start only after the account's data has been loaded (or failed / no session),
     // so the phone never starts from — or overwrites — a half-loaded store.
-    cloudReady.then(() => {
-      if (!alive) return;
-      pushDesktopIntoMobile();
-      readyRef.current = true;
-      setReady(true);
-      poll = setInterval(flush, 1500);
-    });
+    cloudReady.then(start);
 
+    // Another account is signing in: save this account's latest phone edits, then stop the
+    // phone design immediately (it could otherwise write the old account's data back).
+    const onOwnerChanging = () => {
+      flush();
+      readyRef.current = false;
+      if (poll) { clearInterval(poll); poll = null; }
+      const f = frameRef.current;
+      if (f) { try { f.src = "about:blank"; } catch { /* ignore */ } }
+      setReady(false);
+    };
+    // Desktop data now belongs to the new account → swap phone stores and restart.
+    const onOwnerChanged = () => { if (started) start(); };
     // Cloud data that arrives later (re-login, retry after error): save the phone's
     // latest edits first, merge both ways, then reload the phone design with the result.
     const onCloudLoaded = () => {
       if (!readyRef.current) return;
       pullMobileIntoDesktop();
-      pushDesktopIntoMobile();
-      setFrameKey((k) => k + 1);
+      start();
     };
+    window.addEventListener("evolution:owner-changing", onOwnerChanging);
+    window.addEventListener("evolution:owner-changed", onOwnerChanged);
     window.addEventListener("evolution:cloud-loaded", onCloudLoaded);
 
     supabase.auth.getSession().then(({ data }) => alive && setSignedIn(!!data.session));
@@ -63,6 +81,8 @@ export function MobileApp() {
       if (poll) clearInterval(poll);
       flush();
       sub.subscription.unsubscribe();
+      window.removeEventListener("evolution:owner-changing", onOwnerChanging);
+      window.removeEventListener("evolution:owner-changed", onOwnerChanged);
       window.removeEventListener("evolution:cloud-loaded", onCloudLoaded);
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", flush);
@@ -74,6 +94,7 @@ export function MobileApp() {
       {ready ? (
         <iframe
           key={frameKey}
+          ref={frameRef}
           src="/evolution-mobile/index.html"
           title="Evolution OS"
           className="h-[100dvh] w-full border-0"

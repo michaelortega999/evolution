@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useState, useMemo, useEffect } from "react";
 import {
   Wallet, Trash2, Plus, CreditCard, Layers, AlertTriangle,
@@ -16,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/wealth")({
-  head: () => ({ meta: [{ title: "Wealth — Evolution" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
+  head: () => ({ meta: [{ title: "Wealth — Evolution" }, { property: "og:title", content: "Wealth — Evolution" }, { property: "og:description", content: "Net worth, assets, transactions, and goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
   component: WealthPage,
 });
 
@@ -156,8 +157,9 @@ function WealthPage() {
     setEditId(id); setAName(a.name); setAValue(String(a.value)); setACat(a.category); setAssetOpen(true);
   };
   const saveAsset = () => {
-    const value = Number(aValue) || 0;
-    if (!aName.trim()) return;
+    const value = Number(aValue);
+    if (!aName.trim()) { toast.error("Give the asset a name."); return; }
+    if (!Number.isFinite(value) || value < 0) { toast.error("Enter a value of 0 or more."); return; }
     mutate((prev) => ({
       assets: editId
         ? prev.assets.map((x) => x.id === editId ? { ...x, name: aName.trim(), value, category: aCat } : x)
@@ -180,7 +182,8 @@ function WealthPage() {
 
   const addTx = () => {
     const amt = Number(tAmt);
-    if (!amt || !tDesc.trim()) return;
+    if (!tDesc.trim()) { toast.error("Add a description."); return; }
+    if (!Number.isFinite(amt) || amt <= 0) { toast.error("Enter an amount above 0."); return; }
     mutate((prev) => ({
       transactions: [...prev.transactions, { id: uid(), date: tDate, description: tDesc.trim(), amount: amt, type: tType, category: tCat || "General" }],
     }));
@@ -189,7 +192,8 @@ function WealthPage() {
 
   const addQuick = () => {
     const amt = Number(tAmt);
-    if (!amt || !tDesc.trim()) return;
+    if (!tDesc.trim()) { toast.error("Add a description."); return; }
+    if (!Number.isFinite(amt) || amt <= 0) { toast.error("Enter an amount above 0."); return; }
     if (qaMode === "income" || qaMode === "expense") {
       mutate((prev) => ({
         transactions: [...prev.transactions, {
@@ -216,7 +220,8 @@ function WealthPage() {
   const [gDeadline, setGDeadline] = useState("");
   const wealthGoals = data.goals.filter((g) => g.category === "Wealth");
   const addGoal = () => {
-    if (!gTitle.trim() || !Number(gTarget)) return;
+    if (!gTitle.trim()) { toast.error("Give the goal a title."); return; }
+    if (!(Number(gTarget) > 0)) { toast.error("Target must be above 0."); return; }
     mutate((prev) => ({
       goals: [...prev.goals, { id: uid(), title: gTitle.trim(), category: "Wealth", target: Number(gTarget), current: Number(gCurrent) || 0, deadline: gDeadline || todayDate(), completed: false }],
     }));

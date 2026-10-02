@@ -1,4 +1,5 @@
 import { localISO } from "@/lib/utils";
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { Target, Plus, Trash2, Check } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -6,7 +7,7 @@ import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { useEvolutionData, type Goal, type GoalCategory, todayDate, dayTotals } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/goals")({
-  head: () => ({ meta: [{ title: "Goals — Evolution" }] }),
+  head: () => ({ meta: [{ title: "Goals — Evolution" }, { name: "description", content: "Goals module of Evolution OS." }, { property: "og:title", content: "Goals — Evolution" }, { property: "og:description", content: "Goals module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: GoalsPage,
 });
 
@@ -54,7 +55,8 @@ function GoalsPage() {
   const [unit, setUnit] = useState("");
 
   function addGoal() {
-    if (!title.trim() || target <= 0) return;
+    if (!title.trim()) { toast.error("Give the goal a title."); return; }
+    if (!(Number(target) > 0)) { toast.error("Target must be above 0."); return; }
     const g: Goal = {
       id: crypto.randomUUID(),
       title: title.trim(),

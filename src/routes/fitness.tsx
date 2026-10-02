@@ -17,7 +17,7 @@ import {
 export const Route = createFileRoute("/fitness")({
   head: () => ({
     meta: [
-      { title: "Fitness — Evolution" },
+      { title: "Fitness — Evolution" }, { property: "og:title", content: "Fitness — Evolution" }, { property: "og:description", content: "Workouts, PRs, recovery, and progress charts." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
       { name: "description", content: "Workouts, PRs, recovery, and progress charts." },
     ],
   }),

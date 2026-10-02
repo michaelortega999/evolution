@@ -43,3 +43,41 @@ describe("bridge", () => {
     expect(desk.calendar[0]).toMatchObject({ id: "m5", title: "gym", time: "18:00", endTime: "18:45" });
   });
 });
+describe("bridge: running phone + accounts", () => {
+  const T = (id: string, text: string, status = "Not Started") => ({ id, text, category: "Business", priority: "High", due: "2026-10-02", status });
+  it("desktop edit survives two polls against a stale running phone", () => {
+    desk.evoTasks = [T("d1", "orig")];
+    syncMobileBridge(true);
+    desk.evoTasks = [T("d1", "desk edit")];
+    syncMobileBridge(false); syncMobileBridge(false);
+    expect(desk.evoTasks[0].text).toBe("desk edit");
+    syncMobileBridge(true); expect(phone().tasks[0].title).toBe("desk edit");
+  });
+  it("desktop delete survives two polls against a stale running phone", () => {
+    desk.evoTasks = [T("d1", "a"), T("d2", "b")];
+    syncMobileBridge(true);
+    desk.evoTasks = [T("d2", "b")];
+    syncMobileBridge(false); syncMobileBridge(false);
+    expect(desk.evoTasks.map((t: any) => t.id)).toEqual(["d2"]);
+    syncMobileBridge(true); expect(phone().tasks.map((t: any) => t.extId)).toEqual(["d2"]);
+  });
+  it("account A phone items never reach account B; A's are restored for A", () => {
+    mem["evolution:data:owner"] = "A";
+    setPhone({ tasks: [{ id: 1, title: "A secret", done: false, date: "2026-10-02" }], events: [] });
+    syncMobileBridge(true);
+    expect(desk.evoTasks.map((t: any) => t.text)).toEqual(["A secret"]);
+    const deskA = desk;
+    // B signs in (desktop data swapped by evolution-data; B read may even fail → B local is empty)
+    mem["evolution:data:owner"] = "B"; desk = { evoTasks: [], calendar: [] };
+    syncMobileBridge(false); // stale poll before alignment must be refused
+    expect(desk.evoTasks).toEqual([]);
+    syncMobileBridge(true);
+    expect(desk.evoTasks).toEqual([]);
+    expect(phone().tasks ?? []).toEqual([]);
+    expect(mem["evolution05:userdata:v4:owner:A"]).toContain("A secret");
+    // back to A
+    mem["evolution:data:owner"] = "A"; desk = deskA;
+    syncMobileBridge(true);
+    expect(phone().tasks.map((t: any) => t.title)).toEqual(["A secret"]);
+  });
+});

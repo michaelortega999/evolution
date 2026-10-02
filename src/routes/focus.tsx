@@ -32,7 +32,7 @@ const MODULES: EvoCategory[] = ["Wealth", "Nutrition", "Fitness", "Journal", "No
 export const Route = createFileRoute("/focus")({
   head: () => ({
     meta: [
-      { title: "Focus Mode — Evolution" },
+      { title: "Focus Mode — Evolution" }, { property: "og:title", content: "Focus Mode — Evolution" }, { property: "og:description", content: "Pomodoro-style focus timer with session tracking, weekly stats, and streaks." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
       { name: "description", content: "Pomodoro-style focus timer with session tracking, weekly stats, and streaks." },
     ],
   }),
