@@ -1,4 +1,5 @@
 import { Bell, Target, RotateCcw } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { RingProgress } from "./RingProgress";
 import { useEvolutionData } from "@/lib/evolution-data";
 
@@ -47,10 +48,10 @@ export function TopBar() {
         </div>
 
 
-        <button className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-primary hover:bg-primary/10 transition-colors relative">
+        <Link to="/settings" aria-label="Notification settings" title="Notification settings" className="h-10 w-10 rounded-full border border-border flex items-center justify-center text-primary hover:bg-primary/10 transition-colors relative">
           <Bell className="h-4 w-4" />
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary" style={{ boxShadow: "0 0 6px currentColor" }} />
-        </button>
+        </Link>
       </div>
     </div>
   );

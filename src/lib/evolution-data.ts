@@ -439,6 +439,8 @@ export interface CustomHobby {
 }
 
 export interface EvolutionData {
+  supplementList?: { id: string; name: string; time: string; dose: string }[];
+  supplementDone?: Record<string, string[]>;
   profile: Profile;
   nutrition: NutritionEntry[];
   fitness: FitnessEntry[];

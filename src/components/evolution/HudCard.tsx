@@ -24,9 +24,9 @@ export function HudCard({ icon: Icon, number, title, children, footer = "View de
         <h3 className="hud-label text-sm text-foreground/90">{title}</h3>
       </div>
       <div className="flex-1">{children}</div>
-      <button className="mt-4 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary transition-colors">
+      <span className="mt-4 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary transition-colors">
         {footer} <ChevronRight className="h-3 w-3" />
-      </button>
+      </span>
     </div>
   );
 }
