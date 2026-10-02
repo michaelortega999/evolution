@@ -186,6 +186,12 @@ export function syncMobileBridge(writePhone: boolean): boolean {
     tasks: Object.fromEntries([...tMerged].filter(([k]) => writePhone || mtById.has(k)).map(([k, v]) => [k, v.core])),
     events: Object.fromEntries([...eMerged].filter(([k]) => writePhone || meById.has(k)).map(([k, v]) => [k, v.core])),
   };
+  if (!writePhone) {
+    // Desktop-side deletes can't reach the running phone design yet; remember them so
+    // the phone's stale copy isn't re-added to desktop on the next pass.
+    for (const k of mtById.keys()) if (!tMerged.has(k) && base.tasks[k]) nextBase.tasks[k] = base.tasks[k];
+    for (const k of meById.keys()) if (!eMerged.has(k) && base.events[k]) nextBase.events[k] = base.events[k];
+  }
   if (!same(nextBase, base)) localStorage.setItem(BASE_KEY, JSON.stringify(nextBase));
   return changed;
 }
