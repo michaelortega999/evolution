@@ -4706,6 +4706,8 @@ function fitToday() {
   return (d + 6) % 7;
 }
 
+function evoLocalKey(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
 const EVO_STORE_KEY = "evolution05:userdata:v4";
 const EVO_SEED_V = 3;
 
@@ -4783,7 +4785,7 @@ function cvFmt(min) { const h = Math.floor(min / 60) % 24, m = min % 60; return 
 const TK_CATS = ["PERSONAL", "HEALTH", "BUSINESS", "FINANCE"];
 const TK_CAT_COLORS = { PERSONAL: "#5fd3ff", HEALTH: "#4fe0b0", BUSINESS: "#8fa8ff", FINANCE: "#c79bff" };
 
-function tkKey(d) { return d.toISOString().slice(0, 10); }
+function tkKey(d) { return evoLocalKey(d); }
 function tkToday() { const d = new Date(); d.setHours(12, 0, 0, 0); return d; }
 
 function makeWealth() {
@@ -5135,7 +5137,7 @@ class Component extends DCLogic {
       return {
         jr: {
           ...j,
-          entries: [{ id, date: d.toISOString().slice(0, 10), title, body, tags: j.tags.slice() }].concat(j.entries),
+          entries: [{ id, date: evoLocalKey(d), title, body, tags: j.tags.slice() }].concat(j.entries),
           draft: "", tags: [], tagDraft: "", tagInput: false, open: id
         }
       };
@@ -5283,7 +5285,7 @@ class Component extends DCLogic {
     const dates = j.entries.map(e => e.date);
     for (let i = 0; i < 400; i++) {
       const d = new Date(now); d.setDate(d.getDate() - i);
-      if (dates.indexOf(d.toISOString().slice(0, 10)) >= 0) streak++;
+      if (dates.indexOf(evoLocalKey(d)) >= 0) streak++;
       else if (i > 0) break;
     }
 
@@ -8619,7 +8621,7 @@ class Component extends DCLogic {
       if (!label || !amount) return null;
       const id = Math.max(0, ...w.txns.map(t => t.id)) + 1;
       const type = w.tab === "EXPENSES" ? "expense" : "income";
-      const date = new Date().toISOString().slice(0, 10);
+      const date = evoLocalKey(new Date());
       return { wl: Object.assign({}, w, {
         txns: [{ id, date, label, cat: (d.cat || "").trim() || (type === "income" ? "Income" : "General"), amount, type }].concat(w.txns),
         nt: { label: "", cat: "", amount: "" }
@@ -8689,7 +8691,7 @@ class Component extends DCLogic {
     const series = [];
     for (let i = span; i >= 0; i -= Math.max(1, Math.round(span / steps))) {
       const d = new Date(today.getTime() - i * 86400000);
-      series.push({ d, key: d.toISOString().slice(0, 10) });
+      series.push({ d, key: evoLocalKey(d) });
     }
     let running = netWorth;
     const futureFlow = [];
