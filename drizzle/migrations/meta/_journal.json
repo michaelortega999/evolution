@@ -8,6 +8,13 @@
       "when": 1791039486458,
       "tag": "0000_private_bank_data",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791039979963,
+      "tag": "0001_bank_privileges_and_matching",
+      "breakpoints": true
     }
   ]
 }
