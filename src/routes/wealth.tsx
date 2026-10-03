@@ -16,7 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
 import { useBank } from "@/lib/use-bank";
-import { summarizeBalances, summarizeFlows, isTransfer } from "@/lib/finance-core";
+import { summarizeBalances, isTransfer, fmtCents, countsInTotals } from "@/lib/finance-core";
+import { BankAccountsView } from "@/components/evolution/BankAccountsView";
+
+const fmtCentsShort = (n: number) => fmtCents(n);
 
 export const Route = createFileRoute("/wealth")({
   head: () => ({ meta: [{ title: "Wealth — Evolution" }, { property: "og:title", content: "Wealth — Evolution" }, { property: "og:description", content: "Net worth, assets, transactions, and goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
@@ -285,7 +288,7 @@ function WealthPage() {
                 </div>
               </div>
               <div className="w-[45%] h-[50px]">
-                <Sparkline data={netWorthSeries.length > 1 ? netWorthSeries : [0, 0]} height={50} fill />
+                {!imported && <Sparkline data={netWorthSeries.length > 1 ? netWorthSeries : [0, 0]} height={50} fill />}
               </div>
             </div>
           </div>
@@ -356,7 +359,7 @@ function WealthPage() {
             <div className="flex-1 min-h-0">
               {imported ? (
                 <div className="h-full flex items-center justify-center text-xs text-muted-foreground text-center px-4">
-                  Bank net worth history unavailable — only a single imported snapshot with no balance date is stored.
+                  Bank net worth history unavailable — it will appear once dated balances are measured over time.
                 </div>
               ) : netWorthSeries.length >= 2 ? (
                 <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={220} />
