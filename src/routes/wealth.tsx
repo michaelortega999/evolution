@@ -57,21 +57,31 @@ function WealthPage() {
   // ===== All KPIs derived from Quick Add entries only =====
   const summary = useMemo(() => wealthSummary(data), [data.assets, data.transactions]);
   // Bank balances come only from provider snapshots; bank transactions never add to balances (no double counting).
-  const assetsTotal = summary.assetsTotal + (imported ? bankBal.assets ?? 0 : 0);
-  const liabilitiesTotal = summary.liabilities + (imported ? bankBal.knownLiabilities ?? 0 : 0);
-  const netWorth = summary.netWorth + (imported ? (bankBal.assets ?? 0) - (bankBal.knownLiabilities ?? 0) : 0);
-  const cashBalance = summary.cash + (imported ? bankBal.cash ?? 0 : 0);
+  // Imported mode: manual asset valuations + provider balances − known linked debt. Manual income/expense
+  // history is NOT added to bank balances, and historical expense categories are not debt.
+  const manualAssetValues = summary.assetsTotal;
+  const assetsTotal = imported ? manualAssetValues + (bankBal.assets ?? 0) : summary.assetsTotal;
+  const liabilitiesTotal = imported ? bankBal.knownLiabilities ?? 0 : summary.liabilities;
+  const netWorth = imported ? manualAssetValues + (bankBal.assets ?? 0) - (bankBal.knownLiabilities ?? 0) : summary.netWorth;
+  const cashBalance = imported ? bankBal.cash ?? 0 : summary.cash;
+  const fmtImported = (n: number | null) => (n == null ? "UNAVAILABLE" : fmtCentsShort(n));
+  const disp = imported
+    ? { net: fmtCentsShort(netWorth), assets: fmtCentsShort(assetsTotal), liab: bankBal.knownLiabilities == null ? "UNAVAILABLE" : fmtCentsShort(bankBal.knownLiabilities), cash: fmtImported(bankBal.cash) }
+    : { net: fmt(netWorth), assets: fmt(assetsTotal), liab: fmt(liabilitiesTotal), cash: fmt(cashBalance) };
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const bankFlows = useMemo(() => summarizeFlows(imported ? bank.transactions : [], thisMonth), [imported, bank.transactions, thisMonth]);
+  // Bank flows are only reported when the import is complete (never from an empty or capped set).
+  const flowsComplete = imported && bank.coverage.complete;
 
+  // Manual cash flow stays separate from bank flows.
   const monthIncome = data.transactions
     .filter((t) => t.type === "income" && monthKey(t.date) === thisMonth)
-    .reduce((s, t) => s + t.amount, 0) + bankFlows.income;
+    .reduce((s, t) => s + t.amount, 0);
   const monthExpenses = data.transactions
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
-    .reduce((s, t) => s + t.amount, 0) + bankFlows.spend;
+    .reduce((s, t) => s + t.amount, 0);
+  const [bankOpen, setBankOpen] = useState(false);
   const bankFreshness = !imported ? null
     : bankBal.assets == null && bankBal.knownLiabilities == null ? "BANK BALANCES UNAVAILABLE"
     : `${bankBal.allSnapshot ? "IMPORTED SNAPSHOT" : "LAST BANK REFRESH"} · ${bankBal.anyDateUnknown || !bankBal.oldestAsOf ? "BALANCE DATE UNKNOWN" : `AS OF ${bankBal.oldestAsOf.slice(0, 10)}`}`;
@@ -264,10 +274,10 @@ function WealthPage() {
             <div className="hud-label text-[9px] text-muted-foreground tracking-widest">NET WORTH</div>
             <div className="flex items-end justify-between gap-3">
               <div>
-                <div className="hud-label text-3xl text-primary hud-glow tabular-nums">{fmt(netWorth)}</div>
+                <div className="hud-label text-3xl text-primary hud-glow tabular-nums">{disp.net}</div>
                 <div className="mt-1 hud-label text-[10px]">
                   {imported ? (
-                    <span className="text-muted-foreground" title="Excludes any liabilities not linked or entered">{bankFreshness} · HISTORY UNAVAILABLE</span>
+                    <button type="button" onClick={() => setBankOpen(true)} className="text-muted-foreground underline decoration-dotted hover:text-primary text-left" title="Partial: excludes debts not linked. Open bank accounts.">PARTIAL · {bankFreshness} · HISTORY UNAVAILABLE</button>
                   ) : (<>
                   <span className="text-primary">▲ 13.44%</span>
                   <span className="text-muted-foreground ml-2">vs last month</span>
@@ -282,9 +292,9 @@ function WealthPage() {
 
           <div className="lg:col-span-3 grid grid-cols-3 gap-3">
             {[
-              { label: "Total Assets", value: fmt(assetsTotal), icon: Layers, delta: 8.21, positive: true },
-              { label: "Total Liabilities", value: fmt(liabilitiesTotal), icon: AlertTriangle, delta: -3.16, positive: false },
-              { label: "Cash Balance", value: fmt(cashBalance), icon: DollarSign, delta: 5.32, positive: true },
+              { label: "Total Assets", value: disp.assets, icon: Layers, delta: 8.21, positive: true },
+              { label: "Total Liabilities", value: disp.liab, icon: AlertTriangle, delta: -3.16, positive: false },
+              { label: "Cash Balance", value: disp.cash, icon: DollarSign, delta: 5.32, positive: true },
             ].map((k) => {
               const Icon = k.icon;
               const isCash = k.label === "Cash Balance";
@@ -344,7 +354,11 @@ function WealthPage() {
           <div className="lg:col-span-3 hud-card p-4 flex flex-col min-h-0">
             <h2 className="hud-label text-[10px] text-muted-foreground mb-2">NET WORTH OVER TIME</h2>
             <div className="flex-1 min-h-0">
-              {netWorthSeries.length >= 2 ? (
+              {imported ? (
+                <div className="h-full flex items-center justify-center text-xs text-muted-foreground text-center px-4">
+                  Bank net worth history unavailable — only a single imported snapshot with no balance date is stored.
+                </div>
+              ) : netWorthSeries.length >= 2 ? (
                 <NetWorthChart data={netWorthSeries} labels={netWorthLabels} height={220} />
               ) : (
                 <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
@@ -540,6 +554,10 @@ function WealthPage() {
 
           <Panel title="Financial Health" className="p-3">
             <div className="flex items-center justify-center gap-4 h-full">
+              {imported ? (
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] text-center">
+                  Score unavailable — bank data is incomplete (no imported transactions{flowsComplete ? "" : " yet"}, unlinked debts unknown).
+              ) : (<>
               <Gauge value={healthScore} size={140} label={healthLabel} />
               <p className="text-xs text-muted-foreground leading-relaxed max-w-[140px]">
                 You're building momentum. Keep executing.
