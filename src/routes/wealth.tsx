@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
+import { useBank } from "@/lib/use-bank";
+import { summarizeBalances, summarizeFlows, isTransfer } from "@/lib/finance-core";
 
 export const Route = createFileRoute("/wealth")({
   head: () => ({ meta: [{ title: "Wealth — Evolution" }, { property: "og:title", content: "Wealth — Evolution" }, { property: "og:description", content: "Net worth, assets, transactions, and goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
@@ -47,23 +49,32 @@ function monthKey(date: string) {
 
 function WealthPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
+  const bank = useBank();
+  // Imported mode: only for the finance owner with stored bank accounts (server + RLS enforce access).
+  const imported = bank.status === "ready" && bank.accounts.length > 0;
+  const bankBal = useMemo(() => summarizeBalances(bank.accounts, bank.balances), [bank.accounts, bank.balances]);
 
   // ===== All KPIs derived from Quick Add entries only =====
   const summary = useMemo(() => wealthSummary(data), [data.assets, data.transactions]);
-  const assetsTotal = summary.assetsTotal;
-  const liabilitiesTotal = summary.liabilities;
-  const netWorth = summary.netWorth;
-  const cashBalance = summary.cash;
+  // Bank balances come only from provider snapshots; bank transactions never add to balances (no double counting).
+  const assetsTotal = summary.assetsTotal + (imported ? bankBal.assets ?? 0 : 0);
+  const liabilitiesTotal = summary.liabilities + (imported ? bankBal.knownLiabilities ?? 0 : 0);
+  const netWorth = summary.netWorth + (imported ? (bankBal.assets ?? 0) - (bankBal.knownLiabilities ?? 0) : 0);
+  const cashBalance = summary.cash + (imported ? bankBal.cash ?? 0 : 0);
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const bankFlows = useMemo(() => summarizeFlows(imported ? bank.transactions : [], thisMonth), [imported, bank.transactions, thisMonth]);
 
   const monthIncome = data.transactions
     .filter((t) => t.type === "income" && monthKey(t.date) === thisMonth)
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((s, t) => s + t.amount, 0) + bankFlows.income;
   const monthExpenses = data.transactions
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((s, t) => s + t.amount, 0) + bankFlows.spend;
+  const bankFreshness = !imported ? null
+    : bankBal.assets == null && bankBal.knownLiabilities == null ? "BANK BALANCES UNAVAILABLE"
+    : `${bankBal.allSnapshot ? "IMPORTED SNAPSHOT" : "LAST BANK REFRESH"} · ${bankBal.anyDateUnknown || !bankBal.oldestAsOf ? "BALANCE DATE UNKNOWN" : `AS OF ${bankBal.oldestAsOf.slice(0, 10)}`}`;
 
   // Running net worth series in Quick Add chronological order
   const txSeries = summary.series.length > 1 ? summary.series : [0, 0];
