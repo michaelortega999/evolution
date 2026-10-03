@@ -16,7 +16,8 @@ export function wireBankAuth() {
     current = uid;
     void bankStore.setUser(uid, loadOverview);
   };
-  supabase.auth.getSession().then(({ data }) => apply(data.session?.user.id ?? null));
+  // onAuthStateChange emits INITIAL_SESSION first, then every change in order. A separate getSession()
+  // promise could resolve late and re-apply a stale (previous) user, so it is intentionally not used.
   supabase.auth.onAuthStateChange((_e, session) => apply(session?.user.id ?? null));
 }
 

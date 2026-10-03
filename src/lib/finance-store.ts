@@ -1,20 +1,22 @@
 // In-memory only bank state (never localStorage, never the mobile bridge or cloud payload).
 // A generation counter bumps on every sign-in/out/account switch; responses from older generations are dropped.
-import type { BankAccount, BalanceSnapshot, BankTx } from "./finance-core";
+import type { BankAccount, BalanceSnapshot, BankTx, Coverage } from "./finance-core";
 
 export interface BankState {
   status: "idle" | "loading" | "ready" | "denied" | "error";
   userId: string | null;
   configured: boolean;
   env: string | null;
-  accounts: BankAccount[];
+  oauthRedirect: boolean;
+  coverage: Coverage;
+  accounts: (BankAccount & { review_note?: string | null })[];
   balances: BalanceSnapshot[];
   transactions: BankTx[];
-  connections: { id: string; institution_name: string | null; environment: string; status: string; last_synced_at: string | null }[];
+  connections: { id: string; institution_name: string | null; environment: string; status: string; last_synced_at: string | null; initial_sync_complete?: boolean }[];
   error: string | null;
 }
 
-export const EMPTY_BANK: BankState = { status: "idle", userId: null, configured: false, env: null, accounts: [], balances: [], transactions: [], connections: [], error: null };
+export const EMPTY_BANK: BankState = { status: "idle", userId: null, configured: false, env: null, oauthRedirect: false, coverage: { complete: false, reason: "no_connection" }, accounts: [], balances: [], transactions: [], connections: [], error: null };
 
 export type Loader = () => Promise<unknown>;
 

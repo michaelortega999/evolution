@@ -3,13 +3,16 @@ import { FINANCE_OWNER_ID } from "./finance-core";
 
 export type PlaidEnv = "sandbox" | "production";
 
-export function plaidConfig(): { clientId: string; secret: string; env: PlaidEnv; key: string } | null {
+export function plaidConfig(): { clientId: string; secret: string; env: PlaidEnv; key: string; redirectUri: string | null } | null {
   const clientId = process.env["PLAID_CLIENT_ID"];
   const secret = process.env["PLAID_SECRET"];
   const key = process.env["FINANCE_ENCRYPTION_KEY"];
   const rawEnv = (process.env["PLAID_ENV"] || "").toLowerCase();
   if (!clientId || !secret || !key || (rawEnv !== "sandbox" && rawEnv !== "production")) return null;
-  return { clientId, secret, env: rawEnv, key };
+  // Optional: OAuth institutions need a redirect URI that is also registered in the Plaid dashboard.
+  const redirect = process.env["PLAID_REDIRECT_URI"] || null;
+  const redirectUri = redirect && /^https:\/\//.test(redirect) ? redirect : null;
+  return { clientId, secret, env: rawEnv, key, redirectUri };
 }
 
 async function plaid<T>(path: string, body: Record<string, unknown>): Promise<T> {
@@ -50,12 +53,14 @@ export async function decryptToken(ciphertext: string, iv: string, rawKey: strin
 }
 
 export async function createLinkToken() {
+  const cfg = plaidConfig();
   const r = await plaid<{ link_token: string }>("/link/token/create", {
     user: { client_user_id: FINANCE_OWNER_ID },
     client_name: "Evolution OS",
     products: ["transactions"],
     country_codes: ["US"],
     language: "en",
+    ...(cfg?.redirectUri ? { redirect_uri: cfg.redirectUri } : {}),
   });
   return r.link_token;
 }

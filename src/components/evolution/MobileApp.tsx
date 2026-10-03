@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { cloudReady, useCloudStatus } from "@/lib/evolution-data";
 import { pullMobileIntoDesktop, pushDesktopIntoMobile } from "@/lib/mobile-bridge";
 import { bankStore } from "@/lib/finance-store";
-import { wireBankAuth } from "@/lib/use-bank";
+import { wireBankAuth, useBank } from "@/lib/use-bank";
+import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel";
 
 /**
  * Phone-only experience: renders the user's finished Evolution OS mobile
@@ -28,6 +29,11 @@ export function MobileApp() {
   const [frameKey, setFrameKey] = useState(0);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const status = useCloudStatus();
+  const bank = useBank();
+  const bankOwner = bank.status === "ready" || bank.status === "error";
+  const [bankOpen, setBankOpen] = useState(false);
+  // Sign-out / account switch: the store clears synchronously, so close the drawer with it.
+  useEffect(() => { if (!bankOwner) setBankOpen(false); }, [bankOwner]);
   const readyRef = useRef(false);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -129,6 +135,25 @@ export function MobileApp() {
       ) : (
         <div className="flex h-full items-center justify-center hud-label text-xs tracking-widest text-primary">
           LOADING…
+        </div>
+      )}
+      {bankOwner && (
+        <button
+          type="button"
+          onClick={() => setBankOpen(true)}
+          className="absolute right-2 top-2 rounded-full border border-primary/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-primary"
+        >
+          BANK ACCOUNTS
+        </button>
+      )}
+      {bankOwner && bankOpen && (
+        <div className="absolute inset-0 z-10 flex flex-col bg-background/95" role="dialog" aria-label="Bank accounts">
+          <div className="flex items-center justify-between border-b border-primary/40 px-4 py-3">
+            <span className="hud-label text-xs tracking-widest text-primary">BANK ACCOUNTS</span>
+            <button type="button" onClick={() => setBankOpen(false)} className="text-[11px] tracking-widest text-primary">CLOSE</button>
+          </div>
+          <p className="px-4 pt-2 text-[10px] text-muted-foreground">Numbers in the app artwork are design samples. These are your real stored bank figures.</p>
+          <div className="flex-1 overflow-y-auto p-3"><BankConnectionPanel /></div>
         </div>
       )}
       {signedIn === false && (

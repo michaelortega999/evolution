@@ -20,14 +20,18 @@ export type Database = {
           created_at: string
           environment: string
           id: string
+          institution_name: string | null
           iso_currency_code: string | null
+          link_status: string
           mask: string | null
           name: string
           official_name: string | null
           owner_id: string
           provider_account_id: string | null
+          review_note: string | null
           source: string
           subtype: string | null
+          superseded_by: string | null
           type: string
           updated_at: string
         }
@@ -36,14 +40,18 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          institution_name?: string | null
           iso_currency_code?: string | null
+          link_status?: string
           mask?: string | null
           name: string
           official_name?: string | null
           owner_id: string
           provider_account_id?: string | null
+          review_note?: string | null
           source?: string
           subtype?: string | null
+          superseded_by?: string | null
           type: string
           updated_at?: string
         }
@@ -52,14 +60,18 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          institution_name?: string | null
           iso_currency_code?: string | null
+          link_status?: string
           mask?: string | null
           name?: string
           official_name?: string | null
           owner_id?: string
           provider_account_id?: string | null
+          review_note?: string | null
           source?: string
           subtype?: string | null
+          superseded_by?: string | null
           type?: string
           updated_at?: string
         }
@@ -69,6 +81,13 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -154,6 +173,7 @@ export type Database = {
           created_at: string
           environment: string
           id: string
+          initial_sync_complete: boolean
           institution_name: string | null
           last_synced_at: string | null
           owner_id: string
@@ -166,6 +186,7 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          initial_sync_complete?: boolean
           institution_name?: string | null
           last_synced_at?: string | null
           owner_id: string
@@ -178,6 +199,7 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          initial_sync_complete?: boolean
           institution_name?: string | null
           last_synced_at?: string | null
           owner_id?: string
@@ -207,6 +229,7 @@ export type Database = {
           pending_transaction_id: string | null
           posted_date: string | null
           provider_transaction_id: string | null
+          refund_of_transaction_id: string | null
           removed_at: string | null
           source: string
           updated_at: string
@@ -229,6 +252,7 @@ export type Database = {
           pending_transaction_id?: string | null
           posted_date?: string | null
           provider_transaction_id?: string | null
+          refund_of_transaction_id?: string | null
           removed_at?: string | null
           source?: string
           updated_at?: string
@@ -251,6 +275,7 @@ export type Database = {
           pending_transaction_id?: string | null
           posted_date?: string | null
           provider_transaction_id?: string | null
+          refund_of_transaction_id?: string | null
           removed_at?: string | null
           source?: string
           updated_at?: string
