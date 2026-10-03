@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { cloudReady, useCloudStatus } from "@/lib/evolution-data";
 import { pullMobileIntoDesktop, pushDesktopIntoMobile } from "@/lib/mobile-bridge";
+import { bankStore } from "@/lib/finance-store";
+import { wireBankAuth } from "@/lib/use-bank";
 
 /**
  * Phone-only experience: renders the user's finished Evolution OS mobile
@@ -88,6 +90,30 @@ export function MobileApp() {
       document.removeEventListener("visibilitychange", flush);
     };
   }, []);
+
+  // Owner-only bank data → phone design via in-memory postMessage (exact origin, generation-guarded).
+  // Never written to shared storage or the mobile bridge; cleared at once on sign-out/account switch.
+  useEffect(() => {
+    wireBankAuth();
+    const post = () => {
+      const w = frameRef.current?.contentWindow;
+      if (!w) return;
+      const s = bankStore.get();
+      const payload = s.status === "ready" && s.accounts.length
+        ? {
+            accounts: s.accounts.filter((a) => a.environment !== "sandbox"),
+            balances: s.balances,
+            transactions: s.transactions.filter((t) => t.environment !== "sandbox"),
+          }
+        : null;
+      w.postMessage({ type: "evo:bank", gen: bankStore.generation(), payload }, window.location.origin);
+    };
+    const unsub = bankStore.subscribe(post);
+    const f = frameRef.current;
+    f?.addEventListener("load", post);
+    post();
+    return () => { unsub(); f?.removeEventListener("load", post); };
+  }, [frameKey, ready]);
 
   return (
     <div className="fixed inset-0 z-[1000] bg-background">
