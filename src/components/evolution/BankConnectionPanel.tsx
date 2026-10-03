@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Landmark } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -28,13 +28,43 @@ export function BankConnectionPanel() {
   const exchangeFn = useServerFn(exchangeBankPublicToken);
   const refreshFn = useServerFn(refreshBankData);
   const [busy, setBusy] = useState(false);
+  const owner = bank.status === "ready" || bank.status === "error";
+  const resumed = useRef(false);
+
+  const openLink = async (token: string, receivedRedirectUri?: string) => {
+    await loadPlaidScript();
+    // Link token kept only for the OAuth round trip (short-lived, not a bank credential).
+    sessionStorage.setItem("evo:plaid-link-token", token);
+    window.Plaid!.create({
+      token,
+      ...(receivedRedirectUri ? { receivedRedirectUri } : {}),
+      onSuccess: async (publicToken: string, meta: { institution?: { name?: string } }) => {
+        sessionStorage.removeItem("evo:plaid-link-token");
+        const ex = await exchangeFn({ data: { publicToken, institutionName: meta?.institution?.name } });
+        if (!ex.ok) { toast.error(ex.error); setBusy(false); return; }
+        await refresh();
+      },
+      onExit: () => { sessionStorage.removeItem("evo:plaid-link-token"); setBusy(false); },
+    }).open();
+  };
+
+  // Returning from a bank's own sign-in page (OAuth): resume Link once, owner only.
+  useEffect(() => {
+    if (!owner || resumed.current) return;
+    const token = sessionStorage.getItem("evo:plaid-link-token");
+    if (!token || !new URLSearchParams(window.location.search).has("oauth_state_id")) return;
+    resumed.current = true;
+    setBusy(true);
+    openLink(token, window.location.href).catch(() => { toast.error("Bank data is unavailable right now."); setBusy(false); });
+  }, [owner]);
+
   if (bank.status !== "ready" && bank.status !== "error") return null;
 
   const refresh = async () => {
     setBusy(true);
     try {
       const r = await refreshFn();
-      if (r.ok) toast.success("Bank data refreshed."); else toast.error(r.error);
+      if (r.ok) toast.success(r.flagged ? "Refreshed. Some accounts need your confirmation." : "Bank data refreshed."); else toast.error(r.error);
       await bankStore.reload(loadOverview);
     } catch { toast.error("Bank data is unavailable right now."); }
     finally { setBusy(false); }
@@ -45,16 +75,7 @@ export function BankConnectionPanel() {
     try {
       const r = await linkFn();
       if (!r.ok) { toast.error(r.error); setBusy(false); return; }
-      await loadPlaidScript();
-      window.Plaid!.create({
-        token: r.linkToken,
-        onSuccess: async (publicToken: string, meta: { institution?: { name?: string } }) => {
-          const ex = await exchangeFn({ data: { publicToken, institutionName: meta?.institution?.name } });
-          if (!ex.ok) { toast.error(ex.error); setBusy(false); return; }
-          await refresh();
-        },
-        onExit: () => setBusy(false),
-      }).open();
+      await openLink(r.linkToken);
     } catch { toast.error("Bank data is unavailable right now."); setBusy(false); }
   };
 
