@@ -556,16 +556,27 @@ function WealthPage() {
             <div className="flex items-center justify-center gap-4 h-full">
               {imported ? (
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] text-center">
-                  Score unavailable — bank data is incomplete (no imported transactions{flowsComplete ? "" : " yet"}, unlinked debts unknown).
+                  Score unavailable — bank data is incomplete ({flowsComplete ? "unlinked debts unknown" : "transactions not imported, unlinked debts unknown"}).
+                </p>
               ) : (<>
               <Gauge value={healthScore} size={140} label={healthLabel} />
               <p className="text-xs text-muted-foreground leading-relaxed max-w-[140px]">
                 You're building momentum. Keep executing.
               </p>
+              </>)}
             </div>
           </Panel>
         </div>
       </div>
+
+      <Dialog open={bankOpen} onOpenChange={setBankOpen}>
+        <DialogContent className="hud-card border-primary/40 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="hud-label text-primary hud-glow">Bank accounts</DialogTitle>
+          </DialogHeader>
+          <BankAccountsView />
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={assetOpen} onOpenChange={setAssetOpen}>
         <DialogContent className="hud-card border-primary/40">
