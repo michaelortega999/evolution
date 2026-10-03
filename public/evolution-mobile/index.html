@@ -4788,6 +4788,23 @@ const TK_CAT_COLORS = { PERSONAL: "#5fd3ff", HEALTH: "#4fe0b0", BUSINESS: "#8fa8
 function tkKey(d) { return evoLocalKey(d); }
 function tkToday() { const d = new Date(); d.setHours(12, 0, 0, 0); return d; }
 
+/* Owner-only bank snapshot (in memory from the parent page); read-only rows, never saved. */
+function evoBankHoldings() {
+  const b = window.__evoBank, out = { assets: [], liabilities: [] };
+  if (!b || !b.accounts) return out;
+  b.accounts.forEach(a => {
+    if (a.link_status && a.link_status !== "active") return;
+    let best = null;
+    (b.balances || []).forEach(x => { if (x.account_id === a.id && (!best || x.created_at > best.created_at)) best = x; });
+    if (!best || best.current_balance == null) return;
+    const v = Math.abs(Number(best.current_balance));
+    const row = { id: "bank:" + a.id, name: (a.institution_name ? a.institution_name + " " : "") + a.name + (a.mask ? " \u2022" + a.mask : ""), cls: a.type === "investment" ? "Investments" : "Cash", value: v, bank: true };
+    if (a.type === "credit" || a.type === "loan") out.liabilities.push(Object.assign(row, { cls: "Debt" }));
+    else out.assets.push(row);
+  });
+  return out;
+}
+
 function makeWealth() {
   return {
     tab: "OVERVIEW", range: "1M",
@@ -5061,6 +5078,7 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
+    window.addEventListener("evo:bank-updated", () => this.forceUpdate());
     const saved = evoLoad();
     this._loaded = true;
     if (saved && saved.seedv === EVO_SEED_V) {
@@ -8661,7 +8679,11 @@ class Component extends DCLogic {
   }
 
   wlVals() {
-    const w = this.state.wl || makeWealth();
+    const w0 = this.state.wl || makeWealth();
+    const bk = evoBankHoldings();
+    const w = bk.assets.length || bk.liabilities.length
+      ? Object.assign({}, w0, { assets: bk.assets.concat(w0.assets), liabilities: bk.liabilities.concat(w0.liabilities) })
+      : w0;
     const money = v => (v < 0 ? "-$" : "$") + Math.round(Math.abs(v)).toLocaleString();
     const totalAssets = w.assets.reduce((a, x) => a + x.value, 0);
     const totalLiab = w.liabilities.reduce((a, x) => a + x.value, 0);
