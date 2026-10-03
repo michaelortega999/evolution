@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isFinanceOwner, FINANCE_OWNER_ID, summarizeBalances, summarizeFlows, applySyncPage, type BankAccount, type BankTx, type BalanceSnapshot } from "./finance-core";
+import { flowCoverage, dedupeById, matchSnapshotAccount, isFinanceOwner, FINANCE_OWNER_ID, summarizeBalances, summarizeFlows, applySyncPage, type BankAccount, type BankTx, type BalanceSnapshot } from "./finance-core";
 import { createBankStore } from "./finance-store";
 
 const acct = (id: string, type: string, environment = "production"): BankAccount => ({ id, name: id, mask: null, type, subtype: null, source: "snapshot", environment });
@@ -20,6 +20,23 @@ describe("balances", () => {
     const s = summarizeBalances([acct("chk", "depository")], [snap("chk", 100, "2026-09-01T00:00:00Z", "a"), snap("chk", 250, "2026-10-01T00:00:00Z", "b")]);
     expect(s.assets).toBe(250);
     expect(s.cash).toBe(250);
+  });
+  it("prefers the most recently retrieved snapshot even when its balance date is unknown", () => {
+    const s = summarizeBalances([acct("chk", "depository")], [snap("chk", 100, "2026-09-01T00:00:00Z", "2026-09-02"), snap("chk", 300, null, "2026-10-03")]);
+    expect(s.assets).toBe(300);
+    expect(s.anyDateUnknown).toBe(true);
+  });
+  it("repeat refreshes add snapshots but never duplicate the counted balance", () => {
+    const s = summarizeBalances([acct("chk", "depository")], [snap("chk", 300, null, "a"), snap("chk", 300, null, "b"), snap("chk", 300, null, "c")]);
+    expect(s.assets).toBe(300);
+  });
+  it("seed snapshot superseded by a linked account is not double counted; needs_review excluded", () => {
+    const seed = { ...acct("seed", "depository"), link_status: "superseded" };
+    const linked = { ...acct("lnk", "depository"), source: "plaid" };
+    const dup = { ...acct("dup", "depository"), link_status: "needs_review" };
+    const s = summarizeBalances([seed, linked, dup], [snap("seed", 300), snap("lnk", 310), snap("dup", 310)]);
+    expect(s.assets).toBe(310);
+    expect(s.needsReview).toBe(1);
   });
   it("treats missing balances as unavailable, not zero", () => {
     const s = summarizeBalances([acct("chk", "depository")], []);
@@ -53,10 +70,25 @@ describe("flows", () => {
     expect(f.spend).toBe(40);
     expect(f.income).toBe(1000);
   });
-  it("refunds reduce spend in their category and never go below zero", () => {
-    const f = summarizeFlows([tx({ amount: 80 }), tx({ amount: -30 }), tx({ amount: -50, category_primary: "TRAVEL" })], "2026-10");
+  it("only explicit refund evidence reduces spend; never below zero", () => {
+    const f = summarizeFlows([
+      tx({ amount: 80 }),
+      tx({ amount: -30, category_detailed: "GENERAL_MERCHANDISE_REFUND" }),
+      tx({ amount: -50, category_primary: "TRAVEL", refund_of_transaction_id: "t9" }),
+    ], "2026-10");
     expect(f.spend).toBe(50);
+    expect(f.refunds).toBe(80);
     expect(f.income).toBe(0);
+  });
+  it("unclassified deposits are unknown inflows, not refunds or income", () => {
+    const f = summarizeFlows([tx({ amount: 80 }), tx({ amount: -30 }), tx({ amount: -25, category_primary: null })], "2026-10");
+    expect(f.spend).toBe(80);
+    expect(f.income).toBe(0);
+    expect(f.unknownInflow).toBe(55);
+  });
+  it("skips transactions of accounts excluded from totals", () => {
+    const f = summarizeFlows([tx({ amount: 20, account_id: "dup" }), tx({ amount: 5 })], "2026-10", new Set(["chk"]));
+    expect(f.spend).toBe(5);
   });
   it("ignores removed rows and other months", () => {
     const f = summarizeFlows([tx({ amount: 10, removed_at: "2026-10-03" }), tx({ amount: 10, posted_date: "2026-09-30" })], "2026-10");
@@ -100,5 +132,30 @@ describe("bank store account switch", () => {
     await store.setUser(null, async () => ({}));
     expect(store.get().accounts).toHaveLength(0);
     expect(store.get().status).toBe("idle");
+  });
+});
+
+describe("coverage and refresh safety", () => {
+  it("flows are unavailable without a connection, before first sync, or when capped", () => {
+    expect(flowCoverage([], false).complete).toBe(false);
+    expect(flowCoverage([{ environment: "production", initial_sync_complete: false }], false).reason).toBe("initial_sync");
+    expect(flowCoverage([{ environment: "production", initial_sync_complete: true }], true).reason).toBe("truncated");
+    expect(flowCoverage([{ environment: "sandbox", initial_sync_complete: true }], false).complete).toBe(false);
+    expect(flowCoverage([{ environment: "production", initial_sync_complete: true }], false).complete).toBe(true);
+  });
+  it("dedupes added+modified rows so one upsert never touches a row twice", () => {
+    const rows = dedupeById([{ transaction_id: "a", v: 1 }, { transaction_id: "b", v: 1 }, { transaction_id: "a", v: 2 }]);
+    expect(rows).toHaveLength(2);
+    expect(rows.find((r) => r.transaction_id === "a")!.v).toBe(2);
+  });
+  it("matches a linked account to a snapshot only on a unique exact match", () => {
+    const a = { ...acct("s1", "depository"), subtype: "checking", mask: "1234", institution_name: "Chime" };
+    const b = { ...acct("s2", "depository"), subtype: "savings", mask: "9876", institution_name: "Chime" };
+    expect(matchSnapshotAccount({ type: "depository", subtype: "checking", mask: "1234", institution_name: "Chime" }, [a, b])).toEqual({ kind: "match", id: "s1" });
+    expect(matchSnapshotAccount({ type: "depository", subtype: "checking", mask: "1234", institution_name: "Other Bank" }, [a, b]).kind).toBe("ambiguous");
+    expect(matchSnapshotAccount({ type: "depository", subtype: "checking", mask: null, institution_name: "Chime" }, [a, b]).kind).toBe("ambiguous");
+    expect(matchSnapshotAccount({ type: "credit", subtype: "credit card", mask: "1111", institution_name: "Chime" }, [a, b]).kind).toBe("none");
+    const twin = { ...a, id: "s3" };
+    expect(matchSnapshotAccount({ type: "depository", subtype: "checking", mask: "1234", institution_name: "Chime" }, [a, twin]).kind).toBe("ambiguous");
   });
 });
