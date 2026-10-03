@@ -266,8 +266,12 @@ function WealthPage() {
               <div>
                 <div className="hud-label text-3xl text-primary hud-glow tabular-nums">{fmt(netWorth)}</div>
                 <div className="mt-1 hud-label text-[10px]">
+                  {imported ? (
+                    <span className="text-muted-foreground" title="Excludes any liabilities not linked or entered">{bankFreshness} · HISTORY UNAVAILABLE</span>
+                  ) : (<>
                   <span className="text-primary">▲ 13.44%</span>
                   <span className="text-muted-foreground ml-2">vs last month</span>
+                  </>)}
                 </div>
               </div>
               <div className="w-[45%] h-[50px]">
@@ -320,10 +324,14 @@ function WealthPage() {
                   </div>
                   <div className={valueClass}>{k.value}</div>
                   <div className="text-[9px] hud-label">
+                    {imported ? (
+                      <span className="text-muted-foreground">{isLiabilities ? "KNOWN LINKED ONLY · " : ""}HISTORY UNAVAILABLE</span>
+                    ) : (<>
                     <span className={deltaClass}>
                       {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
                     </span>
                     <span className="text-muted-foreground ml-1">vs last month</span>
+                    </>)}
                   </div>
                 </div>
               );
@@ -474,11 +482,17 @@ function WealthPage() {
           <Panel title="Recent Transactions" className="p-3">
             <ul className="divide-y divide-border">
               {(() => {
-                type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
+                type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number; bank?: boolean };
                 const rows: Row[] = [];
                 for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
                 for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
                 for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                // Imported bank rows are read-only (no delete); amount > 0 = money out.
+                if (imported) for (const t of bank.transactions) {
+                  if (t.environment === "sandbox") continue;
+                  const tags = ["BANK", t.pending ? "PENDING" : null, isTransfer(t) ? "TRANSFER" : null].filter(Boolean).join(" · ");
+                  rows.push({ id: t.id, date: t.posted_date ?? t.authorized_date ?? "", kind: t.amount > 0 ? "expense" : "income", description: t.merchant_name || t.name, category: tags, amount: Math.abs(t.amount), bank: true });
+                }
                 const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
                   income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
                   expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
@@ -506,6 +520,7 @@ function WealthPage() {
                       <div className="hud-label text-[11px] tabular-nums whitespace-nowrap" style={{ color: s.color }}>
                         {s.sign}{fmt(r.amount)}
                       </div>
+                      {r.bank ? <span className="h-5 w-5 shrink-0" aria-hidden /> : (
                       <button
                         type="button"
                         onClick={onDelete}
@@ -514,6 +529,7 @@ function WealthPage() {
                       >
                         <Trash2 className="h-2.5 w-2.5" />
                       </button>
+                      )}
                     </li>
                   );
                 });
