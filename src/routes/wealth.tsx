@@ -468,8 +468,8 @@ function WealthPage() {
                     data={allocByCat}
                     size={130}
                     thickness={18}
-                    centerLabel={fmt(assetsTotal)}
-                    centerSub="TOTAL ASSETS"
+                    centerLabel={fmt(summary.assetsTotal)}
+                    centerSub={imported ? "MANUAL ASSETS" : "TOTAL ASSETS"}
                   />
                 ) : (
                   <div className="h-[130px] w-[130px] flex items-center justify-center text-xs text-muted-foreground">
@@ -478,7 +478,7 @@ function WealthPage() {
                 )}
                 <ul className="flex-1 space-y-1.5">
                   {allocByCat.map((s) => {
-                    const pct = Math.round((s.value / (assetsTotal || 1)) * 100);
+                    const pct = Math.round((s.value / (summary.assetsTotal || 1)) * 100);
                     return (
                       <li key={s.label} className="flex items-center gap-2 text-[11px] hud-label">
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
