@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useEvolutionData, type ThemeKey } from "@/lib/evolution-data";
 import { THEME_OPTIONS, applyTheme } from "@/lib/use-theme";
 import { cn, localISO } from "@/lib/utils";
+import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [
@@ -137,6 +138,8 @@ function SettingsPage() {
           ))}
         </div>
       </Panel>
+
+      <BankConnectionPanel />
 
       <Panel title="DATA">
         <div className="flex items-center gap-2 mb-3 text-muted-foreground text-xs">
