@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Landmark } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
+import { BankAccountsView } from "@/components/evolution/BankAccountsView";
 import { Panel } from "@/components/evolution/ModuleLayout";
 import { Button } from "@/components/ui/button";
 import { useBank, loadOverview } from "@/lib/use-bank";
@@ -85,10 +86,12 @@ export function BankConnectionPanel() {
       <div className="flex items-center gap-2 mb-3 text-muted-foreground text-xs">
         <Landmark className="h-4 w-4" /> Private, read-only. Only visible on your account.
       </div>
+      <div className="mb-4"><BankAccountsView /></div>
       {!bank.configured ? (
         <p className="text-xs text-foreground">Bank connection setup required.</p>
       ) : (
         <div className="space-y-3">
+          {!bank.oauthRedirect && <p className="text-xs text-muted-foreground">Banks that sign in on their own website (OAuth) also need a redirect address set up.</p>}
           {sandbox && <p className="text-xs text-destructive">TEST MODE — sandbox records are test data and are never counted in Wealth.</p>}
           <ul className="text-xs space-y-1">
             {bank.connections.length === 0 && <li className="text-muted-foreground">No bank connected.</li>}
