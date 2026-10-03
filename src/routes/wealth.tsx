@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useEvolutionData, todayDate, uid, wealthSummary, type AssetCategory, type TxType } from "@/lib/evolution-data";
+import { useBank } from "@/lib/use-bank";
+import { summarizeBalances, summarizeFlows, isTransfer } from "@/lib/finance-core";
 
 export const Route = createFileRoute("/wealth")({
   head: () => ({ meta: [{ title: "Wealth — Evolution" }, { property: "og:title", content: "Wealth — Evolution" }, { property: "og:description", content: "Net worth, assets, transactions, and goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
@@ -47,23 +49,32 @@ function monthKey(date: string) {
 
 function WealthPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
+  const bank = useBank();
+  // Imported mode: only for the finance owner with stored bank accounts (server + RLS enforce access).
+  const imported = bank.status === "ready" && bank.accounts.length > 0;
+  const bankBal = useMemo(() => summarizeBalances(bank.accounts, bank.balances), [bank.accounts, bank.balances]);
 
   // ===== All KPIs derived from Quick Add entries only =====
   const summary = useMemo(() => wealthSummary(data), [data.assets, data.transactions]);
-  const assetsTotal = summary.assetsTotal;
-  const liabilitiesTotal = summary.liabilities;
-  const netWorth = summary.netWorth;
-  const cashBalance = summary.cash;
+  // Bank balances come only from provider snapshots; bank transactions never add to balances (no double counting).
+  const assetsTotal = summary.assetsTotal + (imported ? bankBal.assets ?? 0 : 0);
+  const liabilitiesTotal = summary.liabilities + (imported ? bankBal.knownLiabilities ?? 0 : 0);
+  const netWorth = summary.netWorth + (imported ? (bankBal.assets ?? 0) - (bankBal.knownLiabilities ?? 0) : 0);
+  const cashBalance = summary.cash + (imported ? bankBal.cash ?? 0 : 0);
 
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const bankFlows = useMemo(() => summarizeFlows(imported ? bank.transactions : [], thisMonth), [imported, bank.transactions, thisMonth]);
 
   const monthIncome = data.transactions
     .filter((t) => t.type === "income" && monthKey(t.date) === thisMonth)
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((s, t) => s + t.amount, 0) + bankFlows.income;
   const monthExpenses = data.transactions
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((s, t) => s + t.amount, 0) + bankFlows.spend;
+  const bankFreshness = !imported ? null
+    : bankBal.assets == null && bankBal.knownLiabilities == null ? "BANK BALANCES UNAVAILABLE"
+    : `${bankBal.allSnapshot ? "IMPORTED SNAPSHOT" : "LAST BANK REFRESH"} · ${bankBal.anyDateUnknown || !bankBal.oldestAsOf ? "BALANCE DATE UNKNOWN" : `AS OF ${bankBal.oldestAsOf.slice(0, 10)}`}`;
 
   // Running net worth series in Quick Add chronological order
   const txSeries = summary.series.length > 1 ? summary.series : [0, 0];
@@ -255,8 +266,12 @@ function WealthPage() {
               <div>
                 <div className="hud-label text-3xl text-primary hud-glow tabular-nums">{fmt(netWorth)}</div>
                 <div className="mt-1 hud-label text-[10px]">
+                  {imported ? (
+                    <span className="text-muted-foreground" title="Excludes any liabilities not linked or entered">{bankFreshness} · HISTORY UNAVAILABLE</span>
+                  ) : (<>
                   <span className="text-primary">▲ 13.44%</span>
                   <span className="text-muted-foreground ml-2">vs last month</span>
+                  </>)}
                 </div>
               </div>
               <div className="w-[45%] h-[50px]">
@@ -309,10 +324,14 @@ function WealthPage() {
                   </div>
                   <div className={valueClass}>{k.value}</div>
                   <div className="text-[9px] hud-label">
+                    {imported ? (
+                      <span className="text-muted-foreground">{isLiabilities ? "KNOWN LINKED ONLY · " : ""}HISTORY UNAVAILABLE</span>
+                    ) : (<>
                     <span className={deltaClass}>
                       {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
                     </span>
                     <span className="text-muted-foreground ml-1">vs last month</span>
+                    </>)}
                   </div>
                 </div>
               );
@@ -463,11 +482,17 @@ function WealthPage() {
           <Panel title="Recent Transactions" className="p-3">
             <ul className="divide-y divide-border">
               {(() => {
-                type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number };
+                type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number; bank?: boolean };
                 const rows: Row[] = [];
                 for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
                 for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
                 for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                // Imported bank rows are read-only (no delete); amount > 0 = money out.
+                if (imported) for (const t of bank.transactions) {
+                  if (t.environment === "sandbox") continue;
+                  const tags = ["BANK", t.pending ? "PENDING" : null, isTransfer(t) ? "TRANSFER" : null].filter(Boolean).join(" · ");
+                  rows.push({ id: t.id, date: t.posted_date ?? t.authorized_date ?? "", kind: t.amount > 0 ? "expense" : "income", description: t.merchant_name || t.name, category: tags, amount: Math.abs(t.amount), bank: true });
+                }
                 const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
                   income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
                   expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
@@ -495,6 +520,7 @@ function WealthPage() {
                       <div className="hud-label text-[11px] tabular-nums whitespace-nowrap" style={{ color: s.color }}>
                         {s.sign}{fmt(r.amount)}
                       </div>
+                      {r.bank ? <span className="h-5 w-5 shrink-0" aria-hidden /> : (
                       <button
                         type="button"
                         onClick={onDelete}
@@ -503,6 +529,7 @@ function WealthPage() {
                       >
                         <Trash2 className="h-2.5 w-2.5" />
                       </button>
+                      )}
                     </li>
                   );
                 });

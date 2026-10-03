@@ -14,6 +14,257 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_accounts: {
+        Row: {
+          connection_id: string | null
+          created_at: string
+          environment: string
+          id: string
+          iso_currency_code: string | null
+          mask: string | null
+          name: string
+          official_name: string | null
+          owner_id: string
+          provider_account_id: string | null
+          source: string
+          subtype: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          iso_currency_code?: string | null
+          mask?: string | null
+          name: string
+          official_name?: string | null
+          owner_id: string
+          provider_account_id?: string | null
+          source?: string
+          subtype?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          iso_currency_code?: string | null
+          mask?: string | null
+          name?: string
+          official_name?: string | null
+          owner_id?: string
+          provider_account_id?: string | null
+          source?: string
+          subtype?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_balance_snapshots: {
+        Row: {
+          account_id: string
+          as_of: string | null
+          available_balance: number | null
+          created_at: string
+          credit_limit: number | null
+          current_balance: number | null
+          id: string
+          owner_id: string
+          source: string
+        }
+        Insert: {
+          account_id: string
+          as_of?: string | null
+          available_balance?: number | null
+          created_at?: string
+          credit_limit?: number | null
+          current_balance?: number | null
+          id?: string
+          owner_id: string
+          source?: string
+        }
+        Update: {
+          account_id?: string
+          as_of?: string | null
+          available_balance?: number | null
+          created_at?: string
+          credit_limit?: number | null
+          current_balance?: number | null
+          id?: string
+          owner_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_balance_snapshots_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_connection_secrets: {
+        Row: {
+          access_token_ciphertext: string
+          access_token_iv: string
+          connection_id: string
+          transactions_cursor: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token_ciphertext: string
+          access_token_iv: string
+          connection_id: string
+          transactions_cursor?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token_ciphertext?: string
+          access_token_iv?: string
+          connection_id?: string
+          transactions_cursor?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_connection_secrets_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_connections: {
+        Row: {
+          created_at: string
+          environment: string
+          id: string
+          institution_name: string | null
+          last_synced_at: string | null
+          owner_id: string
+          provider: string
+          provider_item_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          environment?: string
+          id?: string
+          institution_name?: string | null
+          last_synced_at?: string | null
+          owner_id: string
+          provider?: string
+          provider_item_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          environment?: string
+          id?: string
+          institution_name?: string | null
+          last_synced_at?: string | null
+          owner_id?: string
+          provider?: string
+          provider_item_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          authorized_date: string | null
+          category_detailed: string | null
+          category_primary: string | null
+          created_at: string
+          environment: string
+          id: string
+          is_transfer: boolean
+          iso_currency_code: string | null
+          merchant_name: string | null
+          name: string
+          owner_id: string
+          pending: boolean
+          pending_transaction_id: string | null
+          posted_date: string | null
+          provider_transaction_id: string | null
+          removed_at: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          authorized_date?: string | null
+          category_detailed?: string | null
+          category_primary?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          is_transfer?: boolean
+          iso_currency_code?: string | null
+          merchant_name?: string | null
+          name: string
+          owner_id: string
+          pending?: boolean
+          pending_transaction_id?: string | null
+          posted_date?: string | null
+          provider_transaction_id?: string | null
+          removed_at?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          authorized_date?: string | null
+          category_detailed?: string | null
+          category_primary?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          is_transfer?: boolean
+          iso_currency_code?: string | null
+          merchant_name?: string | null
+          name?: string
+          owner_id?: string
+          pending?: boolean
+          pending_transaction_id?: string | null
+          posted_date?: string | null
+          provider_transaction_id?: string | null
+          removed_at?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -64,7 +315,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_finance_owner: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

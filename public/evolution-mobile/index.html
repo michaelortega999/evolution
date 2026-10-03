@@ -9484,5 +9484,15 @@ class Component extends DCLogic {
 }
 
 </script>
+<script>
+/* Evolution OS: owner-only bank data from the parent page. In memory only (never storage); no visual change. */
+(function(){var gen=-1;window.__evoBank=null;
+window.addEventListener("message",function(e){
+ if(e.source!==window.parent||e.origin!==window.location.origin)return;
+ var m=e.data;if(!m||m.type!=="evo:bank"||typeof m.gen!=="number")return;
+ if(m.gen<gen)return;gen=m.gen;window.__evoBank=m.payload||null;
+ try{window.dispatchEvent(new CustomEvent("evo:bank-updated"))}catch(_){}
+});})();
+</script>
 </body>
 </html>
