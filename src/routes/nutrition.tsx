@@ -180,15 +180,7 @@ function NutritionPage() {
     : todayWater <= 7 ? "Almost there — one more push"
     : "Fully hydrated — excellent work";
 
-  // ------- Grocery: seed standard list once -------
-  useEffect(() => {
-    if (!data.grocery || data.grocery.length === 0) {
-      mutate(() => ({
-        grocery: STANDARD_GROCERY.map((s) => ({ ...s, id: uid(), done: false })),
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Grocery list is never auto-filled: an empty list stays empty (it may have been cleared on purpose).
 
   // (Removed one-time "reset today to zero" effect — it was wiping meals
   // the user added, causing them to disappear after refresh.)
