@@ -433,4 +433,14 @@ describe("derived totals", () => {
     expect(after.focusSessions.map((f) => f.id)).toEqual(["f-real"]);
     expect(after.guitarSessions).toEqual([]);
   });
+  it("an unlinked identical-looking real focus session is neither hidden nor deleted", () => {
+    const g = { id: "g1", date: today, durationMin: 30, practiced: "scales" };
+    const now = Date.now();
+    const real = { id: "f-real", startedAt: now - 1800000, completedAt: now, durationSec: 1800, mode: "focus", task: "Guitar: scales", tag: "Guitar" } as any;
+    expect(mod.guitarFocusOnly([real], [g]).map((f) => f.id)).toEqual(["f-real"]);
+    expect(mod.deleteGuitarSession({ guitarSessions: [g], focusSessions: [real] }, "g1").focusSessions.map((f) => f.id)).toEqual(["f-real"]);
+    const mirror = { ...real, id: mod.guitarMirrorId("g1") };
+    const after = mod.deleteGuitarSession({ guitarSessions: [g], focusSessions: [mirror, real] }, "g1");
+    expect(after.focusSessions.map((f) => f.id)).toEqual(["f-real"]);
+  });
 });
