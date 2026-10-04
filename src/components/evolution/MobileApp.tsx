@@ -78,6 +78,9 @@ export function MobileApp() {
     window.addEventListener("evolution:owner-changing", onOwnerChanging);
     window.addEventListener("evolution:owner-changed", onOwnerChanged);
     window.addEventListener("evolution:cloud-loaded", onCloudLoaded);
+    // Background refresh merged another device's data: reconcile now (three-way, stale phone memory
+    // can't revert it); no frame reload, so open forms keep their input. The phone shows it on next load.
+    window.addEventListener("evolution:cloud-refreshed", flush);
 
     supabase.auth.getSession().then(({ data }) => alive && setSignedIn(!!data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(!!session));
@@ -92,6 +95,7 @@ export function MobileApp() {
       window.removeEventListener("evolution:owner-changing", onOwnerChanging);
       window.removeEventListener("evolution:owner-changed", onOwnerChanged);
       window.removeEventListener("evolution:cloud-loaded", onCloudLoaded);
+      window.removeEventListener("evolution:cloud-refreshed", flush);
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", flush);
     };
