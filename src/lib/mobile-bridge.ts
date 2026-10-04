@@ -256,7 +256,9 @@ export function syncMobileBridge(writePhone: boolean): boolean {
     if (localStorage.getItem(MOBILE_KEY) !== raw) { localStorage.setItem(MOBILE_KEY, raw); changed = true; }
   }
   // Phone base advances fully when the phone was just written; while it runs, only where it holds the merged value.
-  const nextPhoneBase = writePhone ? mergedPhone : advanceBase(phoneBase, heldPhone, mergedPhone);
+  // Compare with the phone's copy as identified after this pass's renames, so a renamed record's base advances now.
+  const heldNow = rawHeld === undefined ? undefined : applyAliases(rawHeld, nextAliases);
+  const nextPhoneBase = writePhone ? mergedPhone : advanceBase(phoneBase, heldNow, mergedPhone);
   if (nextPhoneBase !== undefined && !sameJSON(nextPhoneBase, phoneBase)) localStorage.setItem(PHONE_BASE_KEY, JSON.stringify(nextPhoneBase));
 
 
