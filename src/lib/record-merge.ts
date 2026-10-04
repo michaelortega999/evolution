@@ -12,8 +12,9 @@ type Opts = { maxDepth: number; collisionGuard: boolean; renames?: Rename[]; pat
 /** Give a colliding local record a fresh id that exists on neither side. */
 function freshId(id: unknown, taken: Set<string>): unknown {
   if (typeof id === "number") {
-    let n = Math.max(id, ...[...taken].map(Number).filter(Number.isFinite)) + 1;
-    while (taken.has(String(n))) n++;
+    // Negative ids: the phone only ever generates max+1 / Date.now() ids, so these can't be re-used by it.
+    let n = Math.min(0, ...[...taken].map(Number).filter(Number.isFinite)) - 1;
+    while (taken.has(String(n))) n--;
     return n;
   }
   let i = 2;
@@ -86,8 +87,9 @@ export function applyAliases(data: unknown, aliases: IdAliases, path = ""): unkn
   if (!Object.keys(aliases).length) return data;
   if (Array.isArray(data)) return data.map((x) => {
     if (x && typeof x === "object" && "id" in x) {
-      const k = aliasKey(path, (x as any).id);
-      return k in aliases ? { ...(x as object), id: aliases[k] } : x;
+      let id = (x as any).id, hops = 0;
+      while (aliasKey(path, id) in aliases && hops++ < 16) id = aliases[aliasKey(path, id)];
+      return id === (x as any).id ? x : { ...(x as object), id };
     }
     return x;
   });
