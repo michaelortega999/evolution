@@ -62,7 +62,7 @@ describe("bridge: running phone + accounts", () => {
     syncMobileBridge(true); expect(phone().tasks.map((t: any) => t.extId)).toEqual(["d2"]);
   });
   it("account A phone items never reach account B; A's are restored for A", () => {
-    mem["evolution:data:owner"] = "A";
+    mem["evolution:data:owner"] = "A"; mem["evolution:mobile-bridge:owner"] = "A"; // store already owned by A
     setPhone({ tasks: [{ id: 1, title: "A secret", done: false, date: "2026-10-02" }], events: [] });
     syncMobileBridge(true);
     expect(desk.evoTasks.map((t: any) => t.text)).toEqual(["A secret"]);
