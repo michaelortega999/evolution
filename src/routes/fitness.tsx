@@ -154,7 +154,7 @@ function FitnessPage() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Panel title="This Week">
-            <div className="hud-label text-3xl text-primary hud-glow">{fit.daysHit} / {fit.target}</div>
+            <div className="hud-label text-3xl text-primary hud-glow">{fit.sessions} / {fit.target}</div>
             <div className="hud-label text-[10px] text-muted-foreground mt-2">Sessions completed</div>
           </Panel>
           <Panel title="All-Time">

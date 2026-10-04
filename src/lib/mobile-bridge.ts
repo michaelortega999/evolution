@@ -201,9 +201,12 @@ export function syncMobileBridge(writePhone: boolean): boolean {
   // ---- Phone-only sections: three-way merge (phone ↔ account copy) against a true phone base ----
   const deskNow = loadEvolutionData();
   const remotePhone = deskNow.phoneStore?.data;
-  const phoneBase = readJSON<Record<string, unknown>>(PHONE_BASE_KEY) ?? undefined;
+  const rawPhoneBase = readJSON<Record<string, unknown>>(PHONE_BASE_KEY) ?? undefined;
   // A store that never held phone-only data (fresh device) contributes nothing, so restore wins.
   const aliases = readJSON<IdAliases>(PHONE_ALIAS_KEY) ?? {};
+  // Cloud-origin renames are persisted atomically in the alias map; normalize both sides
+  // of the local comparison so edits/deletes retain the frame record's exact identity.
+  const phoneBase = rawPhoneBase === undefined ? undefined : applyAliases(rawPhoneBase, aliases) as Record<string, unknown>;
   const rawHeld = localStore ? phoneOnlySections(localStore) ?? undefined : undefined;
   const heldPhone = rawHeld === undefined ? undefined : (applyAliases(rawHeld, aliases) as Record<string, unknown>);
   const renames: Rename[] = [];

@@ -6715,7 +6715,11 @@ class Component extends DCLogic {
     const prevDays = new Date(base.getFullYear(), base.getMonth(), 0).getDate();
     const isCur = v.monthOffset === 0;
 
-    const filtered = v.trades.filter(t => v.filter < 0 || t.acct === v.filter);
+    // Stable links remain authoritative after accounts are reordered or removed.
+    // Only truly unmigrated rows may fall back to the legacy display index.
+    const accountOf = t => t.acctId !== undefined ? v.accounts.find(a => a.id === t.acctId) : v.accounts[t.acct];
+    const accountLabel = t => { const a = accountOf(t); return a ? (a.tag || Component.autoTag(a.name)) : "—"; };
+    const filtered = v.trades.filter(t => v.filter < 0 || accountOf(t) === v.accounts[v.filter]);
     const ymKey = base.getFullYear() + "-" + String(base.getMonth() + 1).padStart(2, "0");
     // Dated trades stay in their real month; legacy undated ones keep their old relative placement.
     const monthTrades = filtered.filter(t => t.date ? t.date.slice(0, 7) === ymKey : (t.month || 0) === v.monthOffset);
@@ -6801,7 +6805,7 @@ class Component extends DCLogic {
     });
     const rowVals = (t) => ({
       time: t.time,
-      acct: v.accounts[t.acct] ? (v.accounts[t.acct].tag || Component.autoTag(v.accounts[t.acct].name)) : "—",
+      acct: accountLabel(t),
       symbol: t.symbol, type: t.type,
       qty: t.qty,
       pl: t.pl == null ? "OPEN" : (t.pl > 0 ? "+" : "") + t.pl.toFixed(2),
@@ -6874,7 +6878,7 @@ class Component extends DCLogic {
         const c = acctCard(a, i);
         const pending = v.pendingDelete === i;
         return {
-          ...c, share: Math.round(a.bal / total * 100) + "%",
+          ...c, share: (total ? Math.round(a.bal / total * 100) : 0) + "%",
           confirming: pending,
           idle: !pending,
           onAskDelete: () => this.invSet({ pendingDelete: i }),

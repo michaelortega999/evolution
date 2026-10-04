@@ -16,7 +16,7 @@ describe("phone manual investing ledger", () => {
     let inv = L.addAccount({ accounts: [], trades: [] }, { name: "Z", bal: 0, chg: 0 });
     inv = L.addTrade(inv, row(1, 0, 50)); inv = L.addTrade(inv, row(2, 0, -20)); inv = L.addTrade(inv, row(3, 0, null));
     expect(bals(inv)).toEqual([30]);
-    inv = L.deleteTrade(inv, 1); expect(bals(inv)).toEqual([0]); // clamped display, ledger kept
+    inv = L.deleteTrade(inv, 1); expect(bals(inv)).toEqual([-20]); // signed ledger value, never silently clamped
     inv = L.deleteTrade(inv, 2); expect(bals(inv)).toEqual([0]);
   });
   it("legacy store: visible balances unchanged, provenance + raw kept, deleting an old trade reverses it", () => {
@@ -29,6 +29,16 @@ describe("phone manual investing ledger", () => {
     expect(L.migrate(inv)).toEqual(inv); // idempotent (reload)
     expect(L.migrate(JSON.parse(JSON.stringify(legacy))).accounts.map((a: any) => a.id)).toEqual(inv.accounts.map((a: any) => a.id)); // deterministic ids
     inv = L.deleteTrade(inv, 1); expect(bals(inv)).toEqual([1000, 500]);
+  });
+  it("negative legacy balances and losses beyond opening survive reload without changing provenance", () => {
+    const legacy = { accounts: [{ name: "Negative", bal: -25, extra: "keep" }], trades: [] };
+    const migrated = L.migrate(legacy);
+    expect(migrated.accounts[0]).toMatchObject({ bal: -25, open: -25, legacyBal: -25, openSrc: "derived-v1", extra: "keep" });
+    expect(L.migrate(JSON.parse(JSON.stringify(migrated)))).toEqual(migrated);
+    let inv = L.addAccount({ accounts: [], trades: [] }, { name: "Loss", bal: 1000 });
+    inv = L.addTrade(inv, row(1, 0, -1500)); expect(bals(inv)).toEqual([-500]);
+    inv = L.migrate(JSON.parse(JSON.stringify(inv))); expect(bals(inv)).toEqual([-500]);
+    inv = L.deleteTrade(inv, 1); expect(bals(inv)).toEqual([1000]);
   });
   it("account delete never reassigns another account's trades", () => {
     let inv = { accounts: [], trades: [] } as any;
