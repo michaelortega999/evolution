@@ -6,7 +6,8 @@ const isIdArray = (v: unknown): v is { id: unknown }[] =>
   Array.isArray(v) && v.length > 0 && v.every((x) => x && typeof x === "object" && "id" in (x as object));
 export const isPlainObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 
-type Opts = { maxDepth: number; collisionGuard: boolean };
+export type Rename = { path: string; from: unknown; to: unknown };
+type Opts = { maxDepth: number; collisionGuard: boolean; renames?: Rename[]; path?: string };
 
 /** Give a colliding local record a fresh id that exists on neither side. */
 function freshId(id: unknown, taken: Set<string>): unknown {
@@ -34,6 +35,7 @@ function mergeById(b: unknown[], l: unknown[], r: unknown[], o: Opts): unknown[]
         // Two clients created different records with the same id: keep both.
         const id = freshId((ll as any).id, taken); taken.add(String(id));
         out.push(lr); extra.push({ ...(ll as object), id });
+        o.renames?.push({ path: o.path ?? "", from: (ll as any).id, to: id });
       } else if (lb !== undefined && sameJSON(ll, lb)) out.push(lr);
       else if (lb !== undefined && sameJSON(lr, lb)) out.push(ll);
       else if (lb !== undefined && o.collisionGuard && isPlainObj(ll) && isPlainObj(lr)) out.push(mergeValue(lb, ll, lr, 0, o));
@@ -55,7 +57,7 @@ export function mergeValue(b: unknown, l: unknown, r: unknown, depth: number, o:
     const bo = isPlainObj(b) ? b : {};
     const out: Record<string, unknown> = {};
     for (const k of new Set([...Object.keys(r), ...Object.keys(l)])) {
-      const v = mergeValue(bo[k], l[k], r[k], depth + 1, o);
+      const v = mergeValue(bo[k], l[k], r[k], depth + 1, { ...o, path: o.path ? `${o.path}.${k}` : k });
       if (v !== undefined) out[k] = v;
     }
     return out;
@@ -64,11 +66,37 @@ export function mergeValue(b: unknown, l: unknown, r: unknown, depth: number, o:
 }
 
 /** Deep, per-domain/per-record merge for raw phone data (unknown fields kept, id collisions kept apart). */
-export function mergePhoneData(b: unknown, l: unknown, r: unknown): Record<string, unknown> | undefined {
+export function mergePhoneData(b: unknown, l: unknown, r: unknown, renames?: Rename[]): Record<string, unknown> | undefined {
   if (l === undefined && r === undefined) return undefined;
   if (l === undefined) return r as Record<string, unknown>;
   if (r === undefined) return l as Record<string, unknown>;
-  return mergeValue(b, l, r, 0, { maxDepth: 32, collisionGuard: true }) as Record<string, unknown>;
+  return mergeValue(b, l, r, 0, { maxDepth: 32, collisionGuard: true, renames }) as Record<string, unknown>;
+}
+
+/** Alias map: "<path>|<original id>" → id assigned when that local record collided. */
+export type IdAliases = Record<string, unknown>;
+const aliasKey = (path: string, id: unknown) => `${path}|${typeof id}:${String(id)}`;
+export function recordRenames(aliases: IdAliases, renames: Rename[]): IdAliases {
+  const out = { ...aliases };
+  for (const r of renames) if (!(aliasKey(r.path, r.from) in out)) out[aliasKey(r.path, r.from)] = r.to;
+  return out;
+}
+/** Present a device's copy with its earlier collision renames applied (stable identity across passes). */
+export function applyAliases(data: unknown, aliases: IdAliases, path = ""): unknown {
+  if (!Object.keys(aliases).length) return data;
+  if (Array.isArray(data)) return data.map((x) => {
+    if (x && typeof x === "object" && "id" in x) {
+      const k = aliasKey(path, (x as any).id);
+      return k in aliases ? { ...(x as object), id: aliases[k] } : x;
+    }
+    return x;
+  });
+  if (isPlainObj(data)) {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(data)) out[k] = applyAliases(data[k], aliases, path ? `${path}.${k}` : k);
+    return out;
+  }
+  return data;
 }
 
 /**

@@ -11,13 +11,15 @@ import {
   loadEvolutionData, saveEvolutionData,
   type EvoTask, type EvoCategory, type CalendarEvent,
 } from "./evolution-data";
-import { mergePhoneData, advanceBase, sameJSON } from "./record-merge";
+import { mergePhoneData, advanceBase, sameJSON, applyAliases, recordRenames, type Rename, type IdAliases } from "./record-merge";
 
 export const MOBILE_KEY = "evolution05:userdata:v4";
 export const BASE_KEY = "evolution:mobile-bridge:base:v1";
 /** Which account the phone store + base belong to. */
 /** Last phone-only data both the phone and the account were known to hold (three-way merge base). */
 export const PHONE_BASE_KEY = "evolution:mobile-bridge:phone-base:v1";
+/** Collision renames of records the running phone still holds under their original id. */
+export const PHONE_ALIAS_KEY = "evolution:mobile-bridge:id-alias:v1";
 export const PHONE_OWNER_KEY = "evolution:mobile-bridge:owner";
 const DESK_OWNER_KEY = "evolution:data:owner"; // = OWNER_KEY in evolution-data.ts
 const MOBILE_SEED_V = 3;
@@ -40,7 +42,7 @@ export function alignMobileOwner(): void {
   if (cur === null) {
     // Unowned legacy phone data: keep a raw backup; only a guest device adopts it, never a signed-in account.
     if (owner === "guest") { localStorage.setItem(PHONE_OWNER_KEY, owner); return; }
-    for (const key of [MOBILE_KEY, BASE_KEY, PHONE_BASE_KEY]) {
+    for (const key of [MOBILE_KEY, BASE_KEY, PHONE_BASE_KEY, PHONE_ALIAS_KEY]) {
       const raw = localStorage.getItem(key);
       if (raw) { if (!localStorage.getItem(`${key}:unowned`)) localStorage.setItem(`${key}:unowned`, raw); localStorage.removeItem(key); }
       const mine = localStorage.getItem(archiveKey(key, owner));
@@ -49,7 +51,7 @@ export function alignMobileOwner(): void {
     localStorage.setItem(PHONE_OWNER_KEY, owner);
     return;
   }
-  for (const key of [MOBILE_KEY, BASE_KEY, PHONE_BASE_KEY]) {
+  for (const key of [MOBILE_KEY, BASE_KEY, PHONE_BASE_KEY, PHONE_ALIAS_KEY]) {
     const raw = localStorage.getItem(key);
     if (raw) localStorage.setItem(archiveKey(key, cur), raw);
     const mine = localStorage.getItem(archiveKey(key, owner));
@@ -201,8 +203,17 @@ export function syncMobileBridge(writePhone: boolean): boolean {
   const remotePhone = deskNow.phoneStore?.data;
   const phoneBase = readJSON<Record<string, unknown>>(PHONE_BASE_KEY) ?? undefined;
   // A store that never held phone-only data (fresh device) contributes nothing, so restore wins.
-  const heldPhone = localStore ? phoneOnlySections(localStore) ?? undefined : undefined;
-  const mergedPhone = mergePhoneData(phoneBase, heldPhone, remotePhone);
+  const aliases = readJSON<IdAliases>(PHONE_ALIAS_KEY) ?? {};
+  const rawHeld = localStore ? phoneOnlySections(localStore) ?? undefined : undefined;
+  const heldPhone = rawHeld === undefined ? undefined : (applyAliases(rawHeld, aliases) as Record<string, unknown>);
+  const renames: Rename[] = [];
+  const mergedPhone = mergePhoneData(phoneBase, heldPhone, remotePhone, renames);
+  // writePhone: the phone now receives the renamed ids itself, so aliases are no longer needed.
+  const nextAliases = writePhone ? {} : recordRenames(aliases, renames);
+  if (!sameJSON(nextAliases, aliases)) {
+    if (Object.keys(nextAliases).length) localStorage.setItem(PHONE_ALIAS_KEY, JSON.stringify(nextAliases));
+    else localStorage.removeItem(PHONE_ALIAS_KEY);
+  }
   if (mergedPhone && !sameJSON(remotePhone, mergedPhone)) {
     saveEvolutionData({ ...deskNow, phoneStore: { v: 1, data: mergedPhone } });
     changed = true;
