@@ -552,34 +552,10 @@ function migrate(parsed: StoredShape): StoredShape {
   const v = parsed._version ?? 1;
   if (v === STORAGE_VERSION) return parsed;
   const next: StoredShape = { ...parsed };
-  // v3 → v4: clean-slate wealth data so the user starts from zero everywhere.
-  if (v < 4) {
-    next.transactions = [];
-    next.assets = [];
-    next.netWorthSnapshots = [];
-    next.revenue = [];
-    if (Array.isArray(next.goals)) {
-      next.goals = next.goals.filter((g) => g.category !== "Wealth");
-    }
-  }
-  // v4 → v5: seed trading accounts / journal, purge legacy trading-* assets so sync rebuilds them.
-  if (v < 5) {
-    next.tradingAccounts = undefined;
-    next.tradingTxns = undefined;
-    next.tradeJournal = undefined;
-    if (Array.isArray(next.assets)) {
-      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
-    }
-  }
-  // v5 → v6: reset to a single TradeDay Funded account at zero and wipe all trading transactions/journal.
-  if (v < 6) {
-    next.tradingAccounts = seedTradingAccounts();
-    next.tradingTxns = [];
-    next.tradeJournal = [];
-    if (Array.isArray(next.assets)) {
-      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
-    }
-  }
+  // Older versions used to wipe wealth/revenue/trading records here. That was destructive and has
+  // been removed: valid legacy records are kept as-is; only genuinely missing structures get defaults
+  // (hydrate fills them). Nothing is deleted or reassigned.
+  if (!Array.isArray(next.tradingAccounts)) next.tradingAccounts = undefined;
   next._version = STORAGE_VERSION;
   return next;
 }
@@ -774,9 +750,9 @@ function hydrate(parsed: StoredShape): EvolutionData {
     ...defaultData,
     ...parsed,
     profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
-    nutrition: parsed.nutrition?.length ? parsed.nutrition : defaultData.nutrition,
-    fitness: parsed.fitness?.length ? parsed.fitness : defaultData.fitness,
-    investing: parsed.investing?.length ? parsed.investing : defaultData.investing,
+    nutrition: Array.isArray(parsed.nutrition) ? parsed.nutrition : defaultData.nutrition,
+    fitness: Array.isArray(parsed.fitness) ? parsed.fitness : defaultData.fitness,
+    investing: Array.isArray(parsed.investing) ? parsed.investing : defaultData.investing,
     meals: parsed.meals ?? [],
     notes: (() => {
       const r = (parsed as { notes?: unknown }).notes;
@@ -807,7 +783,7 @@ function hydrate(parsed: StoredShape): EvolutionData {
     reflections: parsed.reflections ?? [],
     richNotes: parsed.richNotes ?? [],
     trades: parsed.trades ?? [],
-    strategies: parsed.strategies?.length ? parsed.strategies : defaultData.strategies,
+    strategies: Array.isArray(parsed.strategies) ? parsed.strategies : defaultData.strategies,
     watchlist: parsed.watchlist ?? [],
     projects: parsed.projects ?? defaultData.projects,
     revenue: parsed.revenue ?? [],
@@ -817,7 +793,7 @@ function hydrate(parsed: StoredShape): EvolutionData {
     trips: parsed.trips ?? [],
     cars: parsed.cars ?? [],
     carExpenses: parsed.carExpenses ?? [],
-    carEvents: parsed.carEvents?.length ? parsed.carEvents : defaultData.carEvents,
+    carEvents: Array.isArray(parsed.carEvents) ? parsed.carEvents : defaultData.carEvents,
     guitarSkills: parsed.guitarSkills ?? [],
     guitarSongs: parsed.guitarSongs ?? [],
     guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
@@ -1275,11 +1251,13 @@ export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: 
   const loggedCustom = todayLogs.reduce((acc, m) => ({
     kcal: acc.kcal + m.calories, p: acc.p + m.protein, c: acc.c + m.carbs, f: acc.f + m.fats,
   }), { kcal: 0, p: 0, c: 0, f: 0 });
-  const last = rows[rows.length - 1];
-  const kcal = (loggedQuick.kcal + loggedCustom.kcal) || last?.calories || 0;
-  const protein = (loggedQuick.p + loggedCustom.p) || last?.protein || 0;
-  const carbs = (loggedQuick.c + loggedCustom.c) || last?.carbs || 0;
-  const fats = (loggedQuick.f + loggedCustom.f) || last?.fats || 0;
+  // Only today's dated input counts — never fall back to an older day's numbers; zeros are real zeros.
+  const last = rows.find((r) => r.date === today);
+  const anyLogged = todayLogs.length > 0 || meals.some((m) => m.logged);
+  const kcal = anyLogged ? loggedQuick.kcal + loggedCustom.kcal : last?.calories ?? 0;
+  const protein = anyLogged ? loggedQuick.p + loggedCustom.p : last?.protein ?? 0;
+  const carbs = anyLogged ? loggedQuick.c + loggedCustom.c : last?.carbs ?? 0;
+  const fats = anyLogged ? loggedQuick.f + loggedCustom.f : last?.fats ?? 0;
   return {
     last,
     target,
@@ -1287,7 +1265,7 @@ export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: 
     protein,
     carbs,
     fats,
-    percent: Math.min(100, Math.round((kcal / target) * 100)),
+    percent: target > 0 && Number.isFinite(target) ? Math.min(100, Math.round((kcal / target) * 100)) : 0,
   };
 }
 
