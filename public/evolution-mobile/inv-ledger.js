@@ -22,7 +22,13 @@
     if (!inv || !Array.isArray(inv.accounts)) return inv;
     var trades = Array.isArray(inv.trades) ? inv.trades.slice() : [];
     var taken = inv.accounts.map(function (a) { return a.id; }).filter(Boolean);
-    var accounts = inv.accounts.map(function (a) { if (a.id) return a; var id = mkId(taken); taken.push(id); return Object.assign({}, a, { id: id }); });
+    // Deterministic ids for existing accounts so every device migrates the same data identically.
+    var accounts = inv.accounts.map(function (a, i) {
+      if (a.id) return a;
+      var id = "acc-legacy-" + i + "-" + String(a.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+      while (taken.indexOf(id) >= 0) id += "x";
+      taken.push(id); return Object.assign({}, a, { id: id });
+    });
     trades = trades.map(function (t) {
       if (t.acctId !== undefined) return t;
       var a = accounts[t.acct];
