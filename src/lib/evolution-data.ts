@@ -881,6 +881,7 @@ let pendingSave: { uid: string; data: EvolutionData } | null = null;
 // Single-flight writes: one upsert at a time; later edits coalesce into `queuedPush` (latest wins).
 // `cloudGen` changes on every activation/sign-out so stale completions can't touch a new session.
 let cloudGen = 0;
+let localRev = 0;                            // bumps on every local write
 let pushInFlight: Promise<boolean> | null = null;
 let queuedPush: { uid: string; gen: number } | null = null;
 let pulling = false;                         // an activation read is in flight
@@ -986,6 +987,7 @@ function scheduleRetry(uid: string) {
 function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
   if (cloudUserId !== userId || getLocalOwner() !== userId) return Promise.resolve(false); // account changed
   const gen = cloudGen;
+  const rev = localRev;
   if (pushInFlight) {
     queuedPush = { uid: userId, gen }; // coalesced: re-reads the latest local data when it runs
     setCloudStatus("saving");
@@ -1019,8 +1021,7 @@ function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
       setCloudStatus("error"); scheduleRetry(userId);
       return false;
     }
-    const dirty = !sameJSON(JSON.parse(JSON.stringify(load())), JSON.parse(JSON.stringify(data)));
-    if (qValid || dirty) void pushCloud(userId, load());
+    if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId, load());
     else setCloudStatus(pendingSave ? "saving" : "synced");
     return true;
   });
@@ -1050,6 +1051,7 @@ function scheduleCloudSave(data: EvolutionData) {
 }
 
 function writeLocal(data: EvolutionData) {
+  localRev++;
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
   window.dispatchEvent(new CustomEvent("evolution:data-updated"));
 }
