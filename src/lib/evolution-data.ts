@@ -878,6 +878,14 @@ let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let retryCount = 0;
 let pendingSave: { uid: string; data: EvolutionData } | null = null;
+// Single-flight writes: one upsert at a time; later edits coalesce into `queuedPush` (latest wins).
+// `cloudGen` changes on every activation/sign-out so stale completions can't touch a new session.
+let cloudGen = 0;
+let localRev = 0;                            // bumps on every local write
+let pushInFlight: Promise<boolean> | null = null;
+let queuedPush: { uid: string; gen: number } | null = null;
+let pulling = false;                         // an activation read is in flight
+let activationTimer: ReturnType<typeof setTimeout> | null = null;
 let readyResolved = false;
 let resolveCloudReady: () => void = () => {};
 /** Resolves once the signed-in user's cloud data has been pulled (or no session / load failed). */
@@ -975,22 +983,50 @@ function scheduleRetry(uid: string) {
   }, delay);
 }
 
-async function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
-  if (cloudUserId !== userId || getLocalOwner() !== userId) return false; // account changed since scheduling
-  setCloudStatus("saving");
-  try {
-    const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
-    const { error } = await supabase.from("user_data").upsert({ user_id: userId, data: payload });
-    if (error) throw error;
-    writeSynced(userId, data);          // cloud acknowledged → new merge base
-    retryCount = 0;
-    if (cloudUserId === userId) setCloudStatus(pendingSave ? "saving" : "synced");
-    return true;
-  } catch {
-    // Offline / rejected: local copy stays dirty (snapshot not advanced) and is retried.
-    if (cloudUserId === userId) { setCloudStatus("error"); scheduleRetry(userId); }
-    return false;
+/** Single-flight upload. If a write is in flight, the latest local data is queued and sent after it. */
+function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
+  if (cloudUserId !== userId || getLocalOwner() !== userId) return Promise.resolve(false); // account changed
+  const gen = cloudGen;
+  const rev = localRev;
+  if (pushInFlight) {
+    queuedPush = { uid: userId, gen }; // coalesced: re-reads the latest local data when it runs
+    setCloudStatus("saving");
+    return pushInFlight;
   }
+  const run = (async () => {
+    setCloudStatus("saving");
+    let ok = false;
+    try {
+      const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
+      const { error } = await supabase.from("user_data").upsert({ user_id: userId, data: payload });
+      ok = !error;
+    } catch { ok = false; }
+    const current = gen === cloudGen && cloudUserId === userId && getLocalOwner() === userId;
+    if (ok && current) {
+      writeSynced(userId, data);        // this exact payload acknowledged → new merge base
+      retryCount = 0;
+    }
+    return { ok, current };
+  })().then(({ ok, current }) => {
+    pushInFlight = null;
+    const q = queuedPush;
+    queuedPush = null;
+    const qValid = !!q && q.gen === cloudGen && cloudUserId === q.uid && getLocalOwner() === q.uid;
+    if (!current) {
+      if (qValid) void pushCloud(q!.uid, load());
+      return ok;
+    }
+    if (!ok) {
+      // Offline / rejected: local copy stays dirty (snapshot not advanced) and is retried with latest data.
+      setCloudStatus("error"); scheduleRetry(userId);
+      return false;
+    }
+    if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId, load());
+    else setCloudStatus(pendingSave ? "saving" : "synced");
+    return true;
+  });
+  pushInFlight = run;
+  return run;
 }
 
 function cancelPendingSave() {
@@ -999,6 +1035,7 @@ function cancelPendingSave() {
   cloudSaveTimer = null;
   retryTimer = null;
   pendingSave = null;
+  queuedPush = null;
 }
 
 function scheduleCloudSave(data: EvolutionData) {
@@ -1014,6 +1051,7 @@ function scheduleCloudSave(data: EvolutionData) {
 }
 
 function writeLocal(data: EvolutionData) {
+  localRev++;
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
   window.dispatchEvent(new CustomEvent("evolution:data-updated"));
 }
@@ -1037,22 +1075,31 @@ function switchLocalOwner(userId: string) {
 
 async function activateCloudForUser(userId: string, attempt = 0): Promise<void> {
   if (cloudUserId === userId || (activatingFor === userId && attempt === 0)) return;
-  if (attempt > 0 && activatingFor !== userId) return;
+  if (attempt > 0 && (activatingFor !== userId || pulling)) return;
+  if (activationTimer) { clearTimeout(activationTimer); activationTimer = null; }
+  if (attempt === 0 || cloudUserId !== null) cloudGen++;
+  const gen = cloudGen;
   cancelPendingSave();
   cloudUserId = null;
   activatingFor = userId;
   setCloudStatus("loading");
   switchLocalOwner(userId);
   if (!loadBaseline || loadBaseline.uid !== userId) loadBaseline = { uid: userId, data: load() };
-  const res = await pullCloud(userId);
-  if (activatingFor !== userId || getLocalOwner() !== userId) return; // signed out / switched during load
+  pulling = true;
+  let res: PullResult;
+  try { res = await pullCloud(userId); } finally { if (gen === cloudGen) pulling = false; }
+  if (gen !== cloudGen || activatingFor !== userId || getLocalOwner() !== userId) return; // signed out / switched during load
 
   if (res.kind === "error") {
     setCloudStatus("error");
     markReady(); // UI runs on this account's local data; uploads stay disabled, edits stay local
     if (attempt < 4) {
-      setTimeout(() => { if (activatingFor === userId) void activateCloudForUser(userId, attempt + 1); }, 3000 * (attempt + 1));
+      activationTimer = setTimeout(() => {
+        activationTimer = null;
+        if (gen === cloudGen && activatingFor === userId) void activateCloudForUser(userId, attempt + 1);
+      }, 3000 * (attempt + 1));
     }
+    // After retries run out, recovery resumes via resumeCloudRead() (the browser "online" event).
     return;
   }
 
@@ -1077,7 +1124,19 @@ async function activateCloudForUser(userId: string, attempt = 0): Promise<void> 
   markReady();
 }
 
+/** Reconnect: resume a safe read (then the usual merge) for an account whose load failed. */
+function resumeCloudRead(): void {
+  if (cloudUserId && cloudStatus === "error") { void pushCloud(cloudUserId, load()); return; }
+  const uid = activatingFor;
+  if (!uid || cloudUserId || pulling || getLocalOwner() !== uid) return;
+  if (activationTimer) { clearTimeout(activationTimer); activationTimer = null; }
+  void activateCloudForUser(uid, 1); // fresh retry budget; owner/generation guards still apply
+}
+
 function deactivateCloud() {
+  cloudGen++;
+  pulling = false;
+  if (activationTimer) { clearTimeout(activationTimer); activationTimer = null; }
   cancelPendingSave();
   cloudUserId = null;
   activatingFor = null;
@@ -1087,7 +1146,7 @@ function deactivateCloud() {
 }
 
 /** Test hooks (not used by the app). */
-export const __cloudTest = { activateCloudForUser, deactivateCloud, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
+export const __cloudTest = { activateCloudForUser, deactivateCloud, resumeCloudRead, idle: async () => { while (pushInFlight) await pushInFlight; }, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
 
 if (typeof window !== "undefined" && typeof document !== "undefined" && !(globalThis as { __EVO_NO_AUTO_CLOUD__?: boolean }).__EVO_NO_AUTO_CLOUD__) {
   supabase.auth.getSession().then(({ data }) => {
@@ -1111,7 +1170,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && !(global
   };
   window.addEventListener("pagehide", flush);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
-  window.addEventListener("online", () => { if (cloudUserId && cloudStatus === "error") void pushCloud(cloudUserId, load()); });
+  window.addEventListener("online", resumeCloudRead);
 }
 
 /** Hook: current cloud sync status for UI badges. */

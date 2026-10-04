@@ -12,17 +12,21 @@ const et = new EventTarget();
 // ---- mock cloud: per-user rows, scriptable failures ----
 const cloud: Record<string, any> = {};
 let failReads = 0, failWrites = 0, readDelay: Promise<void> | null = null;
+let holdWrites = false, reads = 0;
+const held: { resolve: (fail?: boolean) => void }[] = [];
 const uploads: { uid: string; data: any }[] = [];
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
     from: () => ({
       select: () => ({ eq: (_c: string, uid: string) => ({ maybeSingle: async () => {
+        reads++;
         if (readDelay) await readDelay;
         if (failReads > 0) { failReads--; return { data: null, error: { message: "boom" } }; }
         return { data: cloud[uid] ? { data: JSON.parse(JSON.stringify(cloud[uid])) } : null, error: null };
       } }) }),
       upsert: async ({ user_id, data }: any) => {
+        if (holdWrites) { const fail = await new Promise<boolean | undefined>((r) => held.push({ resolve: r })); if (fail) return { error: { message: "offline" } }; }
         if (failWrites > 0) { failWrites--; return { error: { message: "offline" } }; }
         cloud[user_id] = data; uploads.push({ uid: user_id, data }); return { error: null };
       },
@@ -41,7 +45,7 @@ beforeEach(() => {
   __cloudTest.deactivateCloud();
   for (const k in mem) delete mem[k];
   for (const k in cloud) delete cloud[k];
-  uploads.length = 0; failReads = 0; failWrites = 0; readDelay = null;
+  uploads.length = 0; failReads = 0; failWrites = 0; readDelay = null; holdWrites = false; held.length = 0; reads = 0;
 });
 
 describe("hydrate", () => {
@@ -125,6 +129,124 @@ describe("cloud sync", () => {
     await __cloudTest.activateCloudForUser("U");
     await tick();
     expect(cloud.U.evoTasks.map((t: any) => t.id)).toEqual(["x1"]);
+  });
+});
+describe("single-flight saves + reconnect recovery", () => {
+  const note = (t: string) => ({ evoTasks: [task("n1", t)] });
+  const flushMicro = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
+  async function signedIn(uid = "U") {
+    mem["evolution:data:owner"] = uid;
+    cloud[uid] = { ...defaultData, evoTasks: [], _version: 6 };
+    await __cloudTest.activateCloudForUser(uid);
+  }
+
+  it("overlapping saves never run concurrently; reversed completion can't leave older data in the cloud", async () => {
+    await signedIn();
+    holdWrites = true;
+    edit(note("first edit"));
+    const p1 = __cloudTest.flushSave();
+    await flushMicro();
+    edit(note("newer edit"));
+    const p2 = __cloudTest.flushSave();
+    await flushMicro();
+    expect(held.length).toBe(1); // second write is coalesced, not concurrent
+    held[0].resolve(); await p1; await p2; await flushMicro();
+    expect(mod.getCloudStatus()).toBe("saving");
+    expect(held.length).toBe(2);
+    held[1].resolve(); await __cloudTest.idle();
+    expect(cloud.U.evoTasks[0].text).toBe("newer edit");
+    expect(JSON.parse(mem["evolution:data:synced:U"]).evoTasks[0].text).toBe("newer edit");
+    expect(mod.getCloudStatus()).toBe("synced");
+  });
+
+  it("many edits during one in-flight save coalesce into one follow-up with the latest data", async () => {
+    await signedIn();
+    holdWrites = true;
+    edit(note("a")); void __cloudTest.flushSave(); await flushMicro();
+    for (const t of ["b", "c", "d"]) { edit(note(t)); void __cloudTest.flushSave(); }
+    await flushMicro();
+    held[0].resolve(); await flushMicro();
+    expect(held.length).toBe(2);
+    expect(mod.getCloudStatus()).toBe("saving"); // still dirty until latest acknowledged
+    held[1].resolve(); await __cloudTest.idle();
+    expect(uploads.map((u) => u.data.evoTasks[0].text)).toEqual(["a", "d"]);
+    expect(mod.getCloudStatus()).toBe("synced");
+  });
+
+  it("an edit made during a save (without a new flush) is still uploaded afterwards", async () => {
+    await signedIn();
+    holdWrites = true;
+    edit(note("one")); void __cloudTest.flushSave(); await flushMicro();
+    edit(note("two")); __cloudTest.flushSave(); // debounced save turned into a queued push
+    held[0].resolve(); await flushMicro(); held[1]?.resolve(); await __cloudTest.idle();
+    expect(cloud.U.evoTasks[0].text).toBe("two");
+  });
+
+  it("failed in-flight write: stays error/dirty, base not advanced, merge base untouched", async () => {
+    await signedIn();
+    const before = mem["evolution:data:synced:U"];
+    holdWrites = true;
+    edit(note("x")); const p = __cloudTest.flushSave(); await flushMicro();
+    held[0].resolve(true); await p;
+    expect(mod.getCloudStatus()).toBe("error");
+    expect(mem["evolution:data:synced:U"]).toBe(before);
+    __cloudTest.deactivateCloud();
+  });
+
+  it("stale write completion after account switch doesn't touch the new session", async () => {
+    await signedIn("A");
+    holdWrites = true;
+    edit(note("A data")); const p = __cloudTest.flushSave(); await flushMicro();
+    cloud.B = { ...defaultData, evoTasks: [], _version: 6 };
+    __cloudTest.deactivateCloud();
+    holdWrites = false;
+    await __cloudTest.activateCloudForUser("B");
+    held[0].resolve(); await p;
+    expect(mod.getCloudStatus()).toBe("synced");
+    expect(mem["evolution:data:synced:B"]).not.toContain("A data");
+    expect(JSON.stringify(cloud.B)).not.toContain("A data");
+  });
+
+  it("reads exhausted then reconnect: resumes read, merges offline local + remote edits, then uploads", async () => {
+    mem["evolution:data:owner"] = "U";
+    const synced = { ...defaultData, evoTasks: [task("r1", "remote")], _version: 6 };
+    cloud.U = JSON.parse(JSON.stringify(synced));
+    mem["evolution:data:synced:U"] = JSON.stringify(synced); mem[KEY] = JSON.stringify(synced);
+    failReads = 5;
+    for (let a = 0; a < 5; a++) {
+      await __cloudTest.activateCloudForUser("U", a);
+      edit({ evoTasks: [...local().evoTasks, task("l" + a, "offline " + a)] });
+    }
+    expect(reads).toBe(5);
+    expect(uploads.length).toBe(0);
+    expect(mod.getCloudStatus()).toBe("error");
+    cloud.U.evoTasks.push(task("r2", "other device"));
+    __cloudTest.resumeCloudRead();
+    __cloudTest.resumeCloudRead(); // duplicate online events don't double-activate
+    await tick(50);
+    expect(reads).toBe(6);
+    const ids = local().evoTasks.map((t) => t.id).sort();
+    expect(ids).toEqual(["l0", "l1", "l2", "l3", "l4", "r1", "r2"]);
+    await tick();
+    expect(cloud.U.evoTasks.map((t: any) => t.id).sort()).toEqual(ids);
+    expect(mod.getCloudStatus()).toBe("synced");
+  });
+
+  it("sign-out or switch during a recovery read: late result is dropped, nothing uploaded", async () => {
+    mem["evolution:data:owner"] = "U";
+    cloud.U = { ...defaultData, evoTasks: [task("r1", "U remote")], _version: 6 };
+    failReads = 5;
+    for (let a = 0; a < 5; a++) await __cloudTest.activateCloudForUser("U", a);
+    let release!: () => void; readDelay = new Promise((r) => (release = r));
+    __cloudTest.resumeCloudRead();
+    __cloudTest.deactivateCloud();
+    release(); await tick(50);
+    expect(mod.getCloudStatus()).toBe("signed-out");
+    expect(local().evoTasks.find((t) => t.id === "r1")).toBeUndefined();
+    __cloudTest.resumeCloudRead(); // no account → no read
+    await tick(20);
+    expect(reads).toBe(6);
+    expect(uploads.length).toBe(0);
   });
 });
 describe("clear all", () => {
