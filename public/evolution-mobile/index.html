@@ -5081,11 +5081,11 @@ class Component extends DCLogic {
     window.addEventListener("evo:bank-updated", () => this.forceUpdate());
     const saved = evoLoad();
     this._loaded = true;
-    if (saved && saved.seedv === EVO_SEED_V) {
-      this._seedChecked = true;
+    this._seedChecked = true; // older seed versions are migrated in place, never wiped
+    if (saved && typeof saved === "object") {
       if (saved.inv && saved.inv.selDay == null) saved.inv.selDay = new Date().getDate();
     }
-    if (saved && saved.seedv === EVO_SEED_V) {
+    if (saved && typeof saved === "object") {
       const next = {};
       Object.keys(saved).forEach(k => {
         if (saved[k] !== undefined && saved[k] !== null && this.state[k] !== undefined) next[k] = saved[k];
@@ -5228,7 +5228,8 @@ class Component extends DCLogic {
         id: Math.max(0, ...v.trades.map(t => t.id)) + 1,
         time: String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0"),
         acct: d.acct, symbol: sym, type: d.type, qty, price: 0, pl,
-        day: v.selDay == null ? new Date().getDate() : v.selDay, month: v.monthOffset
+        day: v.selDay == null ? new Date().getDate() : v.selDay, month: v.monthOffset,
+        date: evoLocalKey(new Date(now.getFullYear(), now.getMonth() + v.monthOffset, v.selDay == null ? now.getDate() : v.selDay))
       };
       const accounts = v.accounts.map((a, i) => i !== d.acct || pl == null ? a : {
         ...a, bal: Math.max(0, a.bal + pl)
@@ -5923,24 +5924,10 @@ class Component extends DCLogic {
 
   persist() {
     if (!this._loaded) return;
-    if (!this._seedChecked) {
-      this._seedChecked = true;
-      const stored = evoLoad();
-      if (!stored || stored.seedv !== EVO_SEED_V) {
-        const fresh = makeFit();
-        this.setState(st => ({
-          fit: fresh,
-          inv: Object.assign({}, st.inv, {
-            accounts: [], removed: [], trades: [], watch: [], seedPL: {}, tradeCount: 0,
-            selDay: new Date().getDate(), pendingDelete: null, adding: false,
-            draft: { acct: 0, ticker: "", type: "Buy", shares: "", pl: "" }
-          })
-        }));
-        return;
-      }
-    }
     const s = this.state;
-    const payload = { seedv: EVO_SEED_V, fit: Object.assign({}, s.fit, { session: null }), nut: s.nut, wl: s.wl, fc: Object.assign({}, s.fc, { menu: false, dump: false }), tk: s.tk, pf: s.pf, inv: s.inv, biz: s.biz, journal: s.journal, entries: s.entries, accounts: s.accounts, trades: s.trades, goals: s.goals, archive: s.archive };
+    const payload = { seedv: EVO_SEED_V, fit: Object.assign({}, s.fit, { session: null }), nut: s.nut, wl: s.wl, fc: Object.assign({}, s.fc, { menu: false, dump: false }), tk: s.tk, pf: s.pf, inv: s.inv, biz: s.biz, jr: Object.assign({}, s.jr, { open: null, query: "", tagInput: false }), tasks: s.tasks, events: s.events };
+    // Keep fields this version doesn't know about (older/newer phone builds) instead of dropping them.
+    try { const prev = evoLoad(); if (prev && typeof prev === "object") Object.keys(prev).forEach(k => { if (!(k in payload) && !(k in this.state)) payload[k] = prev[k]; }); } catch (e) {}
     let json;
     try { json = JSON.stringify(payload); } catch (e) { return; }
     if (json === this._lastSave) return;
@@ -5963,7 +5950,7 @@ class Component extends DCLogic {
       const id = Math.max(0, ...s.fit.sessions.map(x => x.id)) + 1;
       return { fit: Object.assign({}, s.fit, {
         session: null,
-        sessions: [{ id, dayIdx: fitToday(), name: ses.name, type: ses.type, minutes: mins, kcal }].concat(s.fit.sessions)
+        sessions: [{ id, date: evoLocalKey(new Date()), dayIdx: fitToday(), name: ses.name, type: ses.type, minutes: mins, kcal }].concat(s.fit.sessions)
       }) };
     });
   }
@@ -6010,13 +5997,18 @@ class Component extends DCLogic {
       boxShadow: "0 0 8px rgba(95,211,255,0.4)"
     });
 
-    const todays = f.sessions.filter(s => s.dayIdx === today);
+    const tKey = evoLocalKey(new Date());
+    const wkStart = new Date(); wkStart.setHours(0, 0, 0, 0); wkStart.setDate(wkStart.getDate() - fitToday());
+    const wkKeys = FIT_DAYS.map((_, i) => { const d = new Date(wkStart); d.setDate(d.getDate() + i); return evoLocalKey(d); });
+    // Undated (legacy) sessions stay in history but are never counted as today / this week.
+    const weekSessions = f.sessions.filter(s => s.date && wkKeys.indexOf(s.date) >= 0);
+    const todays = f.sessions.filter(s => s.date === tKey);
     const kcalToday = todays.reduce((a, s) => a + s.kcal, 0);
     const minToday = todays.reduce((a, s) => a + s.minutes, 0);
-    const weekMinutes = f.sessions.reduce((a, s) => a + s.minutes, 0);
-    const weekKcal = f.sessions.reduce((a, s) => a + s.kcal, 0);
-    const weekWorkouts = f.sessions.length;
-    const activeDays = new Set(f.sessions.map(s => s.dayIdx)).size;
+    const weekMinutes = weekSessions.reduce((a, s) => a + s.minutes, 0);
+    const weekKcal = weekSessions.reduce((a, s) => a + s.kcal, 0);
+    const weekWorkouts = weekSessions.length;
+    const activeDays = new Set(weekSessions.map(s => s.date)).size;
     const streak = f.carryStreak + activeDays;
     const hm = m => Math.floor(m / 60) + "h " + (m % 60) + "m";
 
@@ -6078,7 +6070,7 @@ class Component extends DCLogic {
       });
     };
 
-    const perDay = FIT_DAYS.map((d, i) => f.sessions.filter(s => s.dayIdx === i).reduce((a, s) => a + s.minutes, 0));
+    const perDay = FIT_DAYS.map((d, i) => weekSessions.filter(s => s.date === wkKeys[i]).reduce((a, s) => a + s.minutes, 0));
     const maxDay = Math.max(60, ...perDay);
     const fitWeekBars = perDay.map((v, i) => ({
       day: FIT_DAYS[i], minutes: v ? v + "m" : "",
@@ -6141,7 +6133,7 @@ class Component extends DCLogic {
 
     const planRows = FIT_DAYNAMES.map((d, i) => {
       const w = f.workouts.find(x => x.id === f.plan[i]);
-      const done = f.sessions.some(s => s.dayIdx === i);
+      const done = weekSessions.some(s => s.date === wkKeys[i]);
       return {
         day: d, value: w ? w.id : "rest",
         meta: w ? w.min + " min \u00B7 ~" + w.kcal + " kcal" : "Recover",
@@ -6725,7 +6717,9 @@ class Component extends DCLogic {
     const isCur = v.monthOffset === 0;
 
     const filtered = v.trades.filter(t => v.filter < 0 || t.acct === v.filter);
-    const monthTrades = filtered.filter(t => (t.month || 0) === v.monthOffset);
+    const ymKey = base.getFullYear() + "-" + String(base.getMonth() + 1).padStart(2, "0");
+    // Dated trades stay in their real month; legacy undated ones keep their old relative placement.
+    const monthTrades = filtered.filter(t => t.date ? t.date.slice(0, 7) === ymKey : (t.month || 0) === v.monthOffset);
     const dayPL = {};
     monthTrades.forEach(t => { if (t.pl != null) dayPL[t.day] = (dayPL[t.day] || 0) + t.pl; });
 
@@ -7930,7 +7924,6 @@ class Component extends DCLogic {
   cvVals() {
     const t = this.state.tk || makeTasks();
     const cv = Object.assign({}, makeCv(), t.cv);
-    if (!cv.seeded && !this._cvSeeding && this._loaded) { this._cvSeeding = true; setTimeout(() => this.cvSeed(), 0); }
     const events = t.events || [], goals = t.goals || [];
     const todayKey = tkKey(tkToday());
     const cur = cv.cursor || todayKey;
