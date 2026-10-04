@@ -444,3 +444,72 @@ describe("derived totals", () => {
     expect(after.focusSessions.map((f) => f.id)).toEqual(["f-real"]);
   });
 });
+
+describe("fitness: one canonical dated source", () => {
+  const D = "2026-10-07"; // Wednesday
+  it("quick-log + page session on the same day count 2; deleting one leaves 1 (and a legacy tally untouched)", () => {
+    const quick = mod.newLoggedWorkout("q1", D);
+    const page = mod.newLoggedWorkout("new", D, "Push", 45);
+    const fitness: any[] = [];
+    expect(mod.workoutCount(fitness, [quick, page], () => true)).toBe(2);
+    const after = mod.fitnessAfterWorkoutDelete(fitness, [quick, page], page);
+    expect(mod.workoutCount(after, [quick], () => true)).toBe(1);
+    // old quick-log tally on D + new page session: both count, delete of the page one keeps the tally
+    const legacy = [{ date: D, workouts: 1 }];
+    expect(mod.workoutCount(legacy, [page], () => true)).toBe(2);
+    const f2 = mod.fitnessAfterWorkoutDelete(legacy, [page], page);
+    expect(f2).toEqual(legacy);
+    expect(mod.workoutCount(f2, [], () => true)).toBe(1);
+  });
+  it("ambiguous legacy (aggregate + untagged entry same day) stays max, never summed or deleted", () => {
+    const old = { id: "o", date: D, type: "Push", durationMin: 60 } as any;
+    expect(mod.workoutCount([{ date: D, workouts: 1 }], [old], () => true)).toBe(1);
+  });
+  it("weekly widget uses the same source, local Mon–Sun, multiple sessions/day", () => {
+    const w = [mod.newLoggedWorkout("a", D), mod.newLoggedWorkout("b", D), mod.newLoggedWorkout("c", "2026-10-05"), mod.newLoggedWorkout("x", "2026-10-04")];
+    const wk = mod.fitnessWeek([], w, 4, new Date(2026, 9, 11, 23, 30)); // Sunday late night, local
+    expect(wk.dates[0]).toBe("2026-10-05"); expect(wk.dates[6]).toBe("2026-10-11");
+    expect(wk.data).toEqual([1, 0, 2, 0, 0, 0, 0]);
+    expect(wk.daysHit).toBe(2);
+  });
+  it("logged workouts survive save/reload with their marker", () => {
+    edit({ workouts: [mod.newLoggedWorkout("r1", D)] });
+    const raw = mem[KEY]; for (const k in mem) delete mem[k]; mem[KEY] = raw;
+    expect(mod.workoutCount(local().fitness, local().workouts, (d) => d === D)).toBe(1);
+  });
+});
+
+describe("trade review ↔ ledger", () => {
+  const acc = [{ id: "A", name: "A", company: "A", size: 1000, startingBalance: 1000, createdDate: "2026-10-01" }] as any;
+  const D = "2026-10-04";
+  const bal = (t: any[]) => mod.tradingTotals(acc, t).perAccount.A.balance;
+  it("deleted P/L is not recreated by saving an unchanged stale review; text-only edit leaves balance", () => {
+    let txns: any[] = [{ id: "t1", accountId: "A", date: D, type: "profit", amount: 100 }];
+    let journal: any[] = [{ id: "j", date: D, session: "New York", review: "r", tags: [], pnl: 100, image: "img" }];
+    txns = txns.filter((t) => t.id !== "t1");
+    journal = mod.refreshReviewPnl(journal, txns, new Set([D]));
+    expect(journal[0].pnl).toBe(0); expect(journal[0].image).toBe("img");
+    const shown = String(journal[0].pnl);
+    for (let i = 0; i < 3; i++) txns = mod.applyReviewPnl(txns, acc, D, shown, shown, "n");
+    expect(txns.find((t) => t.id === mod.journalDailyTxId(D))).toBeUndefined();
+    expect(bal(txns)).toBe(1000);
+    // stale pre-fix value shown as "100" but untouched → still no ledger change
+    expect(mod.applyReviewPnl(txns, acc, D, "100", "100", "n")).toBe(txns);
+  });
+  it("explicit P/L edit applies once to the right account; repeated save is idempotent", () => {
+    let txns: any[] = [{ id: "t1", accountId: "A", date: D, type: "profit", amount: 30 }];
+    txns = mod.applyReviewPnl(txns, acc, D, "100", "30", "n");
+    expect(bal(txns)).toBe(1100);
+    txns = mod.applyReviewPnl(txns, acc, D, "100", "30", "n");
+    expect(bal(txns)).toBe(1100);
+    txns = mod.applyReviewPnl(txns, acc, D, "-20", "100", "n");
+    expect(bal(txns)).toBe(980);
+    expect(txns.filter((t) => t.id === mod.journalDailyTxId(D)).length).toBe(1);
+    expect(txns.find((t) => t.id === "t1")).toBeTruthy();
+  });
+  it("account deletion refreshes stored review P/L to the ledger", () => {
+    const txns: any[] = [{ id: "t1", accountId: "B", date: D, type: "profit", amount: 50 }];
+    const left = txns.filter((t) => t.accountId !== "B");
+    expect(mod.refreshReviewPnl([{ id: "j", date: D, pnl: 50 } as any], left, new Set([D]))[0].pnl).toBe(0);
+  });
+});
