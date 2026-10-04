@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 let L: any;
+// @ts-expect-error plain browser script without types
 beforeAll(async () => { await import("../../public/evolution-mobile/inv-ledger.js"); L = (globalThis as any).EvoInvLedger; });
 const row = (id: number, acct: number, pl: number | null) => ({ id, acct, pl, symbol: "X", type: "Buy", qty: 1, price: 0, date: "2026-10-04" });
 const bals = (inv: any) => inv.accounts.map((a: any) => a.bal);
