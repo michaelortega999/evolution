@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  useEvolutionData, fitnessSummary, todayDate, uid,
+  useEvolutionData, fitnessSummary, todayDate, uid, workoutCount, fitnessAfterWorkoutDelete,
   type WorkoutType, type StressLevel, type PRLift, type TrainingSlot, type CalendarEvent,
 } from "@/lib/evolution-data";
 
@@ -30,7 +30,7 @@ const STRESS: StressLevel[] = ["Low", "Medium", "High"];
 function FitnessPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
   const fit = fitnessSummary(data.fitness, data.profile.gymSessionsTarget);
-  const total = data.fitness.reduce((a, r) => a + r.workouts, 0);
+  const total = workoutCount(data.fitness, data.workouts, () => true);
 
   // Log session modal
   const [logOpen, setLogOpen] = useState(false);
@@ -43,12 +43,9 @@ function FitnessPage() {
     const labels = ["S", "M", "T", "W", "T", "F", "S"];
     const label = labels[new Date().getDay()];
     mutate((prev) => {
-      const existing = prev.fitness.find((r) => r.date === today);
-      const fitnessNext = existing
-        ? prev.fitness.map((r) => r.date === today ? { ...r, workouts: r.workouts + 1 } : r)
-        : [...prev.fitness, { date: today, workouts: 1, label }];
+      // The workout entry is the single counted record; legacy aggregate rows are left untouched.
+      void label;
       return {
-        fitness: fitnessNext,
         workouts: [...prev.workouts, {
           id: uid(), date: today, type: wType,
           durationMin: Number(wDur) || 0, notes: wNotes.trim() || undefined,
@@ -60,7 +57,11 @@ function FitnessPage() {
   };
 
   const deleteWorkout = (id: string) => {
-    mutate((prev) => ({ workouts: prev.workouts.filter((w) => w.id !== id) }));
+    mutate((prev) => {
+      const gone = prev.workouts.find((w) => w.id === id);
+      if (!gone) return {};
+      return { workouts: prev.workouts.filter((w) => w.id !== id), fitness: fitnessAfterWorkoutDelete(prev.fitness, prev.workouts, gone) };
+    });
   };
 
   // PRs

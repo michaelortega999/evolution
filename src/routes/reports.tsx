@@ -50,8 +50,7 @@ function ReportsPage() {
 
   // ----- Fitness (workouts + fitness rows) -----
   const workoutLogs = data.workouts.filter((w) => inMonth(w.date));
-  const fitnessRows = data.fitness.filter((r) => inMonth(r.date));
-  const sessions = workoutLogs.length + fitnessRows.reduce((a, r) => a + r.workouts, 0);
+  const sessions = workoutCount(data.fitness, data.workouts, inMonth);
   const totalVolume = workoutLogs.reduce((a, w) => a + w.durationMin * 100, 0);
   const prsThisMonth = data.prHistory.filter((p) => inMonth(p.date)).length;
 

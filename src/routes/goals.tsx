@@ -29,13 +29,12 @@ function GoalsPage() {
   const moduleGoals = useMemo(() => {
     const today = todayDate();
     const investingCurrent = data.investing.at(-1)?.value ?? 0;
-    const weeklySessions = data.fitness.filter((f) => isThisWeek(f.date)).reduce((a, f) => a + f.workouts, 0)
-      + data.workouts.filter((w) => isThisWeek(w.date)).length;
+    const weeklySessions = workoutCount(data.fitness, data.workouts, isThisWeek);
     const todayCalories = dayTotals(today, data.mealLogs).kcal;
     const monthKey = today.slice(0, 7);
     const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
     const weeklyHobbyHours = data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0) / 60
-      + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 3600, 0);
+      + guitarFocusOnly(data.focusSessions, data.guitarSessions).filter((s) => isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 3600, 0);
 
     return [
       { category: "Investing", title: "Portfolio Goal", current: investingCurrent, target: data.profile.goal || 50000, unit: "$" },

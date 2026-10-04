@@ -1476,3 +1476,56 @@ export function syncTradingAssets(next: EvolutionData): EvolutionData {
 }
 
 
+
+// ------------- Derived counts (one counted source per record) -------------
+/**
+ * Workout sessions per day = max(legacy aggregate row, logged workouts on that day).
+ * Older builds wrote BOTH an aggregate `fitness` row and a `workouts` entry per session, so adding
+ * them double-counted; aggregate-only legacy days (no workout entries) still count.
+ */
+export function workoutCount(fitness: FitnessEntry[], workouts: WorkoutLog[], inRange: (date: string) => boolean): number {
+  const perDay = new Map<string, number>();
+  for (const w of workouts) if (inRange(w.date)) perDay.set(w.date, (perDay.get(w.date) ?? 0) + 1);
+  let total = 0;
+  const seen = new Set<string>();
+  for (const r of fitness) {
+    if (!inRange(r.date) || seen.has(r.date)) continue;
+    seen.add(r.date);
+    total += Math.max(r.workouts || 0, perDay.get(r.date) ?? 0);
+  }
+  for (const [d, n] of perDay) if (!seen.has(d)) total += n;
+  return total;
+}
+/** After deleting a workout, drop the matching legacy aggregate tally (only if it included it). */
+export function fitnessAfterWorkoutDelete(fitness: FitnessEntry[], workouts: WorkoutLog[], removed: WorkoutLog): FitnessEntry[] {
+  const before = workouts.filter((w) => w.date === removed.date).length;
+  return fitness.map((r) => (r.date === removed.date && r.workouts >= before && r.workouts > 0 ? { ...r, workouts: r.workouts - 1 } : r));
+}
+
+export const guitarMirrorId = (sessionId: string) => `gm-${sessionId}`;
+function isMirrorOf(f: FocusSession, g: GuitarSession): boolean {
+  if (f.id === guitarMirrorId(g.id)) return true;
+  // Legacy mirrors (written without a link): same task text, duration and local day.
+  return f.tag === "Guitar" && f.task === `Guitar: ${g.practiced}` && f.durationSec === g.durationMin * 60
+    && localISO(new Date(f.completedAt)) === g.date;
+}
+/** Guitar-tagged focus sessions that are NOT a mirror of a manual practice log (each counted once). */
+export function guitarFocusOnly(focus: FocusSession[], guitar: GuitarSession[]): FocusSession[] {
+  const used = new Set<string>();
+  const mirrors = new Set<string>();
+  for (const g of guitar) {
+    const m = focus.find((f) => !used.has(f.id) && isMirrorOf(f, g));
+    if (m) { used.add(m.id); mirrors.add(m.id); }
+  }
+  return focus.filter((f) => f.tag === "Guitar" && !mirrors.has(f.id));
+}
+/** Remove a manual practice log and only its own linked focus mirror. */
+export function deleteGuitarSession(d: Pick<EvolutionData, "guitarSessions" | "focusSessions">, id: string) {
+  const g = d.guitarSessions.find((s) => s.id === id);
+  if (!g) return { guitarSessions: d.guitarSessions, focusSessions: d.focusSessions };
+  const mirror = d.focusSessions.find((f) => f.id === guitarMirrorId(id)) ?? d.focusSessions.find((f) => isMirrorOf(f, g));
+  return {
+    guitarSessions: d.guitarSessions.filter((s) => s.id !== id),
+    focusSessions: mirror ? d.focusSessions.filter((f) => f.id !== mirror.id) : d.focusSessions,
+  };
+}

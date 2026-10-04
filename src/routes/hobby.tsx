@@ -80,7 +80,7 @@ function HobbyPage() {
   const weeklyTravelHrs = data.trips.filter((t) => isThisWeek(t.startDate)).length * 6; // approx 6h prep per upcoming trip
   const weeklyCarsHrs = data.carMeets.filter((m) => isThisWeek(m.date)).length * 2;
   const weeklyGuitarMin = data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0)
-    + data.focusSessions.filter((s) => s.tag === "Guitar" && isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 60, 0);
+    + guitarFocusOnly(data.focusSessions, data.guitarSessions).filter((s) => isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 60, 0);
   const weeklyGuitarHrs = weeklyGuitarMin / 60;
   const totalWeekHrs = weeklyTravelHrs + weeklyCarsHrs + weeklyGuitarHrs;
 
@@ -94,7 +94,7 @@ function HobbyPage() {
       items.push({ date: e.date, kind: "Cars", text: `${e.type} · ${fmt$(e.amount)}${car ? ` · ${car.make} ${car.model}` : ""}`, icon: CarIcon });
     });
     data.guitarSessions.forEach((g) => items.push({ date: g.date, kind: "Guitar", text: `Practice: ${g.practiced} (${g.durationMin}m)`, icon: Music }));
-    data.focusSessions.filter((s) => s.tag === "Guitar").forEach((s) => {
+    guitarFocusOnly(data.focusSessions, data.guitarSessions).forEach((s) => {
       const d = localISO(new Date(s.completedAt));
       items.push({ date: d, kind: "Guitar", text: `Focus session · ${Math.round(s.durationSec / 60)}m`, icon: Music });
     });
@@ -966,7 +966,7 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
     if (!lWhat.trim()) return;
     const session: GuitarSession = { id: uid(), date: todayDate(), durationMin: Number(lDur) || 0, practiced: lWhat.trim() };
     const focusEntry: FocusSession = {
-      id: uid(), startedAt: Date.now() - (session.durationMin * 60000), completedAt: Date.now(),
+      id: guitarMirrorId(session.id), startedAt: Date.now() - (session.durationMin * 60000), completedAt: Date.now(),
       durationSec: session.durationMin * 60, mode: "focus", task: `Guitar: ${session.practiced}`, tag: "Guitar",
     };
     mutate((p) => ({
@@ -975,7 +975,7 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
     }));
     setLWhat(""); setLogOpen(false);
   };
-  const delSession = (id: string) => mutate((p) => ({ guitarSessions: p.guitarSessions.filter((s) => s.id !== id) }));
+  const delSession = (id: string) => mutate((p) => deleteGuitarSession(p, id));
 
   // Skills
   const [skillName, setSkillName] = useState(""); const [skillLevel, setSkillLevel] = useState<SkillLevel>("Beginner");
@@ -1087,7 +1087,7 @@ function GuitarSection({ weeklyGuitarHrs }: { weeklyGuitarHrs: number }) {
         <StatBox label="This Week" value={`${weeklyGuitarHrs.toFixed(1)}h`} />
         <StatBox label="Weekly Goal" value={`${data.guitarWeeklyHoursTarget}h`} />
         <StatBox label="Streak" value={`${streak}d`} />
-        <StatBox label="Sessions" value={`${data.guitarSessions.length + data.focusSessions.filter((s) => s.tag === "Guitar").length}`} />
+        <StatBox label="Sessions" value={`${data.guitarSessions.length + guitarFocusOnly(data.focusSessions, data.guitarSessions).length}`} />
       </div>
 
       <Panel title="Weekly Goal">
