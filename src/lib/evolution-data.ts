@@ -125,6 +125,8 @@ export interface WorkoutLog {
   type: WorkoutType;
   durationMin: number;
   notes?: string;
+  /** "log" = canonical entry created after the counting fix (never mirrored in a legacy tally). */
+  src?: "log";
 }
 
 export type PRLift = "bench" | "squat" | "backrow";
@@ -1528,23 +1530,71 @@ export function syncTradingAssets(next: EvolutionData): EvolutionData {
  * Older builds wrote BOTH an aggregate `fitness` row and a `workouts` entry per session, so adding
  * them double-counted; aggregate-only legacy days (no workout entries) still count.
  */
+/**
+ * Workouts logged after the counting fix carry `src: "log"`: they are the one canonical record and
+ * never have a matching legacy aggregate tally. Untagged (older) workout entries may already be
+ * included in a legacy aggregate row for the same day, which is ambiguous, so for those the larger
+ * of the two counts is used (never summed, never deleted).
+ */
+export const isLoggedWorkout = (w: WorkoutLog) => w.src === "log";
+export function workoutsOnDay(fitness: FitnessEntry[], workouts: WorkoutLog[], date: string): number {
+  let legacyW = 0, logged = 0;
+  for (const w of workouts) if (w.date === date) { if (isLoggedWorkout(w)) logged++; else legacyW++; }
+  const agg = fitness.find((r) => r.date === date)?.workouts || 0;
+  return Math.max(agg, legacyW) + logged;
+}
 export function workoutCount(fitness: FitnessEntry[], workouts: WorkoutLog[], inRange: (date: string) => boolean): number {
-  const perDay = new Map<string, number>();
-  for (const w of workouts) if (inRange(w.date)) perDay.set(w.date, (perDay.get(w.date) ?? 0) + 1);
+  const days = new Set<string>();
+  for (const r of fitness) if (inRange(r.date)) days.add(r.date);
+  for (const w of workouts) if (inRange(w.date)) days.add(w.date);
   let total = 0;
-  const seen = new Set<string>();
-  for (const r of fitness) {
-    if (!inRange(r.date) || seen.has(r.date)) continue;
-    seen.add(r.date);
-    total += Math.max(r.workouts || 0, perDay.get(r.date) ?? 0);
-  }
-  for (const [d, n] of perDay) if (!seen.has(d)) total += n;
+  for (const d of days) total += workoutsOnDay(fitness, workouts, d);
   return total;
 }
-/** After deleting a workout, drop the matching legacy aggregate tally (only if it included it). */
+/** New session (page or dashboard quick-log): one canonical, dated, identifiable workout entry. */
+export function newLoggedWorkout(id: string, date: string, type: WorkoutType = "Full Body", durationMin = 0, notes?: string): WorkoutLog {
+  return { id, date, type, durationMin, notes, src: "log" };
+}
+/** After deleting a workout: logged entries never touch tallies; legacy ones drop the aggregate only if it included them. */
 export function fitnessAfterWorkoutDelete(fitness: FitnessEntry[], workouts: WorkoutLog[], removed: WorkoutLog): FitnessEntry[] {
-  const before = workouts.filter((w) => w.date === removed.date).length;
+  if (isLoggedWorkout(removed)) return fitness;
+  const before = workouts.filter((w) => w.date === removed.date && !isLoggedWorkout(w)).length;
   return fitness.map((r) => (r.date === removed.date && r.workouts >= before && r.workouts > 0 ? { ...r, workouts: r.workouts - 1 } : r));
+}
+/** Current local week (Mon–Sun) of counted sessions, same shape as fitnessSummary. */
+export function fitnessWeek(fitness: FitnessEntry[], workouts: WorkoutLog[], target: number, now = new Date()) {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const dates = Array.from({ length: 7 }, (_, i) => { const x = new Date(monday); x.setDate(monday.getDate() + i); return localISO(x); });
+  const data = dates.map((day) => workoutsOnDay(fitness, workouts, day));
+  return { data, labels: ["M", "T", "W", "T", "F", "S", "S"], daysHit: data.filter((n) => n > 0).length, target, dates };
+}
+
+// ------------- Trade review ↔ ledger linkage -------------
+export const journalDailyTxId = (date: string) => `journal-daily-${date}`;
+const signedTx = (t: TradingTx) => (t.type === "profit" ? Math.abs(t.amount) : -Math.abs(t.amount));
+/** Ledger P/L for a day (the only source of truth for a review's P/L). */
+export const ledgerDayPnl = (txns: TradingTx[], date: string) => txns.filter((t) => t.date === date).reduce((a, t) => a + signedTx(t), 0);
+/**
+ * Saving a review: the ledger changes ONLY when the user explicitly changed the P/L field from the
+ * value shown when the review was opened. The adjustment row (journal-daily-<date>) makes the day's
+ * ledger total equal the entered value, once, on that row's existing account (else the first account).
+ */
+export function applyReviewPnl(txns: TradingTx[], accounts: TradingAccount[], date: string, entered: string, shown: string, note: string): TradingTx[] {
+  const e = entered.trim();
+  if (e === shown.trim() || e === "" || !Number.isFinite(Number(e))) return txns;
+  const id = journalDailyTxId(date);
+  const prevAdj = txns.find((t) => t.id === id);
+  const rest = txns.filter((t) => t.id !== id);
+  const accountId = prevAdj?.accountId && accounts.some((a) => a.id === prevAdj.accountId) ? prevAdj.accountId : accounts[0]?.id;
+  if (!accountId) return txns;
+  const delta = Number(e) - ledgerDayPnl(rest, date);
+  if (delta === 0) return rest;
+  return [...rest, { id, accountId, date, type: delta > 0 ? "profit" : "loss", amount: Math.abs(delta), notes: note }];
+}
+/** Keep stored review P/L equal to the ledger for the given dates (after ledger deletes/edits). */
+export function refreshReviewPnl(journal: TradeJournalEntry[], txns: TradingTx[], dates: Set<string>): TradeJournalEntry[] {
+  return journal.map((j) => (dates.has(j.date) ? { ...j, pnl: ledgerDayPnl(txns, j.date) } : j));
 }
 
 export const guitarMirrorId = (sessionId: string) => `gm-${sessionId}`;
