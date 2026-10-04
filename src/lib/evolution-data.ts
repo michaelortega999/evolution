@@ -958,41 +958,84 @@ function scheduleRetry(uid: string) {
   const delay = Math.min(60_000, 3000 * 2 ** retryCount++);
   retryTimer = setTimeout(() => {
     retryTimer = null;
-    if (cloudUserId === uid && getLocalOwner() === uid) void pushCloud(uid, load());
+    if (cloudUserId === uid && getLocalOwner() === uid) void pushCloud(uid);
   }, delay);
 }
 
-/** Single-flight upload. If a write is in flight, the latest local data is queued and sent after it. */
-function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
+type Row = { data: unknown; updated_at: string } | null;
+async function readRow(userId: string): Promise<{ ok: true; row: Row } | { ok: false }> {
+  try {
+    const { data, error } = await supabase.from("user_data").select("data, updated_at").eq("user_id", userId).maybeSingle();
+    if (error) return { ok: false };
+    return { ok: true, row: (data as Row) ?? null };
+  } catch { return { ok: false }; }
+}
+type WriteResult = "ok" | "conflict" | "error";
+/** Compare-and-swap on user_data.updated_at (bumped by a DB trigger), so two devices can't overwrite each other. */
+async function casWrite(userId: string, row: Row, payload: unknown): Promise<WriteResult> {
+  try {
+    if (row) {
+      const { data, error } = await supabase.from("user_data").update({ data: payload as never })
+        .eq("user_id", userId).eq("updated_at", row.updated_at).select("updated_at");
+      if (error) return "error";
+      return Array.isArray(data) && data.length > 0 ? "ok" : "conflict";
+    }
+    const { error } = await supabase.from("user_data").insert({ user_id: userId, data: payload as never });
+    if (!error) return "ok";
+    return (error as { code?: string }).code === "23505" ? "conflict" : "error";
+  } catch { return "error"; }
+}
+
+/**
+ * Single-flight sync: read the latest cloud copy, three-way merge this device's edits onto it
+ * (base = last acknowledged snapshot), and write only if something changed — guarded by
+ * updated_at so a concurrent write from another device forces a fresh read + re-merge with the
+ * CURRENT local data (never an old payload). If a sync is in flight, another one is queued.
+ */
+function pushCloud(userId: string, _data?: EvolutionData): Promise<boolean> {
   if (cloudUserId !== userId || getLocalOwner() !== userId) return Promise.resolve(false); // account changed
   const gen = cloudGen;
-  const rev = localRev;
+  let rev = localRev;
   if (pushInFlight) {
     queuedPush = { uid: userId, gen }; // coalesced: re-reads the latest local data when it runs
     setCloudStatus("saving");
     return pushInFlight;
   }
+  const isCurrent = () => gen === cloudGen && cloudUserId === userId && getLocalOwner() === userId;
   const run = (async () => {
     setCloudStatus("saving");
-    let ok = false;
-    try {
-      const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
-      const { error } = await supabase.from("user_data").upsert({ user_id: userId, data: payload });
-      ok = !error;
-    } catch { ok = false; }
-    const current = gen === cloudGen && cloudUserId === userId && getLocalOwner() === userId;
-    if (ok && current) {
-      writeSynced(userId, data);        // this exact payload acknowledged → new merge base
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const r = await readRow(userId);
+      if (!isCurrent()) return { ok: false, current: false };
+      if (!r.ok) return { ok: false, current: true };
+      const startRev = localRev;
+      const local = load();
+      const base = readSynced(userId) ?? local;
+      const remote = r.row ? hydrate(migrate((r.row.data ?? {}) as StoredShape)) : null;
+      const merged = remote ? mergeEvolutionData(base, local, remote) : local;
+      let res: WriteResult = "ok";
+      if (!remote || !sameJSON(merged, remote)) {
+        res = await casWrite(userId, r.row, JSON.parse(JSON.stringify({ ...merged, _version: STORAGE_VERSION })));
+      }
+      if (!isCurrent()) return { ok: res === "ok", current: false };
+      if (res === "conflict") continue;          // someone else wrote in between → re-read, re-merge
+      if (res === "error") return { ok: false, current: true };
+      writeSynced(userId, merged);               // acknowledged → new merge base
       retryCount = 0;
+      if (localRev === startRev) { if (!sameJSON(local, merged)) writeLocal(merged); }
+      else writeLocal(mergeEvolutionData(local, load(), merged)); // keep edits made during the sync
+      rev = localRev;
+      if (remote && !sameJSON(merged, local)) window.dispatchEvent(new CustomEvent("evolution:cloud-refreshed"));
+      return { ok: true, current: true };
     }
-    return { ok, current };
+    return { ok: false, current: true };       // persistent contention → retry later, stays dirty
   })().then(({ ok, current }) => {
     pushInFlight = null;
     const q = queuedPush;
     queuedPush = null;
     const qValid = !!q && q.gen === cloudGen && cloudUserId === q.uid && getLocalOwner() === q.uid;
     if (!current) {
-      if (qValid) void pushCloud(q!.uid, load());
+      if (qValid) void pushCloud(q!.uid);
       return ok;
     }
     if (!ok) {
@@ -1000,12 +1043,19 @@ function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
       setCloudStatus("error"); scheduleRetry(userId);
       return false;
     }
-    if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId, load());
+    if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId);
     else setCloudStatus(pendingSave ? "saving" : "synced");
     return true;
   });
   pushInFlight = run;
   return run;
+}
+
+/** Lightweight refresh of an active account (focus / foreground / reconnect / interval). No overlap. */
+function refreshCloud(): void {
+  const uid = cloudUserId;
+  if (!uid || pulling || pushInFlight || pendingSave || getLocalOwner() !== uid) return;
+  void pushCloud(uid);
 }
 
 function cancelPendingSave() {
@@ -1036,6 +1086,7 @@ function writeLocal(data: EvolutionData) {
 }
 
 /** Archive the previous owner's local data and load this account's own device copy (or a clean slate). */
+export const GUEST_OWNER = "guest";
 function switchLocalOwner(userId: string) {
   const owner = getLocalOwner();
   if (owner === userId) return;
@@ -1112,6 +1163,25 @@ function resumeCloudRead(): void {
   void activateCloudForUser(uid, 1); // fresh retry budget; owner/generation guards still apply
 }
 
+/**
+ * Sign-out: stop syncing and mask the account's data. Its local copy (including unsynced edits) is
+ * archived under its owner and restored on that account's next sign-in; the signed-out view starts
+ * from a clean guest copy, so guest edits never alter the account's data.
+ */
+function maskSignedOutOwner() {
+  if (typeof window === "undefined") return;
+  const owner = getLocalOwner();
+  if (!owner || owner === GUEST_OWNER) return;
+  window.dispatchEvent(new CustomEvent("evolution:owner-changing", { detail: { from: owner, to: GUEST_OWNER } }));
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) localStorage.setItem(BACKUP_PREFIX + owner, raw);
+  const guest = localStorage.getItem(BACKUP_PREFIX + GUEST_OWNER);
+  if (guest) localStorage.setItem(STORAGE_KEY, guest); else localStorage.removeItem(STORAGE_KEY);
+  localStorage.setItem(OWNER_KEY, GUEST_OWNER);
+  window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+  window.dispatchEvent(new CustomEvent("evolution:owner-changed", { detail: { from: owner, to: GUEST_OWNER } }));
+}
+
 function deactivateCloud() {
   cloudGen++;
   pulling = false;
@@ -1120,12 +1190,14 @@ function deactivateCloud() {
   cloudUserId = null;
   activatingFor = null;
   loadBaseline = null;
+  pushInFlight = null;
+  maskSignedOutOwner();
   setCloudStatus("signed-out");
   markReady();
 }
 
 /** Test hooks (not used by the app). */
-export const __cloudTest = { activateCloudForUser, deactivateCloud, resumeCloudRead, idle: async () => { while (pushInFlight) await pushInFlight; }, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
+export const __cloudTest = { activateCloudForUser, deactivateCloud, resumeCloudRead, refreshCloud, idle: async () => { while (pushInFlight) await pushInFlight; }, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
 
 if (typeof window !== "undefined" && typeof document !== "undefined" && !(globalThis as { __EVO_NO_AUTO_CLOUD__?: boolean }).__EVO_NO_AUTO_CLOUD__) {
   supabase.auth.getSession().then(({ data }) => {
@@ -1149,7 +1221,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && !(global
   };
   window.addEventListener("pagehide", flush);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
-  window.addEventListener("online", resumeCloudRead);
+  window.addEventListener("online", () => { resumeCloudRead(); refreshCloud(); });
+  window.addEventListener("focus", refreshCloud);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshCloud(); });
+  setInterval(refreshCloud, 60_000);
 }
 
 /** Hook: current cloud sync status for UI badges. */

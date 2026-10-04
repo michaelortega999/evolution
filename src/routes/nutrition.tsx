@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   useEvolutionData, MEAL_TYPES, todayDate, uid,
-  dayTotals, nutritionStreak,
+  dayTotals, nutritionStreak, getLocalOwner,
   type MealType, type GroceryItem,
 } from "@/lib/evolution-data";
 import { useSelectedMonth } from "@/lib/use-selected-month";
