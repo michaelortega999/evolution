@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  useEvolutionData, fitnessSummary, todayDate, uid, workoutCount, fitnessAfterWorkoutDelete,
+  useEvolutionData, fitnessWeek, newLoggedWorkout, todayDate, uid, workoutCount, fitnessAfterWorkoutDelete,
   type WorkoutType, type StressLevel, type PRLift, type TrainingSlot, type CalendarEvent,
 } from "@/lib/evolution-data";
 
@@ -29,7 +29,7 @@ const STRESS: StressLevel[] = ["Low", "Medium", "High"];
 
 function FitnessPage() {
   const { data, mutate, updateProfile } = useEvolutionData();
-  const fit = fitnessSummary(data.fitness, data.profile.gymSessionsTarget);
+  const fit = fitnessWeek(data.fitness, data.workouts, data.profile.gymSessionsTarget);
   const total = workoutCount(data.fitness, data.workouts, () => true);
 
   // Log session modal
@@ -40,18 +40,10 @@ function FitnessPage() {
 
   const submitSession = () => {
     const today = todayDate();
-    const labels = ["S", "M", "T", "W", "T", "F", "S"];
-    const label = labels[new Date().getDay()];
-    mutate((prev) => {
-      // The workout entry is the single counted record; legacy aggregate rows are left untouched.
-      void label;
-      return {
-        workouts: [...prev.workouts, {
-          id: uid(), date: today, type: wType,
-          durationMin: Number(wDur) || 0, notes: wNotes.trim() || undefined,
-        }],
-      };
-    });
+    // The workout entry is the single counted record; legacy aggregate rows are left untouched.
+    mutate((prev) => ({
+      workouts: [...prev.workouts, newLoggedWorkout(uid(), today, wType, Number(wDur) || 0, wNotes.trim() || undefined)],
+    }));
     setWDur("60"); setWNotes("");
     setLogOpen(false);
   };

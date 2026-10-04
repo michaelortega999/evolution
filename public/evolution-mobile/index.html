@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#04080d">
 <script src="./support.js"></script>
+<script src="./inv-ledger.js"></script>
 </head>
 <body>
 <x-dc>
@@ -5084,6 +5085,7 @@ class Component extends DCLogic {
     this._seedChecked = true; // older seed versions are migrated in place, never wiped
     if (saved && typeof saved === "object") {
       if (saved.inv && saved.inv.selDay == null) saved.inv.selDay = new Date().getDate();
+      if (saved.inv && window.EvoInvLedger) saved.inv = window.EvoInvLedger.migrate(saved.inv); // stable ids + ledger balances
     }
     if (saved && typeof saved === "object") {
       const next = {};
@@ -5182,13 +5184,12 @@ class Component extends DCLogic {
       const gone = v.accounts[i];
       const accounts = v.accounts.filter((a, n) => n !== i);
       const removed = gone ? v.removed.filter(r => r.name !== gone.name).concat(gone) : v.removed;
-      const trades = v.trades
-        .filter(t => t.acct !== i)
-        .map(t => (t.acct > i ? { ...t, acct: t.acct - 1 } : t));
+      const led = window.EvoInvLedger.deleteAccount(window.EvoInvLedger.migrate(v), i);
+      const trades = led.trades;
       const shift = (n) => (n > i ? n - 1 : n === i ? 0 : n);
       return {
         inv: {
-          ...v, accounts, trades, removed,
+          ...v, accounts: led.accounts, trades, removed,
           filter: v.filter < 0 ? -1 : (v.filter === i ? -1 : shift(v.filter)),
           draft: { ...v.draft, acct: shift(v.draft.acct) },
           pendingDelete: null
@@ -5207,7 +5208,7 @@ class Component extends DCLogic {
       return {
         inv: {
           ...v,
-          accounts: v.accounts.concat({ name, tag, bal, chg: 0 }),
+          accounts: window.EvoInvLedger.addAccount(window.EvoInvLedger.migrate(v), { name, tag, bal, chg: 0 }).accounts,
           removed: v.removed.filter(r => r.name !== name),
           newAcct: { name: "", tag: "", bal: "" },
           adding: false
@@ -5231,10 +5232,8 @@ class Component extends DCLogic {
         day: v.selDay == null ? new Date().getDate() : v.selDay, month: v.monthOffset,
         date: evoLocalKey(new Date(now.getFullYear(), now.getMonth() + v.monthOffset, v.selDay == null ? now.getDate() : v.selDay))
       };
-      const accounts = v.accounts.map((a, i) => i !== d.acct || pl == null ? a : {
-        ...a, bal: Math.max(0, a.bal + pl)
-      });
-      return { inv: { ...v, draft: { ...d, ticker: "", shares: "", pl: "" }, trades: [row].concat(v.trades), accounts, tradeCount: v.tradeCount + 1 } };
+      const led = window.EvoInvLedger.addTrade(window.EvoInvLedger.migrate(v), row); // balance = opening + linked P/L
+      return { inv: { ...v, draft: { ...d, ticker: "", shares: "", pl: "" }, trades: led.trades, accounts: led.accounts, tradeCount: v.tradeCount + 1 } };
     });
   };
 
@@ -6818,8 +6817,7 @@ class Component extends DCLogic {
       },
       onToggleVoid: () => this.setState(s => ({
         inv: {
-          ...s.inv,
-          trades: s.inv.trades.filter(x => x.id !== t.id),
+          ...window.EvoInvLedger.deleteTrade(window.EvoInvLedger.migrate(s.inv), t.id),
           tradeCount: t.pl == null ? Math.max(0, s.inv.tradeCount - 1) : s.inv.tradeCount
         }
       }))

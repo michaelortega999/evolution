@@ -160,3 +160,58 @@ describe("phone-only data: real bridge restore + three-way merge", () => {
     expect(store().jr.entries[0].title).toBe("A private");
   });
 });
+
+describe("collision identity is stable (no growth on repeated polls)", () => {
+  const titles = () => desk.phoneStore.data.jr.entries.map((e: any) => e.title).sort();
+  const seed = () => {
+    setStore({ seedv: 3, jr: { entries: [{ id: 1, title: "base" }] }, tk: { tasks: [], events: [] } });
+    syncMobileBridge(true);
+    const s = store(); s.jr.entries.push({ id: 2, title: "local new" }); setStore(s);
+    desk.phoneStore = { v: 1, data: { ...desk.phoneStore.data, jr: { entries: [{ id: 1, title: "base" }, { id: 2, title: "remote new" }] } } };
+  };
+  it("50 unchanged polls: exactly one copy of each record, no further writes", () => {
+    seed();
+    syncMobileBridge(false);
+    expect(titles()).toEqual(["base", "local new", "remote new"]);
+    const snap = JSON.stringify(desk);
+    for (let i = 0; i < 50; i++) expect(syncMobileBridge(false)).toBe(false);
+    expect(JSON.stringify(desk)).toBe(snap);
+  });
+  it("restart (frame reload) then 50 polls: still one copy each, renamed id now held by the phone", () => {
+    seed(); syncMobileBridge(false);
+    syncMobileBridge(true);
+    expect(store().jr.entries.map((e: any) => e.title).sort()).toEqual(["base", "local new", "remote new"]);
+    expect(mem["evolution:mobile-bridge:id-alias:v1"]).toBeUndefined();
+    const snap = JSON.stringify(desk);
+    for (let i = 0; i < 50; i++) syncMobileBridge(false);
+    expect(JSON.stringify(desk)).toBe(snap);
+  });
+  it("renamed record: later phone edit and delete apply to that record only", () => {
+    seed(); syncMobileBridge(false);
+    let s = store(); s.jr.entries = s.jr.entries.map((e: any) => (e.id === 2 ? { ...e, title: "local edited" } : e)); setStore(s);
+    for (let i = 0; i < 5; i++) syncMobileBridge(false);
+    expect(titles()).toEqual(["base", "local edited", "remote new"]);
+    s = store(); s.jr.entries = s.jr.entries.filter((e: any) => e.id !== 2); setStore(s);
+    for (let i = 0; i < 5; i++) syncMobileBridge(false);
+    expect(titles()).toEqual(["base", "remote new"]);
+  });
+  it("three independent clients colliding on id 2: three records, stable afterwards", () => {
+    seed(); syncMobileBridge(false);
+    desk.phoneStore.data.jr.entries.push({ id: 2.5, title: "noop" }); // unrelated record
+    desk.phoneStore.data.jr.entries = desk.phoneStore.data.jr.entries.filter((e: any) => e.id !== 2.5);
+    // third client also created id 2 and synced via the cloud merge with its own rename
+    desk.phoneStore.data.jr.entries.push({ id: -2, title: "third client" });
+    for (let i = 0; i < 50; i++) syncMobileBridge(false);
+    expect(titles()).toEqual(["base", "local new", "remote new", "third client"]);
+    syncMobileBridge(true);
+    for (let i = 0; i < 50; i++) syncMobileBridge(false);
+    expect(titles()).toEqual(["base", "local new", "remote new", "third client"]);
+    expect(new Set(desk.phoneStore.data.jr.entries.map((e: any) => e.id)).size).toBe(4);
+  });
+  it("phone later creates its own next id while an alias is active: no loss, no growth", () => {
+    seed(); syncMobileBridge(false);
+    const s = store(); s.jr.entries.push({ id: 3, title: "phone third" }); setStore(s);
+    for (let i = 0; i < 20; i++) syncMobileBridge(false);
+    expect(titles()).toEqual(["base", "local new", "phone third", "remote new"]);
+  });
+});
