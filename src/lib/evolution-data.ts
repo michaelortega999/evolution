@@ -1253,7 +1253,7 @@ export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: 
   }), { kcal: 0, p: 0, c: 0, f: 0 });
   // Only today's dated input counts — never fall back to an older day's numbers; zeros are real zeros.
   const last = rows.find((r) => r.date === today);
-  const anyLogged = todayLogs.length > 0 || meals.some((m) => m.logged);
+  const anyLogged = todayLogs.length > 0 || meals.length > 0;
   const kcal = anyLogged ? loggedQuick.kcal + loggedCustom.kcal : last?.calories ?? 0;
   const protein = anyLogged ? loggedQuick.p + loggedCustom.p : last?.protein ?? 0;
   const carbs = anyLogged ? loggedQuick.c + loggedCustom.c : last?.carbs ?? 0;
