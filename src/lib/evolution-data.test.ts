@@ -376,6 +376,36 @@ describe("non-destructive load", () => {
   });
 });
 
+describe("phoneStore merge (full cloud path)", () => {
+  const ps = (data: any) => ({ ...defaultData, phoneStore: { v: 1, data } }) as any;
+  it("different-domain and same-domain additions from two clients are all kept", () => {
+    const base = ps({ seedv: 3, jr: { entries: [] }, nut: { logs: [] }, x: { keep: 1 } });
+    const loc = ps({ seedv: 3, jr: { entries: [{ id: "j1" }] }, nut: { logs: [] }, x: { keep: 1 } });
+    const rem = ps({ seedv: 3, jr: { entries: [{ id: "j2" }] }, nut: { logs: [{ id: "m1" }] }, x: { keep: 1 } });
+    const m = mod.mergeEvolutionData(base, loc, rem).phoneStore!.data as any;
+    expect(m.jr.entries.map((e: any) => e.id).sort()).toEqual(["j1", "j2"]);
+    expect(m.nut.logs.map((e: any) => e.id)).toEqual(["m1"]);
+    expect(m.x).toEqual({ keep: 1 });
+  });
+  it("delete on one side propagates; same-record conflict doesn't erase unrelated records", () => {
+    const base = ps({ jr: { entries: [{ id: "a", t: "0" }, { id: "b", t: "0" }, { id: "c" }] } });
+    const loc = ps({ jr: { entries: [{ id: "a", t: "local" }, { id: "b", t: "0" }] } });
+    const rem = ps({ jr: { entries: [{ id: "a", t: "remote" }, { id: "b", t: "0" }, { id: "c" }, { id: "d" }] } });
+    const m = mod.mergeEvolutionData(base, loc, rem).phoneStore!.data as any;
+    expect(m.jr.entries.map((e: any) => e.id).sort()).toEqual(["a", "b", "d"]);
+  });
+  it("two devices through real CAS sync keep both phone domains", async () => {
+    mem["evolution:data:owner"] = "U";
+    cloud.U = { ...defaultData, evoTasks: [], phoneStore: { v: 1, data: { jr: { entries: [] }, nut: { logs: [] } } }, _version: 6 };
+    await __cloudTest.activateCloudForUser("U");
+    cloud.U = { ...cloud.U, phoneStore: { v: 1, data: { jr: { entries: [] }, nut: { logs: [{ id: "m1" }] } } } }; ts.U = "other";
+    edit({ phoneStore: { v: 1, data: { jr: { entries: [{ id: "j1" }] }, nut: { logs: [] } } } });
+    await __cloudTest.flushSave(); await __cloudTest.idle();
+    expect(cloud.U.phoneStore.data.jr.entries.map((e: any) => e.id)).toEqual(["j1"]);
+    expect(cloud.U.phoneStore.data.nut.logs.map((e: any) => e.id)).toEqual(["m1"]);
+  });
+});
+
 describe("derived totals", () => {
   const today = mod.todayDate();
   it("nutrition shows only today's input and honors real zeros (no yesterday fallback)", () => {
