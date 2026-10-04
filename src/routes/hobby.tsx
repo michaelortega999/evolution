@@ -18,6 +18,7 @@ import {
   type GuitarSkill, type GuitarSong, type SkillLevel, SKILL_LEVELS,
   type CustomHobby, type CalendarEvent, type Transaction, type TodoItem,
   type GuitarSession, type FocusSession,
+  guitarFocusOnly, guitarMirrorId, deleteGuitarSession,
 } from "@/lib/evolution-data";
 import { useFocusTimer, formatMmSs, modeLabel } from "@/lib/use-focus-timer";
 import hobbyHologram from "@/assets/hobby-hologram.png";

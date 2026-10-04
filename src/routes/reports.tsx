@@ -4,7 +4,7 @@ import { BarChart3, Download } from "lucide-react";
 import { useMemo } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
-import { useEvolutionData, todayDate, dayTotals } from "@/lib/evolution-data";
+import { useEvolutionData, todayDate, dayTotals, workoutCount } from "@/lib/evolution-data";
 import { useSelectedMonth, MONTH_LABELS } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/reports")({
