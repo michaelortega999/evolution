@@ -20,7 +20,7 @@ import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
-  useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary, tradingTotals,
+  useEvolutionData, MEALS, nutritionSummary, fitnessWeek, newLoggedWorkout, investingSummary, tradingTotals,
   todayDate, dayTotals, nutritionStreak, uid, wealthSummary, syncTradingAssets,
   type Meal, type Hobby, type EvoTask,
 } from "@/lib/evolution-data";
@@ -202,19 +202,11 @@ export function NutritionCard() {
 
 export function FitnessCard() {
   const { data, mutate } = useEvolutionData();
-  const fit = fitnessSummary(data.fitness, data.profile.gymSessionsTarget);
+  const fit = fitnessWeek(data.fitness, data.workouts, data.profile.gymSessionsTarget);
 
+  // Quick-log writes the same canonical dated workout entry as the Fitness page.
   const logSession = () => {
-    const today = todayDate();
-    const labels = ["S", "M", "T", "W", "T", "F", "S"];
-    const label = labels[new Date().getDay()];
-    mutate((prev) => {
-      const existing = prev.fitness.find((r) => r.date === today);
-      const next = existing
-        ? prev.fitness.map((r) => r.date === today ? { ...r, workouts: r.workouts + 1 } : r)
-        : [...prev.fitness, { date: today, workouts: 1, label }];
-      return { fitness: next };
-    });
+    mutate((prev) => ({ workouts: [...prev.workouts, newLoggedWorkout(uid(), todayDate())] }));
   };
 
   return (
