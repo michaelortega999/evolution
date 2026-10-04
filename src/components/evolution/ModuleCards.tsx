@@ -21,7 +21,7 @@ import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
   useEvolutionData, MEALS, nutritionSummary, fitnessSummary, investingSummary, tradingTotals,
-  todayDate, dayTotals, nutritionStreak, uid, wealthSummary,
+  todayDate, dayTotals, nutritionStreak, uid, wealthSummary, syncTradingAssets,
   type Meal, type Hobby, type EvoTask,
 } from "@/lib/evolution-data";
 
