@@ -15,7 +15,7 @@
   }
   function recalc(inv) {
     var trades = Array.isArray(inv.trades) ? inv.trades : [];
-    var accounts = (inv.accounts || []).map(function (a) { return Object.assign({}, a, { bal: Math.max(0, num(a.open) + plOf(trades, a.id)) }); });
+    var accounts = (inv.accounts || []).map(function (a) { return Object.assign({}, a, { bal: num(a.open) + plOf(trades, a.id) }); });
     return Object.assign({}, inv, { accounts: accounts });
   }
   function migrate(inv) {

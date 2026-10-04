@@ -1,5 +1,5 @@
 import { localISO } from "./utils";
-import { mergeValue, mergePhoneData, sameJSON } from "./record-merge";
+import { mergeValue, mergePhoneData, sameJSON, applyAliases, recordRenames, type Rename, type IdAliases } from "./record-merge";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -888,12 +888,35 @@ export function getLocalOwner(): string | null {
 }
 
 /** Three-way merge of whole data sets: local edits since `base` applied on top of `remote`. */
-export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData): EvolutionData {
+export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData, phoneRenames?: Rename[]): EvolutionData {
   const out = mergeValue(base, local, remote, 0) as StoredShape & { phoneStore?: EvolutionData["phoneStore"] };
   // Phone data is merged per domain/record (not as one scalar) so independent edits survive.
-  const data = mergePhoneData(base?.phoneStore?.data, local?.phoneStore?.data, remote?.phoneStore?.data);
+  const data = mergePhoneData(base?.phoneStore?.data, local?.phoneStore?.data, remote?.phoneStore?.data, phoneRenames);
   if (data) out.phoneStore = { v: 1, data }; else delete out.phoneStore;
   return hydrate(out);
+}
+
+/** Normalize only the local side using collision provenance from this exact merge. */
+function withPhoneRenames(data: EvolutionData, renames: Rename[]): EvolutionData {
+  if (!renames.length || !data.phoneStore?.data) return data;
+  return { ...data, phoneStore: { ...data.phoneStore, data: applyAliases(data.phoneStore.data, recordRenames({}, renames)) as Record<string, unknown> } };
+}
+
+/**
+ * A cloud merge can rename this device's record while its frame still holds the old id.
+ * Persist that explicit mapping before notifying consumers. The bridge applies it to both
+ * the held frame snapshot and its base, so one atomic write carries the identity change.
+ * Never apply it to a different owner's frame or guess a record from its text/content.
+ */
+function commitPhoneRenames(userId: string, renames: Rename[]): boolean {
+  try {
+    if (!renames.length || typeof window === "undefined" || getLocalOwner() !== userId || localStorage.getItem("evolution:mobile-bridge:owner") !== userId) return true;
+    const aliasKey = "evolution:mobile-bridge:id-alias:v1";
+    const previous: IdAliases = JSON.parse(localStorage.getItem(aliasKey) ?? "{}");
+    if (!previous || typeof previous !== "object" || Array.isArray(previous)) return false;
+    localStorage.setItem(aliasKey, JSON.stringify(recordRenames(previous, renames)));
+    return true;
+  } catch { return false; } // do not advance the acknowledged local base without durable identity
 }
 
 function readSynced(uid: string): EvolutionData | null {
@@ -982,7 +1005,8 @@ function pushCloud(userId: string, _data?: EvolutionData): Promise<boolean> {
       const local = load();
       const base = readSynced(userId) ?? local;
       const remote = r.row ? hydrate(migrate((r.row.data ?? {}) as StoredShape)) : null;
-      const merged = remote ? mergeEvolutionData(base, local, remote) : local;
+      const renames: Rename[] = [];
+      const merged = remote ? mergeEvolutionData(base, local, remote, renames) : local;
       let res: WriteResult = "ok";
       if (!remote || !sameJSON(merged, remote)) {
         res = await casWrite(userId, r.row, JSON.parse(JSON.stringify({ ...merged, _version: STORAGE_VERSION })));
@@ -990,10 +1014,14 @@ function pushCloud(userId: string, _data?: EvolutionData): Promise<boolean> {
       if (!isCurrent()) return { ok: res === "ok", current: false };
       if (res === "conflict") continue;          // someone else wrote in between → re-read, re-merge
       if (res === "error") return { ok: false, current: true };
-      writeSynced(userId, merged);               // acknowledged → new merge base
+      // Normalize both local branches first: an in-flight edit/delete still targets this
+      // device's renamed record, never the other client's record that kept its old id.
+      const furtherRenames: Rename[] = [];
+      const latest = localRev === startRev ? merged : mergeEvolutionData(withPhoneRenames(local, renames), withPhoneRenames(load(), renames), merged, furtherRenames);
+      if (!commitPhoneRenames(userId, [...renames, ...furtherRenames])) return { ok: false, current: true };
+      writeSynced(userId, merged);               // acknowledged payload + durable identity → new merge base
       retryCount = 0;
-      if (localRev === startRev) { if (!sameJSON(local, merged)) writeLocal(merged); }
-      else writeLocal(mergeEvolutionData(local, load(), merged)); // keep edits made during the sync
+      if (!sameJSON(load(), latest)) writeLocal(latest);
       rev = localRev;
       if (remote && !sameJSON(merged, local)) window.dispatchEvent(new CustomEvent("evolution:cloud-refreshed"));
       return { ok: true, current: true };
@@ -1110,8 +1138,10 @@ async function activateCloudForUser(userId: string, attempt = 0): Promise<void> 
   loadBaseline = null;
 
   if (res.kind === "ok") {
+    const renames: Rename[] = [];
+    const merged = mergeEvolutionData(base, local, res.data, renames);
+    if (!commitPhoneRenames(userId, renames)) { setCloudStatus("error"); scheduleRetry(userId); markReady(); return; }
     writeSynced(userId, res.data);
-    const merged = mergeEvolutionData(base, local, res.data);
     writeLocal(merged);
     setCloudStatus("synced");
     if (!sameJSON(merged, res.data)) scheduleCloudSave(merged);
@@ -1567,7 +1597,7 @@ export function fitnessWeek(fitness: FitnessEntry[], workouts: WorkoutLog[], tar
   const monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   const dates = Array.from({ length: 7 }, (_, i) => { const x = new Date(monday); x.setDate(monday.getDate() + i); return localISO(x); });
   const data = dates.map((day) => workoutsOnDay(fitness, workouts, day));
-  return { data, labels: ["M", "T", "W", "T", "F", "S", "S"], daysHit: data.filter((n) => n > 0).length, target, dates };
+  return { data, labels: ["M", "T", "W", "T", "F", "S", "S"], daysHit: data.filter((n) => n > 0).length, sessions: data.reduce((sum, n) => sum + n, 0), target, dates };
 }
 
 // ------------- Trade review ↔ ledger linkage -------------

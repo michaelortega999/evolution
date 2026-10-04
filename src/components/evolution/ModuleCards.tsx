@@ -212,7 +212,7 @@ export function FitnessCard() {
   return (
     <Card icon={Dumbbell} variant="fitness" number="03" title="Fitness" href="/fitness">
       <div className="hud-label text-[10px] text-muted-foreground">Weekly Sessions</div>
-      <div className="hud-label text-xl text-primary hud-glow my-1">{fit.daysHit} / {fit.target}</div>
+      <div className="hud-label text-xl text-primary hud-glow my-1">{fit.sessions} / {fit.target}</div>
       <div className="mt-2">
         <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={50} />
       </div>
