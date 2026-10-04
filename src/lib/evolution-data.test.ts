@@ -15,6 +15,14 @@ let failReads = 0, failWrites = 0, readDelay: Promise<void> | null = null;
 let holdWrites = false, reads = 0;
 const held: { resolve: (fail?: boolean) => void }[] = [];
 const uploads: { uid: string; data: any }[] = [];
+let stamp = 0;
+const ts: Record<string, string> = {};
+async function heldGate(): Promise<boolean> {
+  if (holdWrites) { const fail = await new Promise<boolean | undefined>((r) => held.push({ resolve: r })); if (fail) return true; }
+  if (failWrites > 0) { failWrites--; return true; }
+  return false;
+}
+function commit(uid: string, data: any) { cloud[uid] = data; ts[uid] = `t${++stamp}`; uploads.push({ uid, data }); }
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
@@ -23,12 +31,18 @@ vi.mock("@/integrations/supabase/client", () => ({
         reads++;
         if (readDelay) await readDelay;
         if (failReads > 0) { failReads--; return { data: null, error: { message: "boom" } }; }
-        return { data: cloud[uid] ? { data: JSON.parse(JSON.stringify(cloud[uid])) } : null, error: null };
+        if (cloud[uid] && !ts[uid]) ts[uid] = `t${++stamp}`;
+        return { data: cloud[uid] ? { data: JSON.parse(JSON.stringify(cloud[uid])), updated_at: ts[uid] } : null, error: null };
       } }) }),
-      upsert: async ({ user_id, data }: any) => {
-        if (holdWrites) { const fail = await new Promise<boolean | undefined>((r) => held.push({ resolve: r })); if (fail) return { error: { message: "offline" } }; }
-        if (failWrites > 0) { failWrites--; return { error: { message: "offline" } }; }
-        cloud[user_id] = data; uploads.push({ uid: user_id, data }); return { error: null };
+      update: ({ data }: any) => ({ eq: (_c: string, uid: string) => ({ eq: (_c2: string, at: string) => ({ select: async () => {
+        if (await heldGate()) return { data: null, error: { message: "offline" } };
+        if (!cloud[uid] || ts[uid] !== at) return { data: [], error: null }; // lost the race
+        commit(uid, data); return { data: [{ updated_at: ts[uid] }], error: null };
+      } }) }) }),
+      insert: async ({ user_id, data }: any) => {
+        if (await heldGate()) return { error: { message: "offline" } };
+        if (cloud[user_id]) return { error: { code: "23505", message: "dup" } };
+        commit(user_id, data); return { error: null };
       },
     }),
   },
@@ -45,7 +59,7 @@ beforeEach(() => {
   __cloudTest.deactivateCloud();
   for (const k in mem) delete mem[k];
   for (const k in cloud) delete cloud[k];
-  uploads.length = 0; failReads = 0; failWrites = 0; readDelay = null; holdWrites = false; held.length = 0; reads = 0;
+  uploads.length = 0; for (const k in ts) delete ts[k]; failReads = 0; failWrites = 0; readDelay = null; holdWrites = false; held.length = 0; reads = 0;
 });
 
 describe("hydrate", () => {

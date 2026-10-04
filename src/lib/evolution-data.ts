@@ -1190,7 +1190,6 @@ function deactivateCloud() {
   cloudUserId = null;
   activatingFor = null;
   loadBaseline = null;
-  pushInFlight = null;
   maskSignedOutOwner();
   setCloudStatus("signed-out");
   markReady();
