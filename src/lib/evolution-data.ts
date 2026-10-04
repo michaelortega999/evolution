@@ -1,4 +1,5 @@
 import { localISO } from "./utils";
+import { mergeValue, mergePhoneData, sameJSON } from "./record-merge";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -884,46 +885,13 @@ export function getLocalOwner(): string | null {
   try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
 }
 
-const sameJSON = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-const isIdArray = (v: unknown): v is { id: unknown }[] =>
-  Array.isArray(v) && v.length > 0 && v.every((x) => x && typeof x === "object" && "id" in (x as object));
-const isPlainObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
-
-function mergeById(b: unknown[], l: unknown[], r: unknown[]): unknown[] {
-  const key = (x: unknown) => String((x as { id: unknown }).id);
-  const B = new Map(b.map((x) => [key(x), x])), L = new Map(l.map((x) => [key(x), x])), R = new Map(r.map((x) => [key(x), x]));
-  const order = [...r.map(key), ...l.map(key).filter((k) => !R.has(k))];
-  const out: unknown[] = [];
-  for (const k of order) {
-    const lb = B.get(k), ll = L.get(k), lr = R.get(k);
-    if (ll !== undefined && lr !== undefined) out.push(lb !== undefined && sameJSON(ll, lb) ? lr : ll);
-    else if (ll !== undefined) { if (lb === undefined || !sameJSON(ll, lb)) out.push(ll); }       // local add / local edit of remote-deleted
-    else if (lr !== undefined) { if (lb === undefined || !sameJSON(lr, lb)) out.push(lr); }       // remote add / keep if remote edited it
-  }
-  return out;
-}
-
-function mergeValue(b: unknown, l: unknown, r: unknown, depth: number): unknown {
-  if (sameJSON(l, b)) return r;          // not changed locally → cloud
-  if (sameJSON(r, b)) return l;          // changed locally only → local
-  const arr = (x: unknown) => (Array.isArray(x) ? x : []);
-  if ((isIdArray(l) || isIdArray(r) || isIdArray(b)) && [b, l, r].every((x) => x === undefined || Array.isArray(x)))
-    return mergeById(arr(b), arr(l), arr(r));
-  if (depth < 2 && isPlainObj(l) && isPlainObj(r)) {
-    const bo = isPlainObj(b) ? b : {};
-    const out: Record<string, unknown> = {};
-    for (const k of new Set([...Object.keys(r), ...Object.keys(l)])) {
-      const v = mergeValue(bo[k], l[k], r[k], depth + 1);
-      if (v !== undefined) out[k] = v;
-    }
-    return out;
-  }
-  return l;                              // true conflict on a scalar → this device's latest edit
-}
-
 /** Three-way merge of whole data sets: local edits since `base` applied on top of `remote`. */
 export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData): EvolutionData {
-  return hydrate(mergeValue(base, local, remote, 0) as StoredShape);
+  const out = mergeValue(base, local, remote, 0) as StoredShape & { phoneStore?: EvolutionData["phoneStore"] };
+  // Phone data is merged per domain/record (not as one scalar) so independent edits survive.
+  const data = mergePhoneData(base?.phoneStore?.data, local?.phoneStore?.data, remote?.phoneStore?.data);
+  if (data) out.phoneStore = { v: 1, data }; else delete out.phoneStore;
+  return hydrate(out);
 }
 
 function readSynced(uid: string): EvolutionData | null {
@@ -1580,12 +1548,9 @@ export function fitnessAfterWorkoutDelete(fitness: FitnessEntry[], workouts: Wor
 }
 
 export const guitarMirrorId = (sessionId: string) => `gm-${sessionId}`;
-function isMirrorOf(f: FocusSession, g: GuitarSession): boolean {
-  if (f.id === guitarMirrorId(g.id)) return true;
-  // Legacy mirrors (written without a link): same task text, duration and local day.
-  return f.tag === "Guitar" && f.task === `Guitar: ${g.practiced}` && f.durationSec === g.durationMin * 60
-    && localISO(new Date(f.completedAt)) === g.date;
-}
+// Only an explicit stored link (gm-<sessionId>) marks a focus record as a manual log's mirror.
+// Unlinked legacy focus records are never guessed from text/duration/day: they stay counted and kept.
+const isMirrorOf = (f: FocusSession, g: GuitarSession) => f.id === guitarMirrorId(g.id);
 /** Guitar-tagged focus sessions that are NOT a mirror of a manual practice log (each counted once). */
 export function guitarFocusOnly(focus: FocusSession[], guitar: GuitarSession[]): FocusSession[] {
   const used = new Set<string>();
@@ -1600,7 +1565,7 @@ export function guitarFocusOnly(focus: FocusSession[], guitar: GuitarSession[]):
 export function deleteGuitarSession(d: Pick<EvolutionData, "guitarSessions" | "focusSessions">, id: string) {
   const g = d.guitarSessions.find((s) => s.id === id);
   if (!g) return { guitarSessions: d.guitarSessions, focusSessions: d.focusSessions };
-  const mirror = d.focusSessions.find((f) => f.id === guitarMirrorId(id)) ?? d.focusSessions.find((f) => isMirrorOf(f, g));
+  const mirror = d.focusSessions.find((f) => isMirrorOf(f, g));
   return {
     guitarSessions: d.guitarSessions.filter((s) => s.id !== id),
     focusSessions: mirror ? d.focusSessions.filter((f) => f.id !== mirror.id) : d.focusSessions,

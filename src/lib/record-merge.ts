@@ -36,7 +36,7 @@ function mergeById(b: unknown[], l: unknown[], r: unknown[], o: Opts): unknown[]
         out.push(lr); extra.push({ ...(ll as object), id });
       } else if (lb !== undefined && sameJSON(ll, lb)) out.push(lr);
       else if (lb !== undefined && sameJSON(lr, lb)) out.push(ll);
-      else if (lb !== undefined && o.maxDepth > 0 && isPlainObj(ll) && isPlainObj(lr)) out.push(mergeValue(lb, ll, lr, 0, o));
+      else if (lb !== undefined && o.collisionGuard && isPlainObj(ll) && isPlainObj(lr)) out.push(mergeValue(lb, ll, lr, 0, o));
       else out.push(ll);
     }
     else if (ll !== undefined) { if (lb === undefined || !sameJSON(ll, lb)) out.push(ll); }
