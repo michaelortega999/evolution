@@ -242,12 +242,16 @@ export function FitnessCard() {
 export function JournalCard() {
   const { data, mutate } = useEvolutionData();
   const [text, setText] = useState("");
-  const latest = data.journal.at(-1);
+  // Same entries the Journal page shows; legacy quick notes (data.journal) are still read, never migrated twice.
+  const latestEntry = data.journalEntries.at(-1);
+  const legacy = data.journal.at(-1);
+  const latest = latestEntry && (!legacy || latestEntry.date >= legacy.date)
+    ? { text: latestEntry.text, date: latestEntry.date } : legacy;
 
   const save = () => {
     const t = text.trim();
     if (!t) return;
-    mutate((prev) => ({ journal: [...prev.journal, { date: todayDate(), text: t }] }));
+    mutate((prev) => ({ journalEntries: [...prev.journalEntries, { id: uid(), date: todayDate(), title: "Quick entry", text: t, mood: "Good", tags: [] }] }));
     setText("");
   };
 
@@ -358,9 +362,14 @@ export function InvestingCard() {
   const logPnL = () => {
     const n = Number(pnl);
     if (!n) return;
-    mutate((prev) => ({
-      investing: [...prev.investing, { date: todayDate(), value: (prev.investing.at(-1)?.value ?? 0) + n }],
-    }));
+    // Logged into the same manual trading ledger the balance above (and Investing page) reads.
+    mutate((prev) => {
+      const acc = prev.tradingAccounts[0];
+      if (!acc) return {};
+      const next = { ...prev, tradingTxns: [...prev.tradingTxns, { id: `dash-${uid()}`, accountId: acc.id, date: todayDate(), type: n > 0 ? "profit" as const : "loss" as const, amount: Math.abs(n), notes: "Dashboard P/L" }] };
+      const synced = syncTradingAssets(next);
+      return { tradingTxns: synced.tradingTxns, assets: synced.assets };
+    });
     setPnl("");
   };
 

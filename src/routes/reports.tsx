@@ -28,7 +28,10 @@ function ReportsPage() {
   const dayIso = (i: number) => `${selMonthKey}-${String(i + 1).padStart(2, "0")}`;
 
   // ----- Trading (real trades) -----
-  const trades = data.trades.filter((t) => inMonth(t.date));
+  // Manual trading ledger (same source as Investing + dashboard); legacy `trades` rows only if the ledger is empty.
+  const trades = data.tradingTxns.length
+    ? data.tradingTxns.filter((t) => inMonth(t.date)).map((t) => ({ date: t.date, pnl: t.type === "profit" ? t.amount : -t.amount }))
+    : data.trades.filter((t) => inMonth(t.date));
   const tradePnl = trades.reduce((a, t) => a + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;

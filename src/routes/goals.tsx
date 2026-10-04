@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Target, Plus, Trash2, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
-import { useEvolutionData, type Goal, type GoalCategory, todayDate, dayTotals, workoutCount, guitarFocusOnly } from "@/lib/evolution-data";
+import { useEvolutionData, type Goal, type GoalCategory, todayDate, dayTotals, tradingTotals, workoutCount, guitarFocusOnly } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/goals")({
   head: () => ({ meta: [{ title: "Goals — Evolution" }, { name: "description", content: "Goals module of Evolution OS." }, { property: "og:title", content: "Goals — Evolution" }, { property: "og:description", content: "Goals module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -28,7 +28,7 @@ function GoalsPage() {
 
   const moduleGoals = useMemo(() => {
     const today = todayDate();
-    const investingCurrent = data.investing.at(-1)?.value ?? 0;
+    const investingCurrent = tradingTotals(data.tradingAccounts, data.tradingTxns).balance;
     const weeklySessions = workoutCount(data.fitness, data.workouts, isThisWeek);
     const todayCalories = dayTotals(today, data.mealLogs).kcal;
     const monthKey = today.slice(0, 7);
