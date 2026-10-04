@@ -294,8 +294,15 @@ function InvestingPage() {
     }
     setJournalOpen(false);
   };
+  // Deleting a review also removes its linked daily P/L ledger row (deterministic id), unless
+  // another review for the same day still exists — so a deleted P/L can't linger in balances.
   const deleteJournal = (id: string) =>
-    mutateTrading((prev) => ({ tradeJournal: prev.tradeJournal.filter((e) => e.id !== id) }));
+    mutateTrading((prev) => {
+      const gone = prev.tradeJournal.find((e) => e.id === id);
+      const tradeJournal = prev.tradeJournal.filter((e) => e.id !== id);
+      if (!gone || tradeJournal.some((e) => e.date === gone.date)) return { tradeJournal };
+      return { tradeJournal, tradingTxns: prev.tradingTxns.filter((t) => t.id !== journalDailyTxId(gone.date)) };
+    });
 
 
   const journalByDate = useMemo(() => {

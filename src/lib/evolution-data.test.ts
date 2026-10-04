@@ -15,6 +15,14 @@ let failReads = 0, failWrites = 0, readDelay: Promise<void> | null = null;
 let holdWrites = false, reads = 0;
 const held: { resolve: (fail?: boolean) => void }[] = [];
 const uploads: { uid: string; data: any }[] = [];
+let stamp = 0;
+const ts: Record<string, string> = {};
+async function heldGate(): Promise<boolean> {
+  if (holdWrites) { const fail = await new Promise<boolean | undefined>((r) => held.push({ resolve: r })); if (fail) return true; }
+  if (failWrites > 0) { failWrites--; return true; }
+  return false;
+}
+function commit(uid: string, data: any) { cloud[uid] = data; ts[uid] = `t${++stamp}`; uploads.push({ uid, data }); }
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
@@ -23,12 +31,18 @@ vi.mock("@/integrations/supabase/client", () => ({
         reads++;
         if (readDelay) await readDelay;
         if (failReads > 0) { failReads--; return { data: null, error: { message: "boom" } }; }
-        return { data: cloud[uid] ? { data: JSON.parse(JSON.stringify(cloud[uid])) } : null, error: null };
+        if (cloud[uid] && !ts[uid]) ts[uid] = `t${++stamp}`;
+        return { data: cloud[uid] ? { data: JSON.parse(JSON.stringify(cloud[uid])), updated_at: ts[uid] } : null, error: null };
       } }) }),
-      upsert: async ({ user_id, data }: any) => {
-        if (holdWrites) { const fail = await new Promise<boolean | undefined>((r) => held.push({ resolve: r })); if (fail) return { error: { message: "offline" } }; }
-        if (failWrites > 0) { failWrites--; return { error: { message: "offline" } }; }
-        cloud[user_id] = data; uploads.push({ uid: user_id, data }); return { error: null };
+      update: ({ data }: any) => ({ eq: (_c: string, uid: string) => ({ eq: (_c2: string, at: string) => ({ select: async () => {
+        if (await heldGate()) return { data: null, error: { message: "offline" } };
+        if (!cloud[uid] || ts[uid] !== at) return { data: [], error: null }; // lost the race
+        commit(uid, data); return { data: [{ updated_at: ts[uid] }], error: null };
+      } }) }) }),
+      insert: async ({ user_id, data }: any) => {
+        if (await heldGate()) return { error: { message: "offline" } };
+        if (cloud[user_id]) return { error: { code: "23505", message: "dup" } };
+        commit(user_id, data); return { error: null };
       },
     }),
   },
@@ -45,7 +59,7 @@ beforeEach(() => {
   __cloudTest.deactivateCloud();
   for (const k in mem) delete mem[k];
   for (const k in cloud) delete cloud[k];
-  uploads.length = 0; failReads = 0; failWrites = 0; readDelay = null; holdWrites = false; held.length = 0; reads = 0;
+  uploads.length = 0; for (const k in ts) delete ts[k]; failReads = 0; failWrites = 0; readDelay = null; holdWrites = false; held.length = 0; reads = 0;
 });
 
 describe("hydrate", () => {
@@ -258,5 +272,135 @@ describe("clear all", () => {
     expect(s.tk.tasks).toEqual([]); expect(s.tk.events).toEqual([]); expect(s.fit).toEqual({ x: 1 });
     expect(mem["evolution:mobile-bridge:base:v1"]).toBeUndefined();
     expect(mem["evolution05:userdata:v4:cleared:local"]).toContain('"title":"t"');
+  });
+});
+
+describe("cross-device writes (compare-and-swap + re-merge)", () => {
+  const flushMicro = async () => { for (let i = 0; i < 30; i++) await Promise.resolve(); };
+  const otherDeviceAdds = (uid: string, t: any) => { cloud[uid] = { ...cloud[uid], evoTasks: [...cloud[uid].evoTasks, t] }; ts[uid] = `other${Math.random()}`; };
+  async function signedIn(uid = "U") {
+    mem["evolution:data:owner"] = uid;
+    cloud[uid] = { ...defaultData, evoTasks: [], _version: 6 };
+    await __cloudTest.activateCloudForUser(uid);
+  }
+
+  it("device B saved after A loaded: A's save keeps B's note (no blind overwrite)", async () => {
+    await signedIn();
+    otherDeviceAdds("U", task("b", "note B"));
+    edit({ evoTasks: [...local().evoTasks, task("a", "note A")] });
+    await __cloudTest.flushSave(); await __cloudTest.idle();
+    expect(cloud.U.evoTasks.map((t: any) => t.id).sort()).toEqual(["a", "b"]);
+    expect(local().evoTasks.map((t) => t.id).sort()).toEqual(["a", "b"]);
+  });
+
+  it("B writes between A's read and A's write: A's write is rejected, re-read and re-merged", async () => {
+    await signedIn();
+    holdWrites = true;
+    edit({ evoTasks: [task("a", "note A")] });
+    const p = __cloudTest.flushSave(); await flushMicro();
+    expect(held.length).toBe(1);
+    otherDeviceAdds("U", task("b", "note B")); // lands while A's write is pending
+    held[0].resolve(); await flushMicro();
+    expect(held.length).toBe(2);              // conflict → fresh read → second attempt
+    held[1].resolve(); await p; await __cloudTest.idle();
+    expect(cloud.U.evoTasks.map((t: any) => t.id).sort()).toEqual(["a", "b"]);
+  });
+
+  it("local edit made while a sync is in flight is kept and uploaded next", async () => {
+    await signedIn();
+    holdWrites = true;
+    edit({ evoTasks: [task("a", "A")] });
+    const p = __cloudTest.flushSave(); await flushMicro();
+    otherDeviceAdds("U", task("b", "B"));
+    edit({ evoTasks: [...local().evoTasks, task("c", "during sync")] });
+    held[0].resolve(); await flushMicro(); held[1]?.resolve(); await p; await flushMicro();
+    holdWrites = false; for (const h of held.slice(2)) h.resolve();
+    await __cloudTest.flushSave(); await __cloudTest.idle();
+    expect(local().evoTasks.map((t) => t.id).sort()).toEqual(["a", "b", "c"]);
+    expect(cloud.U.evoTasks.map((t: any) => t.id).sort()).toEqual(["a", "b", "c"]);
+  });
+
+  it("refresh pulls another device's edit into an already-active account without uploading unchanged data", async () => {
+    await signedIn();
+    otherDeviceAdds("U", task("b", "B"));
+    const n = uploads.length;
+    __cloudTest.refreshCloud(); await __cloudTest.idle();
+    expect(local().evoTasks.map((t) => t.id)).toEqual(["b"]);
+    expect(uploads.length).toBe(n);
+  });
+
+  it("offline edit, other device edits, reconnect: both kept", async () => {
+    await signedIn();
+    failWrites = 1;
+    edit({ evoTasks: [task("a", "offline")] });
+    await __cloudTest.flushSave(); await __cloudTest.idle();
+    expect(mod.getCloudStatus()).toBe("error");
+    otherDeviceAdds("U", task("b", "B"));
+    __cloudTest.resumeCloudRead(); await tick(20); await __cloudTest.idle();
+    expect(cloud.U.evoTasks.map((t: any) => t.id).sort()).toEqual(["a", "b"]);
+    expect(mod.getCloudStatus()).toBe("synced");
+  });
+});
+
+describe("sign-out masking", () => {
+  it("signed-out view hides the account's records; guest edits never reach it; sign-in restores them (incl. unsynced)", async () => {
+    mem["evolution:data:owner"] = "U";
+    cloud.U = { ...defaultData, evoTasks: [task("u1", "private")], _version: 6 };
+    await __cloudTest.activateCloudForUser("U");
+    failWrites = 5;
+    edit({ evoTasks: [...local().evoTasks, task("u2", "unsynced")] });
+    __cloudTest.deactivateCloud();
+    failWrites = 0;
+    expect(local().evoTasks).toEqual([]);
+    edit({ evoTasks: [task("g1", "guest")] });
+    await __cloudTest.activateCloudForUser("U"); await tick(); await __cloudTest.idle();
+    expect(local().evoTasks.map((t) => t.id).sort()).toEqual(["u1", "u2"]);
+    expect(JSON.stringify(cloud.U)).not.toContain("guest");
+    expect(cloud.U.evoTasks.map((t: any) => t.id).sort()).toEqual(["u1", "u2"]);
+  });
+});
+
+describe("non-destructive load", () => {
+  it("intentionally empty lists and legacy records survive a reload", () => {
+    mem[KEY] = JSON.stringify({ nutrition: [], fitness: [], investing: [], strategies: [], carEvents: [], grocery: [], _version: 6 });
+    const d = local();
+    expect([d.nutrition, d.fitness, d.investing, d.strategies, d.carEvents, d.grocery]).toEqual([[], [], [], [], [], []]);
+  });
+  it("old versions keep wealth / revenue / trading records instead of wiping them", () => {
+    const tx = { id: "t1", date: "2025-01-02", description: "Pay", amount: 100, type: "income", category: "Salary" };
+    mem[KEY] = JSON.stringify({ _version: 3, transactions: [tx], revenue: [{ id: "r1", date: "2025-01-02", amount: 5 }], tradingTxns: [{ id: "x", accountId: "acc-tradeday", date: "2025-01-02", type: "profit", amount: 7 }] });
+    const d = local();
+    expect(d.transactions.map((t) => t.id)).toEqual(["t1"]);
+    expect(d.revenue.length).toBe(1);
+    expect(d.tradingTxns.map((t) => t.id)).toEqual(["x"]);
+  });
+});
+
+describe("derived totals", () => {
+  const today = mod.todayDate();
+  it("nutrition shows only today's input and honors real zeros (no yesterday fallback)", () => {
+    const rows = [{ date: "2020-01-01", calories: 1800, protein: 150, carbs: 100, fats: 50 }];
+    expect(mod.nutritionSummary(rows, [], 2000, []).calories).toBe(0);
+    const logs = [{ id: "m", date: today, name: "x", calories: 300, protein: 0, carbs: 20, fats: 0 }] as any;
+    const s = mod.nutritionSummary(rows, [], 2000, logs);
+    expect([s.calories, s.protein, s.fats]).toEqual([300, 0, 0]);
+    expect(mod.nutritionSummary(rows, [], 0, logs).percent).toBe(0);
+  });
+  it("a workout logged with a legacy aggregate row counts once; delete leaves no ghost", () => {
+    const fitness = [{ date: today, workouts: 1 }, { date: "2020-01-01", workouts: 2 }];
+    const w = { id: "w1", date: today, type: "Push", durationMin: 60 } as any;
+    expect(mod.workoutCount(fitness, [w], () => true)).toBe(3); // 1 today + 2 legacy-only
+    const f2 = mod.fitnessAfterWorkoutDelete(fitness, [w], w);
+    expect(mod.workoutCount(f2, [], () => true)).toBe(2);
+  });
+  it("guitar manual log + its focus mirror count once; deleting removes only its own mirror", () => {
+    const g = { id: "g1", date: today, durationMin: 30, practiced: "scales" };
+    const now = Date.now();
+    const mirror = { id: mod.guitarMirrorId("g1"), startedAt: now - 1800000, completedAt: now, durationSec: 1800, mode: "focus", task: "Guitar: scales", tag: "Guitar" } as any;
+    const real = { ...mirror, id: "f-real", task: "Timer" };
+    expect(mod.guitarFocusOnly([mirror, real], [g]).map((f) => f.id)).toEqual(["f-real"]);
+    const after = mod.deleteGuitarSession({ guitarSessions: [g], focusSessions: [mirror, real] }, "g1");
+    expect(after.focusSessions.map((f) => f.id)).toEqual(["f-real"]);
+    expect(after.guitarSessions).toEqual([]);
   });
 });

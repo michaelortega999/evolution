@@ -441,6 +441,9 @@ export interface CustomHobby {
 export interface EvolutionData {
   supplementList?: { id: string; name: string; time: string; dose: string }[];
   supplementDone?: Record<string, string[]>;
+  weightTracker?: { weights: { date: string; lbs: number }[]; startingWeight: number | null; goalWeight: number | null };
+  /** Phone-design records with no desktop equivalent, kept per account (raw, versioned; not canonical). */
+  phoneStore?: { v: number; data: Record<string, unknown> };
   profile: Profile;
   nutrition: NutritionEntry[];
   fitness: FitnessEntry[];
@@ -552,34 +555,10 @@ function migrate(parsed: StoredShape): StoredShape {
   const v = parsed._version ?? 1;
   if (v === STORAGE_VERSION) return parsed;
   const next: StoredShape = { ...parsed };
-  // v3 → v4: clean-slate wealth data so the user starts from zero everywhere.
-  if (v < 4) {
-    next.transactions = [];
-    next.assets = [];
-    next.netWorthSnapshots = [];
-    next.revenue = [];
-    if (Array.isArray(next.goals)) {
-      next.goals = next.goals.filter((g) => g.category !== "Wealth");
-    }
-  }
-  // v4 → v5: seed trading accounts / journal, purge legacy trading-* assets so sync rebuilds them.
-  if (v < 5) {
-    next.tradingAccounts = undefined;
-    next.tradingTxns = undefined;
-    next.tradeJournal = undefined;
-    if (Array.isArray(next.assets)) {
-      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
-    }
-  }
-  // v5 → v6: reset to a single TradeDay Funded account at zero and wipe all trading transactions/journal.
-  if (v < 6) {
-    next.tradingAccounts = seedTradingAccounts();
-    next.tradingTxns = [];
-    next.tradeJournal = [];
-    if (Array.isArray(next.assets)) {
-      next.assets = next.assets.filter((a) => !a.id?.startsWith("trading-"));
-    }
-  }
+  // Older versions used to wipe wealth/revenue/trading records here. That was destructive and has
+  // been removed: valid legacy records are kept as-is; only genuinely missing structures get defaults
+  // (hydrate fills them). Nothing is deleted or reassigned.
+  if (!Array.isArray(next.tradingAccounts)) next.tradingAccounts = undefined;
   next._version = STORAGE_VERSION;
   return next;
 }
@@ -774,9 +753,9 @@ function hydrate(parsed: StoredShape): EvolutionData {
     ...defaultData,
     ...parsed,
     profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
-    nutrition: parsed.nutrition?.length ? parsed.nutrition : defaultData.nutrition,
-    fitness: parsed.fitness?.length ? parsed.fitness : defaultData.fitness,
-    investing: parsed.investing?.length ? parsed.investing : defaultData.investing,
+    nutrition: Array.isArray(parsed.nutrition) ? parsed.nutrition : defaultData.nutrition,
+    fitness: Array.isArray(parsed.fitness) ? parsed.fitness : defaultData.fitness,
+    investing: Array.isArray(parsed.investing) ? parsed.investing : defaultData.investing,
     meals: parsed.meals ?? [],
     notes: (() => {
       const r = (parsed as { notes?: unknown }).notes;
@@ -807,7 +786,7 @@ function hydrate(parsed: StoredShape): EvolutionData {
     reflections: parsed.reflections ?? [],
     richNotes: parsed.richNotes ?? [],
     trades: parsed.trades ?? [],
-    strategies: parsed.strategies?.length ? parsed.strategies : defaultData.strategies,
+    strategies: Array.isArray(parsed.strategies) ? parsed.strategies : defaultData.strategies,
     watchlist: parsed.watchlist ?? [],
     projects: parsed.projects ?? defaultData.projects,
     revenue: parsed.revenue ?? [],
@@ -817,7 +796,7 @@ function hydrate(parsed: StoredShape): EvolutionData {
     trips: parsed.trips ?? [],
     cars: parsed.cars ?? [],
     carExpenses: parsed.carExpenses ?? [],
-    carEvents: parsed.carEvents?.length ? parsed.carEvents : defaultData.carEvents,
+    carEvents: Array.isArray(parsed.carEvents) ? parsed.carEvents : defaultData.carEvents,
     guitarSkills: parsed.guitarSkills ?? [],
     guitarSongs: parsed.guitarSongs ?? [],
     guitarWeeklyHoursTarget: parsed.guitarWeeklyHoursTarget ?? 5,
@@ -979,41 +958,84 @@ function scheduleRetry(uid: string) {
   const delay = Math.min(60_000, 3000 * 2 ** retryCount++);
   retryTimer = setTimeout(() => {
     retryTimer = null;
-    if (cloudUserId === uid && getLocalOwner() === uid) void pushCloud(uid, load());
+    if (cloudUserId === uid && getLocalOwner() === uid) void pushCloud(uid);
   }, delay);
 }
 
-/** Single-flight upload. If a write is in flight, the latest local data is queued and sent after it. */
-function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
+type Row = { data: unknown; updated_at: string } | null;
+async function readRow(userId: string): Promise<{ ok: true; row: Row } | { ok: false }> {
+  try {
+    const { data, error } = await supabase.from("user_data").select("data, updated_at").eq("user_id", userId).maybeSingle();
+    if (error) return { ok: false };
+    return { ok: true, row: (data as Row) ?? null };
+  } catch { return { ok: false }; }
+}
+type WriteResult = "ok" | "conflict" | "error";
+/** Compare-and-swap on user_data.updated_at (bumped by a DB trigger), so two devices can't overwrite each other. */
+async function casWrite(userId: string, row: Row, payload: unknown): Promise<WriteResult> {
+  try {
+    if (row) {
+      const { data, error } = await supabase.from("user_data").update({ data: payload as never })
+        .eq("user_id", userId).eq("updated_at", row.updated_at).select("updated_at");
+      if (error) return "error";
+      return Array.isArray(data) && data.length > 0 ? "ok" : "conflict";
+    }
+    const { error } = await supabase.from("user_data").insert({ user_id: userId, data: payload as never });
+    if (!error) return "ok";
+    return (error as { code?: string }).code === "23505" ? "conflict" : "error";
+  } catch { return "error"; }
+}
+
+/**
+ * Single-flight sync: read the latest cloud copy, three-way merge this device's edits onto it
+ * (base = last acknowledged snapshot), and write only if something changed — guarded by
+ * updated_at so a concurrent write from another device forces a fresh read + re-merge with the
+ * CURRENT local data (never an old payload). If a sync is in flight, another one is queued.
+ */
+function pushCloud(userId: string, _data?: EvolutionData): Promise<boolean> {
   if (cloudUserId !== userId || getLocalOwner() !== userId) return Promise.resolve(false); // account changed
   const gen = cloudGen;
-  const rev = localRev;
+  let rev = localRev;
   if (pushInFlight) {
     queuedPush = { uid: userId, gen }; // coalesced: re-reads the latest local data when it runs
     setCloudStatus("saving");
     return pushInFlight;
   }
+  const isCurrent = () => gen === cloudGen && cloudUserId === userId && getLocalOwner() === userId;
   const run = (async () => {
     setCloudStatus("saving");
-    let ok = false;
-    try {
-      const payload = JSON.parse(JSON.stringify({ ...data, _version: STORAGE_VERSION }));
-      const { error } = await supabase.from("user_data").upsert({ user_id: userId, data: payload });
-      ok = !error;
-    } catch { ok = false; }
-    const current = gen === cloudGen && cloudUserId === userId && getLocalOwner() === userId;
-    if (ok && current) {
-      writeSynced(userId, data);        // this exact payload acknowledged → new merge base
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const r = await readRow(userId);
+      if (!isCurrent()) return { ok: false, current: false };
+      if (!r.ok) return { ok: false, current: true };
+      const startRev = localRev;
+      const local = load();
+      const base = readSynced(userId) ?? local;
+      const remote = r.row ? hydrate(migrate((r.row.data ?? {}) as StoredShape)) : null;
+      const merged = remote ? mergeEvolutionData(base, local, remote) : local;
+      let res: WriteResult = "ok";
+      if (!remote || !sameJSON(merged, remote)) {
+        res = await casWrite(userId, r.row, JSON.parse(JSON.stringify({ ...merged, _version: STORAGE_VERSION })));
+      }
+      if (!isCurrent()) return { ok: res === "ok", current: false };
+      if (res === "conflict") continue;          // someone else wrote in between → re-read, re-merge
+      if (res === "error") return { ok: false, current: true };
+      writeSynced(userId, merged);               // acknowledged → new merge base
       retryCount = 0;
+      if (localRev === startRev) { if (!sameJSON(local, merged)) writeLocal(merged); }
+      else writeLocal(mergeEvolutionData(local, load(), merged)); // keep edits made during the sync
+      rev = localRev;
+      if (remote && !sameJSON(merged, local)) window.dispatchEvent(new CustomEvent("evolution:cloud-refreshed"));
+      return { ok: true, current: true };
     }
-    return { ok, current };
+    return { ok: false, current: true };       // persistent contention → retry later, stays dirty
   })().then(({ ok, current }) => {
     pushInFlight = null;
     const q = queuedPush;
     queuedPush = null;
     const qValid = !!q && q.gen === cloudGen && cloudUserId === q.uid && getLocalOwner() === q.uid;
     if (!current) {
-      if (qValid) void pushCloud(q!.uid, load());
+      if (qValid) void pushCloud(q!.uid);
       return ok;
     }
     if (!ok) {
@@ -1021,12 +1043,19 @@ function pushCloud(userId: string, data: EvolutionData): Promise<boolean> {
       setCloudStatus("error"); scheduleRetry(userId);
       return false;
     }
-    if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId, load());
+    if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId);
     else setCloudStatus(pendingSave ? "saving" : "synced");
     return true;
   });
   pushInFlight = run;
   return run;
+}
+
+/** Lightweight refresh of an active account (focus / foreground / reconnect / interval). No overlap. */
+function refreshCloud(): void {
+  const uid = cloudUserId;
+  if (!uid || pulling || pushInFlight || pendingSave || getLocalOwner() !== uid) return;
+  void pushCloud(uid);
 }
 
 function cancelPendingSave() {
@@ -1057,6 +1086,7 @@ function writeLocal(data: EvolutionData) {
 }
 
 /** Archive the previous owner's local data and load this account's own device copy (or a clean slate). */
+export const GUEST_OWNER = "guest";
 function switchLocalOwner(userId: string) {
   const owner = getLocalOwner();
   if (owner === userId) return;
@@ -1133,6 +1163,25 @@ function resumeCloudRead(): void {
   void activateCloudForUser(uid, 1); // fresh retry budget; owner/generation guards still apply
 }
 
+/**
+ * Sign-out: stop syncing and mask the account's data. Its local copy (including unsynced edits) is
+ * archived under its owner and restored on that account's next sign-in; the signed-out view starts
+ * from a clean guest copy, so guest edits never alter the account's data.
+ */
+function maskSignedOutOwner() {
+  if (typeof window === "undefined") return;
+  const owner = getLocalOwner();
+  if (!owner || owner === GUEST_OWNER) return;
+  window.dispatchEvent(new CustomEvent("evolution:owner-changing", { detail: { from: owner, to: GUEST_OWNER } }));
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) localStorage.setItem(BACKUP_PREFIX + owner, raw);
+  const guest = localStorage.getItem(BACKUP_PREFIX + GUEST_OWNER);
+  if (guest) localStorage.setItem(STORAGE_KEY, guest); else localStorage.removeItem(STORAGE_KEY);
+  localStorage.setItem(OWNER_KEY, GUEST_OWNER);
+  window.dispatchEvent(new CustomEvent("evolution:data-updated"));
+  window.dispatchEvent(new CustomEvent("evolution:owner-changed", { detail: { from: owner, to: GUEST_OWNER } }));
+}
+
 function deactivateCloud() {
   cloudGen++;
   pulling = false;
@@ -1141,12 +1190,13 @@ function deactivateCloud() {
   cloudUserId = null;
   activatingFor = null;
   loadBaseline = null;
+  maskSignedOutOwner();
   setCloudStatus("signed-out");
   markReady();
 }
 
 /** Test hooks (not used by the app). */
-export const __cloudTest = { activateCloudForUser, deactivateCloud, resumeCloudRead, idle: async () => { while (pushInFlight) await pushInFlight; }, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
+export const __cloudTest = { activateCloudForUser, deactivateCloud, resumeCloudRead, refreshCloud, idle: async () => { while (pushInFlight) await pushInFlight; }, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
 
 if (typeof window !== "undefined" && typeof document !== "undefined" && !(globalThis as { __EVO_NO_AUTO_CLOUD__?: boolean }).__EVO_NO_AUTO_CLOUD__) {
   supabase.auth.getSession().then(({ data }) => {
@@ -1170,7 +1220,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && !(global
   };
   window.addEventListener("pagehide", flush);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
-  window.addEventListener("online", resumeCloudRead);
+  window.addEventListener("online", () => { resumeCloudRead(); refreshCloud(); });
+  window.addEventListener("focus", refreshCloud);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshCloud(); });
+  setInterval(refreshCloud, 60_000);
 }
 
 /** Hook: current cloud sync status for UI badges. */
@@ -1275,11 +1328,13 @@ export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: 
   const loggedCustom = todayLogs.reduce((acc, m) => ({
     kcal: acc.kcal + m.calories, p: acc.p + m.protein, c: acc.c + m.carbs, f: acc.f + m.fats,
   }), { kcal: 0, p: 0, c: 0, f: 0 });
-  const last = rows[rows.length - 1];
-  const kcal = (loggedQuick.kcal + loggedCustom.kcal) || last?.calories || 0;
-  const protein = (loggedQuick.p + loggedCustom.p) || last?.protein || 0;
-  const carbs = (loggedQuick.c + loggedCustom.c) || last?.carbs || 0;
-  const fats = (loggedQuick.f + loggedCustom.f) || last?.fats || 0;
+  // Only today's dated input counts — never fall back to an older day's numbers; zeros are real zeros.
+  const last = rows.find((r) => r.date === today);
+  const anyLogged = todayLogs.length > 0 || meals.length > 0;
+  const kcal = anyLogged ? loggedQuick.kcal + loggedCustom.kcal : last?.calories ?? 0;
+  const protein = anyLogged ? loggedQuick.p + loggedCustom.p : last?.protein ?? 0;
+  const carbs = anyLogged ? loggedQuick.c + loggedCustom.c : last?.carbs ?? 0;
+  const fats = anyLogged ? loggedQuick.f + loggedCustom.f : last?.fats ?? 0;
   return {
     last,
     target,
@@ -1287,7 +1342,7 @@ export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: 
     protein,
     carbs,
     fats,
-    percent: Math.min(100, Math.round((kcal / target) * 100)),
+    percent: target > 0 && Number.isFinite(target) ? Math.min(100, Math.round((kcal / target) * 100)) : 0,
   };
 }
 
@@ -1498,3 +1553,56 @@ export function syncTradingAssets(next: EvolutionData): EvolutionData {
 }
 
 
+
+// ------------- Derived counts (one counted source per record) -------------
+/**
+ * Workout sessions per day = max(legacy aggregate row, logged workouts on that day).
+ * Older builds wrote BOTH an aggregate `fitness` row and a `workouts` entry per session, so adding
+ * them double-counted; aggregate-only legacy days (no workout entries) still count.
+ */
+export function workoutCount(fitness: FitnessEntry[], workouts: WorkoutLog[], inRange: (date: string) => boolean): number {
+  const perDay = new Map<string, number>();
+  for (const w of workouts) if (inRange(w.date)) perDay.set(w.date, (perDay.get(w.date) ?? 0) + 1);
+  let total = 0;
+  const seen = new Set<string>();
+  for (const r of fitness) {
+    if (!inRange(r.date) || seen.has(r.date)) continue;
+    seen.add(r.date);
+    total += Math.max(r.workouts || 0, perDay.get(r.date) ?? 0);
+  }
+  for (const [d, n] of perDay) if (!seen.has(d)) total += n;
+  return total;
+}
+/** After deleting a workout, drop the matching legacy aggregate tally (only if it included it). */
+export function fitnessAfterWorkoutDelete(fitness: FitnessEntry[], workouts: WorkoutLog[], removed: WorkoutLog): FitnessEntry[] {
+  const before = workouts.filter((w) => w.date === removed.date).length;
+  return fitness.map((r) => (r.date === removed.date && r.workouts >= before && r.workouts > 0 ? { ...r, workouts: r.workouts - 1 } : r));
+}
+
+export const guitarMirrorId = (sessionId: string) => `gm-${sessionId}`;
+function isMirrorOf(f: FocusSession, g: GuitarSession): boolean {
+  if (f.id === guitarMirrorId(g.id)) return true;
+  // Legacy mirrors (written without a link): same task text, duration and local day.
+  return f.tag === "Guitar" && f.task === `Guitar: ${g.practiced}` && f.durationSec === g.durationMin * 60
+    && localISO(new Date(f.completedAt)) === g.date;
+}
+/** Guitar-tagged focus sessions that are NOT a mirror of a manual practice log (each counted once). */
+export function guitarFocusOnly(focus: FocusSession[], guitar: GuitarSession[]): FocusSession[] {
+  const used = new Set<string>();
+  const mirrors = new Set<string>();
+  for (const g of guitar) {
+    const m = focus.find((f) => !used.has(f.id) && isMirrorOf(f, g));
+    if (m) { used.add(m.id); mirrors.add(m.id); }
+  }
+  return focus.filter((f) => f.tag === "Guitar" && !mirrors.has(f.id));
+}
+/** Remove a manual practice log and only its own linked focus mirror. */
+export function deleteGuitarSession(d: Pick<EvolutionData, "guitarSessions" | "focusSessions">, id: string) {
+  const g = d.guitarSessions.find((s) => s.id === id);
+  if (!g) return { guitarSessions: d.guitarSessions, focusSessions: d.focusSessions };
+  const mirror = d.focusSessions.find((f) => f.id === guitarMirrorId(id)) ?? d.focusSessions.find((f) => isMirrorOf(f, g));
+  return {
+    guitarSessions: d.guitarSessions.filter((s) => s.id !== id),
+    focusSessions: mirror ? d.focusSessions.filter((f) => f.id !== mirror.id) : d.focusSessions,
+  };
+}

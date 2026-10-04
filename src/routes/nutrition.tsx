@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   useEvolutionData, MEAL_TYPES, todayDate, uid,
-  dayTotals, nutritionStreak,
+  dayTotals, nutritionStreak, getLocalOwner,
   type MealType, type GroceryItem,
 } from "@/lib/evolution-data";
 import { useSelectedMonth } from "@/lib/use-selected-month";
@@ -180,15 +180,7 @@ function NutritionPage() {
     : todayWater <= 7 ? "Almost there — one more push"
     : "Fully hydrated — excellent work";
 
-  // ------- Grocery: seed standard list once -------
-  useEffect(() => {
-    if (!data.grocery || data.grocery.length === 0) {
-      mutate(() => ({
-        grocery: STANDARD_GROCERY.map((s) => ({ ...s, id: uid(), done: false })),
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Grocery list is never auto-filled: an empty list stays empty (it may have been cleared on purpose).
 
   // (Removed one-time "reset today to zero" effect — it was wiping meals
   // the user added, causing them to disappear after refresh.)
@@ -358,36 +350,37 @@ function NutritionPage() {
 
   // ------- Overview: weight tracker (local) -------
   type WeightEntry = { date: string; lbs: number };
-  const [weights, setWeights] = useState<WeightEntry[]>([]);
+  // Saved with this account's data (synced, owner-scoped). The old device-wide "nutrition.weightTracker"
+  // key is kept untouched as a legacy backup and only adopted on a device with no signed-in owner.
+  const wt = data.weightTracker;
+  const weights: WeightEntry[] = wt?.weights ?? [];
+  const startingWeight = wt?.startingWeight ?? null;
+  const goalWeight = wt?.goalWeight ?? null;
+  const setWT = (fn: (w: { weights: WeightEntry[]; startingWeight: number | null; goalWeight: number | null }) => Partial<{ weights: WeightEntry[]; startingWeight: number | null; goalWeight: number | null }>) =>
+    mutate((p) => {
+      const cur = { weights: p.weightTracker?.weights ?? [], startingWeight: p.weightTracker?.startingWeight ?? null, goalWeight: p.weightTracker?.goalWeight ?? null };
+      return { weightTracker: { ...cur, ...fn(cur) } };
+    });
   const [weightPeriod, setWeightPeriod] = useState<"7D" | "30D" | "90D" | "1Y" | "ALL">("30D");
   const [logWeightOpen, setLogWeightOpen] = useState(false);
   const [newWeight, setNewWeight] = useState("");
   const [newStartingWeight, setNewStartingWeight] = useState("");
   const [newGoalWeight, setNewGoalWeight] = useState("");
-  const [startingWeight, setStartingWeight] = useState<number | null>(null);
-  const [goalWeight, setGoalWeight] = useState<number | null>(null);
-  const [weightHydrated, setWeightHydrated] = useState(false);
   useEffect(() => {
+    if (data.weightTracker || getLocalOwner()) return;
     try {
       const raw = localStorage.getItem("nutrition.weightTracker");
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (Array.isArray(data.weights)) setWeights(data.weights);
-        if (typeof data.startingWeight === "number") setStartingWeight(data.startingWeight);
-        if (typeof data.goalWeight === "number") setGoalWeight(data.goalWeight);
-      }
-    } catch {}
-    setWeightHydrated(true);
-  }, []);
-  useEffect(() => {
-    if (!weightHydrated) return;
-    try {
-      localStorage.setItem(
-        "nutrition.weightTracker",
-        JSON.stringify({ weights, startingWeight, goalWeight })
-      );
-    } catch {}
-  }, [weights, startingWeight, goalWeight, weightHydrated]);
+      if (!raw) return;
+      const legacy = JSON.parse(raw);
+      if (!Array.isArray(legacy.weights)) return;
+      mutate(() => ({ weightTracker: {
+        weights: legacy.weights,
+        startingWeight: typeof legacy.startingWeight === "number" ? legacy.startingWeight : null,
+        goalWeight: typeof legacy.goalWeight === "number" ? legacy.goalWeight : null,
+      } }));
+    } catch { /* keep legacy as-is */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.weightTracker]);
 
   const currentWeight = weights[weights.length - 1]?.lbs ?? 0;
   const startWeight = startingWeight ?? weights[0]?.lbs ?? 0;
@@ -407,22 +400,12 @@ function NutritionPage() {
     const gw = Number(newGoalWeight);
     const hasStart = !!newStartingWeight && !Number.isNaN(sw) && sw > 0;
     const hasGoal = !!newGoalWeight && !Number.isNaN(gw) && gw > 0;
-    // If starting or goal provided → reset the chart (new goal cycle)
-    if (hasStart || hasGoal) {
-      const today = todayDate();
-      const seed: WeightEntry[] = v
-        ? [{ date: today, lbs: v }]
-        : hasStart
-        ? [{ date: today, lbs: sw }]
-        : [];
-      setWeights(seed);
-      if (hasStart) setStartingWeight(sw);
-      else if (v) setStartingWeight(v);
-      if (hasGoal) setGoalWeight(gw);
-    } else if (v) {
-      setWeights((w) => [...w, { date: todayDate(), lbs: v }]);
-      if (startingWeight === null) setStartingWeight(v);
-    }
+    // Editing start/goal never erases logged history.
+    setWT((w) => ({
+      weights: v ? [...w.weights, { date: todayDate(), lbs: v }] : w.weights,
+      startingWeight: hasStart ? sw : w.startingWeight ?? (v || null),
+      goalWeight: hasGoal ? gw : w.goalWeight,
+    }));
     setNewWeight("");
     setNewStartingWeight("");
     setNewGoalWeight("");

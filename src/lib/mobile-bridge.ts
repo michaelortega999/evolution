@@ -117,7 +117,10 @@ export function syncMobileBridge(writePhone: boolean): boolean {
   if (writePhone) alignMobileOwner();
   if (!mobileOwnerMatches()) return false; // never reconcile one account's phone data into another's
   const desk = loadEvolutionData();
-  const store = readMobile() ?? (writePhone ? { seedv: MOBILE_SEED_V } : null);
+  const localStore = readMobile();
+  // New device / cleared phone store: restore this account's phone-only sections from its cloud copy.
+  const restored = !localStore && writePhone && desk.phoneStore?.data ? { ...desk.phoneStore.data } : null;
+  const store = localStore ?? restored ?? (writePhone ? { seedv: MOBILE_SEED_V } : null);
   if (!store) return false;
   if (writePhone && store.seedv !== MOBILE_SEED_V) store.seedv = MOBILE_SEED_V;
   const tk = store.tk ?? { tab: "TODAY", filter: "ALL", monthOffset: 0, sel: null, nt: { title: "", sub: "", cat: "PERSONAL", time: "" }, nh: "", nf: "", tasks: [], habits: [], focus: [], events: [], goals: [] };
@@ -233,6 +236,18 @@ export function syncMobileBridge(writePhone: boolean): boolean {
     }
   }
   if (!same(nextBase, base)) localStorage.setItem(BASE_KEY, JSON.stringify(nextBase));
+  if (writePhone && restored) changed = true;
+
+  // Phone-only sections (journal, fitness, nutrition, investing, wealth, business, focus, profile…)
+  // have no full desktop equivalent yet: keep them in the account's own synced data as a versioned
+  // raw copy. Tasks/events are excluded (they live canonically in evoTasks/calendar).
+  const latestStore = writePhone ? readMobile() ?? store : store;
+  const phoneOnly = phoneOnlySections(latestStore);
+  const deskNow = loadEvolutionData();
+  if (phoneOnly && !same(deskNow.phoneStore?.data, phoneOnly)) {
+    saveEvolutionData({ ...deskNow, phoneStore: { v: 1, data: phoneOnly } });
+    changed = true;
+  }
   return changed;
 }
 
@@ -240,3 +255,11 @@ export function syncMobileBridge(writePhone: boolean): boolean {
 export function pushDesktopIntoMobile() { syncMobileBridge(true); }
 /** Phone → desktop while the phone design is running (never touches the phone store). */
 export function pullMobileIntoDesktop() { syncMobileBridge(false); }
+
+/** Phone store minus the tasks/events the bridge already maps (pure; unknown fields are kept). */
+export function phoneOnlySections(store: Record<string, any> | null): Record<string, unknown> | null {
+  if (!store || typeof store !== "object") return null;
+  const out: Record<string, unknown> = JSON.parse(JSON.stringify(store));
+  if (out.tk && typeof out.tk === "object") { const tk = { ...(out.tk as Record<string, unknown>) }; delete tk.tasks; delete tk.events; out.tk = tk; }
+  return out;
+}

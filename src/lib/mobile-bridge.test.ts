@@ -81,3 +81,16 @@ describe("bridge: running phone + accounts", () => {
     expect(phone().tasks.map((t: any) => t.title)).toEqual(["A secret"]);
   });
 });
+
+describe("phone-only sections", () => {
+  it("are kept per account (without tasks/events) and restored on a fresh device", async () => {
+    const { phoneOnlySections } = await import("./mobile-bridge");
+    const store = { seedv: 3, jr: { entries: [{ id: 9, title: "mine" }] }, fit: { sessions: [{ id: 1, date: "2026-10-04" }] }, futureField: 1, tk: { tasks: [{ id: 1 }], events: [{ id: 2 }], goals: [{ id: 3 }] } };
+    const out = phoneOnlySections(store) as any;
+    expect(out.jr.entries[0].title).toBe("mine");
+    expect(out.futureField).toBe(1);
+    expect(out.tk.tasks).toBeUndefined();
+    expect(out.tk.events).toBeUndefined();
+    expect(out.tk.goals).toEqual([{ id: 3 }]);
+  });
+});

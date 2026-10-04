@@ -4,7 +4,7 @@ import { BarChart3, Download } from "lucide-react";
 import { useMemo } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
-import { useEvolutionData, todayDate, dayTotals } from "@/lib/evolution-data";
+import { useEvolutionData, todayDate, dayTotals, workoutCount } from "@/lib/evolution-data";
 import { useSelectedMonth, MONTH_LABELS } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/reports")({
@@ -28,7 +28,10 @@ function ReportsPage() {
   const dayIso = (i: number) => `${selMonthKey}-${String(i + 1).padStart(2, "0")}`;
 
   // ----- Trading (real trades) -----
-  const trades = data.trades.filter((t) => inMonth(t.date));
+  // Manual trading ledger (same source as Investing + dashboard); legacy `trades` rows only if the ledger is empty.
+  const trades = data.tradingTxns.length
+    ? data.tradingTxns.filter((t) => inMonth(t.date)).map((t) => ({ date: t.date, pnl: t.type === "profit" ? t.amount : -t.amount }))
+    : data.trades.filter((t) => inMonth(t.date));
   const tradePnl = trades.reduce((a, t) => a + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
@@ -50,8 +53,7 @@ function ReportsPage() {
 
   // ----- Fitness (workouts + fitness rows) -----
   const workoutLogs = data.workouts.filter((w) => inMonth(w.date));
-  const fitnessRows = data.fitness.filter((r) => inMonth(r.date));
-  const sessions = workoutLogs.length + fitnessRows.reduce((a, r) => a + r.workouts, 0);
+  const sessions = workoutCount(data.fitness, data.workouts, inMonth);
   const totalVolume = workoutLogs.reduce((a, w) => a + w.durationMin * 100, 0);
   const prsThisMonth = data.prHistory.filter((p) => inMonth(p.date)).length;
 
