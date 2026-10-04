@@ -441,6 +441,9 @@ export interface CustomHobby {
 export interface EvolutionData {
   supplementList?: { id: string; name: string; time: string; dose: string }[];
   supplementDone?: Record<string, string[]>;
+  weightTracker?: { weights: { date: string; lbs: number }[]; startingWeight: number | null; goalWeight: number | null };
+  /** Phone-design records with no desktop equivalent, kept per account (raw, versioned; not canonical). */
+  phoneStore?: { v: number; data: Record<string, unknown> };
   profile: Profile;
   nutrition: NutritionEntry[];
   fitness: FitnessEntry[];
