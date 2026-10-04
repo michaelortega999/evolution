@@ -11,13 +11,20 @@ import {
   loadEvolutionData, saveEvolutionData,
   type EvoTask, type EvoCategory, type CalendarEvent,
 } from "./evolution-data";
+import { mergePhoneData, advanceBase, sameJSON } from "./record-merge";
 
 export const MOBILE_KEY = "evolution05:userdata:v4";
 export const BASE_KEY = "evolution:mobile-bridge:base:v1";
 /** Which account the phone store + base belong to. */
+/** Last phone-only data both the phone and the account were known to hold (three-way merge base). */
+export const PHONE_BASE_KEY = "evolution:mobile-bridge:phone-base:v1";
 export const PHONE_OWNER_KEY = "evolution:mobile-bridge:owner";
 const DESK_OWNER_KEY = "evolution:data:owner"; // = OWNER_KEY in evolution-data.ts
 const MOBILE_SEED_V = 3;
+/** Phone tasks-screen UI state: kept on the device, never merged or uploaded. */
+const TRANSIENT_TK = ["tab", "filter", "monthOffset", "sel", "nt", "nh", "nf"];
+const DEFAULT_TK: Record<string, any> = { tab: "TODAY", filter: "ALL", monthOffset: 0, sel: null, nt: { title: "", sub: "", cat: "PERSONAL", time: "" }, nh: "", nf: "", tasks: [], habits: [], focus: [], events: [], goals: [] };
+const isObj = (v: unknown): v is Record<string, any> => !!v && typeof v === "object" && !Array.isArray(v);
 const archiveKey = (key: string, owner: string) => `${key}:owner:${owner}`;
 
 /**
@@ -30,8 +37,19 @@ export function alignMobileOwner(): void {
   const owner = localStorage.getItem(DESK_OWNER_KEY);
   const cur = localStorage.getItem(PHONE_OWNER_KEY);
   if (!owner || cur === owner) return;
-  if (cur === null) { localStorage.setItem(PHONE_OWNER_KEY, owner); return; } // first run: adopt existing store
-  for (const key of [MOBILE_KEY, BASE_KEY]) {
+  if (cur === null) {
+    // Unowned legacy phone data: keep a raw backup; only a guest device adopts it, never a signed-in account.
+    if (owner === "guest") { localStorage.setItem(PHONE_OWNER_KEY, owner); return; }
+    for (const key of [MOBILE_KEY, BASE_KEY, PHONE_BASE_KEY]) {
+      const raw = localStorage.getItem(key);
+      if (raw) { if (!localStorage.getItem(`${key}:unowned`)) localStorage.setItem(`${key}:unowned`, raw); localStorage.removeItem(key); }
+      const mine = localStorage.getItem(archiveKey(key, owner));
+      if (mine) localStorage.setItem(key, mine);
+    }
+    localStorage.setItem(PHONE_OWNER_KEY, owner);
+    return;
+  }
+  for (const key of [MOBILE_KEY, BASE_KEY, PHONE_BASE_KEY]) {
     const raw = localStorage.getItem(key);
     if (raw) localStorage.setItem(archiveKey(key, cur), raw);
     const mine = localStorage.getItem(archiveKey(key, owner));
@@ -118,12 +136,10 @@ export function syncMobileBridge(writePhone: boolean): boolean {
   if (!mobileOwnerMatches()) return false; // never reconcile one account's phone data into another's
   const desk = loadEvolutionData();
   const localStore = readMobile();
-  // New device / cleared phone store: restore this account's phone-only sections from its cloud copy.
-  const restored = !localStore && writePhone && desk.phoneStore?.data ? { ...desk.phoneStore.data } : null;
-  const store = localStore ?? restored ?? (writePhone ? { seedv: MOBILE_SEED_V } : null);
+  const store = localStore ?? (writePhone ? { seedv: MOBILE_SEED_V } : null);
   if (!store) return false;
   if (writePhone && store.seedv !== MOBILE_SEED_V) store.seedv = MOBILE_SEED_V;
-  const tk = store.tk ?? { tab: "TODAY", filter: "ALL", monthOffset: 0, sel: null, nt: { title: "", sub: "", cat: "PERSONAL", time: "" }, nh: "", nf: "", tasks: [], habits: [], focus: [], events: [], goals: [] };
+  const tk = store.tk ?? { ...DEFAULT_TK };
   if (!writePhone && !store.tk) return false;
   const base = readBase();
 
@@ -180,6 +196,18 @@ export function syncMobileBridge(writePhone: boolean): boolean {
     changed = true;
   }
 
+  // ---- Phone-only sections: three-way merge (phone ↔ account copy) against a true phone base ----
+  const deskNow = loadEvolutionData();
+  const remotePhone = deskNow.phoneStore?.data;
+  const phoneBase = readJSON<Record<string, unknown>>(PHONE_BASE_KEY) ?? undefined;
+  // A store that never held phone-only data (fresh device) contributes nothing, so restore wins.
+  const heldPhone = localStore ? phoneOnlySections(localStore) ?? undefined : undefined;
+  const mergedPhone = mergePhoneData(phoneBase, heldPhone, remotePhone);
+  if (mergedPhone && !sameJSON(remotePhone, mergedPhone)) {
+    saveEvolutionData({ ...deskNow, phoneStore: { v: 1, data: mergedPhone } });
+    changed = true;
+  }
+
   // ---- Phone result ----
   if (writePhone) {
     let nextId = Math.max(0, ...mTasks.map((t) => t.id || 0)) + 1;
@@ -206,14 +234,20 @@ export function syncMobileBridge(writePhone: boolean): boolean {
         cat: m?.cat ?? "PERSONAL",
       } as MEvent;
     });
-    if (!same(nextPhoneTasks, mTasks) || !same(nextPhoneEvents, mEvents) || !store.tk) {
-      tk.tasks = nextPhoneTasks;
-      tk.events = nextPhoneEvents;
-      store.tk = tk;
-      localStorage.setItem(MOBILE_KEY, JSON.stringify(store));
-      changed = true;
-    }
+    // Always materialize the resolved snapshot before the frame starts (unknown fields kept).
+    const resolved: Record<string, any> = mergedPhone ? JSON.parse(JSON.stringify(mergedPhone)) : {};
+    const transient = Object.fromEntries(TRANSIENT_TK.filter((k) => k in tk).map((k) => [k, tk[k]]));
+    const finalStore = {
+      ...resolved, seedv: MOBILE_SEED_V,
+      tk: { ...DEFAULT_TK, ...transient, ...(isObj(resolved.tk) ? resolved.tk : {}), tasks: nextPhoneTasks, events: nextPhoneEvents },
+    };
+    const raw = JSON.stringify(finalStore);
+    if (localStorage.getItem(MOBILE_KEY) !== raw) { localStorage.setItem(MOBILE_KEY, raw); changed = true; }
   }
+  // Phone base advances fully when the phone was just written; while it runs, only where it holds the merged value.
+  const nextPhoneBase = writePhone ? mergedPhone : advanceBase(phoneBase, heldPhone, mergedPhone);
+  if (nextPhoneBase !== undefined && !sameJSON(nextPhoneBase, phoneBase)) localStorage.setItem(PHONE_BASE_KEY, JSON.stringify(nextPhoneBase));
+
 
   // Base = the value both sides actually share. While the phone design is running we
   // can't update it, so an item only advances its base when the phone already holds the
@@ -236,18 +270,6 @@ export function syncMobileBridge(writePhone: boolean): boolean {
     }
   }
   if (!same(nextBase, base)) localStorage.setItem(BASE_KEY, JSON.stringify(nextBase));
-  if (writePhone && restored) changed = true;
-
-  // Phone-only sections (journal, fitness, nutrition, investing, wealth, business, focus, profile…)
-  // have no full desktop equivalent yet: keep them in the account's own synced data as a versioned
-  // raw copy. Tasks/events are excluded (they live canonically in evoTasks/calendar).
-  const latestStore = writePhone ? readMobile() ?? store : store;
-  const phoneOnly = phoneOnlySections(latestStore);
-  const deskNow = loadEvolutionData();
-  if (phoneOnly && !same(deskNow.phoneStore?.data, phoneOnly)) {
-    saveEvolutionData({ ...deskNow, phoneStore: { v: 1, data: phoneOnly } });
-    changed = true;
-  }
   return changed;
 }
 
@@ -260,6 +282,6 @@ export function pullMobileIntoDesktop() { syncMobileBridge(false); }
 export function phoneOnlySections(store: Record<string, any> | null): Record<string, unknown> | null {
   if (!store || typeof store !== "object") return null;
   const out: Record<string, unknown> = JSON.parse(JSON.stringify(store));
-  if (out.tk && typeof out.tk === "object") { const tk = { ...(out.tk as Record<string, unknown>) }; delete tk.tasks; delete tk.events; out.tk = tk; }
+  if (out.tk && typeof out.tk === "object") { const tk = { ...(out.tk as Record<string, unknown>) }; delete tk.tasks; delete tk.events; for (const k of TRANSIENT_TK) delete tk[k]; out.tk = tk; }
   return out;
 }
