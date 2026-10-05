@@ -4877,6 +4877,7 @@ const NAV = REGIONS.filter(r => r.id.indexOf("nav-") === 0).map(r => ({
 
 class Component extends DCLogic {
   state = {
+    signOutPending: false, signOutError: "",
     route: "home", now: new Date(), month: new Date().getMonth(),
     sheet: false, mode: "focus", focusMin: 25, breakMin: 5,
     remaining: 25 * 60, running: false,
@@ -5079,6 +5080,7 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
+    window.addEventListener("message", this.onSignOutResult);
     window.addEventListener("evo:bank-updated", () => this.forceUpdate());
     const saved = evoLoad();
     this._loaded = true;
@@ -5090,7 +5092,7 @@ class Component extends DCLogic {
     if (saved && typeof saved === "object") {
       const next = {};
       Object.keys(saved).forEach(k => {
-        if (saved[k] !== undefined && saved[k] !== null && this.state[k] !== undefined) next[k] = saved[k];
+        if (k !== "signOutPending" && k !== "signOutError" && saved[k] !== undefined && saved[k] !== null && this.state[k] !== undefined) next[k] = saved[k];
       });
       if (Object.keys(next).length) this.setState(next);
     }
@@ -5109,7 +5111,30 @@ class Component extends DCLogic {
       this.fcTick();
     }, 1000);
   }
-  componentWillUnmount() { clearInterval(this._t); this.fcAudioStop(); }
+  componentWillUnmount() { clearInterval(this._t); this.fcAudioStop(); window.removeEventListener("message", this.onSignOutResult); clearTimeout(this._signOutTimeout); }
+
+  requestSignOut = () => {
+    if (this.state.signOutPending) return;
+    const requestId = "so_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    this._signOutId = requestId;
+    this.setState({ signOutPending: true, signOutError: "" });
+    this._signOutTimeout = setTimeout(() => {
+      if (this._signOutId !== requestId) return;
+      this._signOutId = null;
+      this.setState({ signOutPending: false, signOutError: "Sign-out not confirmed. Tap to retry." });
+    }, 10000);
+    window.parent.postMessage({ type: "evo:sign-out-request", requestId }, window.location.origin);
+  };
+
+  onSignOutResult = (event) => {
+    const m = event.data;
+    if (event.source !== window.parent || event.origin !== window.location.origin || !m ||
+        m.type !== "evo:sign-out-result" || !this._signOutId || m.requestId !== this._signOutId || typeof m.ok !== "boolean") return;
+    this._signOutId = null;
+    clearTimeout(this._signOutTimeout);
+    this.setState({ signOutPending: false, signOutError: m.ok ? "" : "Couldn't sign out. Tap to retry." });
+    if (m.ok) this.setState(s => ({ route: "home", pf: Object.assign({}, s.pf, { signedOut: true }) }));
+  };
 
   go(id) {
     if (id === "start") return this.setState(s => (s.remaining > 0 ? { running: true } : null));
@@ -7360,11 +7385,8 @@ class Component extends DCLogic {
           pf: Object.assign({}, makeProfile(), { name: p.name, tagline: p.tagline, email: p.email, joined: p.joined, theme: p.theme, mode: p.mode, tab: "SECURITY" })
         });
       },
-      pfSignOutLabel: p.signedOut ? "\u2192  Signed Out \u2014 Tap to Return" : "\u2192  Sign Out",
-      pfSignOut: () => {
-        if (p.signedOut) return this.setState({ route: "home", pf: Object.assign({}, p, { signedOut: false }) });
-        this.pfSet({ signedOut: true });
-      }
+      pfSignOutLabel: this.state.signOutPending ? "Signing out…" : this.state.signOutError || "Sign Out",
+      pfSignOut: this.requestSignOut
     };
   }
 
@@ -7552,12 +7574,8 @@ class Component extends DCLogic {
         toggleRow("biometrics", "Biometric unlock", "Face or fingerprint"),
         toggleRow("twoFactor", "Two-factor auth", "Second step on new devices")
       ],
-      pfSignOutLabel: pf.signedOut ? "SIGNED OUT \u00b7 TAP TO RETURN" : "Sign Out",
-      pfSignOut: () => {
-        if (pf.signedOut) return set({ signedOut: false });
-        set({ signedOut: true });
-        this.setState({ route: "home" });
-      }
+      pfSignOutLabel: this.state.signOutPending ? "Signing out…" : this.state.signOutError || "Sign Out",
+      pfSignOut: this.requestSignOut
     };
   }
 

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { cloudReady, useCloudStatus } from "@/lib/evolution-data";
+import { cloudReady, useCloudStatus, getLocalOwner } from "@/lib/evolution-data";
+import { createPhoneSignOutHandler } from "@/lib/mobile-auth";
 import { pullMobileIntoDesktop, pushDesktopIntoMobile } from "@/lib/mobile-bridge";
 import { bankStore } from "@/lib/finance-store";
 import { wireBankAuth, useBank } from "@/lib/use-bank";
@@ -41,6 +42,14 @@ export function MobileApp() {
     let alive = true;
     let poll: ReturnType<typeof setInterval> | null = null;
     const flush = () => { if (readyRef.current) pullMobileIntoDesktop(); };
+    const onPhoneSignOut = createPhoneSignOutHandler({
+      origin: window.location.origin,
+      getFrame: () => frameRef.current?.contentWindow ?? null,
+      getOwner: getLocalOwner,
+      flush,
+      signOut: () => supabase.auth.signOut({ scope: "local" }),
+    });
+    window.addEventListener("message", onPhoneSignOut);
     let started = false;
     const start = () => {
       if (!alive) return;
@@ -92,6 +101,7 @@ export function MobileApp() {
       if (poll) clearInterval(poll);
       flush();
       sub.subscription.unsubscribe();
+      window.removeEventListener("message", onPhoneSignOut);
       window.removeEventListener("evolution:owner-changing", onOwnerChanging);
       window.removeEventListener("evolution:owner-changed", onOwnerChanged);
       window.removeEventListener("evolution:cloud-loaded", onCloudLoaded);
