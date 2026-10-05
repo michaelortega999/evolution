@@ -1,7 +1,8 @@
 import { localISO } from "./utils";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createFocusTimerStore, freshTimer, timerKey, type PersistedTimer, type TimerSnapshot } from "./focus-timer-store";
 import {
-  useEvolutionData,
+  useEvolutionData, getLocalOwner, OWNER_KEY,
   type FocusMode,
   type FocusTag,
   type FocusSession,
@@ -17,43 +18,22 @@ function tagToModule(tag: FocusTag | null | undefined): EvoCategory {
 }
 
 
-const TIMER_KEY = "evolution:focus-timer:v1";
-
-interface PersistedTimer {
-  mode: FocusMode;
-  task: string;
-  tag: FocusTag | null;
-  round: number;
-  startedAt: number | null; // epoch ms when running
-  remainingMs: number;       // remaining when paused
-  running: boolean;
-}
-
-const defaultTimer: PersistedTimer = {
-  mode: "focus",
-  task: "",
-  tag: null,
-  round: 1,
-  startedAt: null,
-  remainingMs: 25 * 60 * 1000,
-  running: false,
-};
-
-function loadTimer(settings: FocusSettings): PersistedTimer {
-  if (typeof window === "undefined") return { ...defaultTimer, remainingMs: settings.focusMin * 60 * 1000 };
-  try {
-    const raw = localStorage.getItem(TIMER_KEY);
-    if (!raw) return { ...defaultTimer, remainingMs: settings.focusMin * 60 * 1000 };
-    return { ...defaultTimer, ...(JSON.parse(raw) as Partial<PersistedTimer>) };
-  } catch {
-    return { ...defaultTimer, remainingMs: settings.focusMin * 60 * 1000 };
-  }
-}
-
-function saveTimer(state: PersistedTimer) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(TIMER_KEY, JSON.stringify(state));
-  queueMicrotask(() => window.dispatchEvent(new CustomEvent("evolution:focus-timer-updated")));
+type TimerStore = ReturnType<typeof createFocusTimerStore>;
+let timerStore: TimerStore | null = null;
+function getTimerStore(): TimerStore | null {
+  if (typeof window === "undefined") return null;
+  if (timerStore) return timerStore;
+  const store = createFocusTimerStore(localStorage, getLocalOwner);
+  timerStore = store;
+  window.addEventListener("evolution:owner-changing", () => store.beginOwnerChange());
+  window.addEventListener("evolution:owner-changed", () => store.finishOwnerChange());
+  // Also covers the initial unowned → signed-in transition and other-tab owner changes.
+  window.addEventListener("evolution:data-updated", () => store.refresh());
+  window.addEventListener("storage", (event) => {
+    if (event.key === null || event.key === OWNER_KEY) store.finishOwnerChange();
+    else if (event.key === timerKey(getLocalOwner() ?? "guest")) store.refresh();
+  });
+  return store;
 }
 
 export function modeDurationMs(mode: FocusMode, settings: FocusSettings) {
@@ -91,211 +71,130 @@ interface UseFocusTimer {
 export function useFocusTimer(): UseFocusTimer {
   const { data, mutate } = useEvolutionData();
   const settings = data.focusSettings;
-  const [state, setState] = useState<PersistedTimer>(() => loadTimer(settings));
+  const store = getTimerStore();
+  const [snapshot, setSnapshot] = useState<TimerSnapshot>(() => store?.read(settings) ?? {
+    lease: { owner: "guest", generation: 0 }, timer: freshTimer(settings),
+  });
+  const lease = snapshot.lease;
+  const current = !!store?.isCurrent(lease);
+  const state = current ? snapshot.timer : freshTimer(settings);
   const [tick, setTick] = useState(0);
   const [notification, setNotification] = useState<UseFocusTimer["notification"]>(null);
   const completingRef = useRef(false);
 
-  // Sync from other tabs / components
   useEffect(() => {
-    const handler = () => setState(loadTimer(settings));
-    window.addEventListener("evolution:focus-timer-updated", handler);
-    window.addEventListener("storage", handler);
-    return () => {
-      window.removeEventListener("evolution:focus-timer-updated", handler);
-      window.removeEventListener("storage", handler);
+    if (!store) return;
+    const handler = () => {
+      const next = store.read(settings);
+      if (!store.isCurrent(lease)) {
+        completingRef.current = false;
+        setNotification(null);
+      }
+      setSnapshot(next);
     };
-  }, [settings]);
+    const unsubscribe = store.subscribe(handler);
+    handler();
+    return unsubscribe;
+  }, [store, settings, lease.owner, lease.generation]);
+
+  // Every action captures an owner generation; old callbacks cannot write after A→B→A either.
+  const changeTimer = useCallback((update: (timer: PersistedTimer) => PersistedTimer) => {
+    if (!store?.isCurrent(lease)) return;
+    const next = update(store.read(settings).timer);
+    if (store.save(lease, next)) setSnapshot(store.read(settings));
+  }, [store, lease.owner, lease.generation, settings]);
 
   // Drive ticks when running
   useEffect(() => {
     if (!state.running) return;
-    const id = setInterval(() => setTick((t) => t + 1), 250);
+    const id = setInterval(() => { if (store?.isCurrent(lease)) setTick((t) => t + 1); }, 250);
     return () => clearInterval(id);
-  }, [state.running]);
+  }, [state.running, store, lease.owner, lease.generation]);
 
   const totalMs = modeDurationMs(state.mode, settings);
   const remainingMs = state.running && state.startedAt
     ? Math.max(0, state.remainingMs - (Date.now() - state.startedAt))
     : state.remainingMs;
 
-  // Detect completion
+  // Detect completion. Claim the current persisted run before logging; a stale effect cannot
+  // complete after a pause/reset/owner change, nor can another mounted timer log it again.
   useEffect(() => {
-    if (!state.running || remainingMs > 0 || completingRef.current) return;
+    if (!store?.isCurrent(lease) || !state.running || remainingMs > 0 || completingRef.current) return;
+    const finished = store.read(settings).timer;
+    if (!finished.running || finished.startedAt !== state.startedAt || finished.mode !== state.mode
+      || finished.remainingMs !== state.remainingMs) return;
     completingRef.current = true;
-
-    const finishedMode = state.mode;
+    const finishedMode = finished.mode;
     const completedAt = Date.now();
-    const startedAt = completedAt - totalMs;
-
-    // Log session if focus
-    if (finishedMode === "focus") {
-      const session: FocusSession = {
-        id: crypto.randomUUID(),
-        startedAt,
-        completedAt,
-        durationSec: Math.round(totalMs / 1000),
-        mode: "focus",
-        task: state.task || "Untitled session",
-        tag: state.tag ?? undefined,
-      };
-      const timeLog: TimeLog = {
-        id: crypto.randomUUID(),
-        date: localISO(new Date(completedAt)),
-        minutes: Math.max(1, Math.round(totalMs / 60000)),
-        module: tagToModule(state.tag),
-        source: "focus",
-        label: state.task || "Focus session",
-        ts: completedAt,
-      };
-      mutate((prev) => ({
-        focusSessions: [...prev.focusSessions, session],
-        timeLogs: [...(prev.timeLogs ?? []), timeLog],
-      }));
+    const nextRound = finishedMode === "focus" ? finished.round + 1 : finished.round;
+    const nextMode: FocusMode = finishedMode === "focus"
+      ? finished.round % settings.longEvery === 0 ? "long" : "short" : "focus";
+    const next: PersistedTimer = { ...finished, mode: nextMode, round: nextRound,
+      remainingMs: modeDurationMs(nextMode, settings), running: false, startedAt: null };
+    if (!store.save(lease, next)) { completingRef.current = false; return; }
+    setSnapshot(store.read(settings));
+    if (finishedMode === "focus" && store.isCurrent(lease)) {
+      const session: FocusSession = { id: crypto.randomUUID(), startedAt: completedAt - totalMs,
+        completedAt, durationSec: Math.round(totalMs / 1000), mode: "focus",
+        task: finished.task || "Untitled session", tag: finished.tag ?? undefined };
+      const timeLog: TimeLog = { id: crypto.randomUUID(), date: localISO(new Date(completedAt)),
+        minutes: Math.max(1, Math.round(totalMs / 60000)), module: tagToModule(finished.tag),
+        source: "focus", label: finished.task || "Focus session", ts: completedAt };
+      mutate((prev) => store.isCurrent(lease) ? {
+        focusSessions: [...prev.focusSessions, session], timeLogs: [...(prev.timeLogs ?? []), timeLog],
+      } : {});
     }
+    if (store.isCurrent(lease)) {
+      try { playChime(); } catch { /* noop */ }
+      setNotification({ mode: finishedMode, durationSec: Math.round(totalMs / 1000), nextMode });
+    }
+    completingRef.current = false;
+  }, [remainingMs, state, totalMs, mutate, settings, store, lease.owner, lease.generation]);
 
+  const start = useCallback(() => changeTimer((prev) => ({ ...prev, running: true,
+    startedAt: Date.now(), remainingMs: prev.remainingMs > 0 ? prev.remainingMs : modeDurationMs(prev.mode, settings),
+  })), [changeTimer, settings]);
 
-    // Decide next mode
-    const nextRound = finishedMode === "focus" ? state.round + 1 : state.round;
-    const nextMode: FocusMode =
-      finishedMode === "focus"
-        ? state.round % settings.longEvery === 0 ? "long" : "short"
-        : "focus";
+  const pause = useCallback(() => changeTimer((prev) => {
+    if (!prev.running || prev.startedAt === null) return prev;
+    return { ...prev, running: false, remainingMs: Math.max(0, prev.remainingMs - (Date.now() - prev.startedAt)), startedAt: null };
+  }), [changeTimer]);
 
-    const nextRemaining = modeDurationMs(nextMode, settings);
-    const next: PersistedTimer = {
-      ...state,
-      mode: nextMode,
-      round: nextRound,
-      remainingMs: nextRemaining,
-      running: false,
-      startedAt: null,
-    };
-
-    // Chime
-    try { playChime(); } catch { /* noop */ }
-
-    setNotification({ mode: finishedMode, durationSec: Math.round(totalMs / 1000), nextMode });
-    setState(next);
-    saveTimer(next);
-
-    // release lock for next session
-    setTimeout(() => { completingRef.current = false; }, 100);
-  }, [remainingMs, state, totalMs, mutate, settings]);
-
-  const start = useCallback(() => {
-    setState((prev) => {
-      const next: PersistedTimer = {
-        ...prev,
-        running: true,
-        startedAt: Date.now(),
-        remainingMs: prev.remainingMs > 0 ? prev.remainingMs : modeDurationMs(prev.mode, settings),
-      };
-      saveTimer(next);
-      return next;
-    });
-  }, [settings]);
-
-  const pause = useCallback(() => {
-    setState((prev) => {
-      if (!prev.running || !prev.startedAt) return prev;
-      const next: PersistedTimer = {
-        ...prev,
-        running: false,
-        remainingMs: Math.max(0, prev.remainingMs - (Date.now() - prev.startedAt)),
-        startedAt: null,
-      };
-      saveTimer(next);
-      return next;
-    });
-  }, []);
-
-  const reset = useCallback(() => {
-    setState((prev) => {
-      const next: PersistedTimer = {
-        ...prev,
-        running: false,
-        startedAt: null,
-        mode: "focus",
-        round: 1,
-        remainingMs: modeDurationMs("focus", settings),
-      };
-      saveTimer(next);
-      return next;
-    });
-  }, [settings]);
+  const reset = useCallback(() => changeTimer((prev) => ({ ...prev, running: false,
+    startedAt: null, mode: "focus", round: 1, remainingMs: modeDurationMs("focus", settings),
+  })), [changeTimer, settings]);
 
   const logSession = useCallback(() => {
+    if (!store?.isCurrent(lease)) return;
+    const active = store.read(settings).timer;
+    const duration = modeDurationMs(active.mode, settings);
     const completedAt = Date.now();
-    const startedAt = completedAt - totalMs;
-    const session: FocusSession = {
-      id: crypto.randomUUID(),
-      startedAt,
-      completedAt,
-      durationSec: Math.round(totalMs / 1000),
-      mode: state.mode,
-      task: state.task || "Untitled session",
-      tag: state.tag ?? undefined,
-    };
-    const timeLog: TimeLog = {
-      id: crypto.randomUUID(),
-      date: localISO(new Date(completedAt)),
-      minutes: Math.max(1, Math.round(totalMs / 60000)),
-      module: tagToModule(state.tag),
-      source: "focus",
-      label: state.task || "Focus session",
-      ts: completedAt,
-    };
-    mutate((prev) => ({
-      focusSessions: [...prev.focusSessions, session],
-      timeLogs: [...(prev.timeLogs ?? []), timeLog],
-    }));
-  }, [state, totalMs, mutate]);
+    const session: FocusSession = { id: crypto.randomUUID(), startedAt: completedAt - duration,
+      completedAt, durationSec: Math.round(duration / 1000), mode: active.mode,
+      task: active.task || "Untitled session", tag: active.tag ?? undefined };
+    const timeLog: TimeLog = { id: crypto.randomUUID(), date: localISO(new Date(completedAt)),
+      minutes: Math.max(1, Math.round(duration / 60000)), module: tagToModule(active.tag),
+      source: "focus", label: active.task || "Focus session", ts: completedAt };
+    mutate((prev) => store.isCurrent(lease) ? {
+      focusSessions: [...prev.focusSessions, session], timeLogs: [...(prev.timeLogs ?? []), timeLog],
+    } : {});
+  }, [store, lease.owner, lease.generation, settings, mutate]);
 
-  const setMode = useCallback((mode: FocusMode) => {
-    setState((prev) => {
-      const next: PersistedTimer = {
-        ...prev,
-        mode,
-        running: false,
-        startedAt: null,
-        remainingMs: modeDurationMs(mode, settings),
-      };
-      saveTimer(next);
-      return next;
-    });
-  }, [settings]);
-
-  const setTask = useCallback((task: string) => {
-    setState((prev) => {
-      const next = { ...prev, task };
-      saveTimer(next);
-      return next;
-    });
-  }, []);
-
-  const setTag = useCallback((tag: FocusTag | null) => {
-    setState((prev) => {
-      const next = { ...prev, tag };
-      saveTimer(next);
-      return next;
-    });
-  }, []);
+  const setMode = useCallback((mode: FocusMode) => changeTimer((prev) => ({ ...prev, mode,
+    running: false, startedAt: null, remainingMs: modeDurationMs(mode, settings),
+  })), [changeTimer, settings]);
+  const setTask = useCallback((task: string) => changeTimer((prev) => ({ ...prev, task })), [changeTimer]);
+  const setTag = useCallback((tag: FocusTag | null) => changeTimer((prev) => ({ ...prev, tag })), [changeTimer]);
 
   const updateSettings = useCallback((patch: Partial<FocusSettings>) => {
-    mutate((prev) => ({ focusSettings: { ...prev.focusSettings, ...patch } }));
-    // adjust current timer if not running and mode duration changed
-    setState((prev) => {
-      if (prev.running) return prev;
-      const merged = { ...settings, ...patch };
-      const newRemaining = modeDurationMs(prev.mode, merged);
-      const next = { ...prev, remainingMs: newRemaining };
-      saveTimer(next);
-      return next;
-    });
-  }, [mutate, settings]);
+    if (!store?.isCurrent(lease)) return;
+    mutate((prev) => store.isCurrent(lease) ? { focusSettings: { ...prev.focusSettings, ...patch } } : {});
+    changeTimer((prev) => prev.running ? prev : { ...prev, remainingMs: modeDurationMs(prev.mode, { ...settings, ...patch }) });
+  }, [store, lease.owner, lease.generation, mutate, changeTimer, settings]);
 
-  const clearNotification = useCallback(() => setNotification(null), []);
+  const clearNotification = useCallback(() => {
+    if (store?.isCurrent(lease)) setNotification(null);
+  }, [store, lease.owner, lease.generation]);
 
   // ensure tick is referenced so re-renders happen while running
   void tick;
@@ -317,7 +216,7 @@ export function useFocusTimer(): UseFocusTimer {
     setTag,
     updateSettings,
     settings,
-    notification,
+    notification: current ? notification : null,
     clearNotification,
   };
 }

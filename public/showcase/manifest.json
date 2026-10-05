@@ -1,0 +1,60 @@
+{
+  "captures": [
+    {
+      "filename": "investing-demo.png",
+      "base64_filename": "investing-demo.png.b64",
+      "route": "/investing",
+      "caption": "Evolution OS Investing dashboard with fictional demo trading data.",
+      "mime_type": "image/png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "3b697f0bdac49c7486906265560d41eed53995f0abf68c8d3b043472deab8365",
+      "capture_time": "2026-10-05T00:50:28.696648Z",
+      "source_base_revision": "d495c3743a3599ed8c6a77d331dd5376518d69b1"
+    },
+    {
+      "filename": "wealth-demo.png",
+      "base64_filename": "wealth-demo.png.b64",
+      "route": "/wealth",
+      "caption": "Evolution OS Wealth dashboard with fictional manual demo records only.",
+      "mime_type": "image/png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "e2e98809ca6c88e9f7f3d45cf68e5a00cdeb0bc997ff787b0e25a847735a7a7c",
+      "capture_time": "2026-10-05T00:50:31.759222Z",
+      "source_base_revision": "d495c3743a3599ed8c6a77d331dd5376518d69b1"
+    },
+    {
+      "filename": "business-demo.png",
+      "base64_filename": "business-demo.png.b64",
+      "route": "/business",
+      "caption": "Evolution OS Business dashboard with fictional demo projects and revenue.",
+      "mime_type": "image/png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "6ad85e74baa79c9e60781a940fbe1f78ae106a464ebc7fbf7abdcc842d218688",
+      "capture_time": "2026-10-05T00:50:34.738910Z",
+      "source_base_revision": "d495c3743a3599ed8c6a77d331dd5376518d69b1"
+    },
+    {
+      "filename": "journal-demo.png",
+      "base64_filename": "journal-demo.png.b64",
+      "route": "/journal",
+      "caption": "Evolution OS Journal dashboard with fictional demo reflections and entries.",
+      "mime_type": "image/png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "68320a5f447d03e296ff682cae6cdd8f8963faeb6b57ee0c04f9b755a2e5d1fd",
+      "capture_time": "2026-10-05T00:50:37.855462Z",
+      "source_base_revision": "d495c3743a3599ed8c6a77d331dd5376518d69b1"
+    }
+  ]
+}
