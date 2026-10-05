@@ -1,0 +1,91 @@
+{
+  "captured_at": "2026-10-05T01:22:06.795795Z",
+  "source_revision": "81cdd79cd2f524270b470a06e876c75827564535",
+  "checks": [
+    {
+      "filename": "investing-layout-desktop.png",
+      "base64_filename": "investing-layout-desktop.png.b64",
+      "mime_type": "image/png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "681b03eadc064f140500434ec749809404d9f1d0ec3ce929ae93cb8d6623fd45",
+      "capture_context": {
+        "route": "/investing",
+        "dimensions": {
+          "width": 1440,
+          "height": 1000
+        },
+        "data": "isolated fictional guest demo",
+        "backend_access": "blocked",
+        "title_control_overlaps": {
+          "monthly_title_vs_today": false,
+          "accounts_title_vs_add": false,
+          "journal_title_vs_new": false
+        },
+        "sidebar": {
+          "scrollHeight": 1349,
+          "clientHeight": 776,
+          "overflowY": "auto"
+        },
+        "sidebar_box": {
+          "x": 1143,
+          "y": 258,
+          "width": 273,
+          "height": 776
+        },
+        "form_label_boxes": {
+          "ACCOUNT": {
+            "x": 1163,
+            "y": 963,
+            "width": 233,
+            "height": 12
+          },
+          "AMOUNT ($)": {
+            "x": 1163,
+            "y": 1017,
+            "width": 233,
+            "height": 12
+          },
+          "DATE": {
+            "x": 1163,
+            "y": 1071,
+            "width": 233,
+            "height": 12
+          },
+          "SESSION": {
+            "x": 1163,
+            "y": 1147,
+            "width": 112.5,
+            "height": 12
+          }
+        },
+        "journal_reachable_after_scroll": true,
+        "page_errors": []
+      }
+    },
+    {
+      "filename": "investing-layout-phone.png",
+      "base64_filename": "investing-layout-phone.png.b64",
+      "mime_type": "image/png",
+      "dimensions": {
+        "width": 390,
+        "height": 844
+      },
+      "sha256": "a5427310e3369cec17f967d5c0762ca166e32fac76ceaaac5a8b9adcc35cde41",
+      "capture_context": {
+        "route": "/investing through actual phone experience",
+        "dimensions": {
+          "width": 390,
+          "height": 844
+        },
+        "data": "isolated fictional guest/device-local demo only",
+        "backend_access": "blocked",
+        "desktop_ui_forced": false,
+        "investing_visible": true,
+        "page_errors": []
+      }
+    }
+  ]
+}
