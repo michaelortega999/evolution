@@ -409,7 +409,7 @@ function InvestingPage() {
         {/* Left: Monthly Performance + Transaction History */}
         <div className="xl:col-span-9 flex flex-col gap-3 h-full overflow-hidden">
           <Panel title="MONTHLY PERFORMANCE" className="flex-[2] min-h-0 flex flex-col">
-            <div className="flex items-center justify-between -mt-8 mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 shrink-0">
               <div className="flex items-center justify-center gap-3">
                 <button onClick={() => shiftMonth(-1)} className="text-primary hover:bg-primary/10 rounded p-1"><ChevronLeft className="h-3 w-3" /></button>
                 <div className="hud-label text-sm text-primary hud-glow">{monthLabel}</div>
@@ -467,7 +467,7 @@ function InvestingPage() {
           </Panel>
 
           <Panel title="TRANSACTION HISTORY" className="h-[30%] flex flex-col min-h-0">
-            <div className="flex items-center justify-end -mt-8 mb-2 gap-2 flex-wrap">
+            <div className="flex items-center justify-end mb-2 gap-2 flex-wrap shrink-0">
               <select value={histAcc} onChange={(e) => setHistAcc(e.target.value)}
                 className="h-8 bg-input border border-border rounded px-2 text-xs hud-label">
                 <option value="all">ALL ACCOUNTS</option>
@@ -533,14 +533,14 @@ function InvestingPage() {
         </div>
 
         {/* Right: Accounts + Add Transaction + Strategy Journal */}
-        <div className="xl:col-span-3 flex flex-col gap-3 h-full overflow-hidden">
-          <Panel title="ACCOUNTS" className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-end -mt-8 mb-2">
+        <div className="xl:col-span-3 flex min-w-0 flex-col gap-3 xl:h-full xl:overflow-y-auto">
+          <Panel title="ACCOUNTS" className="shrink-0 flex flex-col">
+            <div className="flex flex-wrap items-center justify-end gap-2 mb-2 shrink-0">
               <Button onClick={() => setAddAccOpen(true)} size="sm" variant="outline" className="hud-label text-[10px]">
                 <Plus className="h-3 w-3 mr-1" /> Add Account
               </Button>
             </div>
-            <div className="space-y-2 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {accounts.map((acc) => {
                 const t = totals.perAccount[acc.id] ?? { balance: acc.startingBalance, today: 0, month: 0 };
                 return (
@@ -605,9 +605,9 @@ function InvestingPage() {
           </Panel>
 
           <Panel title="ADD TRANSACTION · TRADE REVIEW" className="shrink-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
+                <div className="grid grid-cols-1 gap-2 mb-2">
                   <button
                     onClick={() => setTxTab("profit")}
                     className={`hud-label text-[10px] py-1.5 rounded border transition-colors ${txTab === "profit" ? "bg-emerald-500/15 border-emerald-400/60 text-emerald-400 hud-glow" : "border-border text-muted-foreground hover:bg-primary/5"}`}
@@ -682,13 +682,13 @@ function InvestingPage() {
             </div>
           </Panel>
 
-          <Panel title="STRATEGY JOURNAL" className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-end -mt-8 mb-2">
+          <Panel title="STRATEGY JOURNAL" className="shrink-0 flex flex-col">
+            <div className="flex flex-wrap items-center justify-end gap-2 mb-2 shrink-0">
               <Button onClick={() => openNewJournal()} size="sm" variant="outline" className="hud-label text-[10px]">
                 <Plus className="h-3 w-3 mr-1" /> NEW ENTRY
               </Button>
             </div>
-            <div className="space-y-2 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {journal.length === 0 && (
                 <div className="text-xs text-muted-foreground text-center py-6">No entries yet.</div>
               )}
@@ -837,7 +837,7 @@ function JournalReviewView(props: {
   const pnlN = Number(jPnl) || 0;
   return (
     <Panel title={isNew ? "NEW TRADE REVIEW" : "TRADE REVIEW"}>
-      <div className="flex items-center justify-between -mt-8 mb-4 gap-2">
+      <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
         <Button onClick={onBack} size="sm" variant="outline" className="hud-label text-[10px]">
           <ArrowLeft className="h-3 w-3 mr-1" /> BACK
         </Button>

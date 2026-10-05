@@ -1,0 +1,3 @@
+- [ ] Apply the approved Investing layout-only class changes.
+- [ ] Run the existing tests, type check, and production build once.
+- [ ] Verify and save isolated desktop and phone Investing layout captures with sidecars and checksums.
