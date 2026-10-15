@@ -889,7 +889,8 @@ export function getLocalOwner(): string | null {
 
 /** Three-way merge of whole data sets: local edits since `base` applied on top of `remote`. */
 export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData, phoneRenames?: Rename[]): EvolutionData {
-  const out = mergeValue(base, local, remote, 0) as StoredShape & { phoneStore?: EvolutionData["phoneStore"] };
+  // Shallow copy: mergeValue may return the caller's local/remote object itself; never mutate inputs.
+  const out = { ...(mergeValue(base, local, remote, 0) as object) } as StoredShape & { phoneStore?: EvolutionData["phoneStore"] };
   // habitLog date lists are sets: merge membership per habit/date so concurrent checkoffs both survive.
   out.habitLog = mergeHabitLog(base?.habitLog, local?.habitLog, remote?.habitLog);
   // Phone data is merged per domain/record (not as one scalar) so independent edits survive.

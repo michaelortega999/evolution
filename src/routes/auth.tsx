@@ -32,6 +32,13 @@ function AuthPage() {
     options: { emailRedirectTo: `${window.location.origin}/`, data: { name: nameRef.current } },
   })));
 
+  // One request at a time; a request id lets only the owner release loading, and unmount/Back drops stale completions.
+  const reqRef = useRef(0); const busyRef = useRef(false);
+  useEffect(() => () => { reqRef.current++; busyRef.current = false; }, []);
+  const begin = () => { if (busyRef.current) return 0; busyRef.current = true; setLoading(true); return ++reqRef.current; };
+  const live = (id: number) => id === reqRef.current;
+  const end = (id: number) => { if (live(id)) { busyRef.current = false; setLoading(false); } };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/" });
@@ -40,53 +47,38 @@ function AuthPage() {
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    const id = begin(); if (!id) return;
+    const submitted = email;
     try {
       if (mode === "signup") {
-        const r = await signUpOnce(email);
+        const r = await signUpOnce(submitted);
+        if (!live(id)) return;
         if (r.kind === "error") throw new Error(r.message);
         if (r.kind === "signed-in") navigate({ to: "/" });
-        else if (r.kind === "check-email") setCheckEmail(r.email);
+        else if (r.kind === "check-email") setCheckEmail(submitted);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: submitted, password });
+        if (!live(id)) return;
         if (error) throw error;
         navigate({ to: "/" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
-      setLoading(false);
-    }
+      if (live(id)) toast.error(err instanceof Error ? err.message : "Authentication failed");
+    } finally { end(id); }
   };
 
   const handleGoogle = async () => {
-    setLoading(true);
+    const id = begin(); if (!id) return;
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) {
-        toast.error(result.error.message || "Google sign-in failed");
-        setLoading(false);
-        return;
-      }
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (!live(id)) return;
+      if (result.error) { toast.error(result.error.message || "Google sign-in failed"); return; }
       if (result.redirected) return;
       navigate({ to: "/" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
-      setLoading(false);
-    }
+      if (live(id)) toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally { end(id); }
   };
-
-  if (checkEmail) return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="hud-card p-8 w-full max-w-md flex flex-col gap-4 text-center" role="status">
-        <div className="hud-label text-primary hud-glow text-lg">CHECK YOUR EMAIL</div>
-        <p className="text-sm text-muted-foreground">We sent a confirmation link to <span className="text-foreground break-all">{checkEmail}</span>. Open it to finish creating your account, then sign in.</p>
-        <Button type="button" variant="outline" className="hud-label text-xs" onClick={() => { setCheckEmail(null); setMode("signin"); setPassword(""); }}>Back to sign in</Button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -118,16 +110,16 @@ function AuthPage() {
           {mode === "signup" && (
             <label className="block">
               <span className="hud-label text-[10px] text-muted-foreground">Name</span>
-              <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+              <Input disabled={loading} value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
             </label>
           )}
           <label className="block">
             <span className="hud-label text-[10px] text-muted-foreground">Email</span>
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+            <Input disabled={loading} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
           </label>
           <label className="block">
             <span className="hud-label text-[10px] text-muted-foreground">Password</span>
-            <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
+            <Input disabled={loading} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
           </label>
           <Button type="submit" disabled={loading} className="hud-label text-xs mt-2">
             {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
@@ -137,6 +129,7 @@ function AuthPage() {
         <div className="text-center">
           <button
             type="button"
+            disabled={loading}
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
             className="hud-label text-[10px] text-primary hover:underline"
           >
