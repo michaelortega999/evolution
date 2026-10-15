@@ -1,17 +1,35 @@
+import { taskDaySummary } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar as CalIcon, Plus, Trash2, X, Bell, BellOff, TrendingUp, Eye, Target, Quote, Files } from "lucide-react";
+import {
+  Calendar as CalIcon,
+  Plus,
+  Trash2,
+  X,
+  Bell,
+  BellOff,
+  TrendingUp,
+  Eye,
+  Target,
+  Quote,
+  Files,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
-import {
-  useEvolutionData,
-  type CalendarEvent,
-  type ReminderOffset,
-} from "@/lib/evolution-data";
+import { useEvolutionData, type CalendarEvent, type ReminderOffset } from "@/lib/evolution-data";
 import { cn } from "@/lib/utils";
 import mountainImg from "@/assets/calendar-mountain.jpg";
 
 export const Route = createFileRoute("/calendar")({
-  head: () => ({ meta: [{ title: "Calendar — Evolution" }, { name: "description", content: "Calendar module of Evolution OS." }, { property: "og:title", content: "Calendar — Evolution" }, { property: "og:description", content: "Calendar module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({
+    meta: [
+      { title: "Calendar — Evolution" },
+      { name: "description", content: "Calendar module of Evolution OS." },
+      { property: "og:title", content: "Calendar — Evolution" },
+      { property: "og:description", content: "Calendar module of Evolution OS." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: CalendarPage,
 });
 
@@ -32,6 +50,7 @@ function fmtHM(mins: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 function fmt12(t: string): string {
+  if (!t) return "Any time";
   const [hh, mm] = t.split(":").map(Number);
   const h12 = ((hh + 11) % 12) + 1;
   const ap = hh < 12 ? "AM" : "PM";
@@ -55,7 +74,7 @@ function eventStartMs(e: CalendarEvent): number {
 function CalendarPage() {
   const { data, mutate } = useEvolutionData();
   const events = data.calendar ?? [];
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = useState<"month" | "week" | "day" | "agenda">("month");
   const [cursor, setCursor] = useState(() => new Date());
   const [weekCursor, setWeekCursor] = useState(() => startOfWeek(new Date()));
 
@@ -71,7 +90,7 @@ function CalendarPage() {
     events.forEach((e) => {
       (m[e.date] ||= []).push(e);
     });
-    Object.values(m).forEach((arr) => arr.sort((a, b) => a.time.localeCompare(b.time)));
+    Object.values(m).forEach((arr) => arr.sort((a, b) => (a.time || "").localeCompare(b.time || "")));
     return m;
   }, [events]);
 
@@ -79,7 +98,7 @@ function CalendarPage() {
     const today = ymd(new Date());
     return [...events]
       .filter((e) => e.date >= today)
-      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+      .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")))
       .slice(0, 8);
   }, [events]);
 
@@ -127,23 +146,13 @@ function CalendarPage() {
 
   // Month overview stats derived from cursor month
   const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
-  const monthEvents = useMemo(
-    () => events.filter((e) => e.date.startsWith(monthKey)),
-    [events, monthKey],
-  );
-  const tradingDays = new Set(
-    monthEvents.filter((e) => /trad|market|backtest/i.test(e.title)).map((e) => e.date),
-  ).size;
-  const reviewDays = new Set(
-    monthEvents.filter((e) => /review|journal|reflect/i.test(e.title)).map((e) => e.date),
-  ).size;
+  const monthEvents = useMemo(() => events.filter((e) => e.date.startsWith(monthKey)), [events, monthKey]);
+  const tradingDays = new Set(monthEvents.filter((e) => /trad|market|backtest/i.test(e.title)).map((e) => e.date)).size;
+  const reviewDays = new Set(monthEvents.filter((e) => /review|journal|reflect/i.test(e.title)).map((e) => e.date))
+    .size;
   const goals = data.goals ?? [];
   const goalCompletion = goals.length
-    ? Math.round(
-        (goals.reduce((s, g) => s + Math.min(1, g.current / Math.max(1, g.target)), 0) /
-          goals.length) *
-          100,
-      )
+    ? Math.round((goals.reduce((s, g) => s + Math.min(1, g.current / Math.max(1, g.target)), 0) / goals.length) * 100)
     : 0;
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
@@ -163,28 +172,33 @@ function CalendarPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
         <div className="relative p-6 md:p-8">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-            Calendar
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Plan your days. Stay consistent. Win the month.
-          </p>
-          <div className="hud-label text-[11px] text-primary mt-3 hud-glow">
-            {monthLabel.toUpperCase()}
-          </div>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">Calendar</h2>
+          <p className="text-sm text-muted-foreground mt-1">Plan your days. Stay consistent. Win the month.</p>
+          <div className="hud-label text-[11px] text-primary mt-3 hud-glow">{monthLabel.toUpperCase()}</div>
         </div>
       </div>
 
       {/* View toggle */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex flex-wrap items-center gap-2 mb-2" role="group" aria-label="Calendar view">
         <ViewToggleButton active={view === "month"} onClick={() => setView("month")}>
-          Month View
+          Month
         </ViewToggleButton>
-        <ViewToggleButton active={view === "week"} onClick={() => setView("week")}>
-          Weekly View
+        <ViewToggleButton
+          active={view === "week"}
+          onClick={() => {
+            setWeekCursor(startOfWeek(cursor));
+            setView("week");
+          }}
+        >
+          Week
+        </ViewToggleButton>
+        <ViewToggleButton active={view === "day"} onClick={() => setView("day")}>
+          Day
+        </ViewToggleButton>
+        <ViewToggleButton active={view === "agenda"} onClick={() => setView("agenda")}>
+          Agenda
         </ViewToggleButton>
       </div>
-
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2.8fr)_minmax(220px,1fr)]">
         {/* LEFT: calendar */}
@@ -195,16 +209,34 @@ function CalendarPage() {
                 cursor={cursor}
                 setCursor={setCursor}
                 eventsByDate={eventsByDate}
-                onPickDay={(ds) => openForm(ds)}
+                onPickDay={(ds) => {
+                  setCursor(new Date(`${ds}T12:00:00`));
+                  openForm(ds);
+                }}
                 selected={formDate}
               />
-            ) : (
+            ) : view === "week" ? (
               <WeekView
                 weekCursor={weekCursor}
-                setWeekCursor={setWeekCursor}
+                setWeekCursor={(next) => {
+                  setWeekCursor(next);
+                  setCursor(next);
+                }}
                 events={events}
-                onPickSlot={(ds, hm) => openForm(ds, hm)}
+                onPickSlot={(ds, hm) => {
+                  setCursor(new Date(`${ds}T12:00:00`));
+                  openForm(ds, hm);
+                }}
                 onDuplicate={duplicateEvent}
+              />
+            ) : (
+              <CalendarListView
+                view={view}
+                cursor={cursor}
+                setCursor={setCursor}
+                events={events}
+                onAdd={openForm}
+                onDelete={delEvent}
               />
             )}
           </div>
@@ -291,7 +323,10 @@ function CalendarPage() {
                 { icon: Eye, value: reviewDays, label: "Review Days" },
                 { icon: Target, value: `${goalCompletion}%`, label: "Goal Completion" },
               ].map((s, i) => (
-                <div key={i} className="flex flex-col items-center text-center gap-1 p-2 border border-border/50 rounded">
+                <div
+                  key={i}
+                  className="flex flex-col items-center text-center gap-1 p-2 border border-border/50 rounded"
+                >
                   <s.icon className="h-4 w-4 text-primary" />
                   <div className="text-xl font-semibold text-foreground">{s.value}</div>
                   <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
@@ -314,16 +349,11 @@ function CalendarPage() {
 
           <Panel title="UPCOMING">
             {upcoming.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                No upcoming events. Click a day to add one.
-              </p>
+              <p className="text-xs text-muted-foreground">No upcoming events. Click a day to add one.</p>
             ) : (
               <ul className="flex flex-col gap-1.5 max-h-[320px] overflow-y-auto">
                 {upcoming.map((e) => (
-                  <li
-                    key={e.id}
-                    className="flex items-center gap-2 p-2 border border-border rounded bg-primary/5"
-                  >
+                  <li key={e.id} className="flex items-center gap-2 p-2 border border-border rounded bg-primary/5">
                     <div className="flex-1 min-w-0">
                       <div className="hud-label text-[10px] text-primary truncate">
                         {e.date} · {fmt12(e.time)}
@@ -357,7 +387,10 @@ function CalendarPage() {
                 { label: "Review", color: "#a78bfa" },
               ].map((c) => (
                 <div key={c.label} className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }}
+                  />
                   <span className="hud-label text-[10px] text-muted-foreground">{c.label}</span>
                 </div>
               ))}
@@ -368,7 +401,6 @@ function CalendarPage() {
     </ModuleLayout>
   );
 }
-
 
 // ---------- view toggle button ----------
 function ViewToggleButton({
@@ -383,8 +415,9 @@ function ViewToggleButton({
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "px-4 py-1.5 hud-label text-[11px] rounded border transition-all",
+        "min-h-11 px-4 py-1.5 hud-label text-[11px] rounded border transition-all",
         active
           ? "border-primary bg-primary/15 text-primary hud-glow"
           : "border-border text-muted-foreground hover:text-foreground hover:bg-primary/5",
@@ -409,10 +442,11 @@ function MonthView({
   onPickDay: (ds: string) => void;
   selected: string | null;
 }) {
+  const { data } = useEvolutionData();
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const grid = useMemo(() => {
     const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const startOffset = first.getDay();
+    const startOffset = (first.getDay() + 6) % 7;
     const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
     const cells: (Date | null)[] = [];
     for (let i = 0; i < startOffset; i++) cells.push(null);
@@ -444,8 +478,11 @@ function MonthView({
           Next ›
         </button>
       </div>
+      <p className="text-xs text-emerald-300 mb-3">
+        ✓ All scheduled tasks complete. Empty days have no check; events are separate.
+      </p>
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
           <div key={d} className="hud-label text-[10px] text-muted-foreground text-center py-1">
             {d}
           </div>
@@ -458,37 +495,38 @@ function MonthView({
           const dayEvents = eventsByDate[ds] ?? [];
           const isToday = ds === todayStr;
           const isSelected = ds === selected;
+          const progress = taskDaySummary(data.evoTasks ?? [], ds);
           return (
             <button
               key={i}
               onClick={() => onPickDay(ds)}
+              aria-label={`${ds}: ${progress.done} of ${progress.total} tasks complete, ${dayEvents.length} events. Add event.`}
               className={cn(
                 "aspect-square border rounded p-1 flex flex-col items-start text-left transition-colors hover:bg-primary/10",
-                isSelected ? "border-primary bg-primary/15" : "border-border",
+                isSelected
+                  ? "border-primary bg-primary/15"
+                  : progress.complete
+                    ? "border-emerald-400 bg-emerald-400/10"
+                    : "border-border",
                 isToday && "ring-1 ring-primary",
               )}
             >
-              <span
-                className={cn(
-                  "hud-label text-[11px]",
-                  isToday ? "text-primary hud-glow" : "text-foreground/80",
+              <span className={cn("hud-label text-[11px]", isToday ? "text-primary hud-glow" : "text-foreground/80")}>
+                {d.getDate()}{" "}
+                {progress.complete && (
+                  <span className="text-emerald-300" aria-hidden="true">
+                    ✓
+                  </span>
                 )}
-              >
-                {d.getDate()}
               </span>
               <div className="flex flex-col gap-0.5 mt-0.5 w-full overflow-hidden">
                 {dayEvents.slice(0, 2).map((e) => (
-                  <span
-                    key={e.id}
-                    className="text-[9px] truncate text-primary bg-primary/10 px-1 rounded"
-                  >
+                  <span key={e.id} className="text-[9px] truncate text-primary bg-primary/10 px-1 rounded">
                     {e.time} {e.title}
                   </span>
                 ))}
                 {dayEvents.length > 2 && (
-                  <span className="text-[9px] text-muted-foreground">
-                    +{dayEvents.length - 2}
-                  </span>
+                  <span className="text-[9px] text-muted-foreground">+{dayEvents.length - 2}</span>
                 )}
               </div>
             </button>
@@ -515,10 +553,7 @@ function WeekView({
   onPickSlot: (ds: string, hm: string) => void;
   onDuplicate: (event: CalendarEvent) => void;
 }) {
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekCursor, i)),
-    [weekCursor],
-  );
+  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekCursor, i)), [weekCursor]);
   const dayKeys = days.map(ymd);
 
   // current time tick — re-renders every 30s for smooth movement
@@ -557,35 +592,18 @@ function WeekView({
       </div>
 
       {/* Header row */}
-      <div
-        className="grid border-b border-border"
-        style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}
-      >
+      <div className="grid border-b border-border" style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}>
         <div />
         {days.map((d) => {
           const isToday = ymd(d) === todayStr;
           const dayName = d.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase();
           return (
-            <div
-              key={ymd(d)}
-              className={cn(
-                "text-center py-2 border-l border-border",
-                isToday && "bg-primary/5",
-              )}
-            >
-              <div
-                className={cn(
-                  "hud-label text-[10px]",
-                  isToday ? "text-primary hud-glow" : "text-muted-foreground",
-                )}
-              >
+            <div key={ymd(d)} className={cn("text-center py-2 border-l border-border", isToday && "bg-primary/5")}>
+              <div className={cn("hud-label text-[10px]", isToday ? "text-primary hud-glow" : "text-muted-foreground")}>
                 {dayName}
               </div>
               <div
-                className={cn(
-                  "hud-label text-base mt-0.5",
-                  isToday ? "text-primary hud-glow" : "text-foreground/80",
-                )}
+                className={cn("hud-label text-base mt-0.5", isToday ? "text-primary hud-glow" : "text-foreground/80")}
               >
                 {d.getDate()}
               </div>
@@ -594,12 +612,23 @@ function WeekView({
         })}
       </div>
 
+      {events.some((e) => dayKeys.includes(e.date) && !e.time) && (
+        <div className="mb-3 border border-border rounded p-3">
+          <h3 className="text-xs text-primary mb-2">ANY TIME THIS WEEK</h3>
+          <ul className="space-y-1 text-sm">
+            {events
+              .filter((e) => dayKeys.includes(e.date) && !e.time)
+              .map((e) => (
+                <li key={e.id}>
+                  <span className="text-muted-foreground">{e.date}</span> · {e.title}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
       {/* Body grid */}
       <div className="overflow-auto max-h-[640px]">
-        <div
-          className="relative grid"
-          style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}
-        >
+        <div className="relative grid" style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}>
           {/* Time column */}
           <div className="flex flex-col border-r border-border">
             {Array.from({ length: 24 }).map((_, h) => (
@@ -616,13 +645,10 @@ function WeekView({
           {/* Day columns */}
           {days.map((d) => {
             const ds = ymd(d);
-            const dayEvents = events.filter((e) => e.date === ds);
+            const dayEvents = events.filter((e) => e.date === ds && !!e.time);
             const isToday = ds === todayStr;
             return (
-              <div
-                key={ds}
-                className={cn("relative border-l border-border", isToday && "bg-primary/[0.03]")}
-              >
+              <div key={ds} className={cn("relative border-l border-border", isToday && "bg-primary/[0.03]")}>
                 {Array.from({ length: 24 }).map((_, h) => (
                   <button
                     key={h}
@@ -641,10 +667,7 @@ function WeekView({
 
           {/* Now line — only when today is in the visible week */}
           {todayIdx >= 0 && (
-            <div
-              className="pointer-events-none absolute left-[60px] right-0"
-              style={{ top: (nowMins / 60) * HOUR_PX }}
-            >
+            <div className="pointer-events-none absolute left-[60px] right-0" style={{ top: (nowMins / 60) * HOUR_PX }}>
               <div className="relative">
                 <div
                   className="absolute h-[2px] bg-primary"
@@ -685,9 +708,7 @@ function EventBlock({ event, onDuplicate }: { event: CalendarEvent; onDuplicate:
       }}
       title={`${event.title} — ${fmt12(event.time)}${event.endTime ? ` – ${fmt12(event.endTime)}` : ""}`}
     >
-      <div className="hud-label text-[9px] text-primary truncate group-hover:hud-glow">
-        {fmt12(event.time)}
-      </div>
+      <div className="hud-label text-[9px] text-primary truncate group-hover:hud-glow">{fmt12(event.time)}</div>
       <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
 
       <button
@@ -741,10 +762,7 @@ function ReminderEngine({ events }: { events: CalendarEvent[] }) {
         // fire window: trigger reached within last 60s and not yet fired
         if (trigger <= now && now - trigger < 60_000 && !firedRef.current.has(e.id)) {
           firedRef.current.add(e.id);
-          setPopups((prev) => [
-            ...prev,
-            { id: e.id + ":" + now, title: e.title, time: e.time, date: e.date },
-          ]);
+          setPopups((prev) => [...prev, { id: e.id + ":" + now, title: e.title, time: e.time, date: e.date }]);
         }
       });
     };
@@ -797,5 +815,83 @@ function ReminderEngine({ events }: { events: CalendarEvent[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function CalendarListView({
+  view,
+  cursor,
+  setCursor,
+  events,
+  onAdd,
+  onDelete,
+}: {
+  view: "day" | "agenda";
+  cursor: Date;
+  setCursor: (date: Date) => void;
+  events: CalendarEvent[];
+  onAdd: (date: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const key = ymd(cursor);
+  const end = ymd(addDays(cursor, 30));
+  const shown = [...events]
+    .filter((e) => (view === "day" ? e.date === key : e.date >= key && e.date < end))
+    .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+  return (
+    <Panel title={view === "day" ? `DAY · ${cursor.toLocaleDateString()}` : "AGENDA · NEXT 30 DAYS"}>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          className="min-h-11 border border-border px-3 rounded text-sm"
+          onClick={() => setCursor(addDays(cursor, view === "day" ? -1 : -30))}
+        >
+          ‹ Previous
+        </button>
+        <button
+          className="min-h-11 border border-primary px-3 rounded text-sm text-primary"
+          onClick={() => setCursor(new Date())}
+        >
+          Today
+        </button>
+        <button
+          className="min-h-11 border border-border px-3 rounded text-sm"
+          onClick={() => setCursor(addDays(cursor, view === "day" ? 1 : 30))}
+        >
+          Next ›
+        </button>
+        <button className="min-h-11 border border-primary px-3 rounded text-sm text-primary" onClick={() => onAdd(key)}>
+          + Add event
+        </button>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">
+        {view === "agenda" ? `From ${key} through ${ymd(addDays(cursor, 29))}. ` : ""}Events from your saved calendar.
+      </p>
+      {!shown.length ? (
+        <p className="py-10 text-center text-muted-foreground">
+          Nothing scheduled {view === "day" ? "for this day" : "in this period"}.
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {shown.map((event) => (
+            <li key={event.id} className="flex items-center gap-3 border border-primary/30 bg-primary/5 p-4 rounded">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-primary">
+                  {event.date} · {event.time || "Any time"}
+                  {event.endTime ? ` – ${event.endTime}` : ""}
+                </p>
+                <p className="text-base break-words mt-1">{event.title}</p>
+              </div>
+              <button
+                className="min-h-11 min-w-11 text-muted-foreground hover:text-destructive"
+                aria-label={`Delete ${event.title}`}
+                onClick={() => onDelete(event.id)}
+              >
+                <Trash2 className="h-4 w-4 mx-auto" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   );
 }
