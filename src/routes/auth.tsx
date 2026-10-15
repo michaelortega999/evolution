@@ -10,7 +10,11 @@ import { createSignUp } from "@/lib/auth-actions";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Evolution" }, { property: "og:title", content: "Sign in — Evolution" }, { property: "og:description", content: "Sign in to your Evolution life operating system." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+      { title: "Sign in — Evolution" },
+      { property: "og:title", content: "Sign in — Evolution" },
+      { property: "og:description", content: "Sign in to your Evolution life operating system." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "description", content: "Sign in to your Evolution life operating system." },
     ],
   }),
@@ -24,20 +28,44 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const passwordRef = useRef(""); const nameRef = useRef("");
-  passwordRef.current = password; nameRef.current = name;
+  const passwordRef = useRef("");
+  const nameRef = useRef("");
+  passwordRef.current = password;
+  nameRef.current = name;
   const [checkEmail, setCheckEmail] = useState<string | null>(null);
-  const [signUpOnce] = useState(() => createSignUp((addr: string) => supabase.auth.signUp({
-    email: addr, password: passwordRef.current,
-    options: { emailRedirectTo: `${window.location.origin}/`, data: { name: nameRef.current } },
-  })));
+  const [signUpOnce] = useState(() =>
+    createSignUp((addr: string) =>
+      supabase.auth.signUp({
+        email: addr,
+        password: passwordRef.current,
+        options: { emailRedirectTo: `${window.location.origin}/`, data: { name: nameRef.current } },
+      }),
+    ),
+  );
 
   // One request at a time; a request id lets only the owner release loading, and unmount/Back drops stale completions.
-  const reqRef = useRef(0); const busyRef = useRef(false);
-  useEffect(() => () => { reqRef.current++; busyRef.current = false; }, []);
-  const begin = () => { if (busyRef.current) return 0; busyRef.current = true; setLoading(true); return ++reqRef.current; };
+  const reqRef = useRef(0);
+  const busyRef = useRef(false);
+  useEffect(
+    () => () => {
+      reqRef.current++;
+      busyRef.current = false;
+    },
+    [],
+  );
+  const begin = () => {
+    if (busyRef.current) return 0;
+    busyRef.current = true;
+    setLoading(true);
+    return ++reqRef.current;
+  };
   const live = (id: number) => id === reqRef.current;
-  const end = (id: number) => { if (live(id)) { busyRef.current = false; setLoading(false); } };
+  const end = (id: number) => {
+    if (live(id)) {
+      busyRef.current = false;
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -47,7 +75,8 @@ function AuthPage() {
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = begin(); if (!id) return;
+    const id = begin();
+    if (!id) return;
     const submitted = email;
     try {
       if (mode === "signup") {
@@ -64,21 +93,54 @@ function AuthPage() {
       }
     } catch (err) {
       if (live(id)) toast.error(err instanceof Error ? err.message : "Authentication failed");
-    } finally { end(id); }
+    } finally {
+      end(id);
+    }
   };
 
   const handleGoogle = async () => {
-    const id = begin(); if (!id) return;
+    const id = begin();
+    if (!id) return;
     try {
       const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
       if (!live(id)) return;
-      if (result.error) { toast.error(result.error.message || "Google sign-in failed"); return; }
+      if (result.error) {
+        toast.error(result.error.message || "Google sign-in failed");
+        return;
+      }
       if (result.redirected) return;
       navigate({ to: "/" });
     } catch (err) {
       if (live(id)) toast.error(err instanceof Error ? err.message : "Google sign-in failed");
-    } finally { end(id); }
+    } finally {
+      end(id);
+    }
   };
+
+  if (checkEmail)
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="hud-card p-8 w-full max-w-md flex flex-col gap-4 text-center" role="status">
+          <div className="hud-label text-primary hud-glow text-lg">CHECK YOUR EMAIL</div>
+          <p className="text-sm text-muted-foreground">
+            We sent a confirmation link to <span className="text-foreground break-all">{checkEmail}</span>. Open it to
+            finish creating your account, then sign in.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="hud-label text-xs"
+            onClick={() => {
+              setCheckEmail(null);
+              setMode("signin");
+              setPassword("");
+            }}
+          >
+            Back to sign in
+          </Button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -90,13 +152,7 @@ function AuthPage() {
           </div>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleGoogle}
-          disabled={loading}
-          className="hud-label text-xs"
-        >
+        <Button type="button" variant="outline" onClick={handleGoogle} disabled={loading} className="hud-label text-xs">
           Continue with Google
         </Button>
 
@@ -115,11 +171,26 @@ function AuthPage() {
           )}
           <label className="block">
             <span className="hud-label text-[10px] text-muted-foreground">Email</span>
-            <Input disabled={loading} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+            <Input
+              disabled={loading}
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1"
+            />
           </label>
           <label className="block">
             <span className="hud-label text-[10px] text-muted-foreground">Password</span>
-            <Input disabled={loading} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
+            <Input
+              disabled={loading}
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1"
+            />
           </label>
           <Button type="submit" disabled={loading} className="hud-label text-xs mt-2">
             {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
