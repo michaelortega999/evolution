@@ -2,8 +2,17 @@ import { localISO } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Wallet, Apple, Dumbbell, FileText, NotebookPen,
-  TrendingUp, Briefcase, Star, Plus, ChevronRight, X,
+  Wallet,
+  Apple,
+  Dumbbell,
+  FileText,
+  NotebookPen,
+  TrendingUp,
+  Briefcase,
+  Star,
+  Plus,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -20,9 +29,22 @@ import { RingProgress } from "./RingProgress";
 import { BarChart } from "./BarChart";
 import { HoloIcon, type HoloVariant } from "./HoloIcon";
 import {
-  useEvolutionData, MEALS, nutritionSummary, fitnessWeek, newLoggedWorkout, investingSummary, tradingTotals,
-  todayDate, dayTotals, nutritionStreak, uid, wealthSummary, syncTradingAssets,
-  type Meal, type Hobby, type EvoTask,
+  useEvolutionData,
+  MEALS,
+  nutritionSummary,
+  fitnessWeek,
+  newLoggedWorkout,
+  investingSummary,
+  tradingTotals,
+  todayDate,
+  dayTotals,
+  nutritionStreak,
+  uid,
+  wealthSummary,
+  syncTradingAssets,
+  type Meal,
+  type Hobby,
+  type EvoTask,
 } from "@/lib/evolution-data";
 
 type ModuleHref = "/wealth" | "/nutrition" | "/fitness" | "/journal" | "/notes" | "/investing" | "/business" | "/hobby";
@@ -35,19 +57,31 @@ function formatMoney(n: number) {
 
 // Per-module accent colors (hex) used for icon ring + title only
 const ACCENT: Record<HoloVariant, string> = {
-  wealth:    "#f59e0b",
+  wealth: "#f59e0b",
   nutrition: "#22c55e",
-  fitness:   "#f97316",
-  journal:   "#a855f7",
-  notes:     "#eab308",
+  fitness: "#f97316",
+  journal: "#a855f7",
+  notes: "#eab308",
   investing: "#06b6d4",
-  business:  "#3b82f6",
-  hobby:     "#ec4899",
+  business: "#3b82f6",
+  hobby: "#ec4899",
 };
 
 function Card({
-  icon: Icon, variant, number, title, href, children,
-}: { icon: LucideIcon; variant: HoloVariant; number: string; title: string; href: ModuleHref; children: React.ReactNode }) {
+  icon: Icon,
+  variant,
+  number,
+  title,
+  href,
+  children,
+}: {
+  icon: LucideIcon;
+  variant: HoloVariant;
+  number: string;
+  title: string;
+  href: ModuleHref;
+  children: React.ReactNode;
+}) {
   const accent = ACCENT[variant];
   return (
     <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors relative">
@@ -72,7 +106,10 @@ function Card({
         </h3>
       </Link>
       <div className="flex-1 flex flex-col">{children}</div>
-      <Link to={href} className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary w-fit">
+      <Link
+        to={href}
+        className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary w-fit"
+      >
         View Details <ChevronRight className="h-3 w-3" />
       </Link>
     </div>
@@ -89,10 +126,17 @@ export function WealthCard() {
     const n = Number(amount);
     if (!n) return;
     mutate((prev) => ({
-      transactions: [...prev.transactions, {
-        id: uid(), date: todayDate(), type: "income" as const,
-        description: "Quick Add", category: "Other", amount: n,
-      }],
+      transactions: [
+        ...prev.transactions,
+        {
+          id: uid(),
+          date: todayDate(),
+          type: "income" as const,
+          description: "Quick Add",
+          category: "Other",
+          amount: n,
+        },
+      ],
     }));
     setAmount("");
   };
@@ -108,22 +152,31 @@ export function WealthCard() {
         <Sparkline data={spark} height={50} />
       </div>
       <div className="flex gap-2 mt-3">
-        <Input value={amount} onChange={(e) => setAmount(e.target.value)}
-               onKeyDown={(e) => e.key === "Enter" && addIncome()}
-               placeholder="+$" type="number" className="h-8 text-xs" />
-        <button onClick={addIncome} className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10">Add</button>
+        <Input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addIncome()}
+          placeholder="+$"
+          type="number"
+          className="h-8 text-xs"
+        />
+        <button
+          onClick={addIncome}
+          className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
+        >
+          Add
+        </button>
       </div>
     </Card>
   );
 }
 
-
 // Same quick-add presets as the Nutrition page
 const QUICK_FOODS = [
   { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 450, p: 35, c: 35, f: 18 },
-  { key: "chicken_rice",     label: "Chicken & Rice",     kcal: 380, p: 40, c: 38, f: 6 },
-  { key: "greek_yogurt",     label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
-  { key: "broccoli",         label: "Broccoli",           kcal: 150, p: 8,  c: 18, f: 2 },
+  { key: "chicken_rice", label: "Chicken & Rice", kcal: 380, p: 40, c: 38, f: 6 },
+  { key: "greek_yogurt", label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
+  { key: "broccoli", label: "Broccoli", kcal: 150, p: 8, c: 18, f: 2 },
 ];
 
 function nowHM() {
@@ -151,14 +204,23 @@ export function NutritionCard() {
   const water = data.water.find((w) => w.date === today)?.glasses ?? 0;
   const waterTarget = data.profile.waterTarget || 8;
 
-  const quickAdd = (q: typeof QUICK_FOODS[number]) => {
+  const quickAdd = (q: (typeof QUICK_FOODS)[number]) => {
     const time = nowHM();
     mutate((prev) => ({
-      mealLogs: [...prev.mealLogs, {
-        id: uid(), date: today, name: q.label,
-        calories: q.kcal, protein: q.p, carbs: q.c, fats: q.f,
-        time, mealType: categoryFromTime(time),
-      }],
+      mealLogs: [
+        ...prev.mealLogs,
+        {
+          id: uid(),
+          date: today,
+          name: q.label,
+          calories: q.kcal,
+          protein: q.p,
+          carbs: q.c,
+          fats: q.f,
+          time,
+          mealType: categoryFromTime(time),
+        },
+      ],
     }));
   };
 
@@ -171,15 +233,21 @@ export function NutritionCard() {
       <div className="flex items-center gap-3 mt-2">
         <RingProgress value={calPct} size={80} label={`${calPct}%`} sublabel={`🔥 ${streak}d`} />
         <div className="flex-1 space-y-1">
-          {([
-            ["Protein", t.p, pTarget, "g"],
-            ["Carbs", t.c, data.profile.carbsTarget || null, "g"],
-            ["Fats", t.f, data.profile.fatsTarget || null, "g"],
-            ["Water", water, waterTarget, ""],
-          ] as const).map(([k, v, tgt, u]) => (
+          {(
+            [
+              ["Protein", t.p, pTarget, "g"],
+              ["Carbs", t.c, data.profile.carbsTarget || null, "g"],
+              ["Fats", t.f, data.profile.fatsTarget || null, "g"],
+              ["Water", water, waterTarget, ""],
+            ] as const
+          ).map(([k, v, tgt, u]) => (
             <div key={k} className="flex justify-between hud-label text-[10px]">
               <span className="text-muted-foreground">{k}</span>
-              <span className="text-primary">{v}{u}{tgt ? ` / ${tgt}${u}` : ""}</span>
+              <span className="text-primary">
+                {v}
+                {u}
+                {tgt ? ` / ${tgt}${u}` : ""}
+              </span>
             </div>
           ))}
         </div>
@@ -188,7 +256,10 @@ export function NutritionCard() {
         {QUICK_FOODS.map((q) => (
           <button
             key={q.key}
-            onClick={(e) => { e.preventDefault(); quickAdd(q); }}
+            onClick={(e) => {
+              e.preventDefault();
+              quickAdd(q);
+            }}
             className="text-[10px] hud-label px-2 py-1.5 rounded border text-left border-border text-foreground/80 hover:border-primary/60 hover:bg-primary/10 hover:text-primary transition-colors"
             title={`+${q.kcal} kcal · ${q.p}P ${q.c}C ${q.f}F`}
           >
@@ -212,19 +283,28 @@ export function FitnessCard() {
   return (
     <Card icon={Dumbbell} variant="fitness" number="03" title="Fitness" href="/fitness">
       <div className="hud-label text-[10px] text-muted-foreground">Weekly Sessions</div>
-      <div className="hud-label text-xl text-primary hud-glow my-1">{fit.sessions} / {fit.target}</div>
+      <div className="hud-label text-xl text-primary hud-glow my-1">
+        {fit.sessions} / {fit.target}
+      </div>
       <div className="mt-2">
         <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={50} />
       </div>
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-        {[["Bench", data.profile.bench], ["Squat", data.profile.squat], ["Back Row", data.profile.backrow]].map(([k, v]) => (
+        {[
+          ["Bench", data.profile.bench],
+          ["Squat", data.profile.squat],
+          ["Back Row", data.profile.backrow],
+        ].map(([k, v]) => (
           <div key={k as string} className="border border-border rounded p-1.5">
             <div className="hud-label text-[9px] text-muted-foreground">{k}</div>
             <div className="hud-label text-xs text-primary">{v}</div>
           </div>
         ))}
       </div>
-      <button onClick={logSession} className="mt-3 h-8 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10">
+      <button
+        onClick={logSession}
+        className="mt-3 h-8 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
+      >
         + Log Session
       </button>
     </Card>
@@ -237,13 +317,20 @@ export function JournalCard() {
   // Same entries the Journal page shows; legacy quick notes (data.journal) are still read, never migrated twice.
   const latestEntry = data.journalEntries.at(-1);
   const legacy = data.journal.at(-1);
-  const latest = latestEntry && (!legacy || latestEntry.date >= legacy.date)
-    ? { text: latestEntry.text, date: latestEntry.date } : legacy;
+  const latest =
+    latestEntry && (!legacy || latestEntry.date >= legacy.date)
+      ? { text: latestEntry.text, date: latestEntry.date }
+      : legacy;
 
   const save = () => {
     const t = text.trim();
     if (!t) return;
-    mutate((prev) => ({ journalEntries: [...prev.journalEntries, { id: uid(), date: todayDate(), title: "Quick entry", text: t, mood: "Good", tags: [] }] }));
+    mutate((prev) => ({
+      journalEntries: [
+        ...prev.journalEntries,
+        { id: uid(), date: todayDate(), title: "Quick entry", text: t, mood: "Good", tags: [] },
+      ],
+    }));
     setText("");
   };
 
@@ -254,10 +341,16 @@ export function JournalCard() {
         "{latest?.text ?? "No entries yet."}"
       </p>
       <div className="hud-label text-[9px] text-muted-foreground mt-1">{latest?.date}</div>
-      <textarea value={text} onChange={(e) => setText(e.target.value)}
-                placeholder="Write…" rows={2}
-                className="mt-3 w-full bg-transparent border border-border rounded p-2 text-xs resize-none focus:outline-none focus:border-primary/50" />
-      <Button onClick={save} size="sm" className="mt-2 hud-label text-[10px]">Save Entry</Button>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Write…"
+        rows={2}
+        className="mt-3 w-full bg-transparent border border-border rounded p-2 text-xs resize-none focus:outline-none focus:border-primary/50"
+      />
+      <Button onClick={save} size="sm" className="mt-2 hud-label text-[10px]">
+        Save Entry
+      </Button>
     </Card>
   );
 }
@@ -286,12 +379,11 @@ export function NotesCard() {
   const toggle = (id: string) =>
     mutate((prev) => ({
       evoTasks: (prev.evoTasks ?? []).map((t) =>
-        t.id === id ? { ...t, status: t.status === "Done" ? "Not Started" : "Done" } : t
+        t.id === id ? { ...t, status: t.status === "Done" ? "Not Started" : "Done" } : t,
       ),
     }));
 
-  const remove = (id: string) =>
-    mutate((prev) => ({ evoTasks: (prev.evoTasks ?? []).filter((t) => t.id !== id) }));
+  const remove = (id: string) => mutate((prev) => ({ evoTasks: (prev.evoTasks ?? []).filter((t) => t.id !== id) }));
 
   const visible = tasks.filter((t) => t.status !== "Done");
 
@@ -301,27 +393,43 @@ export function NotesCard() {
         {visible.map((t) => (
           <li key={t.id} className="flex items-start gap-2 text-xs group">
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(t.id); }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle(t.id);
+              }}
               className="mt-0.5 h-3.5 w-3.5 rounded border flex items-center justify-center shrink-0 border-primary/50 hover:border-primary"
               aria-label="Mark as done"
             >
               <span className="text-[8px] leading-none opacity-0">✓</span>
             </button>
             <span className="flex-1 text-foreground/90">{t.text}</span>
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); remove(t.id); }} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                remove(t.id);
+              }}
+              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+            >
               <X className="h-3 w-3" />
             </button>
           </li>
         ))}
-        {visible.length === 0 && (
-          <li className="text-xs text-muted-foreground italic">No open tasks.</li>
-        )}
+        {visible.length === 0 && <li className="text-xs text-muted-foreground italic">No open tasks.</li>}
       </ul>
       <div className="flex gap-2 mt-3">
-        <Input value={text} onChange={(e) => setText(e.target.value)}
-               onKeyDown={(e) => e.key === "Enter" && add()}
-               placeholder="Add task…" className="h-8 text-xs" />
-        <button onClick={add} className="h-8 w-8 rounded-md border border-primary/40 text-primary flex items-center justify-center hover:bg-primary/10">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+          placeholder="Add task…"
+          className="h-8 text-xs"
+        />
+        <button
+          onClick={add}
+          className="h-8 w-8 rounded-md border border-primary/40 text-primary flex items-center justify-center hover:bg-primary/10"
+        >
           <Plus className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -337,7 +445,8 @@ export function InvestingCard() {
   const totalAssets = trading.balance;
   const startingBalance = data.tradingAccounts.reduce((s, a) => s + a.startingBalance, 0);
   const pct = startingBalance > 0 ? ((totalAssets - startingBalance) / startingBalance) * 100 : 0;
-  const goalPct = Math.min(100, Math.round((totalAssets / data.profile.goal) * 100));
+  const goalPct =
+    data.profile.goal > 0 ? Math.max(0, Math.min(100, Math.round((totalAssets / data.profile.goal) * 100))) : 0;
 
   // Sparkline from cumulative trading balance over time
   const sparkData = useMemo(() => {
@@ -348,7 +457,7 @@ export function InvestingCard() {
       running += t.type === "profit" ? t.amount : -t.amount;
       pts.push(running);
     }
-    return pts.length > 1 ? pts : (inv.data.length ? inv.data : [1]);
+    return pts.length > 1 ? pts : inv.data.length ? inv.data : [1];
   }, [data.tradingTxns, startingBalance, inv.data]);
 
   const logPnL = () => {
@@ -358,7 +467,20 @@ export function InvestingCard() {
     mutate((prev) => {
       const acc = prev.tradingAccounts[0];
       if (!acc) return {};
-      const next = { ...prev, tradingTxns: [...prev.tradingTxns, { id: `dash-${uid()}`, accountId: acc.id, date: todayDate(), type: n > 0 ? "profit" as const : "loss" as const, amount: Math.abs(n), notes: "Dashboard P/L" }] };
+      const next = {
+        ...prev,
+        tradingTxns: [
+          ...prev.tradingTxns,
+          {
+            id: `dash-${uid()}`,
+            accountId: acc.id,
+            date: todayDate(),
+            type: n > 0 ? ("profit" as const) : ("loss" as const),
+            amount: Math.abs(n),
+            notes: "Dashboard P/L",
+          },
+        ],
+      };
       const synced = syncTradingAssets(next);
       return { tradingTxns: synced.tradingTxns, assets: synced.assets };
     });
@@ -378,18 +500,34 @@ export function InvestingCard() {
 
       <div className="mt-2">
         <div className="flex justify-between hud-label text-[9px] text-muted-foreground">
-          <span>Goal</span><span>{formatMoney(data.profile.goal)}</span>
+          <span>Goal</span>
+          <span>{data.profile.goal > 0 ? formatMoney(data.profile.goal) : "Not set"}</span>
         </div>
         <div className="h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
-          <div className="h-full bg-primary rounded-full" style={{ width: `${goalPct}%`, boxShadow: "0 0 8px var(--primary)" }} />
+          <div
+            className="h-full bg-primary rounded-full"
+            style={{ width: `${goalPct}%`, boxShadow: "0 0 8px var(--primary)" }}
+          />
         </div>
-        <div className="hud-label text-[9px] text-primary text-right mt-1">{goalPct}%</div>
+        <div className="hud-label text-[9px] text-primary text-right mt-1">
+          {data.profile.goal > 0 ? `${goalPct}%` : "Set your goal"}
+        </div>
       </div>
       <div className="flex gap-2 mt-2">
-        <Input value={pnl} onChange={(e) => setPnl(e.target.value)}
-               onKeyDown={(e) => e.key === "Enter" && logPnL()}
-               placeholder="P&L ±$" type="number" className="h-8 text-xs" />
-        <button onClick={logPnL} className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10">Log</button>
+        <Input
+          value={pnl}
+          onChange={(e) => setPnl(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && logPnL()}
+          placeholder="P&L ±$"
+          type="number"
+          className="h-8 text-xs"
+        />
+        <button
+          onClick={logPnL}
+          className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
+        >
+          Log
+        </button>
       </div>
     </Card>
   );
@@ -399,9 +537,7 @@ export function BusinessCard() {
   const { data } = useEvolutionData();
   const activeProjects = data.projects.filter((p) => p.status !== "Completed").length;
   const monthKey = localISO().slice(0, 7);
-  const monthRevenue = data.revenue
-    .filter((r) => r.date.startsWith(monthKey))
-    .reduce((a, r) => a + r.amount, 0);
+  const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
   const avgProgress = data.projects.length
     ? Math.round(data.projects.reduce((a, p) => a + p.progress, 0) / data.projects.length)
     : 0;
@@ -452,25 +588,33 @@ export function HobbyCard() {
         }}
       />
       <div className="relative z-10 flex flex-col flex-1">
-      <div className="hud-label text-[10px] text-muted-foreground">Current Focus</div>
-      <div className="hud-label text-xl text-primary hud-glow my-1">{data.hobby.current}</div>
-      <div className="hud-label text-[10px] text-muted-foreground mt-2">Time Invested</div>
-      <div className="hud-label text-lg text-foreground">{data.hobby.hours.toFixed(1)} hrs</div>
-      <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-        <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(100, data.hobby.hours * 5)}%`, boxShadow: "0 0 8px var(--primary)" }} />
-      </div>
-      <div className="grid grid-cols-3 gap-1.5 mt-3">
-        {hobbies.map((h) => (
-          <button key={h} onClick={() => mutate({ hobby: { ...data.hobby, current: h } })}
-                  className={`hud-label text-[10px] py-1.5 rounded border ${data.hobby.current === h ? "border-primary/60 bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}>
-            {h}
-          </button>
-        ))}
-      </div>
-      <button onClick={() => mutate({ hobby: { ...data.hobby, hours: data.hobby.hours + 0.5 } })}
-              className="mt-2 h-7 text-[10px] hud-label text-primary border border-primary/40 rounded hover:bg-primary/10">
-        + 30 min
-      </button>
+        <div className="hud-label text-[10px] text-muted-foreground">Current Focus</div>
+        <div className="hud-label text-xl text-primary hud-glow my-1">{data.hobby.current}</div>
+        <div className="hud-label text-[10px] text-muted-foreground mt-2">Time Invested</div>
+        <div className="hud-label text-lg text-foreground">{data.hobby.hours.toFixed(1)} hrs</div>
+        <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full"
+            style={{ width: `${Math.min(100, data.hobby.hours * 5)}%`, boxShadow: "0 0 8px var(--primary)" }}
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-1.5 mt-3">
+          {hobbies.map((h) => (
+            <button
+              key={h}
+              onClick={() => mutate({ hobby: { ...data.hobby, current: h } })}
+              className={`hud-label text-[10px] py-1.5 rounded border ${data.hobby.current === h ? "border-primary/60 bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}
+            >
+              {h}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => mutate({ hobby: { ...data.hobby, hours: data.hobby.hours + 0.5 } })}
+          className="mt-2 h-7 text-[10px] hud-label text-primary border border-primary/40 rounded hover:bg-primary/10"
+        >
+          + 30 min
+        </button>
       </div>
     </Card>
   );
