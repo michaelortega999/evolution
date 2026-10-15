@@ -123,7 +123,7 @@ function RootComponent() {
         <Toaster />
       </>
     );
-  if (isPhone && pathname !== "/auth") return <MobileApp />;
+  if (isPhone && pathname !== "/auth" && pathname !== "/settings") return <MobileApp />;
   return (
     <>
       <Outlet />
