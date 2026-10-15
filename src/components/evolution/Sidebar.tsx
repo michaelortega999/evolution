@@ -2,8 +2,22 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  Home, Wallet, Apple, Dumbbell, FileText, CheckSquare,
-  TrendingUp, Briefcase, Star, Calendar, Target, BarChart3, Settings, Zap, LogOut, LogIn,
+  Home,
+  Wallet,
+  Apple,
+  Dumbbell,
+  FileText,
+  CheckSquare,
+  TrendingUp,
+  Briefcase,
+  Star,
+  Calendar,
+  Target,
+  BarChart3,
+  Settings,
+  Zap,
+  LogOut,
+  LogIn,
 } from "lucide-react";
 import { useEvolutionData } from "@/lib/evolution-data";
 import { HologramPicker } from "./HologramPicker";
@@ -54,7 +68,10 @@ export function Sidebar() {
     const r = await signOutOnce();
     if (r.kind === "busy") return;
     setSigningOut(false);
-    if (r.kind === "error") { toast.error(r.message); return; }
+    if (r.kind === "error") {
+      toast.error(r.message);
+      return;
+    }
     toast.success("Signed out");
     navigate({ to: "/auth" });
   };
@@ -84,6 +101,12 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 flex-1">
+        <a
+          href="/?section=evo"
+          className="flex items-center gap-3 px-3 py-3 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary"
+        >
+          <Zap className="h-4 w-4" /> Evo Assistant
+        </a>
         {mainNav.map((item) => {
           const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           return (
@@ -94,10 +117,13 @@ export function Sidebar() {
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive
                   ? "bg-primary/10 border-primary/40 text-primary hud-glow"
-                  : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
+                  : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary",
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" style={{ color: "oklch(0.85 0.28 145)", filter: "drop-shadow(0 0 4px oklch(0.85 0.28 145 / 0.8))" }} />
+              <item.icon
+                className="h-4 w-4 shrink-0"
+                style={{ color: "oklch(0.85 0.28 145)", filter: "drop-shadow(0 0 4px oklch(0.85 0.28 145 / 0.8))" }}
+              />
               {item.num && <span className="text-[10px] opacity-60 w-3">{item.num}</span>}
               <span>{item.label}</span>
             </Link>
@@ -116,10 +142,13 @@ export function Sidebar() {
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive
                   ? "bg-primary/10 border-primary/40 text-primary hud-glow"
-                  : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary"
+                  : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary",
               )}
             >
-              <item.icon className="h-4 w-4" style={{ color: "oklch(0.85 0.28 145)", filter: "drop-shadow(0 0 4px oklch(0.85 0.28 145 / 0.8))" }} />
+              <item.icon
+                className="h-4 w-4"
+                style={{ color: "oklch(0.85 0.28 145)", filter: "drop-shadow(0 0 4px oklch(0.85 0.28 145 / 0.8))" }}
+              />
               <span>{item.label}</span>
             </Link>
           );
@@ -132,9 +161,7 @@ export function Sidebar() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="hud-label text-xs text-foreground truncate">{data.profile.name || "Operator"}</div>
-          <div className="hud-label text-[9px] text-muted-foreground truncate">
-            {userEmail ?? "Not signed in"}
-          </div>
+          <div className="hud-label text-[9px] text-muted-foreground truncate">{userEmail ?? "Not signed in"}</div>
         </div>
         {userEmail ? (
           <button
