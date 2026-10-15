@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,13 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef(""); const nameRef = useRef("");
+  passwordRef.current = password; nameRef.current = name;
   const [checkEmail, setCheckEmail] = useState<string | null>(null);
   const [signUpOnce] = useState(() => createSignUp((addr: string) => supabase.auth.signUp({
     email: addr, password: passwordRef.current,
     options: { emailRedirectTo: `${window.location.origin}/`, data: { name: nameRef.current } },
   })));
-  const passwordRef = { current: password }; const nameRef = { current: name };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

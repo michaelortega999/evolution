@@ -10,6 +10,7 @@ import { HologramPicker } from "./HologramPicker";
 import { HologramEmblem } from "./HologramEmblem";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createSignOut } from "@/lib/auth-actions";
 
 const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
@@ -46,8 +47,14 @@ export function Sidebar() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutOnce] = useState(() => createSignOut(() => supabase.auth.signOut()));
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setSigningOut(true);
+    const r = await signOutOnce();
+    if (r.kind === "busy") return;
+    setSigningOut(false);
+    if (r.kind === "error") { toast.error(r.message); return; }
     toast.success("Signed out");
     navigate({ to: "/auth" });
   };
@@ -132,8 +139,10 @@ export function Sidebar() {
         {userEmail ? (
           <button
             onClick={signOut}
-            title="Sign out"
-            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10"
+            disabled={signingOut}
+            aria-busy={signingOut}
+            title={signingOut ? "Signing out…" : "Sign out"}
+            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-50"
           >
             <LogOut className="h-3.5 w-3.5" />
           </button>
