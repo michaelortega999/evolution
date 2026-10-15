@@ -9418,6 +9418,10 @@
             });
             if (Object.keys(next).length) this.setState(next);
           }
+          const evoPage = new URLSearchParams(window.location.search).get("evoPage");
+          if (evoPage === "home" || evoPage === "stats" || evoPage === "profile") {
+            this.setState({ route: evoPage === "home" ? "home" : "nav-" + evoPage });
+          }
           this._t = setInterval(() => {
             this.setState(s => {
               const next = { now: new Date() };
