@@ -1,4 +1,4 @@
-import { localISO } from "./utils";
+import { localISO, type EvoRoutineRecord, type EvoAssistantMessage } from "./utils";
 import {
   mergeValue,
   mergePhoneData,
@@ -472,6 +472,8 @@ export interface CustomHobby {
 }
 
 export interface EvolutionData {
+  assistantRoutines?: EvoRoutineRecord[];
+  assistantMessages?: EvoAssistantMessage[];
   supplementList?: { id: string; name: string; time: string; dose: string }[];
   supplementDone?: Record<string, string[]>;
   weightTracker?: {
