@@ -28,8 +28,11 @@ export function useIsPhone() {
 
 export function MobileApp() {
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
-  const requestedPage = new URLSearchParams(searchStr).get("mobilePage") || "";
-  const mobilePage = ["home", "stats", "profile"].includes(requestedPage) ? requestedPage : "";
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const requestedPage =
+    new URLSearchParams(searchStr).get("mobilePage") ||
+    (pathname === "/reports" ? "stats" : pathname === "/notes" ? "tasks" : "");
+  const mobilePage = ["home", "stats", "profile", "tasks"].includes(requestedPage) ? requestedPage : "";
   const { data } = useEvolutionData();
   const cardStyle = effectiveCardStyle(data.settings);
   const [ready, setReady] = useState(false);
