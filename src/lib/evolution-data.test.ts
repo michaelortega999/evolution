@@ -542,3 +542,18 @@ describe("habitLog membership merge", () => {
     expect(local().habitLog.workout).toEqual(["2026-10-13", "2026-10-14", "2026-10-15"]);
   });
 });
+
+describe("mergeEvolutionData does not mutate inputs", () => {
+  const deepFreeze = (o: any): any => { Object.values(o).forEach((v) => v && typeof v === "object" && deepFreeze(v)); return Object.freeze(o); };
+  const snap = (h: any) => deepFreeze(JSON.parse(JSON.stringify({ ...defaultData, habitLog: h, phoneStore: { v: 1, data: { jr: { entries: [] } } } })));
+  it("unchanged local → result is separate from frozen remote", () => {
+    const b = snap({ w: ["2026-10-13"] }), r = snap({ w: ["2026-10-13", "2026-10-15"] }), before = JSON.stringify(r);
+    const out = mod.mergeEvolutionData(b, snap({ w: ["2026-10-13"] }), r);
+    expect(out).not.toBe(r); expect(JSON.stringify(r)).toBe(before); expect(out.habitLog.w).toEqual(["2026-10-13", "2026-10-15"]);
+  });
+  it("unchanged remote → result is separate from frozen local", () => {
+    const b = snap({ w: [] }), l = snap({ w: ["2026-10-14"] }), before = JSON.stringify(l);
+    const out = mod.mergeEvolutionData(b, l, snap({ w: [] }));
+    expect(out).not.toBe(l); expect(JSON.stringify(l)).toBe(before); expect(out.habitLog.w).toEqual(["2026-10-14"]);
+  });
+});
