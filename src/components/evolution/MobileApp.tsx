@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { cloudReady, useCloudStatus, getLocalOwner } from "@/lib/evolution-data";
 import { createPhoneSignOutHandler } from "@/lib/mobile-auth";
@@ -26,6 +26,9 @@ export function useIsPhone() {
 }
 
 export function MobileApp() {
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
+  const requestedPage = new URLSearchParams(searchStr).get("mobilePage") || "";
+  const mobilePage = ["home", "stats", "profile"].includes(requestedPage) ? requestedPage : "";
   const [ready, setReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -34,14 +37,18 @@ export function MobileApp() {
   const bankOwner = bank.status === "ready" || bank.status === "error";
   const [bankOpen, setBankOpen] = useState(false);
   // Sign-out / account switch: the store clears synchronously, so close the drawer with it.
-  useEffect(() => { if (!bankOwner) setBankOpen(false); }, [bankOwner]);
+  useEffect(() => {
+    if (!bankOwner) setBankOpen(false);
+  }, [bankOwner]);
   const readyRef = useRef(false);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     let alive = true;
     let poll: ReturnType<typeof setInterval> | null = null;
-    const flush = () => { if (readyRef.current) pullMobileIntoDesktop(); };
+    const flush = () => {
+      if (readyRef.current) pullMobileIntoDesktop();
+    };
     const onPhoneSignOut = createPhoneSignOutHandler({
       origin: window.location.origin,
       getFrame: () => frameRef.current?.contentWindow ?? null,
@@ -70,13 +77,24 @@ export function MobileApp() {
     const onOwnerChanging = () => {
       flush();
       readyRef.current = false;
-      if (poll) { clearInterval(poll); poll = null; }
+      if (poll) {
+        clearInterval(poll);
+        poll = null;
+      }
       const f = frameRef.current;
-      if (f) { try { f.src = "about:blank"; } catch { /* ignore */ } }
+      if (f) {
+        try {
+          f.src = "about:blank";
+        } catch {
+          /* ignore */
+        }
+      }
       setReady(false);
     };
     // Desktop data now belongs to the new account → swap phone stores and restart.
-    const onOwnerChanged = () => { if (started) start(); };
+    const onOwnerChanged = () => {
+      if (started) start();
+    };
     // Cloud data that arrives later (re-login, retry after error): save the phone's
     // latest edits first, merge both ways, then reload the phone design with the result.
     const onCloudLoaded = () => {
@@ -119,20 +137,24 @@ export function MobileApp() {
       const w = frameRef.current?.contentWindow;
       if (!w) return;
       const s = bankStore.get();
-      const payload = s.status === "ready" && s.accounts.length
-        ? {
-            accounts: s.accounts.filter((a) => a.environment !== "sandbox"),
-            balances: s.balances,
-            transactions: s.transactions.filter((t) => t.environment !== "sandbox"),
-          }
-        : null;
+      const payload =
+        s.status === "ready" && s.accounts.length
+          ? {
+              accounts: s.accounts.filter((a) => a.environment !== "sandbox"),
+              balances: s.balances,
+              transactions: s.transactions.filter((t) => t.environment !== "sandbox"),
+            }
+          : null;
       w.postMessage({ type: "evo:bank", gen: bankStore.generation(), payload }, window.location.origin);
     };
     const unsub = bankStore.subscribe(post);
     const f = frameRef.current;
     f?.addEventListener("load", post);
     post();
-    return () => { unsub(); f?.removeEventListener("load", post); };
+    return () => {
+      unsub();
+      f?.removeEventListener("load", post);
+    };
   }, [frameKey, ready]);
 
   return (
@@ -141,7 +163,7 @@ export function MobileApp() {
         <iframe
           key={frameKey}
           ref={frameRef}
-          src="/evolution-mobile/index.html"
+          src={"/evolution-mobile/index.html" + (mobilePage ? "?evoPage=" + mobilePage : "")}
           title="Evolution OS"
           className="h-[100dvh] w-full border-0"
           allow="autoplay"
@@ -150,6 +172,18 @@ export function MobileApp() {
         <div className="flex h-full items-center justify-center hud-label text-xs tracking-widest text-primary">
           LOADING…
         </div>
+      )}
+      {ready && (
+        <a
+          href="/?section=evo"
+          onClick={() => {
+            if (readyRef.current) pullMobileIntoDesktop();
+          }}
+          className="absolute left-2 top-2 rounded-full border border-primary/60 bg-background/95 px-3 py-1 text-[11px] tracking-widest text-primary"
+          aria-label="Open Evo Assistant"
+        >
+          EVO
+        </a>
       )}
       {bankOwner && (
         <button
@@ -164,10 +198,20 @@ export function MobileApp() {
         <div className="absolute inset-0 z-10 flex flex-col bg-background/95" role="dialog" aria-label="Bank accounts">
           <div className="flex items-center justify-between border-b border-primary/40 px-4 py-3">
             <span className="hud-label text-xs tracking-widest text-primary">BANK ACCOUNTS</span>
-            <button type="button" onClick={() => setBankOpen(false)} className="text-[11px] tracking-widest text-primary">CLOSE</button>
+            <button
+              type="button"
+              onClick={() => setBankOpen(false)}
+              className="text-[11px] tracking-widest text-primary"
+            >
+              CLOSE
+            </button>
           </div>
-          <p className="px-4 pt-2 text-[10px] text-muted-foreground">Numbers in the app artwork are design samples. These are your real stored bank figures.</p>
-          <div className="flex-1 overflow-y-auto p-3"><BankConnectionPanel /></div>
+          <p className="px-4 pt-2 text-[10px] text-muted-foreground">
+            Numbers in the app artwork are design samples. These are your real stored bank figures.
+          </p>
+          <div className="flex-1 overflow-y-auto p-3">
+            <BankConnectionPanel />
+          </div>
         </div>
       )}
       {signedIn === false && (
