@@ -131,3 +131,24 @@ export function advanceBase(base: unknown, held: unknown, merged: unknown): unkn
   }
   return base;
 }
+
+/** Three-way membership merge for habitLog (habit → date strings): independent additions and removals both survive. */
+export function mergeHabitLog(b: unknown, l: unknown, r: unknown): Record<string, string[]> {
+  const obj = (x: unknown) => (isPlainObj(x) ? x : {}) as Record<string, unknown>;
+  const set = (x: unknown) => new Set(Array.isArray(x) ? x.filter((d): d is string => typeof d === "string") : []);
+  const B = obj(b), L = obj(l), R = obj(r);
+  const out: Record<string, string[]> = {};
+  for (const h of new Set([...Object.keys(R), ...Object.keys(L)])) {
+    const bs = set(B[h]), ls = set(L[h]), rs = set(R[h]);
+    const keep: string[] = [];
+    for (const d of new Set([...rs, ...ls])) {
+      const inB = bs.has(d), inL = ls.has(d), inR = rs.has(d);
+      if (inL && inR) keep.push(d);
+      else if (!inB) keep.push(d);           // added on one side
+      // else present in base and removed on one side → removal wins
+    }
+    // A habit present on neither side's object stays deleted; empty arrays are valid and kept.
+    if ((h in L && h in R) || !(h in B) || keep.length) out[h] = keep.sort();
+  }
+  return out;
+}

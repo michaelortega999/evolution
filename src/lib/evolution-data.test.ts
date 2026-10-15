@@ -513,3 +513,32 @@ describe("trade review ↔ ledger", () => {
     expect(mod.refreshReviewPnl([{ id: "j", date: D, pnl: 50 } as any], left, new Set([D]))[0].pnl).toBe(0);
   });
 });
+
+describe("habitLog membership merge", () => {
+  const hl = (habitLog: any) => ({ ...defaultData, habitLog }) as any;
+  const m = (b: any, l: any, r: any) => mod.mergeEvolutionData(hl(b), hl(l), hl(r)).habitLog;
+  it("independent date additions both survive", () => {
+    expect(m({ workout: ["2026-10-13"] }, { workout: ["2026-10-13", "2026-10-14"] }, { workout: ["2026-10-13", "2026-10-15"] }).workout)
+      .toEqual(["2026-10-13", "2026-10-14", "2026-10-15"]);
+  });
+  it("local removal and remote removal are both kept, alongside other additions", () => {
+    const b = { workout: ["2026-10-12", "2026-10-13"] };
+    expect(m(b, { workout: ["2026-10-13"] }, { workout: ["2026-10-12", "2026-10-13", "2026-10-15"] }).workout).toEqual(["2026-10-13", "2026-10-15"]);
+    expect(m(b, { workout: ["2026-10-12", "2026-10-13", "2026-10-14"] }, { workout: ["2026-10-12"] }).workout).toEqual(["2026-10-12", "2026-10-14"]);
+  });
+  it("duplicate same-date checkoff appears once; distinct habits merge independently; empty arrays kept", () => {
+    const r = m({ read: [] }, { read: ["2026-10-14"], water: [] }, { read: ["2026-10-14"], run: ["2026-10-15"] });
+    expect(r).toEqual({ read: ["2026-10-14"], water: [], run: ["2026-10-15"] });
+  });
+  it("concurrent CAS retry keeps both devices' checkoffs and survives reload", async () => {
+    mem["evolution:data:owner"] = "U";
+    cloud.U = { ...defaultData, habitLog: { workout: ["2026-10-13"] }, _version: 6 };
+    await __cloudTest.activateCloudForUser("U");
+    cloud.U = { ...cloud.U, habitLog: { workout: ["2026-10-13", "2026-10-15"] } }; ts.U = "other"; // other device wins the race
+    edit({ habitLog: { workout: ["2026-10-13", "2026-10-14"] } });
+    await __cloudTest.flushSave(); await __cloudTest.idle();
+    expect(cloud.U.habitLog.workout).toEqual(["2026-10-13", "2026-10-14", "2026-10-15"]);
+    const raw = mem[KEY]; for (const k in mem) delete mem[k]; mem[KEY] = raw;
+    expect(local().habitLog.workout).toEqual(["2026-10-13", "2026-10-14", "2026-10-15"]);
+  });
+});
