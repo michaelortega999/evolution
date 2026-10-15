@@ -57,6 +57,8 @@ export interface CalendarEvent {
 export type ThemeKey = "default" | "gold" | "orange" | "green" | "red" | "purple" | "white" | "black";
 
 export interface Settings {
+  cardStyle?: "jarvis" | "glass" | "tactical" | "classic";
+  applyCardStyleGlobally?: boolean;
   theme: ThemeKey;
   notifications: {
     daily: boolean;
@@ -630,6 +632,8 @@ export const defaultData: EvolutionData = {
   goals: [],
   calendar: [],
   settings: {
+    cardStyle: "jarvis",
+    applyCardStyleGlobally: true,
     theme: "default",
     notifications: { daily: true, goals: true, journal: false },
   },
