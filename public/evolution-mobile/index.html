@@ -8,6 +8,27 @@
     <meta name="theme-color" content="#04080d" />
     <script src="./support.js"></script>
     <script src="./inv-ledger.js"></script>
+    <style>
+      /* Appearance affects live card surfaces, never the full-page art or controls. */
+      .card-surface{position:relative;isolation:isolate;background:linear-gradient(145deg,#041725,#010810);border:1px solid #3187ac;color:#def6ff}
+      .card-style-jarvis{border-radius:3px;outline:1px solid #3196b6;outline-offset:-7px;box-shadow:inset 0 0 24px #00b7ff20,0 0 14px #009dff40;background:linear-gradient(135deg,#0b3148,#010911 45%,#072338)}
+      .card-style-glass{border-radius:26px;border:2px solid #88d4ff99;background:linear-gradient(145deg,#17405bcc,#03121cdd);box-shadow:inset 0 0 20px #74cfff40,0 0 15px #36acff25}
+      .card-style-tactical{border-radius:0;border:2px solid #d3e4f0;outline:1px solid #7d9cac;outline-offset:-7px;background:linear-gradient(125deg,#0a1722,#020a11);clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 14px,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0 calc(100% - 14px),0 14px)}
+      .card-style-classic{border-radius:7px;border:1px solid #527b94;box-shadow:none;background:#06121d}
+      html[data-card-style="glass"] .evo-style-card,html[data-card-style="glass"] .st-card{border-radius:22px!important;clip-path:none!important;border:1px solid #8bd6ff99!important;background:linear-gradient(145deg,#15415bd9,#03131ded)!important;box-shadow:inset 0 0 18px #7dd6ff35,0 0 12px #45b3ff25!important}
+      html[data-card-style="tactical"] .evo-style-card,html[data-card-style="tactical"] .st-card{border-radius:0!important;border:2px solid #c8dbe6!important;box-shadow:inset 0 0 0 4px #142839!important;background-color:#020d16!important;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important}
+      html[data-card-style="classic"] .evo-style-card,html[data-card-style="classic"] .st-card{border-radius:6px!important;clip-path:none!important;border:1px solid #42657a!important;box-shadow:none!important;background:#04121c!important}
+      .evo-appearance-link{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;margin:8px 0;min-height:64px;border:1px solid #35c6ff;background:linear-gradient(120deg,#09283b,#020c15);color:#dff8ff;text-decoration:none;font:16px/1.4 system-ui;border-radius:8px}
+      .evo-appearance-link small{display:block;font-size:13px;color:#a7ccdf;margin-top:4px}
+      .evo-appearance-link:focus-visible{outline:3px solid white;outline-offset:3px}
+      .evo-calendar-legend{color:#a7d9cc;font:12px/1.4 system-ui;margin:6px 2px}
+      .evo-day-check{font:15px/1 system-ui;color:#5af5b5;min-height:15px}
+      .evo-calendar-tab{min-height:44px!important;font-size:clamp(11px,2.7cqw,15px)!important}
+      .evo-calendar-cell{min-height:44px!important}
+      .evo-calendar-cell:focus-visible,.evo-calendar-tab:focus-visible{outline:2px solid #fff;outline-offset:1px}
+      @media(prefers-reduced-motion:reduce){.evo-style-card,.st-card{transition:none!important;animation:none!important}}
+      .evo-calendar-cell > span { border-radius:0!important;clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px); }
+    </style>
   </head>
   <body>
     <x-dc>
@@ -229,6 +250,7 @@
                       style="flex:0 0 33.3333%; height:100%; position:relative; box-sizing:border-box; padding:0 1.2cqw"
                     >
                       <div
+                        class="evo-style-card"
                         style="position:relative; width:100%; height:100%; box-sizing:border-box; overflow:hidden; border:1px solid rgba(53,198,255,0.32); clip-path:polygon(5cqw 0, 100% 0, 100% calc(100% - 5cqw), calc(100% - 5cqw) 100%, 0 100%, 0 5cqw); background:#02070c; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif"
                       >
                         <div
@@ -371,6 +393,7 @@
                       style="flex:0 0 33.3333%; height:100%; position:relative; box-sizing:border-box; padding:0 1.2cqw"
                     >
                       <div
+                        class="evo-style-card"
                         style="position:relative; width:100%; height:100%; box-sizing:border-box; overflow:hidden; border:1px solid rgba(53,198,255,0.32); clip-path:polygon(5cqw 0, 100% 0, 100% calc(100% - 5cqw), calc(100% - 5cqw) 100%, 0 100%, 0 5cqw); background:#02070c; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif"
                       >
                         <div
@@ -1046,6 +1069,7 @@
                   <div style="flex:64; min-height:0; display:flex; gap:1.1cqw">
                     <sc-for list="{{ fitStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.26); background:#010a12; clip-path:polygon(2.6cqw 0, 100% 0, 100% calc(100% - 2.6cqw), calc(100% - 2.6cqw) 100%, 0 100%, 0 2.6cqw); display:flex; flex-direction:column; justify-content:center; gap:0.7cqw; padding:1cqw 1.4cqw"
                       >
                         <div style="display:flex; align-items:baseline; gap:1cqw">
@@ -1064,6 +1088,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:110; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.3cqw 1.6cqw; gap:1cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center">
@@ -1124,6 +1149,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:85; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.6cqw; gap:0.9cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center">
@@ -1150,6 +1176,7 @@
 
                   <div style="flex:110; min-height:0; display:flex; gap:1.1cqw">
                     <div
+                      class="evo-style-card"
                       style="flex:42; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.4cqw; gap:0.8cqw"
                     >
                       <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -1172,6 +1199,7 @@
                       </div>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:58; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.4cqw; gap:0.8cqw"
                     >
                       <div style="flex:none; display:flex; align-items:center">
@@ -1224,6 +1252,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:90; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.6cqw; gap:0.9cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center">
@@ -1239,6 +1268,7 @@
                     <div style="flex:1; min-height:0; display:flex; gap:1.2cqw">
                       <sc-for list="{{ fitRecoveryCards }}" as="r" hint-placeholder-count="3">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; padding:1cqw 1.4cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.45); display:flex; align-items:center; gap:1.4cqw"
                         >
                           <span style="flex:none; font-size:3cqw; color:#8fe4ff">{{ r.icon }}</span>
@@ -1260,6 +1290,7 @@
 
                 <sc-if value="{{ fitIsWorkouts }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.3cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -1358,6 +1389,7 @@
 
                 <sc-if value="{{ fitIsProgress }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -1367,6 +1399,7 @@
                     <div style="flex:none; display:grid; grid-template-columns:repeat(4,1fr); gap:1.2cqw">
                       <sc-for list="{{ fitProgressStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; padding:1.2cqw 1.4cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.5); display:flex; flex-direction:column; gap:0.3cqw"
                         >
                           <span style="font-size:1.6cqw; letter-spacing:0.08em; color:#4f7f96">{{ s.label }}</span>
@@ -1427,6 +1460,7 @@
 
                 <sc-if value="{{ fitIsPlan }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.3cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -1459,6 +1493,7 @@
 
                 <sc-if value="{{ fitIsRecovery }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.3cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -1549,6 +1584,7 @@
 
                 <sc-if value="{{ fitIsLibrary }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.3cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -1608,6 +1644,7 @@
                       </sc-if>
                       <sc-for list="{{ fitExercises }}" as="e" hint-placeholder-count="6">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; padding:1.1cqw 1.4cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.45); display:flex; flex-direction:column; gap:0.6cqw"
                         >
                           <div style="display:flex; align-items:center; gap:1.4cqw">
@@ -1720,6 +1757,7 @@
               >
                 <sc-if value="{{ invIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:560; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex"
                   >
                     <div style="flex:1; min-width:0; display:flex; flex-direction:column; padding:1.4cqw 1.6cqw">
@@ -1786,6 +1824,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:215; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.4cqw 1.6cqw; gap:1.2cqw"
                   >
                     <div style="display:flex; align-items:center">
@@ -1827,6 +1866,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:225; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.4cqw 1.6cqw; gap:1.2cqw"
                   >
                     <div style="display:flex; align-items:center; gap:1.4cqw">
@@ -1916,6 +1956,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:230; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.4cqw 1.6cqw; gap:1cqw"
                   >
                     <div style="display:flex; align-items:center">
@@ -1980,6 +2021,7 @@
 
                 <sc-if value="{{ invIsAccounts }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div style="display:flex; align-items:baseline; gap:2cqw">
@@ -2000,6 +2042,7 @@
                     </div>
                     <sc-if value="{{ invAdding }}" hint-placeholder-val="{{ false }}">
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.4); background:rgba(8,28,42,0.55); padding:1.6cqw 1.8cqw; display:flex; flex-direction:column; gap:1.4cqw"
                       >
                         <div style="display:flex; align-items:center; gap:1.4cqw">
@@ -2122,6 +2165,7 @@
 
                 <sc-if value="{{ invIsTrades }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.2cqw"
                   >
                     <div style="display:flex; align-items:center; gap:1.4cqw">
@@ -2176,6 +2220,7 @@
 
                 <sc-if value="{{ invIsAnalytics }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.6cqw"
                   >
                     <div
@@ -2186,6 +2231,7 @@
                     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1.2cqw">
                       <sc-for list="{{ invStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; padding:1.2cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.5); display:flex; flex-direction:column; gap:0.4cqw"
                         >
                           <div style="font-size:1.7cqw; letter-spacing:0.08em; color:#4f7f96">{{ s.label }}</div>
@@ -2208,6 +2254,7 @@
 
                 <sc-if value="{{ invIsWatch }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div
@@ -2303,6 +2350,7 @@
               >
                 <sc-if value="{{ bizIsProjects }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1095; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.6cqw 1.8cqw; gap:1.2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:flex-start; gap:1.4cqw">
@@ -2323,6 +2371,7 @@
                     </div>
                     <sc-if value="{{ bizAddingProject }}" hint-placeholder-val="{{ false }}">
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.4); background:rgba(8,28,42,0.55); padding:1.4cqw 1.6cqw; display:flex; align-items:flex-end; gap:1.2cqw"
                       >
                         <label style="flex:1.6; display:flex; flex-direction:column; gap:0.5cqw"
@@ -2471,6 +2520,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:180; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.6cqw; gap:0.9cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center">
@@ -2497,6 +2547,7 @@
 
                   <div style="flex:355; min-height:0; display:flex; gap:1.1cqw">
                     <div
+                      class="evo-style-card"
                       style="flex:46; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.4cqw 1.6cqw; gap:0.9cqw"
                     >
                       <div style="flex:none; display:flex; align-items:baseline; gap:1cqw">
@@ -2530,6 +2581,7 @@
 
                     <div style="flex:54; min-width:0; display:flex; flex-direction:column; gap:1.1cqw">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.4cqw; gap:0.8cqw"
                       >
                         <div style="flex:none; display:flex; align-items:center">
@@ -2555,6 +2607,7 @@
                         </div>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:1.35; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:1.2cqw 1.4cqw; gap:0.6cqw"
                       >
                         <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -2596,6 +2649,7 @@
 
                 <sc-if value="{{ bizIsTasks }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -2685,6 +2739,7 @@
 
                 <sc-if value="{{ bizIsClients }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -2781,6 +2836,7 @@
 
                 <sc-if value="{{ bizIsFinances }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.4cqw">
@@ -2796,6 +2852,7 @@
                     <div style="flex:none; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2cqw">
                       <sc-for list="{{ bizFinStats }}" as="s" hint-placeholder-count="3">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; padding:1.2cqw 1.4cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.5); display:flex; flex-direction:column; gap:0.3cqw"
                         >
                           <span style="font-size:1.6cqw; letter-spacing:0.1em; color:#4f7f96">{{ s.label }}</span>
@@ -2868,12 +2925,14 @@
 
                 <sc-if value="{{ bizIsInsights }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.6cqw"
                   >
                     <div style="flex:none; font-size:2.5cqw; letter-spacing:0.14em; color:#dff4ff">INSIGHTS</div>
                     <div style="flex:none; display:grid; grid-template-columns:repeat(4,1fr); gap:1.2cqw">
                       <sc-for list="{{ bizInsightStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; padding:1.2cqw 1.4cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.5); display:flex; flex-direction:column; gap:0.3cqw"
                         >
                           <span style="font-size:1.6cqw; letter-spacing:0.08em; color:#4f7f96">{{ s.label }}</span>
@@ -2925,6 +2984,7 @@
 
                 <sc-if value="{{ bizIsLibrary }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(3.4cqw 0, 100% 0, 100% calc(100% - 3.4cqw), calc(100% - 3.4cqw) 100%, 0 100%, 0 3.4cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw; gap:1.4cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -2964,6 +3024,7 @@
                       </sc-if>
                       <sc-for list="{{ bizNotes }}" as="n" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; padding:1.2cqw 1.4cqw; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.45); display:flex; flex-direction:column; gap:0.6cqw"
                         >
                           <div style="display:flex; align-items:center; gap:1.4cqw">
@@ -3050,6 +3111,7 @@
               >
                 <sc-if value="{{ nutIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:402; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:1.1cqw; padding:1.4cqw 1.6cqw"
                   >
                     <div style="flex:215; min-height:0; display:flex; align-items:center; gap:1.4cqw">
@@ -3074,6 +3136,7 @@
                         </div>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:none; width:25cqw; box-sizing:border-box; align-self:stretch; border:1px solid rgba(53,198,255,0.3); background:rgba(8,28,42,0.4); display:flex; flex-direction:column; justify-content:center; gap:1.1cqw; padding:1.2cqw 1.4cqw"
                       >
                         <span style="font-size:3.7cqw; color:#4fd2ff; line-height:1">{{ nutRemaining }}</span>
@@ -3087,6 +3150,7 @@
                     <div style="flex:160; min-height:0; display:flex; gap:1cqw">
                       <sc-for list="{{ nutMacros }}" as="m" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.24); background:#020d16; clip-path:polygon(2.2cqw 0, 100% 0, 100% calc(100% - 2.2cqw), calc(100% - 2.2cqw) 100%, 0 100%, 0 2.2cqw); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.7cqw; padding:0.8cqw"
                         >
                           <div
@@ -3107,6 +3171,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:360; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:0.9cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -3208,6 +3273,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:382; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:0.9cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -3260,6 +3326,7 @@
 
                 <sc-if value="{{ nutIsMeals }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.8cqw 2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -3436,6 +3503,7 @@
 
                 <sc-if value="{{ nutIsMeats }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.8cqw 2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -3545,6 +3613,7 @@
 
                 <sc-if value="{{ nutIsGroceries }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.8cqw 2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -3634,6 +3703,7 @@
 
                 <sc-if value="{{ nutIsInsights }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:1.4cqw; padding:1.8cqw 2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -3643,6 +3713,7 @@
                     <div style="flex:none; display:flex; gap:1cqw">
                       <sc-for list="{{ nutStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.45); display:flex; flex-direction:column; gap:0.5cqw; padding:1.2cqw 1.3cqw"
                         >
                           <span style="font-size:1.5cqw; letter-spacing:0.12em; color:#4f7f96">{{ s.label }}</span>
@@ -3694,6 +3765,7 @@
 
                 <sc-if value="{{ nutIsGoals }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3.2cqw 0, 100% 0, 100% calc(100% - 3.2cqw), calc(100% - 3.2cqw) 100%, 0 100%, 0 3.2cqw); display:flex; flex-direction:column; gap:1.4cqw; padding:1.8cqw 2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.4cqw">
@@ -3830,6 +3902,7 @@
                 <sc-if value="{{ wlIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div style="flex:340; min-height:0; display:flex; gap:1cqw">
                     <div
+                      class="evo-style-card"
                       style="flex:1.05; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.5cqw; padding:1.3cqw 1.5cqw"
                     >
                       <div style="flex:none; font-size:2.2cqw; letter-spacing:0.06em; color:#eafaff">NET WORTH</div>
@@ -3862,6 +3935,7 @@
                     </div>
                     <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:1cqw">
                       <div
+                        class="evo-style-card"
                         style="flex:1.1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; justify-content:center; gap:1cqw; padding:1.3cqw 1.5cqw"
                       >
                         <div style="display:flex; align-items:center; gap:1cqw">
@@ -3884,6 +3958,7 @@
                       <div style="flex:1; min-height:0; display:flex; gap:1cqw">
                         <sc-for list="{{ wlFlow }}" as="f" hint-placeholder-count="2">
                           <div
+                            class="evo-style-card"
                             style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; justify-content:center; gap:0.5cqw; padding:1.1cqw 1.3cqw"
                           >
                             <span style="font-size:1.6cqw; letter-spacing:0.08em; color:#9fd9ef; line-height:1.35"
@@ -3899,6 +3974,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:250; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.9cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -3943,6 +4019,7 @@
                         </sc-for>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:none; width:26cqw; box-sizing:border-box; align-self:stretch; border:1px solid rgba(53,198,255,0.28); background:rgba(8,28,42,0.4); display:flex; flex-direction:column; justify-content:center; gap:0.8cqw; padding:1.2cqw 1.4cqw"
                       >
                         <span style="font-size:1.6cqw; letter-spacing:0.08em; color:#9fd9ef">TOTAL ASSETS</span>
@@ -3955,6 +4032,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:250; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -4004,6 +4082,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:120; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -4028,6 +4107,7 @@
 
                 <sc-if value="{{ wlIsPortfolio }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">ADD HOLDING</div>
@@ -4060,6 +4140,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <sc-if value="{{ wlNoHoldings }}" hint-placeholder-val="{{ true }}">
@@ -4099,6 +4180,7 @@
 
                 <sc-if value="{{ wlIsFlow }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">{{ wlFlowFormTitle }}</div>
@@ -4128,6 +4210,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:none; height:22cqw; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.2cqw">
@@ -4151,6 +4234,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <sc-if value="{{ wlNoTxns }}" hint-placeholder-val="{{ true }}">
@@ -4187,6 +4271,7 @@
 
                 <sc-if value="{{ wlIsGoals }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">NEW GOAL</div>
@@ -4223,6 +4308,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <sc-if value="{{ wlNoGoals }}" hint-placeholder-val="{{ true }}">
@@ -4282,6 +4368,7 @@
                   <div style="flex:none; display:flex; gap:1cqw">
                     <sc-for list="{{ wlStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; display:flex; flex-direction:column; gap:0.5cqw; padding:1.2cqw 1.4cqw"
                       >
                         <span style="font-size:1.55cqw; letter-spacing:0.1em; color:#9fd9ef">{{ s.label }}</span>
@@ -4291,6 +4378,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -4312,6 +4400,7 @@
                     <div style="flex:none; font-size:1.7cqw; color:#8ab4c8; line-height:1.5">{{ wlInsightNote }}</div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.6cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">TOP EXPENSE CATEGORIES</div>
@@ -4410,6 +4499,7 @@
               >
                 <sc-if value="{{ plIsMonth }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; padding:2cqw 1.6cqw 1.6cqw"
                   >
                     <div
@@ -4459,6 +4549,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; gap:1.4cqw; padding:2cqw 2.2cqw 2.4cqw"
                   >
                     <div
@@ -4521,6 +4612,7 @@
                   </button>
 
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; gap:1.6cqw; padding:2.2cqw 2.4cqw 2.4cqw"
                   >
                     <div style="display:flex; justify-content:space-between; align-items:baseline">
@@ -4530,6 +4622,7 @@
                     <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:1.2cqw">
                       <sc-for list="{{ plMonthKpis }}" as="k" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; border:1px solid rgba(64,170,255,0.3); background:#030d17; clip-path:polygon(1.4cqw 0, calc(100% - 1.4cqw) 0, 100% 1.4cqw, 100% calc(100% - 1.4cqw), calc(100% - 1.4cqw) 100%, 1.4cqw 100%, 0 calc(100% - 1.4cqw), 0 1.4cqw); display:flex; flex-direction:column; gap:0.6cqw; padding:1.6cqw 1.8cqw"
                         >
                           <span style="font-size:1.8cqw; letter-spacing:0.16em; color:#5f8ea6">{{ k.label }}</span>
@@ -4544,6 +4637,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; gap:1.6cqw; padding:2.2cqw 2.4cqw 2.4cqw"
                   >
                     <div style="display:flex; justify-content:space-between; align-items:center">
@@ -4583,6 +4677,7 @@
 
                 <sc-if value="{{ plIsWeek }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:118cqw; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; padding:2cqw 2cqw 1.6cqw"
                   >
                     <div
@@ -4675,6 +4770,7 @@
 
                 <sc-if value="{{ plIsDay }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; padding:2cqw 2.2cqw 2.2cqw"
                   >
                     <div
@@ -4738,6 +4834,7 @@
 
                 <sc-if value="{{ plIsAgenda }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; gap:1.4cqw; padding:2.2cqw 2.4cqw 2.4cqw"
                   >
                     <div style="display:flex; justify-content:space-between; align-items:baseline">
@@ -4774,6 +4871,7 @@
                     </div>
                     <sc-for list="{{ plGoals }}" as="g" hint-placeholder-count="0">
                       <div
+                        class="evo-style-card"
                         style="display:flex; align-items:center; gap:1.6cqw; padding:1.4cqw 1.6cqw; box-sizing:border-box; border:1px solid rgba(64,170,255,0.3); background:#030d17; clip-path:polygon(1.4cqw 0, calc(100% - 1.4cqw) 0, 100% 1.4cqw, 100% calc(100% - 1.4cqw), calc(100% - 1.4cqw) 100%, 1.4cqw 100%, 0 calc(100% - 1.4cqw), 0 1.4cqw)"
                       >
                         <button type="button" onClick="{{ g.onToggle }}" style="{{ g.box }}">{{ g.mark }}</button>
@@ -4801,6 +4899,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(64,170,255,0.5); background:#020a13; clip-path:polygon(3cqw 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 3cqw 100%, 0 calc(100% - 3cqw), 0 3cqw); display:flex; flex-direction:column; gap:1.4cqw; padding:2.2cqw 2.2cqw 2.4cqw"
                   >
                     <div
@@ -5089,6 +5188,7 @@
                       >
                     </button>
                     <div
+                      class="evo-style-card"
                       style="flex:57; min-width:0; position:relative; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:1.8cqw 2cqw 2cqw"
                     >
                       <button
@@ -5198,6 +5298,7 @@
 
                   <div style="flex:38; min-height:0; display:flex; gap:1.3cqw">
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; padding:1.8cqw 2.2cqw 1cqw"
                     >
                       <div
@@ -5243,6 +5344,7 @@
                     </div>
 
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.3cqw; padding:1.6cqw 2cqw 1.4cqw"
                     >
                       <div style="flex:none; font-size:2.5cqw; color:#4fd2ff">FOCUS STATS</div>
@@ -5295,6 +5397,7 @@
                     <div style="flex:none; display:flex; gap:1.3cqw">
                       <sc-for list="{{ fcSesKpis }}" as="k" hint-placeholder-count="3">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.6cqw; padding:1.6cqw 1.8cqw"
                         >
                           <span style="font-size:1.6cqw; letter-spacing:0.08em; color:#9fd9ef">{{ k.label }}</span>
@@ -5304,6 +5407,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.1cqw; padding:1.6cqw 1.8cqw"
                     >
                       <div style="flex:none; font-size:2.2cqw; letter-spacing:0.06em; color:#4fd2ff">LOG A SESSION</div>
@@ -5338,6 +5442,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; padding:1.4cqw 1.8cqw"
                     >
                       <div
@@ -5386,6 +5491,7 @@
                     <div style="flex:none; display:flex; gap:1.3cqw">
                       <sc-for list="{{ fcDKpis }}" as="k" hint-placeholder-count="3">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.6cqw; padding:1.6cqw 1.8cqw"
                         >
                           <span style="font-size:1.6cqw; letter-spacing:0.08em; color:#9fd9ef">{{ k.label }}</span>
@@ -5398,6 +5504,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.8cqw"
                     >
                       <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1cqw">
@@ -5439,6 +5546,7 @@
                     </div>
                     <div style="flex:1; min-height:0; display:flex; gap:1.3cqw">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.8cqw"
                       >
                         <div style="flex:none; font-size:2.2cqw; letter-spacing:0.06em; color:#4fd2ff">LAST 7 DAYS</div>
@@ -5461,6 +5569,7 @@
                         </sc-if>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; padding:1.6cqw 1.8cqw"
                       >
                         <div
@@ -5506,6 +5615,7 @@
                     <div style="flex:none; display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1.3cqw">
                       <sc-for list="{{ fcInKpis }}" as="k" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.6cqw; padding:1.5cqw 1.6cqw"
                         >
                           <span style="font-size:1.5cqw; letter-spacing:0.08em; color:#9fd9ef">{{ k.label }}</span>
@@ -5516,6 +5626,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:none; height:40cqw; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.8cqw"
                     >
                       <div style="flex:none; display:flex; justify-content:space-between; align-items:baseline">
@@ -5542,6 +5653,7 @@
                       </div>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1cqw; padding:1.6cqw 1.8cqw"
                     >
                       <div style="display:flex; justify-content:space-between; align-items:baseline">
@@ -5555,6 +5667,7 @@
                       </div>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.8cqw; overflow-y:auto"
                     >
                       <div style="flex:none; font-size:2.2cqw; letter-spacing:0.06em; color:#4fd2ff">OBSERVATIONS</div>
@@ -5579,6 +5692,7 @@
                   <sc-if value="{{ fcIsSettings }}" hint-placeholder-val="{{ false }}">
                     <div style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:1.3cqw">
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.4cqw; padding:1.6cqw 1.8cqw"
                       >
                         <div
@@ -5612,6 +5726,7 @@
                         </sc-for>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.4cqw; padding:1.6cqw 1.8cqw"
                       >
                         <div
@@ -5634,6 +5749,7 @@
                         </sc-for>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.6cqw 1.8cqw"
                       >
                         <div style="flex:none; font-size:2.2cqw; letter-spacing:0.06em; color:#4fd2ff">
@@ -5673,6 +5789,7 @@
                         </div>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.6cqw 1.8cqw"
                       >
                         <div style="display:flex; justify-content:space-between; align-items:center">
@@ -5761,6 +5878,7 @@
                         </div>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; align-items:center; gap:1.4cqw; padding:1.6cqw 1.8cqw"
                       >
                         <span style="flex:1; font-size:1.7cqw; color:#8ab4c8; line-height:1.45"
@@ -5780,6 +5898,7 @@
                   style="position:absolute; inset:0; background:rgba(1,6,10,0.72); z-index:20; display:flex; align-items:center; justify-content:center; padding:0 6%"
                 >
                   <div
+                    class="evo-style-card"
                     style="width:100%; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); background:#03101b; border-color:#4fd2ff; display:flex; flex-direction:column; gap:1.4cqw; padding:2.4cqw"
                   >
                     <div style="display:flex; align-items:center; gap:1.6cqw">
@@ -5868,6 +5987,7 @@
               >
                 <sc-if value="{{ tkIsToday }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:90; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; align-items:center; gap:1cqw; padding:0.8cqw 1.2cqw"
                   >
                     <sc-for list="{{ tkWeekDots }}" as="d" hint-placeholder-count="7">
@@ -5880,6 +6000,7 @@
 
                   <div style="flex:230; min-height:0; display:flex; gap:1cqw">
                     <div
+                      class="evo-style-card"
                       style="flex:1.15; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; align-items:center; justify-content:center; padding:0; overflow:hidden; position:relative"
                     >
                       <img
@@ -5890,6 +6011,7 @@
                       />
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                     >
                       <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -5916,6 +6038,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:215; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -5957,6 +6080,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:375; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -6039,6 +6163,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:none; height:21cqw; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.6cqw; padding:1cqw 1.5cqw 1.2cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -6075,6 +6200,7 @@
 
                 <sc-if value="{{ tkIsWeek }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; height:30cqw; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1.2cqw">
@@ -6098,6 +6224,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">ALL OPEN TASKS</div>
@@ -6135,6 +6262,7 @@
 
                 <sc-if value="{{ tkIsHabits }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                   >
                     <input
@@ -6147,6 +6275,7 @@
                     <button type="button" onClick="{{ tkAddHabit }}" style="{{ tkAddHabitStyle }}">ADD HABIT</button>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <sc-if value="{{ tkNoHabits }}" hint-placeholder-val="{{ true }}">
@@ -6185,13 +6314,25 @@
                   </div>
                 </sc-if>
 
-                <sc-if value="{{ tkIsCalendar }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ tkIsCalendar }}" hint-placeholder-val="{{ false }}"
+                  ><p class="evo-calendar-legend">
+                    ✓ All scheduled tasks complete · empty days have no check. Events are shown separately.
+                  </p>
                   <div style="flex:1; min-height:0; position:relative; display:flex; flex-direction:column; gap:1.3cqw">
                     <div
+                      class="evo-style-card"
                       style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; gap:0.8cqw; padding:0.9cqw"
                     >
                       <sc-for list="{{ cvTabs }}" as="v" hint-placeholder-count="4">
-                        <button type="button" onClick="{{ v.onClick }}" style="{{ v.style }}">{{ v.label }}</button>
+                        <button
+                          type="button"
+                          class="evo-calendar-tab"
+                          aria-pressed="{{ v.active }}"
+                          onClick="{{ v.onClick }}"
+                          style="{{ v.style }}"
+                        >
+                          {{ v.label }}
+                        </button>
                       </sc-for>
                     </div>
                     <div
@@ -6199,6 +6340,7 @@
                     >
                       <sc-if value="{{ cvIsMonth }}" hint-placeholder-val="{{ true }}">
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; padding:1.6cqw 1.4cqw 1.4cqw"
                         >
                           <div
@@ -6233,9 +6375,16 @@
                           </div>
                           <div style="display:grid; grid-template-columns:repeat(7, minmax(0,1fr))">
                             <sc-for list="{{ cvCells }}" as="c" hint-placeholder-count="35">
-                              <button type="button" onClick="{{ c.onClick }}" style="{{ c.cell }}">
+                              <button
+                                type="button"
+                                class="evo-calendar-cell"
+                                aria-label="{{ c.label }}"
+                                onClick="{{ c.onClick }}"
+                                style="{{ c.cell }}"
+                              >
                                 <span style="{{ c.inner }}">
-                                  <span style="{{ c.numStyle }}">{{ c.num }}</span>
+                                  <span style="{{ c.numStyle }}">{{ c.num }}</span
+                                  ><span class="evo-day-check" aria-hidden="true">{{ c.taskMark }}</span>
                                   <span style="display:flex; gap:0.5cqw; height:1.2cqw; align-items:center">
                                     <sc-for list="{{ c.dots }}" as="dt" hint-placeholder-count="0"
                                       ><span style="{{ dt }}"></span
@@ -6250,6 +6399,7 @@
 
                       <sc-if value="{{ cvIsWeek }}" hint-placeholder-val="{{ false }}">
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.4cqw"
                         >
                           <div style="display:flex; align-items:center; justify-content:center; gap:2cqw">
@@ -6275,9 +6425,16 @@
                           </div>
                           <div style="display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:0.6cqw">
                             <sc-for list="{{ cvWeekDays }}" as="c" hint-placeholder-count="7">
-                              <button type="button" onClick="{{ c.onClick }}" style="{{ c.cell }}">
+                              <button
+                                type="button"
+                                class="evo-calendar-cell"
+                                aria-label="{{ c.label }}"
+                                onClick="{{ c.onClick }}"
+                                style="{{ c.cell }}"
+                              >
                                 <span style="font-size:1.7cqw; color:#4fb8ff">{{ c.dow }}</span>
-                                <span style="{{ c.numStyle }}">{{ c.num }}</span>
+                                <span style="{{ c.numStyle }}">{{ c.num }}</span
+                                ><span class="evo-day-check" aria-hidden="true">{{ c.taskMark }}</span>
                                 <span style="display:flex; gap:0.5cqw; height:1.2cqw; align-items:center">
                                   <sc-for list="{{ c.dots }}" as="dt" hint-placeholder-count="0"
                                     ><span style="{{ dt }}"></span
@@ -6289,6 +6446,7 @@
                           </div>
                         </div>
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.1cqw; padding:1.6cqw 1.6cqw 1.8cqw"
                         >
                           <div
@@ -6306,6 +6464,7 @@
                               </button>
                               <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="0">
                                 <div
+                                  class="evo-style-card"
                                   style="flex:none; display:flex; align-items:center; gap:1.6cqw; height:9.6cqw; box-sizing:border-box; padding:0 1.2cqw 0 2.2cqw; background:#020c15; border:1px solid rgba(53,198,255,0.24); clip-path:polygon(1.6cqw 0, 100% 0, 100% calc(100% - 1.6cqw), calc(100% - 1.6cqw) 100%, 0 100%, 0 1.6cqw)"
                                 >
                                   <span
@@ -6391,6 +6550,7 @@
 
                       <sc-if value="{{ cvIsDay }}" hint-placeholder-val="{{ false }}">
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.6cqw 1.8cqw"
                         >
                           <div style="display:flex; align-items:center; justify-content:center; gap:2cqw">
@@ -6446,6 +6606,7 @@
                             </div>
                             <sc-for list="{{ cvLoose }}" as="r" hint-placeholder-count="0">
                               <div
+                                class="evo-style-card"
                                 style="flex:none; display:flex; align-items:center; gap:1.6cqw; height:9.6cqw; box-sizing:border-box; padding:0 1.2cqw 0 2.2cqw; background:#020c15; border:1px solid rgba(53,198,255,0.24); clip-path:polygon(1.6cqw 0, 100% 0, 100% calc(100% - 1.6cqw), calc(100% - 1.6cqw) 100%, 0 100%, 0 1.6cqw)"
                               >
                                 <span
@@ -6525,6 +6686,7 @@
 
                       <sc-if value="{{ cvIsAgenda }}" hint-placeholder-val="{{ false }}">
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.1cqw; padding:1.6cqw 1.6cqw 1.8cqw"
                         >
                           <div
@@ -6553,6 +6715,7 @@
                               </sc-for>
                               <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="0">
                                 <div
+                                  class="evo-style-card"
                                   style="flex:none; display:flex; align-items:center; gap:1.6cqw; height:9.6cqw; box-sizing:border-box; padding:0 1.2cqw 0 2.2cqw; background:#020c15; border:1px solid rgba(53,198,255,0.24); clip-path:polygon(1.6cqw 0, 100% 0, 100% calc(100% - 1.6cqw), calc(100% - 1.6cqw) 100%, 0 100%, 0 1.6cqw)"
                                 >
                                   <span
@@ -6638,6 +6801,7 @@
 
                       <sc-if value="{{ cvIsMonth }}" hint-placeholder-val="{{ true }}">
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.6cqw 1.4cqw 1.6cqw"
                         >
                           <div style="display:flex; align-items:center; gap:1.2cqw; padding:0 0.6cqw">
@@ -6679,10 +6843,12 @@
                               <button
                                 type="button"
                                 onClick="{{ d.onClick }}"
+                                aria-label="{{ d.label }}"
                                 style="display:flex; flex-direction:column; align-items:center; gap:0.4cqw; padding:0; background:transparent; border:none; cursor:pointer; font-family:inherit"
                               >
                                 <span style="{{ d.dowStyle }}">{{ d.dow }}</span>
-                                <span style="{{ d.numStyle }}">{{ d.num }}</span>
+                                <span style="{{ d.numStyle }}">{{ d.num }}</span
+                                ><span class="evo-day-check" aria-hidden="true">{{ d.taskMark }}</span>
                               </button>
                             </sc-for>
                           </div>
@@ -6769,6 +6935,7 @@
 
                       <sc-if value="{{ cvIsMonth }}" hint-placeholder-val="{{ true }}">
                         <div
+                          class="evo-style-card"
                           style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; gap:1.2cqw; padding:1.8cqw 2cqw"
                         >
                           <div style="display:flex; justify-content:space-between; align-items:baseline">
@@ -6828,6 +6995,7 @@
                         style="position:absolute; inset:0; z-index:20; background:rgba(1,6,10,0.8); display:flex; align-items:flex-start; justify-content:center; padding-top:4cqw"
                       >
                         <div
+                          class="evo-style-card"
                           style="width:100%; box-sizing:border-box; border:1px solid rgba(53,198,255,0.32); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); background:#03101b; border-color:#4fb8ff; display:flex; flex-direction:column; gap:1.4cqw; padding:2.4cqw"
                         >
                           <div style="font-size:2.5cqw; letter-spacing:0.06em; color:#4fd2ff">{{ cvFormTitle }}</div>
@@ -6907,6 +7075,7 @@
                   <div style="flex:none; display:flex; gap:1cqw">
                     <sc-for list="{{ tkStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; display:flex; flex-direction:column; gap:0.5cqw; padding:1.2cqw 1.4cqw"
                       >
                         <span style="font-size:1.55cqw; letter-spacing:0.1em; color:#9fd9ef">{{ s.label }}</span>
@@ -6916,6 +7085,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">BY CATEGORY</div>
@@ -7063,6 +7233,7 @@
                   <sc-if value="{{ stIsOverview }}" hint-placeholder-val="{{ true }}">
                     <div style="flex:230; min-height:0; display:flex; gap:1cqw">
                       <div
+                        class="evo-style-card"
                         style="flex:1.2; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; justify-content:center; gap:1.4cqw; padding:1.4cqw 1.8cqw"
                       >
                         <div style="font-size:2.7cqw; letter-spacing:0.16em; color:#eafaff; line-height:1.6">
@@ -7071,6 +7242,7 @@
                         <div style="width:9cqw; height:1px; background:#35c6ff; box-shadow:0 0 8px #35c6ff"></div>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1cqw; padding:1.3cqw"
                       >
                         <div style="font-size:2.1cqw; letter-spacing:0.1em; color:#4fd2ff">OVERALL SCORE</div>
@@ -7092,6 +7264,7 @@
                     <div style="flex:150; min-height:0; display:flex; gap:1cqw">
                       <sc-for list="{{ stCards }}" as="c" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; flex-direction:column; justify-content:center; gap:0.4cqw; padding:1.2cqw 1.4cqw"
                         >
                           <span style="font-size:2.4cqw; color:#5fd3ff; line-height:1">{{ c.icon }}</span>
@@ -7104,6 +7277,7 @@
                     </div>
 
                     <div
+                      class="evo-style-card"
                       style="flex:230; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                     >
                       <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -7152,6 +7326,7 @@
 
                     <div style="flex:230; min-height:0; display:flex; gap:1cqw">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.4cqw"
                       >
                         <div style="flex:none; font-size:2cqw; letter-spacing:0.12em; color:#4fd2ff">ACTIVITY MIX</div>
@@ -7185,6 +7360,7 @@
                         </div>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.4cqw"
                       >
                         <div style="flex:none; font-size:2cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -7214,6 +7390,7 @@
                     </div>
 
                     <div
+                      class="evo-style-card"
                       style="flex:180; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw"
                     >
                       <div style="flex:none; display:flex; align-items:center; gap:1.2cqw">
@@ -7259,6 +7436,7 @@
                     <div style="flex:none; display:flex; gap:1cqw">
                       <sc-for list="{{ stTaskStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; display:flex; flex-direction:column; gap:0.5cqw; padding:1.2cqw 1.4cqw"
                         >
                           <span style="font-size:1.55cqw; letter-spacing:0.1em; color:#9fd9ef">{{ s.label }}</span>
@@ -7268,6 +7446,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:none; height:28cqw; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                     >
                       <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -7288,6 +7467,7 @@
                       </div>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                     >
                       <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">BY CATEGORY</div>
@@ -7319,6 +7499,7 @@
                     <div style="flex:none; display:flex; gap:1cqw">
                       <sc-for list="{{ stHabitStats }}" as="s" hint-placeholder-count="3">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; display:flex; flex-direction:column; gap:0.5cqw; padding:1.2cqw 1.4cqw"
                         >
                           <span style="font-size:1.55cqw; letter-spacing:0.1em; color:#9fd9ef">{{ s.label }}</span>
@@ -7328,6 +7509,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                     >
                       <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">LAST 14 DAYS</div>
@@ -7363,6 +7545,7 @@
                     <div style="flex:none; display:flex; gap:1cqw">
                       <sc-for list="{{ stFocusStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; display:flex; flex-direction:column; gap:0.5cqw; padding:1.2cqw 1.4cqw"
                         >
                           <span style="font-size:1.55cqw; letter-spacing:0.1em; color:#9fd9ef">{{ s.label }}</span>
@@ -7372,6 +7555,7 @@
                       </sc-for>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                     >
                       <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -7402,6 +7586,7 @@
 
                   <sc-if value="{{ stIsProgress }}" hint-placeholder-val="{{ false }}">
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                     >
                       <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -7493,6 +7678,7 @@
               >
                 <sc-if value="{{ pfIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:215; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; align-items:center; gap:1.6cqw; padding:1.3cqw 1.6cqw"
                   >
                     <div
@@ -7522,6 +7708,7 @@
                   <div style="flex:120; min-height:0; display:flex; gap:1cqw">
                     <sc-for list="{{ pfStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; align-items:center; gap:1cqw; padding:1cqw 1.2cqw"
                       >
                         <span style="flex:none; font-size:3cqw; color:#5fd3ff; line-height:1">{{ s.icon }}</span>
@@ -7534,6 +7721,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:300; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -7562,6 +7750,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:295; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:baseline; gap:1cqw">
@@ -7626,6 +7815,7 @@
 
                 <sc-if value="{{ pfIsSettings }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PERSONAL INFORMATION</div>
@@ -7663,6 +7853,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">NOTIFICATIONS</div>
@@ -7684,6 +7875,7 @@
 
                 <sc-if value="{{ pfIsPreferences }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">APP PREFERENCES</div>
@@ -7706,7 +7898,16 @@
                 </sc-if>
 
                 <sc-if value="{{ pfIsAppearance }}" hint-placeholder-val="{{ false }}">
+                  <a href="/settings#appearance" target="_top" class="evo-appearance-link"
+                    ><span
+                      >Design Cards<small
+                        >Jarvis Circuitry · Glass Minimal · Tactical Edge · Classic<br />Choose a card style and apply
+                        it across pages.</small
+                      ></span
+                    ><span aria-hidden="true">›</span></a
+                  >
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">THEME COLOR</div>
@@ -7725,6 +7926,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PREVIEW</div>
@@ -7738,6 +7940,7 @@
                         <span style="font-size:1.5cqw; color:#6f9bb0">{{ pfModeName }} mode</span>
                       </div>
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.4); display:flex; flex-direction:column; justify-content:center; gap:0.8cqw; padding:1.2cqw 1.4cqw"
                       >
                         <span style="font-size:1.6cqw; letter-spacing:0.12em; color:#9fd9ef">TEXT SIZE</span>
@@ -7750,6 +7953,7 @@
 
                 <sc-if value="{{ pfIsSecurity }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PASSWORD &amp; SECURITY</div>
@@ -7768,6 +7972,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -7776,6 +7981,7 @@
                     <div style="flex:none; display:flex; gap:1cqw">
                       <sc-for list="{{ pfDataStats }}" as="s" hint-placeholder-count="4">
                         <div
+                          class="evo-style-card"
                           style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.4); display:flex; flex-direction:column; gap:0.4cqw; padding:1.1cqw 1.2cqw"
                         >
                           <span style="font-size:1.5cqw; letter-spacing:0.1em; color:#9fd9ef">{{ s.label }}</span>
@@ -7853,6 +8059,7 @@
               >
                 <sc-if value="{{ pfIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; align-items:center; gap:2cqw; padding:1.8cqw 2cqw"
                   >
                     <div style="{{ pfAvatar }}">
@@ -7878,6 +8085,7 @@
                   <div style="flex:none; display:flex; gap:1cqw">
                     <sc-for list="{{ pfStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; align-items:center; gap:1.1cqw; padding:1.3cqw 1.4cqw"
                       >
                         <span style="{{ s.iconStyle }}">{{ s.icon }}</span>
@@ -7890,6 +8098,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.7cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1.1cqw">
@@ -7931,6 +8140,7 @@
 
                 <sc-if value="{{ pfIsSettings }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.4cqw 1.6cqw"
                   >
                     <div style="{{ pfAccentText }}">PERSONAL INFORMATION</div>
@@ -7959,6 +8169,7 @@
                     />
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.3cqw 1.6cqw; overflow-y:auto"
                   >
                     <div style="{{ pfAccentText }}">NOTIFICATIONS</div>
@@ -7980,6 +8191,7 @@
 
                 <sc-if value="{{ pfIsPrefs }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.4cqw 1.6cqw"
                   >
                     <div style="{{ pfAccentText }}">APP PREFERENCES</div>
@@ -7995,6 +8207,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.6cqw; overflow-y:auto"
                   >
                     <div style="{{ pfAccentText }}">YOUR DATA</div>
@@ -8019,7 +8232,16 @@
                 </sc-if>
 
                 <sc-if value="{{ pfIsAppearance }}" hint-placeholder-val="{{ false }}">
+                  <a href="/settings#appearance" target="_top" class="evo-appearance-link"
+                    ><span
+                      >Design Cards<small
+                        >Jarvis Circuitry · Glass Minimal · Tactical Edge · Classic<br />Choose a card style and apply
+                        it across pages.</small
+                      ></span
+                    ><span aria-hidden="true">›</span></a
+                  >
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:1cqw; padding:1.4cqw 1.6cqw"
                   >
                     <div style="{{ pfAccentText }}">THEME COLOR</div>
@@ -8037,6 +8259,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; gap:1cqw; padding:1.4cqw 1.6cqw"
                   >
                     <sc-for list="{{ pfModes }}" as="m" hint-placeholder-count="3">
@@ -8046,6 +8269,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.4cqw 1.6cqw"
                   >
                     <div style="{{ pfAccentText }}">PREVIEW</div>
@@ -8064,6 +8288,7 @@
 
                 <sc-if value="{{ pfIsSecurity }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.4cqw 1.6cqw"
                   >
                     <div style="{{ pfAccentText }}">PASSWORD &amp; SECURITY</div>
@@ -8087,6 +8312,7 @@
                     <span style="{{ pfPwNoteStyle }}">{{ pfPwNote }}</span>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.3cqw 1.6cqw; overflow-y:auto"
                   >
                     <div style="{{ pfAccentText }}">PROTECTION</div>
@@ -8166,6 +8392,7 @@
               >
                 <sc-if value="{{ prIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:230; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; align-items:center; gap:2cqw; padding:1.4cqw 1.8cqw"
                   >
                     <div style="{{ prAvatar }}">{{ prInitials }}</div>
@@ -8201,6 +8428,7 @@
                   <div style="flex:130; min-height:0; display:flex; gap:1cqw">
                     <sc-for list="{{ prStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; align-items:center; gap:1.2cqw; padding:1.1cqw 1.4cqw"
                       >
                         <span style="{{ s.iconStyle }}">{{ s.icon }}</span>
@@ -8213,6 +8441,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:320; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -8239,6 +8468,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:300; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.8cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -8294,6 +8524,7 @@
 
                 <sc-if value="{{ prIsSettings }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PERSONAL INFORMATION</div>
@@ -8322,6 +8553,7 @@
                     />
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">NOTIFICATIONS</div>
@@ -8343,6 +8575,7 @@
 
                 <sc-if value="{{ prIsPreferences }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">APP PREFERENCES</div>
@@ -8369,6 +8602,7 @@
 
                 <sc-if value="{{ prIsAppearance }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">THEME COLOR</div>
@@ -8387,6 +8621,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PREVIEW</div>
@@ -8415,6 +8650,7 @@
 
                 <sc-if value="{{ prIsSecurity }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PASSWORD &amp; SECURITY</div>
@@ -8433,6 +8669,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -8512,6 +8749,7 @@
               >
                 <sc-if value="{{ pfIsOverview }}" hint-placeholder-val="{{ true }}">
                   <div
+                    class="evo-style-card"
                     style="flex:200; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; align-items:center; gap:1.6cqw; padding:1.4cqw 1.8cqw"
                   >
                     <div
@@ -8552,6 +8790,7 @@
                   <div style="flex:110; min-height:0; display:flex; gap:1cqw">
                     <sc-for list="{{ pfStats }}" as="s" hint-placeholder-count="4">
                       <div
+                        class="evo-style-card"
                         style="flex:1; min-width:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.28); background:#010a12; clip-path:polygon(2.4cqw 0, 100% 0, 100% calc(100% - 2.4cqw), calc(100% - 2.4cqw) 100%, 0 100%, 0 2.4cqw); display:flex; align-items:center; gap:1.1cqw; padding:1.1cqw 1.3cqw"
                       >
                         <span style="flex:none; font-size:3cqw; color:#5fd3ff; line-height:1">{{ s.icon }}</span>
@@ -8564,6 +8803,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:250; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -8592,6 +8832,7 @@
                   </div>
 
                   <div
+                    class="evo-style-card"
                     style="flex:250; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; clip-path:polygon(3cqw 0, 100% 0, 100% calc(100% - 3cqw), calc(100% - 3cqw) 100%, 0 100%, 0 3cqw); display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw"
                   >
                     <div style="flex:none; display:flex; align-items:center; gap:1cqw">
@@ -8666,6 +8907,7 @@
 
                 <sc-if value="{{ pfIsSettings }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PERSONAL INFORMATION</div>
@@ -8687,6 +8929,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.7cqw; padding:1.2cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">YOUR DATA</div>
@@ -8715,6 +8958,7 @@
 
                 <sc-if value="{{ pfIsPrefs }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw; overflow-y:auto"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">APP PREFERENCES</div>
@@ -8750,7 +8994,16 @@
                 </sc-if>
 
                 <sc-if value="{{ pfIsAppearance }}" hint-placeholder-val="{{ false }}">
+                  <a href="/settings#appearance" target="_top" class="evo-appearance-link"
+                    ><span
+                      >Design Cards<small
+                        >Jarvis Circuitry · Glass Minimal · Tactical Edge · Classic<br />Choose a card style and apply
+                        it across pages.</small
+                      ></span
+                    ><span aria-hidden="true">›</span></a
+                  >
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">THEME COLOR</div>
@@ -8776,6 +9029,7 @@
                     </div>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:1cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PREVIEW</div>
@@ -8793,6 +9047,7 @@
                       </div>
                     </div>
                     <div
+                      class="evo-style-card"
                       style="flex:1; min-height:0; box-sizing:border-box; display:flex; align-items:center; justify-content:center; border:1px solid rgba(53,198,255,0.2); background:rgba(8,28,42,0.4)"
                     >
                       <span style="font-size:1.7cqw; letter-spacing:0.12em; color:#6f9bb0"
@@ -8804,6 +9059,7 @@
 
                 <sc-if value="{{ pfIsSecurity }}" hint-placeholder-val="{{ false }}">
                   <div
+                    class="evo-style-card"
                     style="flex:none; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.9cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">PASSWORD &amp; SECURITY</div>
@@ -8822,6 +9078,7 @@
                     </sc-for>
                   </div>
                   <div
+                    class="evo-style-card"
                     style="flex:1; min-height:0; box-sizing:border-box; border:1px solid rgba(53,198,255,0.3); background:#010a12; display:flex; flex-direction:column; gap:0.8cqw; padding:1.3cqw 1.5cqw"
                   >
                     <div style="flex:none; font-size:2.1cqw; letter-spacing:0.12em; color:#4fd2ff">
@@ -12279,6 +12536,11 @@
           const todayKey = tkKey(tkToday());
           const cur = cv.cursor || todayKey;
           const curD = cvDate(cur);
+          const taskProgress = key => {
+            const rows = t.tasks.filter(x => x.date === key);
+            const done = rows.filter(x => x.done === true).length;
+            return { total: rows.length, done, complete: rows.length > 0 && done === rows.length };
+          };
           const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
           const MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
           const DOW = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -12336,7 +12598,7 @@
 
           const cvTabs = ["MONTH", "WEEK", "DAY", "AGENDA"].map(v => {
             const on = cv.view === v;
-            return { label: v, onClick: () => this.cvSet({ view: v, menu: null }), style: {
+            return { label: v, active: on, onClick: () => this.cvSet({ view: v, menu: null }), style: {
               flex: 1, height: "6cqw", cursor: "pointer", fontFamily: "inherit", fontSize: "2cqw", letterSpacing: "0.08em",
               color: on ? "#ffffff" : "#3ec8ff", background: on ? "rgba(16,52,100,0.4)" : "transparent",
               border: on ? "0.35cqw solid #4a9dff" : "0.35cqw solid transparent", borderRadius: "1.3cqw",
@@ -12350,15 +12612,16 @@
           const cells = Math.ceil((fdow + dim) / 7) * 7;
           for (let i = 0; i < cells; i++) {
             const day = i - fdow + 1;
-            if (day < 1 || day > dim) { cvCells.push({ num: "", dots: [], onClick: () => {}, cell: { padding: 0, background: "none", border: "none", visibility: "hidden" }, inner: {}, numStyle: {} }); continue; }
+            if (day < 1 || day > dim) { cvCells.push({ num: "", taskMark: "", label: "", dots: [], onClick: () => {}, cell: { padding: 0, background: "none", border: "none", visibility: "hidden" }, inner: {}, numStyle: {} }); continue; }
             const key = cvKeyOf(y, m, day), list = itemsOn(key), isSel = key === cur, isT = key === todayKey;
+            const progress = taskProgress(key);
             cvCells.push({
-              num: String(day), dots: dots(list),
+              num: String(day), dots: dots(list), taskMark: progress.complete ? "✓" : "", label: key + ", " + progress.done + " of " + progress.total + " tasks complete, " + list.filter(x => x.kind === "e").length + " events",
               onClick: () => this.cvSet({ cursor: key, menu: null }),
               cell: { height: "8.6cqw", padding: "0.3cqw", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit" },
               inner: { width: "100%", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.6cqw", borderRadius: "1cqw",
-                background: isSel ? "rgba(16,52,100,0.45)" : "transparent",
-                border: isSel ? "0.3cqw solid #4a9dff" : isT ? "1px solid rgba(95,211,255,0.6)" : "1px solid transparent",
+                background: isSel ? "rgba(16,52,100,0.45)" : progress.complete ? "rgba(30,160,110,0.14)" : "#020d16",
+                border: isSel ? "0.3cqw solid #4a9dff" : progress.complete ? "1px solid #4fe0b0" : isT ? "1px solid rgba(95,211,255,0.6)" : "1px solid rgba(53,198,255,0.22)",
                 boxShadow: isSel ? "0 0 10px rgba(74,157,255,0.7)" : "none" },
               numStyle: { fontSize: "2.3cqw", color: isSel || isT ? "#ffffff" : "#cfeeff" }
             });
@@ -12445,7 +12708,7 @@
                 cvGridDays: wKeys.map((k, i) => {
                   const isT = k === todayKey;
                   return {
-                    dow: DOW[i].slice(0, 3), num: String(cvDate(k).getDate()),
+                    dow: DOW[i].slice(0, 3), num: String(cvDate(k).getDate()), taskMark: taskProgress(k).complete ? "✓" : "", label: k + ", " + taskProgress(k).done + " of " + taskProgress(k).total + " tasks complete",
                     onClick: () => this.cvSet({ cursor: k, view: "DAY", menu: null }),
                     dowStyle: { fontSize: "1.4cqw", letterSpacing: "0.08em", color: isT ? "#00e5ff" : "#8fc9e0" },
                     numStyle: { width: "4.6cqw", height: "4.6cqw", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.3cqw", color: isT ? "#021018" : "#eafaff", background: isT ? "#00e5ff" : "transparent", boxShadow: isT ? "0 0 10px #00e5ff" : "none" }
@@ -12496,7 +12759,7 @@
             cvWeekDays: wKeys.map((k, i) => {
               const on = k === cur, isT = k === todayKey, mins = wItems[i].reduce((a, x) => a + x.dur, 0);
               return {
-                dow: DOW[i].slice(0, 2), num: String(cvDate(k).getDate()), dots: dots(wItems[i]), hours: mins ? fmtH(mins) : "",
+                dow: DOW[i].slice(0, 2), num: String(cvDate(k).getDate()), dots: dots(wItems[i]), hours: mins ? fmtH(mins) : "", taskMark: taskProgress(k).complete ? "✓" : "", label: k + ", " + taskProgress(k).done + " of " + taskProgress(k).total + " tasks complete",
                 onClick: () => this.cvSet({ cursor: k, view: "DAY", menu: null }),
                 cell: { display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6cqw", padding: "1cqw 0", cursor: "pointer", fontFamily: "inherit", borderRadius: "1cqw",
                   background: on ? "rgba(16,52,100,0.45)" : "#020c15", border: on ? "0.3cqw solid #4a9dff" : "1px solid " + (isT ? "rgba(95,211,255,0.6)" : "rgba(53,198,255,0.18)"), boxShadow: on ? "0 0 10px rgba(74,157,255,0.7)" : "none" },
@@ -12673,25 +12936,25 @@
             const isToday = w.key === todayKey;
             const past = w.key < todayKey;
             return {
-              label: w.label, mark: past ? "\u2715" : "",
+              label: w.label, mark: complete ? "\u2713" : "",
               onClick: () => this.tkSet({ tab: "CALENDAR", sel: w.key }),
               wrap: {
                 flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center",
                 gap: "0.5cqw", padding: "0.5cqw 0", cursor: "pointer",
                 background: "transparent", border: "none", fontFamily: "inherit"
               },
-              labelStyle: { fontSize: "1.9cqw", letterSpacing: "0.08em", color: isToday ? "#ffffff" : past ? "#bff6ff" : "#8fc9e0", textShadow: isToday ? "0 0 8px #00e5ff" : "none" },
+              labelStyle: { fontSize: "1.9cqw", letterSpacing: "0.08em", color: isToday ? "#ffffff" : complete ? "#bff6ff" : "#8fc9e0", textShadow: isToday ? "0 0 8px #00e5ff" : "none" },
               ring: {
                 width: "6.4cqw", height: "6.4cqw", boxSizing: "border-box", borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: "3.2cqw", fontWeight: 700, lineHeight: 1,
-                color: past ? "#00e5ff" : "transparent",
-                textShadow: past ? "0 0 6px #00e5ff, 0 0 12px rgba(0,229,255,0.8)" : "none",
-                background: isToday ? "rgba(0,229,255,0.12)" : past ? "rgba(0,229,255,0.06)" : "transparent",
-                border: (past || isToday ? "0.3cqw solid #00e5ff" : "1px solid rgba(53,198,255,0.4)"),
+                color: complete ? "#4fe0b0" : "transparent",
+                textShadow: complete ? "0 0 6px #00e5ff, 0 0 12px rgba(0,229,255,0.8)" : "none",
+                background: isToday ? "rgba(0,229,255,0.12)" : complete ? "rgba(0,229,255,0.06)" : "transparent",
+                border: (complete || isToday ? "0.3cqw solid #00e5ff" : "1px solid rgba(53,198,255,0.4)"),
                 boxShadow: isToday
                   ? "0 0 12px #00e5ff, 0 0 26px rgba(0,229,255,0.6), inset 0 0 10px rgba(0,229,255,0.45)"
-                  : past ? "0 0 8px rgba(0,229,255,0.75), inset 0 0 6px rgba(0,229,255,0.3)" : "none"
+                  : complete ? "0 0 8px rgba(0,229,255,0.75), inset 0 0 6px rgba(0,229,255,0.3)" : "none"
               }
             };
           });
@@ -13865,6 +14128,19 @@
        if(m.gen<gen)return;gen=m.gen;window.__evoBank=m.payload||null;
        try{window.dispatchEvent(new CustomEvent("evo:bank-updated"))}catch(_){}
       });})();
+    </script>
+    <script>
+      // Read-only view of the parent's current owner-scoped preference. No second store.
+      (function () {
+        window.addEventListener('message', function (event) {
+          if (event.source !== window.parent || event.origin !== window.location.origin) return;
+          var message = event.data;
+          if (!message || message.type !== 'evo:appearance') return;
+          var styles = ['jarvis', 'glass', 'tactical', 'classic'];
+          document.documentElement.dataset.cardStyle = styles.indexOf(message.cardStyle) >= 0 ? message.cardStyle : 'jarvis';
+        });
+        if (window.parent !== window) window.parent.postMessage({ type: 'evo:appearance-ready' }, window.location.origin);
+      })();
     </script>
   </body>
 </html>
