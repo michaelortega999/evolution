@@ -1,3 +1,4 @@
+import { effectiveCardStyle } from "./utils";
 import { useEffect } from "react";
 import { useEvolutionData, type ThemeKey } from "./evolution-data";
 
@@ -25,4 +26,7 @@ export function useTheme() {
   useEffect(() => {
     applyTheme(data.settings?.theme ?? "default");
   }, [data.settings?.theme]);
+  useEffect(() => {
+    document.documentElement.dataset.cardStyle = effectiveCardStyle(data.settings);
+  }, [data.settings?.cardStyle, data.settings?.applyCardStyleGlobally]);
 }
