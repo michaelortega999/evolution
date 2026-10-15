@@ -5,6 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { createSignUp } from "@/lib/auth-actions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -23,6 +24,12 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkEmail, setCheckEmail] = useState<string | null>(null);
+  const [signUpOnce] = useState(() => createSignUp((addr: string) => supabase.auth.signUp({
+    email: addr, password: passwordRef.current,
+    options: { emailRedirectTo: `${window.location.origin}/`, data: { name: nameRef.current } },
+  })));
+  const passwordRef = { current: password }; const nameRef = { current: name };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -35,17 +42,10 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { name },
-          },
-        });
-        if (error) throw error;
-        toast.success("Account created. Check your email if confirmation is required.");
-        navigate({ to: "/" });
+        const r = await signUpOnce(email);
+        if (r.kind === "error") throw new Error(r.message);
+        if (r.kind === "signed-in") navigate({ to: "/" });
+        else if (r.kind === "check-email") setCheckEmail(r.email);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -76,6 +76,16 @@ function AuthPage() {
       setLoading(false);
     }
   };
+
+  if (checkEmail) return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="hud-card p-8 w-full max-w-md flex flex-col gap-4 text-center" role="status">
+        <div className="hud-label text-primary hud-glow text-lg">CHECK YOUR EMAIL</div>
+        <p className="text-sm text-muted-foreground">We sent a confirmation link to <span className="text-foreground break-all">{checkEmail}</span>. Open it to finish creating your account, then sign in.</p>
+        <Button type="button" variant="outline" className="hud-label text-xs" onClick={() => { setCheckEmail(null); setMode("signin"); setPassword(""); }}>Back to sign in</Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
