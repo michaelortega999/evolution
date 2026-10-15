@@ -148,7 +148,7 @@ export function mergeHabitLog(b: unknown, l: unknown, r: unknown): Record<string
       // else present in base and removed on one side → removal wins
     }
     // A habit present on neither side's object stays deleted; empty arrays are valid and kept.
-    if (h in L || h in R) { if (!(h in B) || (h in L && h in R) || keep.length) out[h] = keep.sort(); else if (h in L ? !sameJSON(L[h], B[h]) : !sameJSON(R[h], B[h])) out[h] = keep.sort(); }
+    if ((h in L && h in R) || !(h in B) || keep.length) out[h] = keep.sort();
   }
   return out;
 }
