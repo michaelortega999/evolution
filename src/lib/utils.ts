@@ -182,3 +182,37 @@ export function evoUndoRoutine<T extends { calendar: EvoPlanEvent[]; assistantRo
   });
   return { calendar, assistantRoutines: routines.map((r) => (r.id === id ? { ...r, archived: true } : r)), retained };
 }
+
+// Owner-scoped appearance and truthful task-only calendar indicators.
+export const CARD_STYLES = [
+  {
+    id: "jarvis",
+    name: "Jarvis Circuitry",
+    description: "Detailed circuit corners and luminous blue accents. The signature Evolution look.",
+  },
+  { id: "glass", name: "Glass Minimal", description: "Soft rounded corners, translucent layers and a quiet glow." },
+  {
+    id: "tactical",
+    name: "Tactical Edge",
+    description: "Angular corners and a crisp metallic outline. Built for clarity.",
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description: "Simple clean edges with a restrained border. Timeless and versatile.",
+  },
+] as const;
+export type CardStyle = (typeof CARD_STYLES)[number]["id"];
+export function normalizeCardStyle(value: unknown): CardStyle {
+  return CARD_STYLES.some((s) => s.id === value) ? (value as CardStyle) : "jarvis";
+}
+export function effectiveCardStyle(
+  settings: { cardStyle?: unknown; applyCardStyleGlobally?: unknown } | undefined,
+): CardStyle {
+  return settings?.applyCardStyleGlobally === false ? "jarvis" : normalizeCardStyle(settings?.cardStyle);
+}
+export function taskDaySummary(tasks: ReadonlyArray<{ due: string; status: string }>, date: string) {
+  const day = tasks.filter((t) => t.due === date);
+  const done = day.filter((t) => t.status === "Done").length;
+  return { total: day.length, done, complete: day.length > 0 && done === day.length };
+}
