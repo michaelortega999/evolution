@@ -6316,7 +6316,7 @@
 
                 <sc-if value="{{ tkIsCalendar }}" hint-placeholder-val="{{ false }}"
                   ><p class="evo-calendar-legend">
-                    ✓ All scheduled tasks complete · empty days have no check. Events are shown separately.
+                    ✓ means all scheduled tasks complete · empty days have no check. Events are shown separately.
                   </p>
                   <div style="flex:1; min-height:0; position:relative; display:flex; flex-direction:column; gap:1.3cqw">
                     <div
@@ -7898,7 +7898,7 @@
                 </sc-if>
 
                 <sc-if value="{{ pfIsAppearance }}" hint-placeholder-val="{{ false }}">
-                  <a href="/settings#appearance" target="_top" class="evo-appearance-link"
+                  <a href="/settings#appearance" target="_parent" class="evo-appearance-link"
                     ><span
                       >Design Cards<small
                         >Jarvis Circuitry · Glass Minimal · Tactical Edge · Classic<br />Choose a card style and apply
@@ -8232,7 +8232,7 @@
                 </sc-if>
 
                 <sc-if value="{{ pfIsAppearance }}" hint-placeholder-val="{{ false }}">
-                  <a href="/settings#appearance" target="_top" class="evo-appearance-link"
+                  <a href="/settings#appearance" target="_parent" class="evo-appearance-link"
                     ><span
                       >Design Cards<small
                         >Jarvis Circuitry · Glass Minimal · Tactical Edge · Classic<br />Choose a card style and apply
@@ -8994,7 +8994,7 @@
                 </sc-if>
 
                 <sc-if value="{{ pfIsAppearance }}" hint-placeholder-val="{{ false }}">
-                  <a href="/settings#appearance" target="_top" class="evo-appearance-link"
+                  <a href="/settings#appearance" target="_parent" class="evo-appearance-link"
                     ><span
                       >Design Cards<small
                         >Jarvis Circuitry · Glass Minimal · Tactical Edge · Classic<br />Choose a card style and apply
@@ -9676,7 +9676,7 @@
             if (Object.keys(next).length) this.setState(next);
           }
           const evoPage = new URLSearchParams(window.location.search).get("evoPage");
-          if (evoPage === "home" || evoPage === "stats" || evoPage === "profile") {
+          if (evoPage === "home" || evoPage === "stats" || evoPage === "profile" || evoPage === "tasks") {
             this.setState({ route: evoPage === "home" ? "home" : "nav-" + evoPage });
           }
           this._t = setInterval(() => {
