@@ -1,8 +1,16 @@
 import { localISO } from "./utils";
-import { mergeValue, mergePhoneData, mergeHabitLog, sameJSON, applyAliases, recordRenames, type Rename, type IdAliases } from "./record-merge";
+import {
+  mergeValue,
+  mergePhoneData,
+  mergeHabitLog,
+  sameJSON,
+  applyAliases,
+  recordRenames,
+  type Rename,
+  type IdAliases,
+} from "./record-merge";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
 
 export type NutritionEntry = { date: string; calories: number; protein?: number; carbs?: number; fats?: number };
 export type FitnessEntry = { date: string; workouts: number; label?: string };
@@ -59,12 +67,18 @@ export interface Settings {
 
 export type FocusMode = "focus" | "short" | "long";
 export type FocusTag =
-  | "Wealth" | "Nutrition" | "Fitness" | "Journal"
-  | "Notes" | "Investing" | "Business" | "Hobby" | "Guitar";
+  "Wealth" | "Nutrition" | "Fitness" | "Journal" | "Notes" | "Investing" | "Business" | "Hobby" | "Guitar";
 
 export const FOCUS_TAGS: FocusTag[] = [
-  "Wealth", "Nutrition", "Fitness", "Journal",
-  "Notes", "Investing", "Business", "Hobby", "Guitar",
+  "Wealth",
+  "Nutrition",
+  "Fitness",
+  "Journal",
+  "Notes",
+  "Investing",
+  "Business",
+  "Hobby",
+  "Guitar",
 ];
 
 export interface FocusSession {
@@ -149,9 +163,9 @@ export interface RecoveryEntry {
 export interface TrainingSlot {
   id: string;
   dayOfWeek: number; // 0=Mon..6=Sun
-  time: string;      // "HH:MM"
-  endTime: string;   // "HH:MM"
-  title: string;     // e.g. "Push Day"
+  time: string; // "HH:MM"
+  endTime: string; // "HH:MM"
+  title: string; // e.g. "Push Day"
   type: WorkoutType;
 }
 
@@ -182,8 +196,8 @@ export interface MealLog {
   protein: number;
   carbs: number;
   fats: number;
-  time?: string;        // "HH:MM"
-  mealType?: MealType;  // Breakfast | Lunch | Dinner | Snack
+  time?: string; // "HH:MM"
+  mealType?: MealType; // Breakfast | Lunch | Dinner | Snack
 }
 
 export interface GroceryItem {
@@ -192,8 +206,8 @@ export interface GroceryItem {
   qty: string;
   category: string;
   done: boolean;
-  unit?: string;   // lbs | oz | cups | pieces
-  cost?: number;   // optional estimated cost
+  unit?: string; // lbs | oz | cups | pieces
+  cost?: number; // optional estimated cost
 }
 
 export interface WaterEntry {
@@ -220,7 +234,14 @@ export interface Reflection {
 }
 
 export type NoteCategory = "Trading Ideas" | "Business" | "Fitness" | "General" | "YouTube" | "Instagram";
-export const NOTE_CATEGORIES: NoteCategory[] = ["Trading Ideas", "Business", "Fitness", "General", "YouTube", "Instagram"];
+export const NOTE_CATEGORIES: NoteCategory[] = [
+  "Trading Ideas",
+  "Business",
+  "Fitness",
+  "General",
+  "YouTube",
+  "Instagram",
+];
 export interface RichNote {
   id: string;
   date: string;
@@ -255,8 +276,8 @@ export type StrategySession = "Asia" | "London" | "New York AM" | "Other";
 export const STRATEGY_SESSIONS: StrategySession[] = ["Asia", "London", "New York AM", "Other"];
 export interface TradeStrategy {
   id: string;
-  number: string;           // "001"
-  name: string;             // "Asia Sweep"
+  number: string; // "001"
+  name: string; // "Asia Sweep"
   status: StrategyStatus;
   session: StrategySession;
   entryTrigger: string;
@@ -282,21 +303,21 @@ export const TRADING_START_BALANCE = 835;
 // ---------- Trading Accounts (source of truth for trading assets) ----------
 export interface TradingAccount {
   id: string;
-  name: string;         // "TradeDay Funded"
-  company: string;      // short logo mark, e.g. "TD"
-  size: number;         // funded account size, e.g. 50000
+  name: string; // "TradeDay Funded"
+  company: string; // short logo mark, e.g. "TD"
+  size: number; // funded account size, e.g. 50000
   startingBalance: number;
-  createdDate: string;  // YYYY-MM-DD
+  createdDate: string; // YYYY-MM-DD
 }
 
 export type TradingTxType = "profit" | "loss";
 export interface TradingTx {
   id: string;
   accountId: string;
-  date: string;         // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   time?: string;
   type: TradingTxType;
-  amount: number;       // positive; sign derived from type
+  amount: number; // positive; sign derived from type
   notes?: string;
 }
 
@@ -387,8 +408,17 @@ export interface Car {
   currentValue: number;
 }
 
-export type CarExpenseType = "Gas" | "Insurance" | "Maintenance" | "Modification" | "Parking" | "Registration" | "Other";
-export const CAR_EXPENSE_TYPES: CarExpenseType[] = ["Gas", "Insurance", "Maintenance", "Modification", "Parking", "Registration", "Other"];
+export type CarExpenseType =
+  "Gas" | "Insurance" | "Maintenance" | "Modification" | "Parking" | "Registration" | "Other";
+export const CAR_EXPENSE_TYPES: CarExpenseType[] = [
+  "Gas",
+  "Insurance",
+  "Maintenance",
+  "Modification",
+  "Parking",
+  "Registration",
+  "Other",
+];
 export interface CarExpense {
   id: string;
   carId: string;
@@ -444,7 +474,11 @@ export interface CustomHobby {
 export interface EvolutionData {
   supplementList?: { id: string; name: string; time: string; dose: string }[];
   supplementDone?: Record<string, string[]>;
-  weightTracker?: { weights: { date: string; lbs: number }[]; startingWeight: number | null; goalWeight: number | null };
+  weightTracker?: {
+    weights: { date: string; lbs: number }[];
+    startingWeight: number | null;
+    goalWeight: number | null;
+  };
   /** Phone-design records with no desktop equivalent, kept per account (raw, versioned; not canonical). */
   phoneStore?: { v: number; data: Record<string, unknown> };
   profile: Profile;
@@ -516,7 +550,7 @@ export interface EvoHabit {
 
 export interface TimeLog {
   id: string;
-  date: string;        // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   minutes: number;
   module: EvoCategory;
   habitId?: string;
@@ -525,10 +559,7 @@ export interface TimeLog {
   ts: number;
 }
 
-
-export type EvoCategory =
-  | "Wealth" | "Nutrition" | "Fitness" | "Journal"
-  | "Notes" | "Investing" | "Business" | "Hobby";
+export type EvoCategory = "Wealth" | "Nutrition" | "Fitness" | "Journal" | "Notes" | "Investing" | "Business" | "Hobby";
 
 export type EvoTaskPriority = "High" | "Medium" | "Low";
 export type EvoTaskStatus = "Not Started" | "In Progress" | "Done";
@@ -546,7 +577,6 @@ export interface NetWorthSnapshot {
   monthKey: string; // YYYY-MM
   value: number;
 }
-
 
 const STORAGE_KEY = "evolution:data:v2";
 export const STORAGE_VERSION = 6;
@@ -566,16 +596,15 @@ function migrate(parsed: StoredShape): StoredShape {
   return next;
 }
 
-
 export const defaultProfile: Profile = {
-  name: "Michael",
-  tradingBalance: 1100,
-  goal: 50000,
+  name: "Your Name",
+  tradingBalance: 0,
+  goal: 0,
   calorieTarget: 2000,
   gymSessionsTarget: 4,
-  bench: 225,
-  squat: 250,
-  backrow: 280,
+  bench: 0,
+  squat: 0,
+  backrow: 0,
   proteinTarget: 160,
   carbsTarget: 220,
   fatsTarget: 65,
@@ -588,43 +617,13 @@ export const defaultProfile: Profile = {
 
 export const defaultData: EvolutionData = {
   profile: defaultProfile,
-  nutrition: [
-    { date: "2024-05-11", calories: 1820, protein: 150, carbs: 180, fats: 55 },
-    { date: "2024-05-12", calories: 1910, protein: 160, carbs: 185, fats: 58 },
-    { date: "2024-05-13", calories: 1750, protein: 145, carbs: 175, fats: 52 },
-    { date: "2024-05-14", calories: 2050, protein: 170, carbs: 200, fats: 62 },
-    { date: "2024-05-15", calories: 1680, protein: 158, carbs: 165, fats: 50 },
-    { date: "2024-05-16", calories: 1890, protein: 165, carbs: 180, fats: 56 },
-    { date: "2024-05-17", calories: 1680, protein: 140, carbs: 170, fats: 48 },
-  ],
-  fitness: [
-    { date: "2024-05-13", workouts: 1, label: "M" },
-    { date: "2024-05-14", workouts: 0, label: "T" },
-    { date: "2024-05-15", workouts: 1, label: "W" },
-    { date: "2024-05-16", workouts: 1, label: "T" },
-    { date: "2024-05-17", workouts: 0, label: "F" },
-    { date: "2024-05-18", workouts: 1, label: "S" },
-    { date: "2024-05-19", workouts: 0, label: "S" },
-  ],
-  investing: [
-    { date: "2024-01-01", value: 1100 },
-    { date: "2024-02-01", value: 1280 },
-    { date: "2024-03-01", value: 1450 },
-    { date: "2024-04-01", value: 1720 },
-    { date: "2024-04-15", value: 1650 },
-    { date: "2024-05-01", value: 1980 },
-    { date: "2024-05-08", value: 2210 },
-    { date: "2024-05-15", value: 2480 },
-    { date: "2024-05-17", value: 2640 },
-  ],
+  nutrition: [],
+  fitness: [],
+  investing: [],
   meals: [],
-  notes: [
-    { id: "n1", text: "Review Q2 plan", done: false },
-    { id: "n2", text: "Call mom", done: false },
-    { id: "n3", text: "Book flight", done: true },
-  ],
+  notes: [],
   journal: [],
-  hobby: { current: "Guitar", hours: 12.4 },
+  hobby: { current: "Guitar", hours: 0 },
   events: [],
   goals: [],
   calendar: [],
@@ -647,34 +646,9 @@ export const defaultData: EvolutionData = {
   reflections: [],
   richNotes: [],
   trades: [],
-  strategies: [
-    {
-      id: "strat-001",
-      number: "001",
-      name: "Asia Sweep",
-      status: "Active",
-      session: "Asia",
-      entryTrigger: "Price sweeps Asia high or low by 2+ points, enters immediately in opposing direction",
-      target: "Opposite Asia level (full range)",
-      maxRisk: 100,
-      dailyLossLimit: 200,
-      weeklyLossLimit: 600,
-      timeExit: "11:30",
-      instruments: "Both",
-      notes: "Asia (7 PM CT — 1 AM CT) + London open. MNQ + MES, 1 contract each, independent.",
-      grades: {
-        "A+": "Sharp fast sweep, price runs immediately with conviction before 10 AM CT, under 1 hour",
-        "B+": "Price sweeps, hovers and retests the level but holds, eventually runs to target",
-        "C-": "Price takes too long, doesn't reach opposing liquidity until next session",
-        "F": "Price completely ignores opposing liquidity, trends away in sweep direction",
-      },
-      backtest: { netProfitPct: 0, winRate: 0, totalTrades: 0, sharpe: 0, maxDrawdown: 0 },
-    },
-  ],
+  strategies: [],
   watchlist: [],
-  projects: [
-    { id: "p1", name: "Evolution Platform", description: "Personal OS", status: "In Progress", progress: 72, deadline: "2025-12-31", revenueTarget: 18200 },
-  ],
+  projects: [],
   revenue: [],
   bizTasks: [],
   carMeets: [],
@@ -684,12 +658,60 @@ export const defaultData: EvolutionData = {
   cars: [],
   carExpenses: [],
   carEvents: [
-    { id: "ce-seed-1", name: "Cars & Coffee — Downtown", date: nextSatISO(), location: "Main St Plaza", description: "Weekly enthusiast meet, 7–10am.", rsvp: "None", seed: true },
-    { id: "ce-seed-2", name: "Radwood Classic Show", date: futureISO(21), location: "Convention Center", description: "80s & 90s rad-era classics.", rsvp: "None", seed: true },
-    { id: "ce-seed-3", name: "JDM Sunday Drive", date: futureISO(14), location: "Canyon Loop", description: "Spirited drive + breakfast stop.", rsvp: "None", seed: true },
-    { id: "ce-seed-4", name: "Local Auto-X Round", date: futureISO(28), location: "Speedway South Lot", description: "Run what you brung, helmets required.", rsvp: "None", seed: true },
-    { id: "ce-seed-5", name: "Euro Meet", date: futureISO(35), location: "Riverside Park", description: "BMW, Porsche, Audi enthusiasts.", rsvp: "None", seed: true },
-    { id: "ce-seed-6", name: "Track Day — Beginner Friendly", date: futureISO(42), location: "Raceway Park", description: "HPDE, all skill levels welcome.", rsvp: "None", seed: true },
+    {
+      id: "ce-seed-1",
+      name: "Cars & Coffee — Downtown",
+      date: nextSatISO(),
+      location: "Main St Plaza",
+      description: "Weekly enthusiast meet, 7–10am.",
+      rsvp: "None",
+      seed: true,
+    },
+    {
+      id: "ce-seed-2",
+      name: "Radwood Classic Show",
+      date: futureISO(21),
+      location: "Convention Center",
+      description: "80s & 90s rad-era classics.",
+      rsvp: "None",
+      seed: true,
+    },
+    {
+      id: "ce-seed-3",
+      name: "JDM Sunday Drive",
+      date: futureISO(14),
+      location: "Canyon Loop",
+      description: "Spirited drive + breakfast stop.",
+      rsvp: "None",
+      seed: true,
+    },
+    {
+      id: "ce-seed-4",
+      name: "Local Auto-X Round",
+      date: futureISO(28),
+      location: "Speedway South Lot",
+      description: "Run what you brung, helmets required.",
+      rsvp: "None",
+      seed: true,
+    },
+    {
+      id: "ce-seed-5",
+      name: "Euro Meet",
+      date: futureISO(35),
+      location: "Riverside Park",
+      description: "BMW, Porsche, Audi enthusiasts.",
+      rsvp: "None",
+      seed: true,
+    },
+    {
+      id: "ce-seed-6",
+      name: "Track Day — Beginner Friendly",
+      date: futureISO(42),
+      location: "Raceway Park",
+      description: "HPDE, all skill levels welcome.",
+      rsvp: "None",
+      seed: true,
+    },
   ],
   netWorthSnapshots: [],
 
@@ -698,13 +720,7 @@ export const defaultData: EvolutionData = {
   guitarWeeklyHoursTarget: 5,
   customHobbies: [],
   weeklyHobbyTargets: { travel: 2, cars: 3, guitar: 5 },
-  trainingSchedule: [
-    { id: "ts-1", dayOfWeek: 0, time: "07:00", endTime: "08:00", title: "Push Day", type: "Push" },
-    { id: "ts-2", dayOfWeek: 1, time: "07:00", endTime: "08:00", title: "Pull Day", type: "Pull" },
-    { id: "ts-3", dayOfWeek: 2, time: "07:00", endTime: "08:00", title: "Leg Day", type: "Legs" },
-    { id: "ts-4", dayOfWeek: 3, time: "18:00", endTime: "18:45", title: "Cardio", type: "Cardio" },
-    { id: "ts-5", dayOfWeek: 4, time: "07:00", endTime: "08:00", title: "Full Body", type: "Full Body" },
-  ],
+  trainingSchedule: [],
   evoTasks: [],
   habitLog: {},
   customHabits: [],
@@ -716,20 +732,22 @@ export const defaultData: EvolutionData = {
   tradeJournal: seedTradeJournal(),
 };
 
-function _today(): string { return localISO(new Date()); }
+function _today(): string {
+  return localISO(new Date());
+}
 function _firstOfMonth(): string {
-  const d = new Date(); d.setDate(1);
+  const d = new Date();
+  d.setDate(1);
   return localISO(d);
 }
 function _midMonth(): string {
-  const d = new Date(); d.setDate(Math.max(2, Math.floor(d.getDate() / 2)));
+  const d = new Date();
+  d.setDate(Math.max(2, Math.floor(d.getDate() / 2)));
   return localISO(d);
 }
 
 function seedTradingAccounts(): TradingAccount[] {
-  return [
-    { id: "acc-tradeday", name: "TradeDay Funded", company: "TD", size: 50000, startingBalance: 50000, createdDate: _firstOfMonth() },
-  ];
+  return [];
 }
 function seedTradingTxns(): TradingTx[] {
   return [];
@@ -737,7 +755,6 @@ function seedTradingTxns(): TradingTx[] {
 function seedTradeJournal(): TradeJournalEntry[] {
   return [];
 }
-
 
 function futureISO(daysAhead: number): string {
   const d = new Date();
@@ -764,9 +781,7 @@ function hydrate(parsed: StoredShape): EvolutionData {
       const r = (parsed as { notes?: unknown }).notes;
       if (!Array.isArray(r)) return defaultData.notes;
       return r.map((n, i) =>
-        typeof n === "string"
-          ? { id: `n-legacy-${i}-${Date.now()}`, text: n, done: false }
-          : (n as TodoItem)
+        typeof n === "string" ? { id: `n-legacy-${i}-${Date.now()}`, text: n, done: false } : (n as TodoItem),
       );
     })(),
     journal: parsed.journal ?? [],
@@ -817,13 +832,20 @@ function hydrate(parsed: StoredShape): EvolutionData {
     tradingTxns: parsed.tradingTxns ?? defaultData.tradingTxns,
     tradeJournal: parsed.tradeJournal ?? defaultData.tradeJournal,
     supplementList: Array.isArray(parsed.supplementList) ? parsed.supplementList : defaultData.supplementList,
-    supplementDone: parsed.supplementDone && typeof parsed.supplementDone === "object" ? parsed.supplementDone : defaultData.supplementDone,
+    supplementDone:
+      parsed.supplementDone && typeof parsed.supplementDone === "object"
+        ? parsed.supplementDone
+        : defaultData.supplementDone,
   };
   return syncTradingAssets(loaded);
 }
 
-export function loadEvolutionData(): EvolutionData { return load(); }
-export function saveEvolutionData(d: EvolutionData) { save(d); }
+export function loadEvolutionData(): EvolutionData {
+  return load();
+}
+export function saveEvolutionData(d: EvolutionData) {
+  save(d);
+}
 
 function load(): EvolutionData {
   if (typeof window === "undefined") return defaultData;
@@ -853,8 +875,8 @@ const BACKUP_PREFIX = "evolution:data:backup:";
 const SYNCED_PREFIX = "evolution:data:synced:";
 export type CloudStatus = "signed-out" | "loading" | "synced" | "saving" | "error";
 let cloudStatus: CloudStatus = "loading";
-let cloudUserId: string | null = null;      // pushes allowed only for this user
-let activatingFor: string | null = null;    // user currently being loaded
+let cloudUserId: string | null = null; // pushes allowed only for this user
+let activatingFor: string | null = null; // user currently being loaded
 let loadBaseline: { uid: string; data: EvolutionData } | null = null; // kept across retries
 let cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -863,16 +885,20 @@ let pendingSave: { uid: string; data: EvolutionData } | null = null;
 // Single-flight writes: one upsert at a time; later edits coalesce into `queuedPush` (latest wins).
 // `cloudGen` changes on every activation/sign-out so stale completions can't touch a new session.
 let cloudGen = 0;
-let localRev = 0;                            // bumps on every local write
+let localRev = 0; // bumps on every local write
 let pushInFlight: Promise<boolean> | null = null;
 let queuedPush: { uid: string; gen: number } | null = null;
-let pulling = false;                         // an activation read is in flight
+let pulling = false; // an activation read is in flight
 let activationTimer: ReturnType<typeof setTimeout> | null = null;
 let readyResolved = false;
 let resolveCloudReady: () => void = () => {};
 /** Resolves once the signed-in user's cloud data has been pulled (or no session / load failed). */
 export const cloudReady: Promise<void> =
-  typeof window === "undefined" ? Promise.resolve() : new Promise((r) => { resolveCloudReady = r; });
+  typeof window === "undefined"
+    ? Promise.resolve()
+    : new Promise((r) => {
+        resolveCloudReady = r;
+      });
 function markReady() {
   if (readyResolved) return;
   readyResolved = true;
@@ -882,27 +908,47 @@ function setCloudStatus(s: CloudStatus) {
   cloudStatus = s;
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("evolution:cloud-status", { detail: s }));
 }
-export function getCloudStatus(): CloudStatus { return cloudStatus; }
+export function getCloudStatus(): CloudStatus {
+  return cloudStatus;
+}
 export function getLocalOwner(): string | null {
-  try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
 }
 
 /** Three-way merge of whole data sets: local edits since `base` applied on top of `remote`. */
-export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData, phoneRenames?: Rename[]): EvolutionData {
+export function mergeEvolutionData(
+  base: EvolutionData,
+  local: EvolutionData,
+  remote: EvolutionData,
+  phoneRenames?: Rename[],
+): EvolutionData {
   // Shallow copy: mergeValue may return the caller's local/remote object itself; never mutate inputs.
-  const out = { ...(mergeValue(base, local, remote, 0) as object) } as StoredShape & { phoneStore?: EvolutionData["phoneStore"] };
+  const out = { ...(mergeValue(base, local, remote, 0) as object) } as StoredShape & {
+    phoneStore?: EvolutionData["phoneStore"];
+  };
   // habitLog date lists are sets: merge membership per habit/date so concurrent checkoffs both survive.
   out.habitLog = mergeHabitLog(base?.habitLog, local?.habitLog, remote?.habitLog);
   // Phone data is merged per domain/record (not as one scalar) so independent edits survive.
   const data = mergePhoneData(base?.phoneStore?.data, local?.phoneStore?.data, remote?.phoneStore?.data, phoneRenames);
-  if (data) out.phoneStore = { v: 1, data }; else delete out.phoneStore;
+  if (data) out.phoneStore = { v: 1, data };
+  else delete out.phoneStore;
   return hydrate(out);
 }
 
 /** Normalize only the local side using collision provenance from this exact merge. */
 function withPhoneRenames(data: EvolutionData, renames: Rename[]): EvolutionData {
   if (!renames.length || !data.phoneStore?.data) return data;
-  return { ...data, phoneStore: { ...data.phoneStore, data: applyAliases(data.phoneStore.data, recordRenames({}, renames)) as Record<string, unknown> } };
+  return {
+    ...data,
+    phoneStore: {
+      ...data.phoneStore,
+      data: applyAliases(data.phoneStore.data, recordRenames({}, renames)) as Record<string, unknown>,
+    },
+  };
 }
 
 /**
@@ -913,34 +959,47 @@ function withPhoneRenames(data: EvolutionData, renames: Rename[]): EvolutionData
  */
 function commitPhoneRenames(userId: string, renames: Rename[]): boolean {
   try {
-    if (!renames.length || typeof window === "undefined" || getLocalOwner() !== userId || localStorage.getItem("evolution:mobile-bridge:owner") !== userId) return true;
+    if (
+      !renames.length ||
+      typeof window === "undefined" ||
+      getLocalOwner() !== userId ||
+      localStorage.getItem("evolution:mobile-bridge:owner") !== userId
+    )
+      return true;
     const aliasKey = "evolution:mobile-bridge:id-alias:v1";
     const previous: IdAliases = JSON.parse(localStorage.getItem(aliasKey) ?? "{}");
     if (!previous || typeof previous !== "object" || Array.isArray(previous)) return false;
     localStorage.setItem(aliasKey, JSON.stringify(recordRenames(previous, renames)));
     return true;
-  } catch { return false; } // do not advance the acknowledged local base without durable identity
+  } catch {
+    return false;
+  } // do not advance the acknowledged local base without durable identity
 }
 
 function readSynced(uid: string): EvolutionData | null {
   try {
     const raw = localStorage.getItem(SYNCED_PREFIX + uid);
     return raw ? hydrate(migrate(JSON.parse(raw) as StoredShape)) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 function writeSynced(uid: string, data: EvolutionData) {
-  try { localStorage.setItem(SYNCED_PREFIX + uid, JSON.stringify({ ...data, _version: STORAGE_VERSION })); }
-  catch { try { localStorage.removeItem(SYNCED_PREFIX + uid); } catch { /* ignore */ } }
+  try {
+    localStorage.setItem(SYNCED_PREFIX + uid, JSON.stringify({ ...data, _version: STORAGE_VERSION }));
+  } catch {
+    try {
+      localStorage.removeItem(SYNCED_PREFIX + uid);
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 type PullResult = { kind: "ok"; data: EvolutionData } | { kind: "empty" } | { kind: "error" };
 async function pullCloud(userId: string): Promise<PullResult> {
   try {
-    const { data, error } = await supabase
-      .from("user_data")
-      .select("data")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const { data, error } = await supabase.from("user_data").select("data").eq("user_id", userId).maybeSingle();
     if (error) return { kind: "error" };
     if (!data) return { kind: "empty" };
     return { kind: "ok", data: hydrate(migrate((data.data ?? {}) as StoredShape)) };
@@ -961,25 +1020,37 @@ function scheduleRetry(uid: string) {
 type Row = { data: unknown; updated_at: string } | null;
 async function readRow(userId: string): Promise<{ ok: true; row: Row } | { ok: false }> {
   try {
-    const { data, error } = await supabase.from("user_data").select("data, updated_at").eq("user_id", userId).maybeSingle();
+    const { data, error } = await supabase
+      .from("user_data")
+      .select("data, updated_at")
+      .eq("user_id", userId)
+      .maybeSingle();
     if (error) return { ok: false };
     return { ok: true, row: (data as Row) ?? null };
-  } catch { return { ok: false }; }
+  } catch {
+    return { ok: false };
+  }
 }
 type WriteResult = "ok" | "conflict" | "error";
 /** Compare-and-swap on user_data.updated_at (bumped by a DB trigger), so two devices can't overwrite each other. */
 async function casWrite(userId: string, row: Row, payload: unknown): Promise<WriteResult> {
   try {
     if (row) {
-      const { data, error } = await supabase.from("user_data").update({ data: payload as never })
-        .eq("user_id", userId).eq("updated_at", row.updated_at).select("updated_at");
+      const { data, error } = await supabase
+        .from("user_data")
+        .update({ data: payload as never })
+        .eq("user_id", userId)
+        .eq("updated_at", row.updated_at)
+        .select("updated_at");
       if (error) return "error";
       return Array.isArray(data) && data.length > 0 ? "ok" : "conflict";
     }
     const { error } = await supabase.from("user_data").insert({ user_id: userId, data: payload as never });
     if (!error) return "ok";
     return (error as { code?: string }).code === "23505" ? "conflict" : "error";
-  } catch { return "error"; }
+  } catch {
+    return "error";
+  }
 }
 
 /**
@@ -1015,21 +1086,29 @@ function pushCloud(userId: string, _data?: EvolutionData): Promise<boolean> {
         res = await casWrite(userId, r.row, JSON.parse(JSON.stringify({ ...merged, _version: STORAGE_VERSION })));
       }
       if (!isCurrent()) return { ok: res === "ok", current: false };
-      if (res === "conflict") continue;          // someone else wrote in between → re-read, re-merge
+      if (res === "conflict") continue; // someone else wrote in between → re-read, re-merge
       if (res === "error") return { ok: false, current: true };
       // Normalize both local branches first: an in-flight edit/delete still targets this
       // device's renamed record, never the other client's record that kept its old id.
       const furtherRenames: Rename[] = [];
-      const latest = localRev === startRev ? merged : mergeEvolutionData(withPhoneRenames(local, renames), withPhoneRenames(load(), renames), merged, furtherRenames);
+      const latest =
+        localRev === startRev
+          ? merged
+          : mergeEvolutionData(
+              withPhoneRenames(local, renames),
+              withPhoneRenames(load(), renames),
+              merged,
+              furtherRenames,
+            );
       if (!commitPhoneRenames(userId, [...renames, ...furtherRenames])) return { ok: false, current: true };
-      writeSynced(userId, merged);               // acknowledged payload + durable identity → new merge base
+      writeSynced(userId, merged); // acknowledged payload + durable identity → new merge base
       retryCount = 0;
       if (!sameJSON(load(), latest)) writeLocal(latest);
       rev = localRev;
       if (remote && !sameJSON(merged, local)) window.dispatchEvent(new CustomEvent("evolution:cloud-refreshed"));
       return { ok: true, current: true };
     }
-    return { ok: false, current: true };       // persistent contention → retry later, stays dirty
+    return { ok: false, current: true }; // persistent contention → retry later, stays dirty
   })().then(({ ok, current }) => {
     pushInFlight = null;
     const q = queuedPush;
@@ -1041,7 +1120,8 @@ function pushCloud(userId: string, _data?: EvolutionData): Promise<boolean> {
     }
     if (!ok) {
       // Offline / rejected: local copy stays dirty (snapshot not advanced) and is retried with latest data.
-      setCloudStatus("error"); scheduleRetry(userId);
+      setCloudStatus("error");
+      scheduleRetry(userId);
       return false;
     }
     if (qValid || (localRev !== rev && !pendingSave)) void pushCloud(userId);
@@ -1107,7 +1187,10 @@ function switchLocalOwner(userId: string) {
 async function activateCloudForUser(userId: string, attempt = 0): Promise<void> {
   if (cloudUserId === userId || (activatingFor === userId && attempt === 0)) return;
   if (attempt > 0 && (activatingFor !== userId || pulling)) return;
-  if (activationTimer) { clearTimeout(activationTimer); activationTimer = null; }
+  if (activationTimer) {
+    clearTimeout(activationTimer);
+    activationTimer = null;
+  }
   if (attempt === 0 || cloudUserId !== null) cloudGen++;
   const gen = cloudGen;
   cancelPendingSave();
@@ -1118,17 +1201,24 @@ async function activateCloudForUser(userId: string, attempt = 0): Promise<void> 
   if (!loadBaseline || loadBaseline.uid !== userId) loadBaseline = { uid: userId, data: load() };
   pulling = true;
   let res: PullResult;
-  try { res = await pullCloud(userId); } finally { if (gen === cloudGen) pulling = false; }
+  try {
+    res = await pullCloud(userId);
+  } finally {
+    if (gen === cloudGen) pulling = false;
+  }
   if (gen !== cloudGen || activatingFor !== userId || getLocalOwner() !== userId) return; // signed out / switched during load
 
   if (res.kind === "error") {
     setCloudStatus("error");
     markReady(); // UI runs on this account's local data; uploads stay disabled, edits stay local
     if (attempt < 4) {
-      activationTimer = setTimeout(() => {
-        activationTimer = null;
-        if (gen === cloudGen && activatingFor === userId) void activateCloudForUser(userId, attempt + 1);
-      }, 3000 * (attempt + 1));
+      activationTimer = setTimeout(
+        () => {
+          activationTimer = null;
+          if (gen === cloudGen && activatingFor === userId) void activateCloudForUser(userId, attempt + 1);
+        },
+        3000 * (attempt + 1),
+      );
     }
     // After retries run out, recovery resumes via resumeCloudRead() (the browser "online" event).
     return;
@@ -1143,7 +1233,12 @@ async function activateCloudForUser(userId: string, attempt = 0): Promise<void> 
   if (res.kind === "ok") {
     const renames: Rename[] = [];
     const merged = mergeEvolutionData(base, local, res.data, renames);
-    if (!commitPhoneRenames(userId, renames)) { setCloudStatus("error"); scheduleRetry(userId); markReady(); return; }
+    if (!commitPhoneRenames(userId, renames)) {
+      setCloudStatus("error");
+      scheduleRetry(userId);
+      markReady();
+      return;
+    }
     writeSynced(userId, res.data);
     writeLocal(merged);
     setCloudStatus("synced");
@@ -1159,10 +1254,16 @@ async function activateCloudForUser(userId: string, attempt = 0): Promise<void> 
 
 /** Reconnect: resume a safe read (then the usual merge) for an account whose load failed. */
 function resumeCloudRead(): void {
-  if (cloudUserId && cloudStatus === "error") { void pushCloud(cloudUserId, load()); return; }
+  if (cloudUserId && cloudStatus === "error") {
+    void pushCloud(cloudUserId, load());
+    return;
+  }
   const uid = activatingFor;
   if (!uid || cloudUserId || pulling || getLocalOwner() !== uid) return;
-  if (activationTimer) { clearTimeout(activationTimer); activationTimer = null; }
+  if (activationTimer) {
+    clearTimeout(activationTimer);
+    activationTimer = null;
+  }
   void activateCloudForUser(uid, 1); // fresh retry budget; owner/generation guards still apply
 }
 
@@ -1179,7 +1280,8 @@ function maskSignedOutOwner() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) localStorage.setItem(BACKUP_PREFIX + owner, raw);
   const guest = localStorage.getItem(BACKUP_PREFIX + GUEST_OWNER);
-  if (guest) localStorage.setItem(STORAGE_KEY, guest); else localStorage.removeItem(STORAGE_KEY);
+  if (guest) localStorage.setItem(STORAGE_KEY, guest);
+  else localStorage.removeItem(STORAGE_KEY);
   localStorage.setItem(OWNER_KEY, GUEST_OWNER);
   window.dispatchEvent(new CustomEvent("evolution:data-updated"));
   window.dispatchEvent(new CustomEvent("evolution:owner-changed", { detail: { from: owner, to: GUEST_OWNER } }));
@@ -1188,7 +1290,10 @@ function maskSignedOutOwner() {
 function deactivateCloud() {
   cloudGen++;
   pulling = false;
-  if (activationTimer) { clearTimeout(activationTimer); activationTimer = null; }
+  if (activationTimer) {
+    clearTimeout(activationTimer);
+    activationTimer = null;
+  }
   cancelPendingSave();
   cloudUserId = null;
   activatingFor = null;
@@ -1199,13 +1304,33 @@ function deactivateCloud() {
 }
 
 /** Test hooks (not used by the app). */
-export const __cloudTest = { activateCloudForUser, deactivateCloud, resumeCloudRead, refreshCloud, idle: async () => { while (pushInFlight) await pushInFlight; }, flushSave: () => { const p = pendingSave; cancelPendingSave(); return p ? pushCloud(p.uid, p.data) : Promise.resolve(false); } };
+export const __cloudTest = {
+  activateCloudForUser,
+  deactivateCloud,
+  resumeCloudRead,
+  refreshCloud,
+  idle: async () => {
+    while (pushInFlight) await pushInFlight;
+  },
+  flushSave: () => {
+    const p = pendingSave;
+    cancelPendingSave();
+    return p ? pushCloud(p.uid, p.data) : Promise.resolve(false);
+  },
+};
 
-if (typeof window !== "undefined" && typeof document !== "undefined" && !(globalThis as { __EVO_NO_AUTO_CLOUD__?: boolean }).__EVO_NO_AUTO_CLOUD__) {
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session) void activateCloudForUser(data.session.user.id);
-    else deactivateCloud();
-  }).catch(() => deactivateCloud());
+if (
+  typeof window !== "undefined" &&
+  typeof document !== "undefined" &&
+  !(globalThis as { __EVO_NO_AUTO_CLOUD__?: boolean }).__EVO_NO_AUTO_CLOUD__
+) {
+  supabase.auth
+    .getSession()
+    .then(({ data }) => {
+      if (data.session) void activateCloudForUser(data.session.user.id);
+      else deactivateCloud();
+    })
+    .catch(() => deactivateCloud());
   supabase.auth.onAuthStateChange((event, session) => {
     if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
       void activateCloudForUser(session.user.id);
@@ -1222,10 +1347,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && !(global
     void pushCloud(uid, data);
   };
   window.addEventListener("pagehide", flush);
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
-  window.addEventListener("online", () => { resumeCloudRead(); refreshCloud(); });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flush();
+  });
+  window.addEventListener("online", () => {
+    resumeCloudRead();
+    refreshCloud();
+  });
   window.addEventListener("focus", refreshCloud);
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshCloud(); });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshCloud();
+  });
   setInterval(refreshCloud, 60_000);
 }
 
@@ -1241,7 +1373,7 @@ export function useCloudStatus(): CloudStatus {
   return s;
 }
 
-const PHONE_KEY = "evolution05:userdata:v4";          // phone design store (see mobile-bridge.ts)
+const PHONE_KEY = "evolution05:userdata:v4"; // phone design store (see mobile-bridge.ts)
 const PHONE_BASE_KEY = "evolution:mobile-bridge:base:v1";
 /** Archive the phone store, then empty its tasks/events and the bridge base. */
 export function clearPhoneTasksForReset() {
@@ -1251,11 +1383,16 @@ export function clearPhoneTasksForReset() {
     if (raw) {
       localStorage.setItem(`${PHONE_KEY}:cleared:${getLocalOwner() ?? "local"}`, raw);
       const store = JSON.parse(raw);
-      if (store?.tk) { store.tk.tasks = []; store.tk.events = []; }
+      if (store?.tk) {
+        store.tk.tasks = [];
+        store.tk.events = [];
+      }
       localStorage.setItem(PHONE_KEY, JSON.stringify(store));
     }
     localStorage.removeItem(PHONE_BASE_KEY);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function save(data: EvolutionData) {
@@ -1319,7 +1456,10 @@ export function mealTotals(meals: Meal[]) {
   for (const m of meals) {
     const item = MEALS.find((x) => x.key === m);
     if (!item) continue;
-    t.kcal += item.kcal; t.p += item.p; t.c += item.c; t.f += item.f;
+    t.kcal += item.kcal;
+    t.p += item.p;
+    t.c += item.c;
+    t.f += item.f;
   }
   return t;
 }
@@ -1328,16 +1468,22 @@ export function nutritionSummary(rows: NutritionEntry[], meals: Meal[], target: 
   const today = todayDate();
   const todayLogs = mealLogs.filter((m) => m.date === today);
   const loggedQuick = mealTotals(meals);
-  const loggedCustom = todayLogs.reduce((acc, m) => ({
-    kcal: acc.kcal + m.calories, p: acc.p + m.protein, c: acc.c + m.carbs, f: acc.f + m.fats,
-  }), { kcal: 0, p: 0, c: 0, f: 0 });
+  const loggedCustom = todayLogs.reduce(
+    (acc, m) => ({
+      kcal: acc.kcal + m.calories,
+      p: acc.p + m.protein,
+      c: acc.c + m.carbs,
+      f: acc.f + m.fats,
+    }),
+    { kcal: 0, p: 0, c: 0, f: 0 },
+  );
   // Only today's dated input counts — never fall back to an older day's numbers; zeros are real zeros.
   const last = rows.find((r) => r.date === today);
   const anyLogged = todayLogs.length > 0 || meals.length > 0;
-  const kcal = anyLogged ? loggedQuick.kcal + loggedCustom.kcal : last?.calories ?? 0;
-  const protein = anyLogged ? loggedQuick.p + loggedCustom.p : last?.protein ?? 0;
-  const carbs = anyLogged ? loggedQuick.c + loggedCustom.c : last?.carbs ?? 0;
-  const fats = anyLogged ? loggedQuick.f + loggedCustom.f : last?.fats ?? 0;
+  const kcal = anyLogged ? loggedQuick.kcal + loggedCustom.kcal : (last?.calories ?? 0);
+  const protein = anyLogged ? loggedQuick.p + loggedCustom.p : (last?.protein ?? 0);
+  const carbs = anyLogged ? loggedQuick.c + loggedCustom.c : (last?.carbs ?? 0);
+  const fats = anyLogged ? loggedQuick.f + loggedCustom.f : (last?.fats ?? 0);
   return {
     last,
     target,
@@ -1354,7 +1500,7 @@ export function fitnessSummary(rows: FitnessEntry[], target: number) {
   const daysHit = last7.filter((r) => r.workouts > 0).length;
   return {
     data: last7.map((r) => r.workouts),
-    labels: last7.map((r, i) => r.label ?? ["M","T","W","T","F","S","S"][i] ?? ""),
+    labels: last7.map((r, i) => r.label ?? ["M", "T", "W", "T", "F", "S", "S"][i] ?? ""),
     daysHit,
     target,
   };
@@ -1369,18 +1515,12 @@ export function investingSummary(rows: InvestingEntry[]) {
   return { data, current, change, pct };
 }
 
-export const LIABILITY_CATEGORIES = new Set([
-  "Rent", "Mortgage", "Car Payment", "Insurance", "Loan", "Credit Card",
-]);
+export const LIABILITY_CATEGORIES = new Set(["Rent", "Mortgage", "Car Payment", "Insurance", "Loan", "Credit Card"]);
 
 export function wealthSummary(data: { assets: Asset[]; transactions: Transaction[] }) {
   const assetsTotal = data.assets.reduce((s, a) => s + a.value, 0);
-  const income = data.transactions
-    .filter((t) => t.type === "income")
-    .reduce((s, t) => s + t.amount, 0);
-  const expenses = data.transactions
-    .filter((t) => t.type === "expense")
-    .reduce((s, t) => s + t.amount, 0);
+  const income = data.transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const expenses = data.transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const liabilities = data.transactions
     .filter((t) => t.type === "expense" && LIABILITY_CATEGORIES.has(t.category))
     .reduce((s, t) => s + t.amount, 0);
@@ -1406,12 +1546,14 @@ export function wealthSummary(data: { assets: Asset[]; transactions: Transaction
   }
   const first = series[0];
   const last = series[series.length - 1];
-  const pct = first !== 0 ? ((last - first) / Math.abs(first)) * 100 : (last !== 0 ? 100 : 0);
+  const pct = first !== 0 ? ((last - first) / Math.abs(first)) * 100 : last !== 0 ? 100 : 0;
 
   return { assetsTotal, income, expenses, liabilities, cash, netWorth, series, labels, pct };
 }
 
-export function todayDate() { return today(); }
+export function todayDate() {
+  return today();
+}
 
 // ---------- Nutrition helpers ----------
 
@@ -1424,7 +1566,7 @@ export function dayTotals(date: string, mealLogs: MealLog[]) {
       c: a.c + m.carbs,
       f: a.f + m.fats,
     }),
-    { kcal: 0, p: 0, c: 0, f: 0 }
+    { kcal: 0, p: 0, c: 0, f: 0 },
   );
 }
 
@@ -1456,8 +1598,13 @@ export function weeklyAverage(mealLogs: MealLog[]) {
 export function mostLoggedMeal(mealLogs: MealLog[]) {
   const counts = new Map<string, number>();
   for (const m of mealLogs) counts.set(m.name, (counts.get(m.name) ?? 0) + 1);
-  let best = ""; let n = 0;
-  for (const [name, c] of counts) if (c > n) { best = name; n = c; }
+  let best = "";
+  let n = 0;
+  for (const [name, c] of counts)
+    if (c > n) {
+      best = name;
+      n = c;
+    }
   return best ? { name: best, count: n } : null;
 }
 
@@ -1487,10 +1634,7 @@ export function weekLogs(logs: TimeLog[], start: Date = weekStartMonday()): Time
   return logs.filter((l) => days.has(l.date));
 }
 
-export function groupMinutesBy<T extends string>(
-  logs: TimeLog[],
-  key: (l: TimeLog) => T,
-): Record<T, number> {
+export function groupMinutesBy<T extends string>(logs: TimeLog[], key: (l: TimeLog) => T): Record<T, number> {
   const out = {} as Record<T, number>;
   for (const l of logs) {
     const k = key(l);
@@ -1515,28 +1659,39 @@ export function accountBalance(accountId: string, accounts: TradingAccount[], tx
   if (!acc) return 0;
   const accountIds = new Set(accounts.map((a) => a.id));
   const primaryId = accounts[0]?.id;
-  return acc.startingBalance + txns
-    .filter((t) => t.accountId === accountId || (accountId === primaryId && !accountIds.has(t.accountId)))
-    .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0);
+  return (
+    acc.startingBalance +
+    txns
+      .filter((t) => t.accountId === accountId || (accountId === primaryId && !accountIds.has(t.accountId)))
+      .reduce((s, t) => s + (t.type === "profit" ? t.amount : -t.amount), 0)
+  );
 }
 
 export function tradingTotals(accounts: TradingAccount[], txns: TradingTx[]) {
   const today = todayDate();
   const monthKey = today.slice(0, 7);
-  let balance = 0, todayPnl = 0, monthPnl = 0;
+  let balance = 0,
+    todayPnl = 0,
+    monthPnl = 0;
   const perAccount: Record<string, { balance: number; today: number; month: number }> = {};
   const accountIds = new Set(accounts.map((a) => a.id));
   const primaryId = accounts[0]?.id;
   for (const acc of accounts) {
-    let b = acc.startingBalance, tP = 0, mP = 0;
-    for (const t of txns.filter((x) => x.accountId === acc.id || (acc.id === primaryId && !accountIds.has(x.accountId)))) {
+    let b = acc.startingBalance,
+      tP = 0,
+      mP = 0;
+    for (const t of txns.filter(
+      (x) => x.accountId === acc.id || (acc.id === primaryId && !accountIds.has(x.accountId)),
+    )) {
       const signed = t.type === "profit" ? t.amount : -t.amount;
       b += signed;
       if (t.date === today) tP += signed;
       if (t.date.startsWith(monthKey)) mP += signed;
     }
     perAccount[acc.id] = { balance: b, today: tP, month: mP };
-    balance += b; todayPnl += tP; monthPnl += mP;
+    balance += b;
+    todayPnl += tP;
+    monthPnl += mP;
   }
   return { balance, todayPnl, monthPnl, perAccount };
 }
@@ -1555,8 +1710,6 @@ export function syncTradingAssets(next: EvolutionData): EvolutionData {
   return { ...next, assets: [...nonTrading, ...tradingAssets] };
 }
 
-
-
 // ------------- Derived counts (one counted source per record) -------------
 /**
  * Workout sessions per day = max(legacy aggregate row, logged workouts on that day).
@@ -1571,12 +1724,21 @@ export function syncTradingAssets(next: EvolutionData): EvolutionData {
  */
 export const isLoggedWorkout = (w: WorkoutLog) => w.src === "log";
 export function workoutsOnDay(fitness: FitnessEntry[], workouts: WorkoutLog[], date: string): number {
-  let legacyW = 0, logged = 0;
-  for (const w of workouts) if (w.date === date) { if (isLoggedWorkout(w)) logged++; else legacyW++; }
+  let legacyW = 0,
+    logged = 0;
+  for (const w of workouts)
+    if (w.date === date) {
+      if (isLoggedWorkout(w)) logged++;
+      else legacyW++;
+    }
   const agg = fitness.find((r) => r.date === date)?.workouts || 0;
   return Math.max(agg, legacyW) + logged;
 }
-export function workoutCount(fitness: FitnessEntry[], workouts: WorkoutLog[], inRange: (date: string) => boolean): number {
+export function workoutCount(
+  fitness: FitnessEntry[],
+  workouts: WorkoutLog[],
+  inRange: (date: string) => boolean,
+): number {
   const days = new Set<string>();
   for (const r of fitness) if (inRange(r.date)) days.add(r.date);
   for (const w of workouts) if (inRange(w.date)) days.add(w.date);
@@ -1585,48 +1747,85 @@ export function workoutCount(fitness: FitnessEntry[], workouts: WorkoutLog[], in
   return total;
 }
 /** New session (page or dashboard quick-log): one canonical, dated, identifiable workout entry. */
-export function newLoggedWorkout(id: string, date: string, type: WorkoutType = "Full Body", durationMin = 0, notes?: string): WorkoutLog {
+export function newLoggedWorkout(
+  id: string,
+  date: string,
+  type: WorkoutType = "Full Body",
+  durationMin = 0,
+  notes?: string,
+): WorkoutLog {
   return { id, date, type, durationMin, notes, src: "log" };
 }
 /** After deleting a workout: logged entries never touch tallies; legacy ones drop the aggregate only if it included them. */
-export function fitnessAfterWorkoutDelete(fitness: FitnessEntry[], workouts: WorkoutLog[], removed: WorkoutLog): FitnessEntry[] {
+export function fitnessAfterWorkoutDelete(
+  fitness: FitnessEntry[],
+  workouts: WorkoutLog[],
+  removed: WorkoutLog,
+): FitnessEntry[] {
   if (isLoggedWorkout(removed)) return fitness;
   const before = workouts.filter((w) => w.date === removed.date && !isLoggedWorkout(w)).length;
-  return fitness.map((r) => (r.date === removed.date && r.workouts >= before && r.workouts > 0 ? { ...r, workouts: r.workouts - 1 } : r));
+  return fitness.map((r) =>
+    r.date === removed.date && r.workouts >= before && r.workouts > 0 ? { ...r, workouts: r.workouts - 1 } : r,
+  );
 }
 /** Current local week (Mon–Sun) of counted sessions, same shape as fitnessSummary. */
 export function fitnessWeek(fitness: FitnessEntry[], workouts: WorkoutLog[], target: number, now = new Date()) {
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  const dates = Array.from({ length: 7 }, (_, i) => { const x = new Date(monday); x.setDate(monday.getDate() + i); return localISO(x); });
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const x = new Date(monday);
+    x.setDate(monday.getDate() + i);
+    return localISO(x);
+  });
   const data = dates.map((day) => workoutsOnDay(fitness, workouts, day));
-  return { data, labels: ["M", "T", "W", "T", "F", "S", "S"], daysHit: data.filter((n) => n > 0).length, sessions: data.reduce((sum, n) => sum + n, 0), target, dates };
+  return {
+    data,
+    labels: ["M", "T", "W", "T", "F", "S", "S"],
+    daysHit: data.filter((n) => n > 0).length,
+    sessions: data.reduce((sum, n) => sum + n, 0),
+    target,
+    dates,
+  };
 }
 
 // ------------- Trade review ↔ ledger linkage -------------
 export const journalDailyTxId = (date: string) => `journal-daily-${date}`;
 const signedTx = (t: TradingTx) => (t.type === "profit" ? Math.abs(t.amount) : -Math.abs(t.amount));
 /** Ledger P/L for a day (the only source of truth for a review's P/L). */
-export const ledgerDayPnl = (txns: TradingTx[], date: string) => txns.filter((t) => t.date === date).reduce((a, t) => a + signedTx(t), 0);
+export const ledgerDayPnl = (txns: TradingTx[], date: string) =>
+  txns.filter((t) => t.date === date).reduce((a, t) => a + signedTx(t), 0);
 /**
  * Saving a review: the ledger changes ONLY when the user explicitly changed the P/L field from the
  * value shown when the review was opened. The adjustment row (journal-daily-<date>) makes the day's
  * ledger total equal the entered value, once, on that row's existing account (else the first account).
  */
-export function applyReviewPnl(txns: TradingTx[], accounts: TradingAccount[], date: string, entered: string, shown: string, note: string): TradingTx[] {
+export function applyReviewPnl(
+  txns: TradingTx[],
+  accounts: TradingAccount[],
+  date: string,
+  entered: string,
+  shown: string,
+  note: string,
+): TradingTx[] {
   const e = entered.trim();
   if (e === shown.trim() || e === "" || !Number.isFinite(Number(e))) return txns;
   const id = journalDailyTxId(date);
   const prevAdj = txns.find((t) => t.id === id);
   const rest = txns.filter((t) => t.id !== id);
-  const accountId = prevAdj?.accountId && accounts.some((a) => a.id === prevAdj.accountId) ? prevAdj.accountId : accounts[0]?.id;
+  const accountId =
+    prevAdj?.accountId && accounts.some((a) => a.id === prevAdj.accountId) ? prevAdj.accountId : accounts[0]?.id;
   if (!accountId) return txns;
   const delta = Number(e) - ledgerDayPnl(rest, date);
   if (delta === 0) return rest;
   return [...rest, { id, accountId, date, type: delta > 0 ? "profit" : "loss", amount: Math.abs(delta), notes: note }];
 }
 /** Keep stored review P/L equal to the ledger for the given dates (after ledger deletes/edits). */
-export function refreshReviewPnl(journal: TradeJournalEntry[], txns: TradingTx[], dates: Set<string>): TradeJournalEntry[] {
+export function refreshReviewPnl(
+  journal: TradeJournalEntry[],
+  txns: TradingTx[],
+  dates: Set<string>,
+): TradeJournalEntry[] {
   return journal.map((j) => (dates.has(j.date) ? { ...j, pnl: ledgerDayPnl(txns, j.date) } : j));
 }
 
@@ -1640,7 +1839,10 @@ export function guitarFocusOnly(focus: FocusSession[], guitar: GuitarSession[]):
   const mirrors = new Set<string>();
   for (const g of guitar) {
     const m = focus.find((f) => !used.has(f.id) && isMirrorOf(f, g));
-    if (m) { used.add(m.id); mirrors.add(m.id); }
+    if (m) {
+      used.add(m.id);
+      mirrors.add(m.id);
+    }
   }
   return focus.filter((f) => f.tag === "Guitar" && !mirrors.has(f.id));
 }
