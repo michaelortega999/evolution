@@ -1,7 +1,8 @@
+import { effectiveCardStyle } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { cloudReady, useCloudStatus, getLocalOwner } from "@/lib/evolution-data";
+import { cloudReady, useCloudStatus, getLocalOwner, useEvolutionData } from "@/lib/evolution-data";
 import { createPhoneSignOutHandler } from "@/lib/mobile-auth";
 import { pullMobileIntoDesktop, pushDesktopIntoMobile } from "@/lib/mobile-bridge";
 import { bankStore } from "@/lib/finance-store";
@@ -29,6 +30,8 @@ export function MobileApp() {
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const requestedPage = new URLSearchParams(searchStr).get("mobilePage") || "";
   const mobilePage = ["home", "stats", "profile"].includes(requestedPage) ? requestedPage : "";
+  const { data } = useEvolutionData();
+  const cardStyle = effectiveCardStyle(data.settings);
   const [ready, setReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -156,6 +159,28 @@ export function MobileApp() {
       f?.removeEventListener("load", post);
     };
   }, [frameKey, ready]);
+
+  // Appearance has one canonical owner-scoped value. The frame receives it read-only.
+  useEffect(() => {
+    if (!ready) return;
+    const frame = frameRef.current;
+    const post = () => frame?.contentWindow?.postMessage({ type: "evo:appearance", cardStyle }, window.location.origin);
+    const onReady = (event: MessageEvent) => {
+      if (
+        event.origin === window.location.origin &&
+        event.source === frame?.contentWindow &&
+        event.data?.type === "evo:appearance-ready"
+      )
+        post();
+    };
+    frame?.addEventListener("load", post);
+    window.addEventListener("message", onReady);
+    post();
+    return () => {
+      frame?.removeEventListener("load", post);
+      window.removeEventListener("message", onReady);
+    };
+  }, [ready, frameKey, cardStyle]);
 
   return (
     <div className="fixed inset-0 z-[1000] bg-background">
