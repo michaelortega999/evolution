@@ -1,5 +1,5 @@
 import { localISO } from "./utils";
-import { mergeValue, mergePhoneData, sameJSON, applyAliases, recordRenames, type Rename, type IdAliases } from "./record-merge";
+import { mergeValue, mergePhoneData, mergeHabitLog, sameJSON, applyAliases, recordRenames, type Rename, type IdAliases } from "./record-merge";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -890,6 +890,8 @@ export function getLocalOwner(): string | null {
 /** Three-way merge of whole data sets: local edits since `base` applied on top of `remote`. */
 export function mergeEvolutionData(base: EvolutionData, local: EvolutionData, remote: EvolutionData, phoneRenames?: Rename[]): EvolutionData {
   const out = mergeValue(base, local, remote, 0) as StoredShape & { phoneStore?: EvolutionData["phoneStore"] };
+  // habitLog date lists are sets: merge membership per habit/date so concurrent checkoffs both survive.
+  out.habitLog = mergeHabitLog(base?.habitLog, local?.habitLog, remote?.habitLog);
   // Phone data is merged per domain/record (not as one scalar) so independent edits survive.
   const data = mergePhoneData(base?.phoneStore?.data, local?.phoneStore?.data, remote?.phoneStore?.data, phoneRenames);
   if (data) out.phoneStore = { v: 1, data }; else delete out.phoneStore;
