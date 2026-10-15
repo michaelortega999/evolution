@@ -479,7 +479,7 @@ function MonthView({
         </button>
       </div>
       <p className="text-xs text-emerald-300 mb-3">
-        ✓ All scheduled tasks complete. Empty days have no check; events are separate.
+        ✓ means all scheduled tasks complete. Empty days have no check; events are separate.
       </p>
       <div className="grid grid-cols-7 gap-1 mb-2">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
