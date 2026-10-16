@@ -1038,7 +1038,7 @@ function EvoAssistantPage() {
                 </div>
                 {!data.goals.length && <p className="evo-muted">Your first goal starts with one clear step.</p>}
                 {data.goals.map((g) => (
-                  <div className="evo-goal" key={g.id}>
+                  <div className="evo-goal evo-surface" key={g.id}>
                     <strong>{g.title}</strong>
                     <small>
                       {g.category} · by {g.deadline}
@@ -1075,7 +1075,7 @@ function EvoAssistantPage() {
                   const done = (data.habitLog[h.id] || []).includes(localISO());
                   return (
                     <button
-                      className={"evo-habit " + (done ? "complete" : "")}
+                      className={"evo-habit evo-surface " + (done ? "complete" : "")}
                       key={h.id}
                       disabled={disabled}
                       aria-pressed={done}
