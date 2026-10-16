@@ -8,7 +8,16 @@ import { useEvolutionData, todayDate, dayTotals, workoutCount } from "@/lib/evol
 import { useSelectedMonth, MONTH_LABELS } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/reports")({
-  head: () => ({ meta: [{ title: "Reports — Evolution" }, { name: "description", content: "Reports module of Evolution OS." }, { property: "og:title", content: "Reports — Evolution" }, { property: "og:description", content: "Reports module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({
+    meta: [
+      { title: "Reports — Evolution" },
+      { name: "description", content: "Reports module of Evolution OS." },
+      { property: "og:title", content: "Reports — Evolution" },
+      { property: "og:description", content: "Reports module of Evolution OS." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: ReportsPage,
 });
 
@@ -30,15 +39,21 @@ function ReportsPage() {
   // ----- Trading (real trades) -----
   // Manual trading ledger (same source as Investing + dashboard); legacy `trades` rows only if the ledger is empty.
   const trades = data.tradingTxns.length
-    ? data.tradingTxns.filter((t) => inMonth(t.date)).map((t) => ({ date: t.date, pnl: t.type === "profit" ? t.amount : -t.amount }))
+    ? data.tradingTxns
+        .filter((t) => inMonth(t.date))
+        .map((t) => ({ date: t.date, pnl: t.type === "profit" ? t.amount : -t.amount }))
     : data.trades.filter((t) => inMonth(t.date));
   const tradePnl = trades.reduce((a, t) => a + t.pnl, 0);
   const wins = trades.filter((t) => t.pnl > 0).length;
   const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
   const pnlByDay = new Map<string, number>();
   trades.forEach((t) => pnlByDay.set(t.date, (pnlByDay.get(t.date) ?? 0) + t.pnl));
-  let bestDay = 0, worstDay = 0;
-  pnlByDay.forEach((v) => { if (v > bestDay) bestDay = v; if (v < worstDay) worstDay = v; });
+  let bestDay = 0,
+    worstDay = 0;
+  pnlByDay.forEach((v) => {
+    if (v > bestDay) bestDay = v;
+    if (v < worstDay) worstDay = v;
+  });
   const tradeSeries = Array.from({ length: days }, (_, i) => pnlByDay.get(dayIso(i)) ?? 0);
 
   // ----- Nutrition (mealLogs) -----
@@ -47,7 +62,9 @@ function ReportsPage() {
   const proteinPerDay = dayKeys.map((d) => dayTotals(d, data.mealLogs).p);
   const loggedDays = calsPerDay.filter((c) => c > 0);
   const avgCals = loggedDays.length ? Math.round(loggedDays.reduce((a, b) => a + b, 0) / loggedDays.length) : 0;
-  const avgProt = loggedDays.length ? Math.round(proteinPerDay.filter((_, i) => calsPerDay[i] > 0).reduce((a, b) => a + b, 0) / loggedDays.length) : 0;
+  const avgProt = loggedDays.length
+    ? Math.round(proteinPerDay.filter((_, i) => calsPerDay[i] > 0).reduce((a, b) => a + b, 0) / loggedDays.length)
+    : 0;
   const calTarget = data.profile.calorieTarget || 2000;
   const daysHitGoal = calsPerDay.filter((c) => c >= calTarget * 0.85 && c <= calTarget * 1.05).length;
 
@@ -58,10 +75,14 @@ function ReportsPage() {
   const prsThisMonth = data.prHistory.filter((p) => inMonth(p.date)).length;
 
   // ----- Journal -----
-  const journalEntries = data.journalEntries.filter((e) => inMonth(e.date)).length
-    + data.journal.filter((e) => inMonth(e.date)).length;
+  const journalEntries =
+    data.journalEntries.filter((e) => inMonth(e.date)).length + data.journal.filter((e) => inMonth(e.date)).length;
   const moodCounts: Record<string, number> = {};
-  data.journalEntries.filter((e) => inMonth(e.date)).forEach((e) => { moodCounts[e.mood] = (moodCounts[e.mood] ?? 0) + 1; });
+  data.journalEntries
+    .filter((e) => inMonth(e.date))
+    .forEach((e) => {
+      moodCounts[e.mood] = (moodCounts[e.mood] ?? 0) + 1;
+    });
   const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
   // ----- Focus -----
@@ -73,22 +94,52 @@ function ReportsPage() {
     const k = localISO(new Date(s.completedAt));
     focusByDay.set(k, (focusByDay.get(k) ?? 0) + s.durationSec);
   });
-  let mostFocusedDay = "—"; let mostFocusedSec = 0;
-  focusByDay.forEach((v, k) => { if (v > mostFocusedSec) { mostFocusedSec = v; mostFocusedDay = k; } });
+  let mostFocusedDay = "—";
+  let mostFocusedSec = 0;
+  focusByDay.forEach((v, k) => {
+    if (v > mostFocusedSec) {
+      mostFocusedSec = v;
+      mostFocusedDay = k;
+    }
+  });
 
   // ----- Business -----
   const monthRevenue = data.revenue.filter((r) => r.date.startsWith(selMonthKey)).reduce((a, r) => a + r.amount, 0);
   const projectsCompleted = data.projects.filter((p) => p.status === "Completed").length;
 
-  const summary = useMemo(() => ({
-    month: selMonthKey, generatedAt: new Date().toISOString(),
-    trading: { trades: trades.length, pnl: tradePnl, winRate, bestDay, worstDay },
-    nutrition: { avgCalories: avgCals, avgProtein: avgProt, daysHitGoal },
-    fitness: { sessions, totalVolume, prsThisMonth },
-    journal: { entries: journalEntries, topMood },
-    focus: { hours: focusHours, sessions: focusCount, mostFocusedDay },
-    business: { monthRevenue, projectsCompleted },
-  }), [selMonthKey, trades.length, tradePnl, winRate, bestDay, worstDay, avgCals, avgProt, daysHitGoal, sessions, totalVolume, prsThisMonth, journalEntries, topMood, focusHours, focusCount, mostFocusedDay, monthRevenue, projectsCompleted]);
+  const summary = useMemo(
+    () => ({
+      month: selMonthKey,
+      generatedAt: new Date().toISOString(),
+      trading: { trades: trades.length, pnl: tradePnl, winRate, bestDay, worstDay },
+      nutrition: { avgCalories: avgCals, avgProtein: avgProt, daysHitGoal },
+      fitness: { sessions, totalVolume, prsThisMonth },
+      journal: { entries: journalEntries, topMood },
+      focus: { hours: focusHours, sessions: focusCount, mostFocusedDay },
+      business: { monthRevenue, projectsCompleted },
+    }),
+    [
+      selMonthKey,
+      trades.length,
+      tradePnl,
+      winRate,
+      bestDay,
+      worstDay,
+      avgCals,
+      avgProt,
+      daysHitGoal,
+      sessions,
+      totalVolume,
+      prsThisMonth,
+      journalEntries,
+      topMood,
+      focusHours,
+      focusCount,
+      mostFocusedDay,
+      monthRevenue,
+      projectsCompleted,
+    ],
+  );
 
   function exportReport() {
     const blob = new Blob([JSON.stringify(summary, null, 2)], { type: "application/json" });
@@ -107,11 +158,11 @@ function ReportsPage() {
           <div className="px-4 py-2 hud-label text-[10px] border border-primary text-primary bg-primary/15 hud-glow rounded">
             {MONTH_LABELS[selMonth]} {selYear} · {daysInMonth} DAYS
           </div>
-          <div className="hud-label text-[10px] text-muted-foreground">
-            Change month on the dashboard selector
-          </div>
-          <button onClick={exportReport}
-            className="ml-auto flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-[10px] rounded hover:bg-primary/25">
+          <div className="hud-label text-[10px] text-muted-foreground">Change month on the dashboard selector</div>
+          <button
+            onClick={exportReport}
+            className="ml-auto flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-[10px] rounded hover:bg-primary/25"
+          >
             <Download className="h-4 w-4" /> Export Report
           </button>
         </div>
@@ -120,7 +171,11 @@ function ReportsPage() {
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <Panel title="TRADING">
           <div className="grid grid-cols-3 gap-2 mb-3">
-            <Stat label="P&L" value={`${tradePnl >= 0 ? "+" : ""}$${tradePnl.toLocaleString()}`} accent={tradePnl >= 0} />
+            <Stat
+              label="P&L"
+              value={`${tradePnl >= 0 ? "+" : ""}$${tradePnl.toLocaleString()}`}
+              accent={tradePnl >= 0}
+            />
             <Stat label="Trades" value={String(trades.length)} />
             <Stat label="Win Rate" value={`${winRate}%`} />
           </div>
@@ -176,9 +231,11 @@ function ReportsPage() {
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="border border-border rounded p-3 bg-primary/5">
+    <div className="evo-surface border border-border rounded p-3 bg-primary/5">
       <div className="hud-label text-[9px] text-muted-foreground">{label}</div>
-      <div className={`hud-label text-lg ${accent ? "text-primary hud-glow" : "text-foreground"} truncate`}>{value}</div>
+      <div className={`hud-label text-lg ${accent ? "text-primary hud-glow" : "text-foreground"} truncate`}>
+        {value}
+      </div>
     </div>
   );
 }
