@@ -1,7 +1,20 @@
 import { localISO } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Apple, Trash2, Minus, Plus, Droplet, Flame, Clock, Check, Undo2, RotateCcw, TrendingDown, Pill } from "lucide-react";
+import {
+  Apple,
+  Trash2,
+  Minus,
+  Plus,
+  Droplet,
+  Flame,
+  Clock,
+  Check,
+  Undo2,
+  RotateCcw,
+  TrendingDown,
+  Pill,
+} from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { Input } from "@/components/ui/input";
@@ -9,32 +22,47 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  useEvolutionData, MEAL_TYPES, todayDate, uid,
-  dayTotals, nutritionStreak, getLocalOwner,
-  type MealType, type GroceryItem,
+  useEvolutionData,
+  MEAL_TYPES,
+  todayDate,
+  uid,
+  dayTotals,
+  nutritionStreak,
+  getLocalOwner,
+  type MealType,
+  type GroceryItem,
 } from "@/lib/evolution-data";
 import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/nutrition")({
-  head: () => ({ meta: [{ title: "Nutrition — Evolution" }, { property: "og:title", content: "Nutrition — Evolution" }, { property: "og:description", content: "Daily calories, macros, meals, water, grocery, history." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Daily calories, macros, meals, water, grocery, history." }] }),
+  head: () => ({
+    meta: [
+      { title: "Nutrition — Evolution" },
+      { property: "og:title", content: "Nutrition — Evolution" },
+      { property: "og:description", content: "Daily calories, macros, meals, water, grocery, history." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "description", content: "Daily calories, macros, meals, water, grocery, history." },
+    ],
+  }),
   component: NutritionPage,
 });
 
 // Quick-add presets (per spec)
 const QUICK_FOODS = [
   { key: "ground_beef_rice", label: "Ground Beef & Rice", kcal: 450, p: 35, c: 35, f: 18 },
-  { key: "chicken_rice",     label: "Chicken & Rice",     kcal: 380, p: 40, c: 38, f: 6 },
-  { key: "greek_yogurt",     label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
-  { key: "broccoli",         label: "Broccoli",           kcal: 150, p: 8,  c: 18, f: 2 },
+  { key: "chicken_rice", label: "Chicken & Rice", kcal: 380, p: 40, c: 38, f: 6 },
+  { key: "greek_yogurt", label: "Greek Yogurt & Berries", kcal: 200, p: 20, c: 22, f: 2 },
+  { key: "broccoli", label: "Broccoli", kcal: 150, p: 8, c: 18, f: 2 },
 ];
 
 const STANDARD_GROCERY: Omit<GroceryItem, "id" | "done">[] = [
-  { name: "Ground beef",    qty: "2",   unit: "lbs",    category: "Protein" },
-  { name: "Chicken breast", qty: "3",   unit: "lbs",    category: "Protein" },
-  { name: "White rice",     qty: "5",   unit: "cups",   category: "Carbs" },
-  { name: "Broccoli",       qty: "4",   unit: "pieces", category: "Vegetables" },
-  { name: "Greek yogurt",   qty: "32",  unit: "oz",     category: "Dairy" },
-  { name: "Mixed berries",  qty: "16",  unit: "oz",     category: "Dairy" },
+  { name: "Ground beef", qty: "2", unit: "lbs", category: "Protein" },
+  { name: "Chicken breast", qty: "3", unit: "lbs", category: "Protein" },
+  { name: "White rice", qty: "5", unit: "cups", category: "Carbs" },
+  { name: "Broccoli", qty: "4", unit: "pieces", category: "Vegetables" },
+  { name: "Greek yogurt", qty: "32", unit: "oz", category: "Dairy" },
+  { name: "Mixed berries", qty: "16", unit: "oz", category: "Dairy" },
 ];
 
 const UNITS = ["lbs", "oz", "cups", "pieces"];
@@ -89,42 +117,69 @@ function NutritionPage() {
 
   // ------- Today's meals -------
   const todayMeals = useMemo(
-    () => data.mealLogs.filter((m) => m.date === today)
-      .sort((a, b) => (a.time ?? "").localeCompare(b.time ?? "")),
-    [data.mealLogs, today]
+    () => data.mealLogs.filter((m) => m.date === today).sort((a, b) => (a.time ?? "").localeCompare(b.time ?? "")),
+    [data.mealLogs, today],
   );
 
-  const addQuick = (q: typeof QUICK_FOODS[number]) => {
+  const addQuick = (q: (typeof QUICK_FOODS)[number]) => {
     pushSnapshot(`Added ${q.label}`);
     const time = nowTime();
     mutate((prev) => ({
-      mealLogs: [...prev.mealLogs, {
-        id: uid(), date: today, name: q.label,
-        calories: q.kcal, protein: q.p, carbs: q.c, fats: q.f,
-        time, mealType: categoryFromTime(time),
-      }],
+      mealLogs: [
+        ...prev.mealLogs,
+        {
+          id: uid(),
+          date: today,
+          name: q.label,
+          calories: q.kcal,
+          protein: q.p,
+          carbs: q.c,
+          fats: q.f,
+          time,
+          mealType: categoryFromTime(time),
+        },
+      ],
     }));
   };
 
   // Custom-meal modal
   const [mealOpen, setMealOpen] = useState(false);
-  const [mName, setMName] = useState(""); const [mKcal, setMKcal] = useState("");
-  const [mP, setMP] = useState(""); const [mC, setMC] = useState(""); const [mF, setMF] = useState("");
+  const [mName, setMName] = useState("");
+  const [mKcal, setMKcal] = useState("");
+  const [mP, setMP] = useState("");
+  const [mC, setMC] = useState("");
+  const [mF, setMF] = useState("");
   const [mTime, setMTime] = useState(nowTime());
   const [mType, setMType] = useState<MealType>("Lunch");
-  const openCustom = () => { setMTime(nowTime()); setMType(categoryFromTime(nowTime())); setMealOpen(true); };
+  const openCustom = () => {
+    setMTime(nowTime());
+    setMType(categoryFromTime(nowTime()));
+    setMealOpen(true);
+  };
   const submitMeal = () => {
     if (!mName.trim() || !Number(mKcal)) return;
     pushSnapshot(`Added ${mName.trim()}`);
     mutate((prev) => ({
-      mealLogs: [...prev.mealLogs, {
-        id: uid(), date: today, name: mName.trim(),
-        calories: Number(mKcal) || 0, protein: Number(mP) || 0,
-        carbs: Number(mC) || 0, fats: Number(mF) || 0,
-        time: mTime, mealType: mType,
-      }],
+      mealLogs: [
+        ...prev.mealLogs,
+        {
+          id: uid(),
+          date: today,
+          name: mName.trim(),
+          calories: Number(mKcal) || 0,
+          protein: Number(mP) || 0,
+          carbs: Number(mC) || 0,
+          fats: Number(mF) || 0,
+          time: mTime,
+          mealType: mType,
+        },
+      ],
     }));
-    setMName(""); setMKcal(""); setMP(""); setMC(""); setMF("");
+    setMName("");
+    setMKcal("");
+    setMP("");
+    setMC("");
+    setMF("");
     setMealOpen(false);
   };
   // ------- Undo stack (in-memory snapshots of today's meals + water) -------
@@ -175,50 +230,59 @@ function NutritionPage() {
     });
   };
   const waterMessage =
-    todayWater <= 2 ? "Start hydrating — your body needs water"
-    : todayWater <= 5 ? "Good progress — keep going"
-    : todayWater <= 7 ? "Almost there — one more push"
-    : "Fully hydrated — excellent work";
+    todayWater <= 2
+      ? "Start hydrating — your body needs water"
+      : todayWater <= 5
+        ? "Good progress — keep going"
+        : todayWater <= 7
+          ? "Almost there — one more push"
+          : "Fully hydrated — excellent work";
 
   // Grocery list is never auto-filled: an empty list stays empty (it may have been cleared on purpose).
 
   // (Removed one-time "reset today to zero" effect — it was wiping meals
   // the user added, causing them to disappear after refresh.)
 
-
-
-
   const [gFilter, setGFilter] = useState<string>("All");
-  const [gName, setGName] = useState(""); const [gQty, setGQty] = useState("1");
-  const [gUnit, setGUnit] = useState("pieces"); const [gCat, setGCat] = useState("Protein");
+  const [gName, setGName] = useState("");
+  const [gQty, setGQty] = useState("1");
+  const [gUnit, setGUnit] = useState("pieces");
+  const [gCat, setGCat] = useState("Protein");
   const [gCost, setGCost] = useState("");
   const addGrocery = () => {
     if (!gName.trim()) return;
     mutate((prev) => ({
-      grocery: [...prev.grocery, {
-        id: uid(), name: gName.trim(), qty: gQty, unit: gUnit,
-        category: gCat, done: false,
-        cost: Number(gCost) || undefined,
-      }],
+      grocery: [
+        ...prev.grocery,
+        {
+          id: uid(),
+          name: gName.trim(),
+          qty: gQty,
+          unit: gUnit,
+          category: gCat,
+          done: false,
+          cost: Number(gCost) || undefined,
+        },
+      ],
     }));
-    setGName(""); setGQty("1"); setGCost("");
+    setGName("");
+    setGQty("1");
+    setGCost("");
   };
   const toggleGrocery = (id: string) =>
-    mutate((prev) => ({ grocery: prev.grocery.map((g) => g.id === id ? { ...g, done: !g.done } : g) }));
-  const delGrocery = (id: string) =>
-    mutate((prev) => ({ grocery: prev.grocery.filter((g) => g.id !== id) }));
+    mutate((prev) => ({ grocery: prev.grocery.map((g) => (g.id === id ? { ...g, done: !g.done } : g)) }));
+  const delGrocery = (id: string) => mutate((prev) => ({ grocery: prev.grocery.filter((g) => g.id !== id) }));
   const updateGroceryCost = (id: string, cost: number) =>
-    mutate((prev) => ({ grocery: prev.grocery.map((g) => g.id === id ? { ...g, cost } : g) }));
-  const resetChecks = () =>
-    mutate((prev) => ({ grocery: prev.grocery.map((g) => ({ ...g, done: false })) }));
+    mutate((prev) => ({ grocery: prev.grocery.map((g) => (g.id === id ? { ...g, cost } : g)) }));
+  const resetChecks = () => mutate((prev) => ({ grocery: prev.grocery.map((g) => ({ ...g, done: false })) }));
   const filteredGrocery = data.grocery.filter((g) => gFilter === "All" || g.category === gFilter);
   const totalCost = data.grocery.reduce((a, g) => a + (g.cost ?? 0) * (Number(g.qty) || 1), 0);
 
   // ------- Macros tab data -------
   const macroSum = t.p + t.c + t.f || 1;
-  const pPctSlice = (t.p * 4 / Math.max(1, t.kcal)) * 100; // calories from protein %
-  const cPctSlice = (t.c * 4 / Math.max(1, t.kcal)) * 100;
-  const fPctSlice = (t.f * 9 / Math.max(1, t.kcal)) * 100;
+  const pPctSlice = ((t.p * 4) / Math.max(1, t.kcal)) * 100; // calories from protein %
+  const cPctSlice = ((t.c * 4) / Math.max(1, t.kcal)) * 100;
+  const fPctSlice = ((t.f * 9) / Math.max(1, t.kcal)) * 100;
   // fallback when no calories logged → use grams ratio
   const slice1 = t.kcal ? pPctSlice : (t.p / macroSum) * 100;
   const slice2 = t.kcal ? cPctSlice : (t.c / macroSum) * 100;
@@ -234,7 +298,11 @@ function NutritionPage() {
       const iso = localISO(new Date(d.getTime() - i * 86400000));
       const tot = dayTotals(iso, data.mealLogs);
       out.push({
-        date: iso, kcal: tot.kcal, p: tot.p, c: tot.c, f: tot.f,
+        date: iso,
+        kcal: tot.kcal,
+        p: tot.p,
+        c: tot.c,
+        f: tot.f,
         water: data.water.find((w) => w.date === iso)?.glasses ?? 0,
       });
     }
@@ -244,10 +312,16 @@ function NutritionPage() {
   const weeklyAvg = useMemo(() => {
     const logged = last7.filter((d) => d.kcal > 0);
     if (!logged.length) return { kcal: 0, p: 0, c: 0, f: 0, water: 0 };
-    const sum = logged.reduce((a, b) => ({
-      kcal: a.kcal + b.kcal, p: a.p + b.p, c: a.c + b.c, f: a.f + b.f,
-      water: a.water + b.water,
-    }), { kcal: 0, p: 0, c: 0, f: 0, water: 0 });
+    const sum = logged.reduce(
+      (a, b) => ({
+        kcal: a.kcal + b.kcal,
+        p: a.p + b.p,
+        c: a.c + b.c,
+        f: a.f + b.f,
+        water: a.water + b.water,
+      }),
+      { kcal: 0, p: 0, c: 0, f: 0, water: 0 },
+    );
     return {
       kcal: Math.round(sum.kcal / logged.length),
       p: Math.round(sum.p / logged.length),
@@ -261,7 +335,9 @@ function NutritionPage() {
   const insights = useMemo(() => {
     const out: string[] = [];
     if (weeklyAvg.kcal && weeklyAvg.kcal < calTarget - 100) {
-      out.push(`You are averaging ${calTarget - weeklyAvg.kcal} calories below your target this week — consider adding a snack`);
+      out.push(
+        `You are averaging ${calTarget - weeklyAvg.kcal} calories below your target this week — consider adding a snack`,
+      );
     }
     if (weeklyAvg.kcal > calTarget + 150) {
       out.push(`You are ${weeklyAvg.kcal - calTarget} calories over target on average — small portion cuts add up`);
@@ -271,7 +347,8 @@ function NutritionPage() {
     } else if (weeklyAvg.p && weeklyAvg.p < pTarget * 0.7) {
       out.push(`Protein is averaging ${weeklyAvg.p}g — push toward ${pTarget}g for muscle retention`);
     }
-    const eveningCals = todayMeals.filter((m) => Number((m.time ?? "12:00").slice(0, 2)) >= 18)
+    const eveningCals = todayMeals
+      .filter((m) => Number((m.time ?? "12:00").slice(0, 2)) >= 18)
       .reduce((a, m) => a + m.calories, 0);
     if (t.kcal && eveningCals / t.kcal > 0.5) {
       out.push("You tend to eat most of your calories after 6pm — consider an earlier meal");
@@ -312,13 +389,21 @@ function NutritionPage() {
   const weekSummaries = useMemo(() => {
     const weeks: { label: string; kcal: number; p: number; c: number; f: number; water: number }[] = [];
     for (let w = 0; w < 4; w++) {
-      let kcal = 0, p = 0, c = 0, f = 0, water = 0, days = 0;
+      let kcal = 0,
+        p = 0,
+        c = 0,
+        f = 0,
+        water = 0,
+        days = 0;
       for (let i = 0; i < 7; i++) {
         const dayOffset = w * 7 + i;
         const iso = localISO(new Date(Date.now() - dayOffset * 86400000));
         const tot = dayTotals(iso, data.mealLogs);
         if (tot.kcal > 0) {
-          kcal += tot.kcal; p += tot.p; c += tot.c; f += tot.f;
+          kcal += tot.kcal;
+          p += tot.p;
+          c += tot.c;
+          f += tot.f;
           water += data.water.find((x) => x.date === iso)?.glasses ?? 0;
           days++;
         }
@@ -326,8 +411,10 @@ function NutritionPage() {
       const div = days || 1;
       weeks.push({
         label: w === 0 ? "This week" : `${w} week${w > 1 ? "s" : ""} ago`,
-        kcal: Math.round(kcal / div), p: Math.round(p / div),
-        c: Math.round(c / div), f: Math.round(f / div),
+        kcal: Math.round(kcal / div),
+        p: Math.round(p / div),
+        c: Math.round(c / div),
+        f: Math.round(f / div),
         water: Math.round(water / div),
       });
     }
@@ -338,7 +425,7 @@ function NutritionPage() {
   const [historyDate, setHistoryDate] = useState<string | null>(null);
   const historyMeals = historyDate ? data.mealLogs.filter((m) => m.date === historyDate) : [];
   const historyTotals = historyDate ? dayTotals(historyDate, data.mealLogs) : { kcal: 0, p: 0, c: 0, f: 0 };
-  const historyWater = historyDate ? data.water.find((w) => w.date === historyDate)?.glasses ?? 0 : 0;
+  const historyWater = historyDate ? (data.water.find((w) => w.date === historyDate)?.glasses ?? 0) : 0;
 
   // Eating window timeline
   const timelineMeals = todayMeals.map((m) => {
@@ -356,9 +443,19 @@ function NutritionPage() {
   const weights: WeightEntry[] = wt?.weights ?? [];
   const startingWeight = wt?.startingWeight ?? null;
   const goalWeight = wt?.goalWeight ?? null;
-  const setWT = (fn: (w: { weights: WeightEntry[]; startingWeight: number | null; goalWeight: number | null }) => Partial<{ weights: WeightEntry[]; startingWeight: number | null; goalWeight: number | null }>) =>
+  const setWT = (
+    fn: (w: {
+      weights: WeightEntry[];
+      startingWeight: number | null;
+      goalWeight: number | null;
+    }) => Partial<{ weights: WeightEntry[]; startingWeight: number | null; goalWeight: number | null }>,
+  ) =>
     mutate((p) => {
-      const cur = { weights: p.weightTracker?.weights ?? [], startingWeight: p.weightTracker?.startingWeight ?? null, goalWeight: p.weightTracker?.goalWeight ?? null };
+      const cur = {
+        weights: p.weightTracker?.weights ?? [],
+        startingWeight: p.weightTracker?.startingWeight ?? null,
+        goalWeight: p.weightTracker?.goalWeight ?? null,
+      };
       return { weightTracker: { ...cur, ...fn(cur) } };
     });
   const [weightPeriod, setWeightPeriod] = useState<"7D" | "30D" | "90D" | "1Y" | "ALL">("30D");
@@ -373,12 +470,16 @@ function NutritionPage() {
       if (!raw) return;
       const legacy = JSON.parse(raw);
       if (!Array.isArray(legacy.weights)) return;
-      mutate(() => ({ weightTracker: {
-        weights: legacy.weights,
-        startingWeight: typeof legacy.startingWeight === "number" ? legacy.startingWeight : null,
-        goalWeight: typeof legacy.goalWeight === "number" ? legacy.goalWeight : null,
-      } }));
-    } catch { /* keep legacy as-is */ }
+      mutate(() => ({
+        weightTracker: {
+          weights: legacy.weights,
+          startingWeight: typeof legacy.startingWeight === "number" ? legacy.startingWeight : null,
+          goalWeight: typeof legacy.goalWeight === "number" ? legacy.goalWeight : null,
+        },
+      }));
+    } catch {
+      /* keep legacy as-is */
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.weightTracker]);
 
@@ -392,7 +493,7 @@ function NutritionPage() {
   const lowestWeight = weights.length ? Math.min(...weights.map((w) => w.lbs)) : 0;
   const avgWeeklyChange = weights.length >= 7 ? +(totalChange / (weights.length / 7)).toFixed(1) : 0;
   const bodyFatEst = 0;
-  const periodDays: Record<typeof weightPeriod, number> = { "7D": 7, "30D": 30, "90D": 90, "1Y": 365, "ALL": 9999 };
+  const periodDays: Record<typeof weightPeriod, number> = { "7D": 7, "30D": 30, "90D": 90, "1Y": 365, ALL: 9999 };
   const visibleWeights = weights.slice(-periodDays[weightPeriod]);
   const submitWeight = () => {
     const v = Number(newWeight);
@@ -403,7 +504,7 @@ function NutritionPage() {
     // Editing start/goal never erases logged history.
     setWT((w) => ({
       weights: v ? [...w.weights, { date: todayDate(), lbs: v }] : w.weights,
-      startingWeight: hasStart ? sw : w.startingWeight ?? (v || null),
+      startingWeight: hasStart ? sw : (w.startingWeight ?? (v || null)),
       goalWeight: hasGoal ? gw : w.goalWeight,
     }));
     setNewWeight("");
@@ -415,11 +516,11 @@ function NutritionPage() {
   // ------- Overview: supplements -------
   type Supplement = { id: string; name: string; time: string; dose: string; done: boolean };
   const DEFAULT_SUPPS = [
-    { id: "s1", name: "Whey Protein",       time: "8:30 AM",  dose: "1 scoop" },
+    { id: "s1", name: "Whey Protein", time: "8:30 AM", dose: "1 scoop" },
     { id: "s2", name: "Creatine Monohydrate", time: "11:00 AM", dose: "5g" },
-    { id: "s3", name: "Omega 3",            time: "1:00 PM",  dose: "2 softgels" },
-    { id: "s4", name: "Vitamin D3",         time: "1:00 PM",  dose: "5000 IU" },
-    { id: "s5", name: "Magnesium",          time: "9:00 PM",  dose: "400mg" },
+    { id: "s3", name: "Omega 3", time: "1:00 PM", dose: "2 softgels" },
+    { id: "s4", name: "Vitamin D3", time: "1:00 PM", dose: "5000 IU" },
+    { id: "s5", name: "Magnesium", time: "9:00 PM", dose: "400mg" },
   ];
   // Saved with the rest of your data; check-offs reset each day.
   const suppList = data.supplementList ?? DEFAULT_SUPPS;
@@ -429,35 +530,55 @@ function NutritionPage() {
     mutate((p) => {
       const all = { ...(p.supplementDone ?? {}) };
       const cur = new Set(all[today] ?? []);
-      if (cur.has(id)) cur.delete(id); else cur.add(id);
+      if (cur.has(id)) cur.delete(id);
+      else cur.add(id);
       all[today] = [...cur];
       return { supplementDone: all };
     });
   const [suppOpen, setSuppOpen] = useState(false);
   const [suppAll, setSuppAll] = useState(false);
-  const [sName, setSName] = useState(""); const [sDose, setSDose] = useState(""); const [sTime, setSTime] = useState("");
+  const [sName, setSName] = useState("");
+  const [sDose, setSDose] = useState("");
+  const [sTime, setSTime] = useState("");
   const addSupp = () => {
     const n = sName.trim();
     if (!n) return;
-    mutate((p) => ({ supplementList: [...(p.supplementList ?? DEFAULT_SUPPS), { id: `s-${uid()}`, name: n.slice(0, 60), dose: sDose.trim().slice(0, 30), time: sTime.trim().slice(0, 20) }] }));
-    setSName(""); setSDose(""); setSTime(""); setSuppOpen(false);
+    mutate((p) => ({
+      supplementList: [
+        ...(p.supplementList ?? DEFAULT_SUPPS),
+        { id: `s-${uid()}`, name: n.slice(0, 60), dose: sDose.trim().slice(0, 30), time: sTime.trim().slice(0, 20) },
+      ],
+    }));
+    setSName("");
+    setSDose("");
+    setSTime("");
+    setSuppOpen(false);
   };
   const delSupp = (id: string) =>
     mutate((p) => ({ supplementList: (p.supplementList ?? DEFAULT_SUPPS).filter((x) => x.id !== id) }));
-
-
-
 
   return (
     <ModuleLayout number="02" title="Nutrition" subtitle={todayLabel()} icon={Apple}>
       <Tabs defaultValue="overview" className="animate-fade-in">
         <TabsList className="bg-card border border-border flex-wrap h-auto gap-1">
-          <TabsTrigger value="overview" className="hud-label text-[11px] tracking-wider">OVERVIEW</TabsTrigger>
-          <TabsTrigger value="meals" className="hud-label text-[11px] tracking-wider">FOOD DIARY</TabsTrigger>
-          <TabsTrigger value="macros" className="hud-label text-[11px] tracking-wider">MACROS</TabsTrigger>
-          <TabsTrigger value="water" className="hud-label text-[11px] tracking-wider">WATER</TabsTrigger>
-          <TabsTrigger value="grocery" className="hud-label text-[11px] tracking-wider">GROCERY</TabsTrigger>
-          <TabsTrigger value="history" className="hud-label text-[11px] tracking-wider">HISTORY</TabsTrigger>
+          <TabsTrigger value="overview" className="hud-label text-[11px] tracking-wider">
+            OVERVIEW
+          </TabsTrigger>
+          <TabsTrigger value="meals" className="hud-label text-[11px] tracking-wider">
+            FOOD DIARY
+          </TabsTrigger>
+          <TabsTrigger value="macros" className="hud-label text-[11px] tracking-wider">
+            MACROS
+          </TabsTrigger>
+          <TabsTrigger value="water" className="hud-label text-[11px] tracking-wider">
+            WATER
+          </TabsTrigger>
+          <TabsTrigger value="grocery" className="hud-label text-[11px] tracking-wider">
+            GROCERY
+          </TabsTrigger>
+          <TabsTrigger value="history" className="hud-label text-[11px] tracking-wider">
+            HISTORY
+          </TabsTrigger>
         </TabsList>
 
         {/* ============ OVERVIEW ============ */}
@@ -494,23 +615,56 @@ function NutritionPage() {
                     </div>
                   </div>
                   <div className="pt-3 border-t border-border space-y-2 text-[11px]">
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">STARTING WEIGHT</span><span className="text-foreground tabular-nums">{startingWeight !== null ? `${startingWeight.toFixed(1)} lbs` : "—"}</span></div>
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">GOAL WEIGHT</span><span className="text-foreground tabular-nums">{goalWeight !== null ? `${goalWeight.toFixed(1)} lbs` : "—"}</span></div>
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">TOTAL CHANGE</span><span className={`tabular-nums ${totalChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(totalChange)} lbs</span></div>
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">PERCENT CHANGE</span><span className={`tabular-nums ${percentChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>▼ {Math.abs(percentChange)}%</span></div>
-                    <div className="flex justify-between"><span className="hud-label text-muted-foreground">DAYS TRACKING</span><span className="text-foreground tabular-nums">{weights.length} Days</span></div>
+                    <div className="flex justify-between">
+                      <span className="hud-label text-muted-foreground">STARTING WEIGHT</span>
+                      <span className="text-foreground tabular-nums">
+                        {startingWeight !== null ? `${startingWeight.toFixed(1)} lbs` : "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="hud-label text-muted-foreground">GOAL WEIGHT</span>
+                      <span className="text-foreground tabular-nums">
+                        {goalWeight !== null ? `${goalWeight.toFixed(1)} lbs` : "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="hud-label text-muted-foreground">TOTAL CHANGE</span>
+                      <span className={`tabular-nums ${totalChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        ▼ {Math.abs(totalChange)} lbs
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="hud-label text-muted-foreground">PERCENT CHANGE</span>
+                      <span className={`tabular-nums ${percentChange <= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        ▼ {Math.abs(percentChange)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="hud-label text-muted-foreground">DAYS TRACKING</span>
+                      <span className="text-foreground tabular-nums">{weights.length} Days</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Line chart */}
                 <div className="relative" style={{ height: 220 }}>
                   {(() => {
-                    const w = 600, h = 220, pad = { l: 30, r: 10, t: 10, b: 24 };
-                    const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                    const w = 600,
+                      h = 220,
+                      pad = { l: 30, r: 10, t: 10, b: 24 };
+                    const iw = w - pad.l - pad.r,
+                      ih = h - pad.t - pad.b;
                     if (visibleWeights.length === 0) {
                       return (
                         <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%">
-                          <text x={w / 2} y={h / 2} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" className="hud-label">
+                          <text
+                            x={w / 2}
+                            y={h / 2}
+                            textAnchor="middle"
+                            fontSize="11"
+                            fill="var(--muted-foreground)"
+                            className="hud-label"
+                          >
                             NO WEIGHT LOGGED YET
                           </text>
                         </svg>
@@ -528,23 +682,56 @@ function NutritionPage() {
                       <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="100%">
                         {ticks.map((t, i) => (
                           <g key={i}>
-                            <line x1={pad.l} x2={w - pad.r} y1={ys(t)} y2={ys(t)} stroke="var(--border)" strokeDasharray="2 3" opacity="0.4" />
-                            <text x={pad.l - 4} y={ys(t) + 5} textAnchor="end" fontSize="18" fill="var(--muted-foreground)">{Math.round(t)}</text>
+                            <line
+                              x1={pad.l}
+                              x2={w - pad.r}
+                              y1={ys(t)}
+                              y2={ys(t)}
+                              stroke="var(--border)"
+                              strokeDasharray="2 3"
+                              opacity="0.4"
+                            />
+                            <text
+                              x={pad.l - 4}
+                              y={ys(t) + 5}
+                              textAnchor="end"
+                              fontSize="18"
+                              fill="var(--muted-foreground)"
+                            >
+                              {Math.round(t)}
+                            </text>
                           </g>
                         ))}
                         <polygon points={area} fill="oklch(0.78 0.22 240 / 0.18)" />
-                        <polyline points={pts} fill="none" stroke="oklch(0.78 0.22 240)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.7))" }} />
+                        <polyline
+                          points={pts}
+                          fill="none"
+                          stroke="oklch(0.78 0.22 240)"
+                          strokeWidth="2"
+                          style={{ filter: "drop-shadow(0 0 4px oklch(0.78 0.22 240 / 0.7))" }}
+                        />
                         {visibleWeights.map((d, i) => (
                           <circle key={i} cx={xs(i)} cy={ys(d.lbs)} r="2.5" fill="oklch(0.78 0.22 240)" />
                         ))}
-                        {visibleWeights.filter((_, i) => i % Math.ceil(visibleWeights.length / 6) === 0).map((d, i, arr) => {
-                          const origIdx = visibleWeights.indexOf(d);
-                          return (
-                            <text key={i} x={xs(origIdx)} y={h - 4} textAnchor="middle" fontSize="18" fill="var(--muted-foreground)">
-                              {new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase()}
-                            </text>
-                          );
-                        })}
+                        {visibleWeights
+                          .filter((_, i) => i % Math.ceil(visibleWeights.length / 6) === 0)
+                          .map((d, i, arr) => {
+                            const origIdx = visibleWeights.indexOf(d);
+                            return (
+                              <text
+                                key={i}
+                                x={xs(origIdx)}
+                                y={h - 4}
+                                textAnchor="middle"
+                                fontSize="18"
+                                fill="var(--muted-foreground)"
+                              >
+                                {new Date(d.date)
+                                  .toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                                  .toUpperCase()}
+                              </text>
+                            );
+                          })}
                       </svg>
                     );
                   })()}
@@ -554,14 +741,22 @@ function NutritionPage() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-5 pt-5 border-t border-border">
                 {[
                   { label: "WEEKLY CHANGE", value: `▼ ${Math.abs(weeklyChange)} lbs`, good: weeklyChange <= 0 },
-                  { label: "AVG. WEEKLY CHANGE", value: `▼ ${Math.abs(avgWeeklyChange)} lbs`, good: avgWeeklyChange <= 0 },
+                  {
+                    label: "AVG. WEEKLY CHANGE",
+                    value: `▼ ${Math.abs(avgWeeklyChange)} lbs`,
+                    good: avgWeeklyChange <= 0,
+                  },
                   { label: "HIGHEST WEIGHT", value: `${highestWeight.toFixed(1)} lbs` },
                   { label: "LOWEST WEIGHT", value: `${lowestWeight.toFixed(1)} lbs` },
                   { label: "BODY FAT (EST.)", value: `${bodyFatEst}%` },
                 ].map((s) => (
-                  <div key={s.label} className="border border-border rounded-md p-2 text-center">
+                  <div key={s.label} className="evo-surface border border-border rounded-md p-2 text-center">
                     <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
-                    <div className={`hud-label text-base mt-1 tabular-nums ${s.good ? "text-emerald-400" : "text-foreground"}`}>{s.value}</div>
+                    <div
+                      className={`hud-label text-base mt-1 tabular-nums ${s.good ? "text-emerald-400" : "text-foreground"}`}
+                    >
+                      {s.value}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -575,33 +770,62 @@ function NutritionPage() {
                 </div>
               </div>
               <div className="space-y-1.5 mt-4 text-[11px]">
-                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Calorie Target</span><span className="text-foreground tabular-nums">{calTarget.toLocaleString()} kcal</span></div>
-                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Consumed</span><span className="text-foreground tabular-nums">{t.kcal.toLocaleString()} kcal</span></div>
-                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Remaining</span><span className="text-emerald-400 tabular-nums">{Math.max(0, remaining).toLocaleString()} kcal</span></div>
-                <div className="flex justify-between"><span className="hud-label text-muted-foreground">Burned (Active)</span><span className="text-foreground tabular-nums">420 kcal</span></div>
-                <div className="flex justify-between pt-1 border-t border-border"><span className="hud-label text-muted-foreground">Net</span><span className="text-foreground tabular-nums">{(t.kcal - 420).toLocaleString()} kcal</span></div>
+                <div className="flex justify-between">
+                  <span className="hud-label text-muted-foreground">Calorie Target</span>
+                  <span className="text-foreground tabular-nums">{calTarget.toLocaleString()} kcal</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="hud-label text-muted-foreground">Consumed</span>
+                  <span className="text-foreground tabular-nums">{t.kcal.toLocaleString()} kcal</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="hud-label text-muted-foreground">Remaining</span>
+                  <span className="text-emerald-400 tabular-nums">{Math.max(0, remaining).toLocaleString()} kcal</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="hud-label text-muted-foreground">Burned (Active)</span>
+                  <span className="text-foreground tabular-nums">420 kcal</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-border">
+                  <span className="hud-label text-muted-foreground">Net</span>
+                  <span className="text-foreground tabular-nums">{(t.kcal - 420).toLocaleString()} kcal</span>
+                </div>
               </div>
               <div className="mt-4 space-y-2">
                 {[
                   { label: "PROTEIN", cur: t.p, tgt: pTarget, color: "oklch(0.78 0.22 240)" },
-                  { label: "CARBS",   cur: t.c, tgt: cTarget, color: "oklch(0.65 0.28 310)" },
-                  { label: "FATS",    cur: t.f, tgt: fTarget, color: "oklch(0.78 0.18 60)" },
+                  { label: "CARBS", cur: t.c, tgt: cTarget, color: "oklch(0.65 0.28 310)" },
+                  { label: "FATS", cur: t.f, tgt: fTarget, color: "oklch(0.78 0.18 60)" },
                 ].map((m) => {
                   const pct = Math.min(100, (m.cur / Math.max(1, m.tgt)) * 100);
                   return (
                     <div key={m.label}>
                       <div className="flex justify-between hud-label text-[10px]">
-                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full" style={{ background: m.color }} /> {m.label}</span>
-                        <span className="text-muted-foreground tabular-nums">{m.cur}g / {m.tgt}g</span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ background: m.color }} /> {m.label}
+                        </span>
+                        <span className="text-muted-foreground tabular-nums">
+                          {m.cur}g / {m.tgt}g
+                        </span>
                       </div>
                       <div className="h-1.5 rounded bg-primary/10 overflow-hidden mt-1">
-                        <div className="h-full transition-all duration-500" style={{ width: `${pct}%`, background: m.color, boxShadow: `0 0 6px ${m.color}` }} />
+                        <div
+                          className="h-full transition-all duration-500"
+                          style={{ width: `${pct}%`, background: m.color, boxShadow: `0 0 6px ${m.color}` }}
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <button onClick={() => document.getElementById("food-diary")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">VIEW MACRO DETAILS ›</button>
+              <button
+                onClick={() =>
+                  document.getElementById("food-diary")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+                className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center"
+              >
+                VIEW MACRO DETAILS ›
+              </button>
             </Panel>
           </div>
 
@@ -623,12 +847,17 @@ function NutritionPage() {
                   return (
                     <div key={mt} className="contents">
                       <div className="row-span-1 py-2">
-                        <div className="hud-label text-[11px] text-primary">{mt === "Breakfast" ? "☀" : mt === "Lunch" ? "☼" : mt === "Dinner" ? "☾" : "◆"} {mt}</div>
+                        <div className="hud-label text-[11px] text-primary">
+                          {mt === "Breakfast" ? "☀" : mt === "Lunch" ? "☼" : mt === "Dinner" ? "☾" : "◆"} {mt}
+                        </div>
                         <div className="hud-label text-[9px] text-muted-foreground">{firstTime}</div>
                       </div>
                       <div className="col-span-5 py-2">
                         {meals.map((m) => (
-                          <div key={m.id} className="group grid grid-cols-[1fr_50px_45px_50px_45px_20px] gap-x-2 py-0.5 text-xs items-center">
+                          <div
+                            key={m.id}
+                            className="group grid grid-cols-[1fr_50px_45px_50px_45px_20px] gap-x-2 py-0.5 text-xs items-center"
+                          >
                             <span className="text-foreground truncate">{m.name}</span>
                             <span className="text-right text-primary tabular-nums">{m.calories}</span>
                             <span className="text-right text-muted-foreground tabular-nums">{m.carbs}g</span>
@@ -643,7 +872,6 @@ function NutritionPage() {
                             </button>
                           </div>
                         ))}
-
                       </div>
                     </div>
                   );
@@ -656,14 +884,21 @@ function NutritionPage() {
                   <div className="text-right text-muted-foreground tabular-nums">{t.p}g</div>
                   <div className="text-right text-muted-foreground tabular-nums">{t.f}g</div>
                 </div>
-                {!todayMeals.length && <div className="col-span-6 text-center text-xs text-muted-foreground py-6">No meals logged today.</div>}
+                {!todayMeals.length && (
+                  <div className="col-span-6 text-center text-xs text-muted-foreground py-6">
+                    No meals logged today.
+                  </div>
+                )}
               </div>
             </Panel>
 
             <Panel title="Quick Add Meals">
               <div className="space-y-2">
                 {QUICK_FOODS.slice(0, 3).map((q) => (
-                  <div key={q.key} className="border border-border rounded-md p-3 hover:border-primary/40 transition-colors">
+                  <div
+                    key={q.key}
+                    className="evo-surface border border-border rounded-md p-3 hover:border-primary/40 transition-colors"
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="hud-label text-[12px] text-foreground">{q.label}</div>
@@ -671,7 +906,9 @@ function NutritionPage() {
                           - {q.kcal} kcal · E {q.c}g · P {q.p}g · F {q.f}g
                         </div>
                       </div>
-                      <Button size="sm" onClick={() => addQuick(q)} className="hud-label text-[10px] h-7 shrink-0">ADD MEAL</Button>
+                      <Button size="sm" onClick={() => addQuick(q)} className="hud-label text-[10px] h-7 shrink-0">
+                        ADD MEAL
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -686,37 +923,75 @@ function NutritionPage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
             <Panel title="Supplements">
               <div className="flex items-center justify-end mb-2">
-                <Button size="sm" variant="outline" onClick={() => setSuppOpen((o) => !o)} className="hud-label text-[10px] h-7">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSuppOpen((o) => !o)}
+                  className="hud-label text-[10px] h-7"
+                >
                   <Plus className="h-3 w-3 mr-1" /> {suppOpen ? "CANCEL" : "ADD SUPPLEMENT"}
                 </Button>
               </div>
               {suppOpen && (
                 <div className="grid grid-cols-[1fr_80px_80px_auto] gap-2 mb-3">
-                  <Input autoFocus value={sName} onChange={(e) => setSName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSupp()} placeholder="Name" className="h-7 text-xs" />
-                  <Input value={sDose} onChange={(e) => setSDose(e.target.value)} placeholder="Dose" className="h-7 text-xs" />
-                  <Input value={sTime} onChange={(e) => setSTime(e.target.value)} placeholder="Time" className="h-7 text-xs" />
-                  <Button size="sm" onClick={addSupp} disabled={!sName.trim()} className="hud-label text-[10px] h-7">SAVE</Button>
+                  <Input
+                    autoFocus
+                    value={sName}
+                    onChange={(e) => setSName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addSupp()}
+                    placeholder="Name"
+                    className="h-7 text-xs"
+                  />
+                  <Input
+                    value={sDose}
+                    onChange={(e) => setSDose(e.target.value)}
+                    placeholder="Dose"
+                    className="h-7 text-xs"
+                  />
+                  <Input
+                    value={sTime}
+                    onChange={(e) => setSTime(e.target.value)}
+                    placeholder="Time"
+                    className="h-7 text-xs"
+                  />
+                  <Button size="sm" onClick={addSupp} disabled={!sName.trim()} className="hud-label text-[10px] h-7">
+                    SAVE
+                  </Button>
                 </div>
               )}
               <ul className="space-y-2">
                 {!supplements.length && <li className="text-xs text-muted-foreground italic">No supplements yet.</li>}
                 {(suppAll ? supplements : supplements.slice(0, 5)).map((s) => (
-                  <li key={s.id} className="group grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-2 text-[11px]">
-                    <button onClick={() => toggleSupp(s.id)}
-                      className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${s.done ? "bg-primary border-primary" : "border-primary/50"}`}>
+                  <li
+                    key={s.id}
+                    className="group grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-2 text-[11px]"
+                  >
+                    <button
+                      onClick={() => toggleSupp(s.id)}
+                      className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${s.done ? "bg-primary border-primary" : "border-primary/50"}`}
+                    >
                       {s.done && <Check className="h-3 w-3 text-primary-foreground" />}
                     </button>
                     <span className={`truncate ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
                     <span className="hud-label text-[9px] text-muted-foreground tabular-nums">{s.time}</span>
                     <span className="hud-label text-[10px] text-primary tabular-nums">{s.dose}</span>
-                    <button onClick={() => delSupp(s.id)} aria-label={`Remove ${s.name}`} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                    <button
+                      onClick={() => delSupp(s.id)}
+                      aria-label={`Remove ${s.name}`}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                    >
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </li>
                 ))}
               </ul>
               {supplements.length > 5 && (
-                <button onClick={() => setSuppAll((v) => !v)} className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center">{suppAll ? "SHOW LESS ‹" : `VIEW ALL SUPPLEMENTS (${supplements.length}) ›`}</button>
+                <button
+                  onClick={() => setSuppAll((v) => !v)}
+                  className="hud-label text-[10px] text-primary hover:hud-glow mt-4 w-full text-center"
+                >
+                  {suppAll ? "SHOW LESS ‹" : `VIEW ALL SUPPLEMENTS (${supplements.length}) ›`}
+                </button>
               )}
             </Panel>
 
@@ -732,21 +1007,35 @@ function NutritionPage() {
                       <>
                         <div className="flex justify-end gap-4 mb-2 hud-label text-[9px]">
                           <span className="flex items-center gap-1.5 text-primary">
-                            <span className="w-4 border-t border-dashed border-primary" /> Target ({calTarget.toLocaleString()} kcal)
+                            <span className="w-4 border-t border-dashed border-primary" /> Target (
+                            {calTarget.toLocaleString()} kcal)
                           </span>
                           <span className="flex items-center gap-1.5 text-muted-foreground">
-                            <span className="w-3 h-2 rounded-sm" style={{ background: "linear-gradient(180deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))" }} /> Consumed
+                            <span
+                              className="w-3 h-2 rounded-sm"
+                              style={{
+                                background: "linear-gradient(180deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))",
+                              }}
+                            />{" "}
+                            Consumed
                           </span>
                         </div>
                         <div className="flex gap-2">
-                          <div className="flex flex-col justify-between hud-label text-[9px] text-muted-foreground tabular-nums" style={{ height: 180 }}>
+                          <div
+                            className="flex flex-col justify-between hud-label text-[9px] text-muted-foreground tabular-nums"
+                            style={{ height: 180 }}
+                          >
                             {[...gridSteps].reverse().map((s) => (
                               <span key={s}>{Math.round(roundedMax * s).toLocaleString()}</span>
                             ))}
                           </div>
                           <div className="relative flex-1" style={{ height: 180 }}>
                             {gridSteps.map((s) => (
-                              <div key={s} className="absolute left-0 right-0 border-t border-border/40" style={{ top: `${(1 - s) * 100}%` }} />
+                              <div
+                                key={s}
+                                className="absolute left-0 right-0 border-t border-border/40"
+                                style={{ top: `${(1 - s) * 100}%` }}
+                              />
                             ))}
                             <div
                               className="absolute left-0 right-0 border-t border-dashed border-primary pointer-events-none"
@@ -773,14 +1062,21 @@ function NutritionPage() {
                           </div>
                         </div>
                         <div className="flex gap-2 mt-2">
-                          <div className="hud-label text-[9px] invisible tabular-nums">{roundedMax.toLocaleString()}</div>
+                          <div className="hud-label text-[9px] invisible tabular-nums">
+                            {roundedMax.toLocaleString()}
+                          </div>
                           <div className="flex-1 flex justify-between gap-2 px-1">
                             {last7.map((d) => {
-                              const label = new Date(d.date).toLocaleDateString(undefined, { weekday: "short" }).toUpperCase().slice(0, 3);
+                              const label = new Date(d.date)
+                                .toLocaleDateString(undefined, { weekday: "short" })
+                                .toUpperCase()
+                                .slice(0, 3);
                               return (
                                 <div key={d.date} className="flex-1 flex flex-col items-center gap-0.5">
                                   <div className="hud-label text-[10px] text-muted-foreground">{label}</div>
-                                  <div className="hud-label text-xs text-foreground tabular-nums">{d.kcal > 0 ? d.kcal.toLocaleString() : "—"}</div>
+                                  <div className="hud-label text-xs text-foreground tabular-nums">
+                                    {d.kcal > 0 ? d.kcal.toLocaleString() : "—"}
+                                  </div>
                                 </div>
                               );
                             })}
@@ -791,10 +1087,22 @@ function NutritionPage() {
                   })()}
                 </div>
                 <div className="space-y-2 text-[11px] border-l border-border pl-4">
-                  <div><div className="hud-label text-[9px] text-muted-foreground">WEEKLY AVG</div><div className="text-primary hud-glow tabular-nums">{weeklyAvg.kcal.toLocaleString()} kcal</div></div>
-                  <div><div className="hud-label text-[9px] text-muted-foreground">AVG PROTEIN</div><div className="text-foreground tabular-nums">{weeklyAvg.p}g</div></div>
-                  <div><div className="hud-label text-[9px] text-muted-foreground">AVG CARBS</div><div className="text-foreground tabular-nums">{weeklyAvg.c}g</div></div>
-                  <div><div className="hud-label text-[9px] text-muted-foreground">AVG FATS</div><div className="text-foreground tabular-nums">{weeklyAvg.f}g</div></div>
+                  <div>
+                    <div className="hud-label text-[9px] text-muted-foreground">WEEKLY AVG</div>
+                    <div className="text-primary hud-glow tabular-nums">{weeklyAvg.kcal.toLocaleString()} kcal</div>
+                  </div>
+                  <div>
+                    <div className="hud-label text-[9px] text-muted-foreground">AVG PROTEIN</div>
+                    <div className="text-foreground tabular-nums">{weeklyAvg.p}g</div>
+                  </div>
+                  <div>
+                    <div className="hud-label text-[9px] text-muted-foreground">AVG CARBS</div>
+                    <div className="text-foreground tabular-nums">{weeklyAvg.c}g</div>
+                  </div>
+                  <div>
+                    <div className="hud-label text-[9px] text-muted-foreground">AVG FATS</div>
+                    <div className="text-foreground tabular-nums">{weeklyAvg.f}g</div>
+                  </div>
                 </div>
               </div>
             </Panel>
@@ -803,37 +1111,60 @@ function NutritionPage() {
           {/* Log weight dialog */}
           <Dialog open={logWeightOpen} onOpenChange={setLogWeightOpen}>
             <DialogContent className="hud-card border-primary/40">
-              <DialogHeader><DialogTitle className="hud-label text-primary hud-glow">Log Weight</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle className="hud-label text-primary hud-glow">Log Weight</DialogTitle>
+              </DialogHeader>
               <div className="space-y-3">
                 <label className="block">
                   <span className="hud-label text-[10px] text-muted-foreground">Weight (lbs)</span>
-                  <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="e.g. 175.4" />
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={newWeight}
+                    onChange={(e) => setNewWeight(e.target.value)}
+                    className="h-9 text-xs mt-1"
+                    placeholder="e.g. 175.4"
+                  />
                 </label>
                 <div className="pt-2 border-t border-border">
-                  <div className="hud-label text-[10px] text-muted-foreground mb-2">
-                    RESET
-                  </div>
+                  <div className="hud-label text-[10px] text-muted-foreground mb-2">RESET</div>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
                       <span className="hud-label text-[10px] text-muted-foreground">Starting Weight (lbs)</span>
-                      <Input type="number" step="0.1" value={newStartingWeight} onChange={(e) => setNewStartingWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="optional" />
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={newStartingWeight}
+                        onChange={(e) => setNewStartingWeight(e.target.value)}
+                        className="h-9 text-xs mt-1"
+                        placeholder="optional"
+                      />
                     </label>
                     <label className="block">
                       <span className="hud-label text-[10px] text-muted-foreground">Goal Weight (lbs)</span>
-                      <Input type="number" step="0.1" value={newGoalWeight} onChange={(e) => setNewGoalWeight(e.target.value)} className="h-9 text-xs mt-1" placeholder="optional" />
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={newGoalWeight}
+                        onChange={(e) => setNewGoalWeight(e.target.value)}
+                        className="h-9 text-xs mt-1"
+                        placeholder="optional"
+                      />
                     </label>
                   </div>
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setLogWeightOpen(false)} className="hud-label text-[10px]">Cancel</Button>
-                <Button onClick={submitWeight} className="hud-label text-[10px]">Save</Button>
+                <Button variant="outline" onClick={() => setLogWeightOpen(false)} className="hud-label text-[10px]">
+                  Cancel
+                </Button>
+                <Button onClick={submitWeight} className="hud-label text-[10px]">
+                  Save
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </TabsContent>
-
-
 
         {/* ============ MEALS ============ */}
         <TabsContent value="meals" className="space-y-6 animate-fade-in">
@@ -841,7 +1172,11 @@ function NutritionPage() {
             <div className="relative h-12 mt-2 mb-1">
               <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-border" />
               {[0, 6, 12, 18, 24].map((h) => (
-                <div key={h} className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center" style={{ left: `${(h / 24) * 100}%` }}>
+                <div
+                  key={h}
+                  className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center"
+                  style={{ left: `${(h / 24) * 100}%` }}
+                >
                   <div className="w-px h-2 bg-border" />
                   <span className="hud-label text-[9px] text-muted-foreground mt-1">{h}:00</span>
                 </div>
@@ -853,8 +1188,10 @@ function NutritionPage() {
                   style={{ left: `${m.pct}%` }}
                   title={`${m.time} · ${m.name}`}
                 >
-                  <div className="w-3 h-3 rounded-full bg-primary border-2 border-background animate-scale-in"
-                    style={{ boxShadow: "0 0 8px var(--primary)" }} />
+                  <div
+                    className="w-3 h-3 rounded-full bg-primary border-2 border-background animate-scale-in"
+                    style={{ boxShadow: "0 0 8px var(--primary)" }}
+                  />
                 </div>
               ))}
             </div>
@@ -887,22 +1224,34 @@ function NutritionPage() {
             </div>
             <ul className="space-y-2">
               {todayMeals.map((m) => (
-                <li key={m.id} className="grid grid-cols-[80px_1fr_auto_auto] items-center gap-3 border border-border rounded-md p-3 group hover:border-primary/40 transition-colors animate-fade-in">
+                <li
+                  key={m.id}
+                  className="evo-surface grid grid-cols-[80px_1fr_auto_auto] items-center gap-3 border border-border rounded-md p-3 group hover:border-primary/40 transition-colors animate-fade-in"
+                >
                   <div>
                     <div className="hud-label text-[10px] text-primary">{m.time ?? "—"}</div>
-                    <div className="hud-label text-[9px] text-muted-foreground">{m.mealType ?? categoryFromTime(m.time ?? "12:00")}</div>
+                    <div className="hud-label text-[9px] text-muted-foreground">
+                      {m.mealType ?? categoryFromTime(m.time ?? "12:00")}
+                    </div>
                   </div>
                   <div>
                     <div className="hud-label text-xs text-foreground">{m.name}</div>
-                    <div className="hud-label text-[10px] text-muted-foreground">P{m.protein} · C{m.carbs} · F{m.fats}</div>
+                    <div className="hud-label text-[10px] text-muted-foreground">
+                      P{m.protein} · C{m.carbs} · F{m.fats}
+                    </div>
                   </div>
                   <span className="hud-label text-sm text-primary">{m.calories} kcal</span>
-                  <button onClick={() => delMeal(m.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                  <button
+                    onClick={() => delMeal(m.id)}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                  >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </li>
               ))}
-              {!todayMeals.length && <li className="text-xs text-muted-foreground py-6 text-center">No meals logged today.</li>}
+              {!todayMeals.length && (
+                <li className="text-xs text-muted-foreground py-6 text-center">No meals logged today.</li>
+              )}
             </ul>
           </Panel>
         </TabsContent>
@@ -915,7 +1264,8 @@ function NutritionPage() {
                 <div
                   className="rounded-full transition-all duration-700"
                   style={{
-                    width: 150, height: 150,
+                    width: 150,
+                    height: 150,
                     background: `conic-gradient(
                       oklch(0.78 0.22 240) 0% ${slice1}%,
                       oklch(0.75 0.18 140) ${slice1}% ${slice1 + slice2}%,
@@ -925,16 +1275,27 @@ function NutritionPage() {
                   }}
                 />
                 <div className="space-y-2 hud-label text-[11px]">
-                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: "oklch(0.78 0.22 240)" }} /> Protein {Math.round(slice1)}%</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: "oklch(0.75 0.18 140)" }} /> Carbs {Math.round(slice2)}%</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: "oklch(0.78 0.18 60)" }} /> Fats {Math.round(slice3)}%</div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-sm" style={{ background: "oklch(0.78 0.22 240)" }} /> Protein{" "}
+                    {Math.round(slice1)}%
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-sm" style={{ background: "oklch(0.75 0.18 140)" }} /> Carbs{" "}
+                    {Math.round(slice2)}%
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-sm" style={{ background: "oklch(0.78 0.18 60)" }} /> Fats{" "}
+                    {Math.round(slice3)}%
+                  </div>
                 </div>
               </div>
             </Panel>
 
             <Panel title="Calories by Meal — Today">
               <div className="space-y-2">
-                {mealsByMealItem.length === 0 && <div className="text-xs text-muted-foreground py-4 text-center">No meals logged today.</div>}
+                {mealsByMealItem.length === 0 && (
+                  <div className="text-xs text-muted-foreground py-4 text-center">No meals logged today.</div>
+                )}
                 {mealsByMealItem.map((m, i) => {
                   const pct = Math.min(100, (m.kcal / Math.max(1, calTarget)) * 100);
                   return (
@@ -944,7 +1305,13 @@ function NutritionPage() {
                         <span className="text-primary">{m.kcal} kcal</span>
                       </div>
                       <div className="h-2.5 rounded bg-primary/15 overflow-hidden mt-1">
-                        <div className="h-full transition-all duration-500" style={{ width: `${pct}%`, background: "linear-gradient(90deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))" }} />
+                        <div
+                          className="h-full transition-all duration-500"
+                          style={{
+                            width: `${pct}%`,
+                            background: "linear-gradient(90deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))",
+                          }}
+                        />
                       </div>
                     </div>
                   );
@@ -956,8 +1323,10 @@ function NutritionPage() {
           <Panel title="Calories — Last 7 Days">
             <div className="relative" style={{ height: 200 }}>
               {/* target dashed line */}
-              <div className="absolute left-0 right-0 border-t-2 border-dashed border-primary/40 pointer-events-none"
-                style={{ top: `${100 - Math.min(100, (calTarget / 2500) * 100)}%` }}>
+              <div
+                className="absolute left-0 right-0 border-t-2 border-dashed border-primary/40 pointer-events-none"
+                style={{ top: `${100 - Math.min(100, (calTarget / 2500) * 100)}%` }}
+              >
                 <span className="absolute -top-4 right-0 hud-label text-[9px] text-primary">Target {calTarget}</span>
               </div>
               <div className="flex items-end justify-between gap-2 h-full">
@@ -965,12 +1334,20 @@ function NutritionPage() {
                   const max = Math.max(2500, ...last7.map((x) => x.kcal));
                   const h = Math.max(4, (d.kcal / max) * 100);
                   const hit = d.kcal > 0 && Math.abs(d.kcal - calTarget) <= calTarget * 0.1;
-                  const color = !d.kcal ? "oklch(0.3 0.05 240)" : hit ? "oklch(0.7 0.2 145)" : d.kcal > calTarget * 1.1 || d.kcal < calTarget * 0.85 ? "oklch(0.65 0.25 25)" : "oklch(0.78 0.22 240)";
+                  const color = !d.kcal
+                    ? "oklch(0.3 0.05 240)"
+                    : hit
+                      ? "oklch(0.7 0.2 145)"
+                      : d.kcal > calTarget * 1.1 || d.kcal < calTarget * 0.85
+                        ? "oklch(0.65 0.25 25)"
+                        : "oklch(0.78 0.22 240)";
                   return (
                     <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full flex items-end" style={{ height: "85%" }}>
-                        <div className="w-full rounded-t-sm transition-all duration-500"
-                          style={{ height: `${h}%`, background: color, boxShadow: `0 0 8px ${color}` }} />
+                        <div
+                          className="w-full rounded-t-sm transition-all duration-500"
+                          style={{ height: `${h}%`, background: color, boxShadow: `0 0 8px ${color}` }}
+                        />
                       </div>
                       <div className="hud-label text-[9px] text-muted-foreground">{d.date.slice(5)}</div>
                       <div className="hud-label text-[9px] text-foreground">{d.kcal || "—"}</div>
@@ -986,13 +1363,16 @@ function NutritionPage() {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   ["Calories", weeklyAvg.kcal, "kcal"],
-                  ["Protein",  weeklyAvg.p,    "g"],
-                  ["Carbs",    weeklyAvg.c,    "g"],
-                  ["Fats",     weeklyAvg.f,    "g"],
+                  ["Protein", weeklyAvg.p, "g"],
+                  ["Carbs", weeklyAvg.c, "g"],
+                  ["Fats", weeklyAvg.f, "g"],
                 ].map(([label, value, unit]) => (
-                  <div key={label as string} className="border border-border rounded-md p-3">
+                  <div key={label as string} className="evo-surface border border-border rounded-md p-3">
                     <div className="hud-label text-[10px] text-muted-foreground">{label}</div>
-                    <div className="hud-label text-2xl text-primary hud-glow mt-1">{value}<span className="text-xs text-muted-foreground ml-1">{unit}</span></div>
+                    <div className="hud-label text-2xl text-primary hud-glow mt-1">
+                      {value}
+                      <span className="text-xs text-muted-foreground ml-1">{unit}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1001,7 +1381,10 @@ function NutritionPage() {
             <Panel title="Insights">
               <ul className="space-y-2">
                 {insights.map((msg, i) => (
-                  <li key={i} className="border border-primary/30 bg-primary/5 rounded-md p-3 hud-label text-[11px] text-foreground animate-fade-in">
+                  <li
+                    key={i}
+                    className="evo-surface border border-primary/30 bg-primary/5 rounded-md p-3 hud-label text-[11px] text-foreground animate-fade-in"
+                  >
                     {msg}
                   </li>
                 ))}
@@ -1015,7 +1398,9 @@ function NutritionPage() {
           <Panel title="Hydration Today">
             <div className="flex flex-col items-center gap-4">
               <RingProgress value={waterPct} size={170} label={`${waterPct}%`} sublabel="hydrated" />
-              <div className="hud-label text-3xl text-primary hud-glow">{todayWater} / {waterTarget}</div>
+              <div className="hud-label text-3xl text-primary hud-glow">
+                {todayWater} / {waterTarget}
+              </div>
               <div className="hud-label text-[11px] text-muted-foreground">{waterMessage}</div>
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setWater(-1)} size="lg" className="hud-label">
@@ -1029,14 +1414,20 @@ function NutritionPage() {
                 {Array.from({ length: waterTarget }).map((_, i) => {
                   const filled = i < todayWater;
                   return (
-                    <div key={i} className={`w-10 h-14 rounded-b-lg border-2 flex items-end overflow-hidden transition-colors ${filled ? "border-primary" : "border-border"}`}>
+                    <div
+                      key={i}
+                      className={`w-10 h-14 rounded-b-lg border-2 flex items-end overflow-hidden transition-colors ${filled ? "border-primary" : "border-border"}`}
+                    >
                       {filled && (
-                        <div className="w-full animate-fade-in"
+                        <div
+                          className="w-full animate-fade-in"
                           style={{
                             height: "100%",
-                            background: "linear-gradient(to top, var(--primary), color-mix(in oklab, var(--primary) 40%, transparent))",
+                            background:
+                              "linear-gradient(to top, var(--primary), color-mix(in oklab, var(--primary) 40%, transparent))",
                             boxShadow: "0 0 10px var(--primary)",
-                          }}>
+                          }}
+                        >
                           <Droplet className="h-3 w-3 text-primary-foreground mx-auto mt-1" />
                         </div>
                       )}
@@ -1046,9 +1437,13 @@ function NutritionPage() {
               </div>
               <div className="max-w-[200px] w-full">
                 <label className="hud-label text-[10px] text-muted-foreground">Daily target (glasses)</label>
-                <Input type="number" min={1} value={waterTarget}
+                <Input
+                  type="number"
+                  min={1}
+                  value={waterTarget}
                   onChange={(e) => updateProfile({ waterTarget: Math.max(1, Number(e.target.value) || 1) })}
-                  className="h-9 text-xs mt-1 text-center" />
+                  className="h-9 text-xs mt-1 text-center"
+                />
               </div>
             </div>
           </Panel>
@@ -1060,12 +1455,14 @@ function NutritionPage() {
                 return (
                   <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
                     <div className="w-full flex items-end" style={{ height: "80%" }}>
-                      <div className="w-full rounded-t-sm transition-all duration-500"
+                      <div
+                        className="w-full rounded-t-sm transition-all duration-500"
                         style={{
                           height: `${h}%`,
                           background: "linear-gradient(180deg, oklch(0.78 0.22 240), oklch(0.5 0.2 240))",
                           boxShadow: "0 0 6px oklch(0.78 0.22 240 / 0.6)",
-                        }} />
+                        }}
+                      />
                     </div>
                     <div className="hud-label text-[9px] text-muted-foreground">{d.date.slice(5)}</div>
                     <div className="hud-label text-[9px] text-foreground">{d.water}</div>
@@ -1080,48 +1477,99 @@ function NutritionPage() {
         <TabsContent value="grocery" className="space-y-6 animate-fade-in">
           <Panel title="Add Item">
             <div className="grid grid-cols-2 md:grid-cols-[1fr_80px_110px_140px_100px_auto] gap-2">
-              <Input placeholder="Item name" value={gName} onChange={(e) => setGName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addGrocery()} className="h-9 text-xs" />
+              <Input
+                placeholder="Item name"
+                value={gName}
+                onChange={(e) => setGName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addGrocery()}
+                className="h-9 text-xs"
+              />
               <Input placeholder="Qty" value={gQty} onChange={(e) => setGQty(e.target.value)} className="h-9 text-xs" />
-              <select value={gUnit} onChange={(e) => setGUnit(e.target.value)}
-                className="h-9 text-xs rounded-md border border-input bg-transparent px-2">
-                {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+              <select
+                value={gUnit}
+                onChange={(e) => setGUnit(e.target.value)}
+                className="h-9 text-xs rounded-md border border-input bg-transparent px-2"
+              >
+                {UNITS.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
               </select>
-              <select value={gCat} onChange={(e) => setGCat(e.target.value)}
-                className="h-9 text-xs rounded-md border border-input bg-transparent px-2">
-                {GROCERY_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              <select
+                value={gCat}
+                onChange={(e) => setGCat(e.target.value)}
+                className="h-9 text-xs rounded-md border border-input bg-transparent px-2"
+              >
+                {GROCERY_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
               </select>
-              <Input type="number" placeholder="$" value={gCost} onChange={(e) => setGCost(e.target.value)} className="h-9 text-xs" />
-              <Button onClick={addGrocery} size="sm" className="hud-label text-[10px]">+ Add</Button>
+              <Input
+                type="number"
+                placeholder="$"
+                value={gCost}
+                onChange={(e) => setGCost(e.target.value)}
+                className="h-9 text-xs"
+              />
+              <Button onClick={addGrocery} size="sm" className="hud-label text-[10px]">
+                + Add
+              </Button>
             </div>
           </Panel>
 
-          <Panel title={`Grocery List (${data.grocery.filter((g) => !g.done).length} pending) · Est. Total $${totalCost.toFixed(2)}`}>
+          <Panel
+            title={`Grocery List (${data.grocery.filter((g) => !g.done).length} pending) · Est. Total $${totalCost.toFixed(2)}`}
+          >
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               {["All", ...GROCERY_CATEGORIES].map((c) => (
-                <button key={c} onClick={() => setGFilter(c)}
-                  className={`hud-label text-[10px] px-2 py-1 rounded border transition-colors ${gFilter === c ? "bg-primary/20 border-primary text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
+                <button
+                  key={c}
+                  onClick={() => setGFilter(c)}
+                  className={`hud-label text-[10px] px-2 py-1 rounded border transition-colors ${gFilter === c ? "bg-primary/20 border-primary text-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                >
                   {c}
                 </button>
               ))}
               <div className="flex-1" />
-              <button onClick={resetChecks} className="hud-label text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors">
+              <button
+                onClick={resetChecks}
+                className="hud-label text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+              >
                 Reset checks
               </button>
             </div>
             <ul className="space-y-1">
               {filteredGrocery.map((g) => (
-                <li key={g.id} className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-3 border border-border rounded p-2 group animate-fade-in">
-                  <button onClick={() => toggleGrocery(g.id)}
-                    className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${g.done ? "bg-primary border-primary" : "border-primary/50"}`}>
+                <li
+                  key={g.id}
+                  className="evo-surface grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-3 border border-border rounded p-2 group animate-fade-in"
+                >
+                  <button
+                    onClick={() => toggleGrocery(g.id)}
+                    className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${g.done ? "bg-primary border-primary" : "border-primary/50"}`}
+                  >
                     {g.done && <Check className="h-3 w-3 text-primary-foreground" />}
                   </button>
-                  <span className={`text-sm ${g.done ? "line-through text-muted-foreground" : "text-foreground"}`}>{g.name}</span>
-                  <span className="hud-label text-[10px] text-muted-foreground">{g.qty} {g.unit ?? ""} · {g.category}</span>
-                  <Input type="number" placeholder="$" defaultValue={g.cost ?? ""}
+                  <span className={`text-sm ${g.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                    {g.name}
+                  </span>
+                  <span className="hud-label text-[10px] text-muted-foreground">
+                    {g.qty} {g.unit ?? ""} · {g.category}
+                  </span>
+                  <Input
+                    type="number"
+                    placeholder="$"
+                    defaultValue={g.cost ?? ""}
                     onBlur={(e) => updateGroceryCost(g.id, Number(e.target.value) || 0)}
-                    className="h-7 w-16 text-[10px]" />
-                  <button onClick={() => delGrocery(g.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                    className="h-7 w-16 text-[10px]"
+                  />
+                  <button
+                    onClick={() => delGrocery(g.id)}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                  >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </li>
@@ -1137,14 +1585,20 @@ function NutritionPage() {
             <div className="grid grid-cols-7 gap-1.5">
               {last30.map((d) => {
                 const pct = calTarget ? (d.kcal / calTarget) * 100 : 0;
-                const cls = !d.kcal ? "bg-muted/30 border-border text-muted-foreground"
-                  : Math.abs(d.kcal - calTarget) <= 100 ? "bg-emerald-500/60 border-emerald-400 text-foreground"
-                  : Math.abs(d.kcal - calTarget) <= 200 ? "bg-yellow-500/50 border-yellow-400 text-foreground"
-                  : "bg-red-500/50 border-red-400 text-foreground";
+                const cls = !d.kcal
+                  ? "bg-muted/30 border-border text-muted-foreground"
+                  : Math.abs(d.kcal - calTarget) <= 100
+                    ? "bg-emerald-500/60 border-emerald-400 text-foreground"
+                    : Math.abs(d.kcal - calTarget) <= 200
+                      ? "bg-yellow-500/50 border-yellow-400 text-foreground"
+                      : "bg-red-500/50 border-red-400 text-foreground";
                 return (
                   <button
                     key={d.date}
-                    onClick={() => { setHistoryDate(d.date); setHistoryOpen(true); }}
+                    onClick={() => {
+                      setHistoryDate(d.date);
+                      setHistoryOpen(true);
+                    }}
                     className={`aspect-square rounded border ${cls} flex flex-col items-center justify-center hover:scale-105 transition-transform`}
                     title={`${d.date}: ${d.kcal} kcal · ${Math.round(pct)}%`}
                   >
@@ -1161,7 +1615,9 @@ function NutritionPage() {
               {bestDay ? (
                 <div className="text-center py-4">
                   <div className="hud-label text-2xl text-primary hud-glow">{bestDay.date}</div>
-                  <div className="hud-label text-[10px] text-muted-foreground mt-1">macro balance score {bestDay.score}/100</div>
+                  <div className="hud-label text-[10px] text-muted-foreground mt-1">
+                    macro balance score {bestDay.score}/100
+                  </div>
                 </div>
               ) : (
                 <div className="text-xs text-muted-foreground py-4 text-center">No data yet.</div>
@@ -1178,13 +1634,26 @@ function NutritionPage() {
           <Panel title="Weekly Summaries">
             <div className="space-y-2">
               {weekSummaries.map((w) => (
-                <div key={w.label} className="grid grid-cols-2 md:grid-cols-6 gap-2 border border-border rounded-md p-3">
+                <div
+                  key={w.label}
+                  className="evo-surface grid grid-cols-2 md:grid-cols-6 gap-2 border border-border rounded-md p-3"
+                >
                   <div className="hud-label text-[11px] text-primary">{w.label}</div>
-                  <div className="hud-label text-[10px] text-muted-foreground">Cal <span className="text-foreground">{w.kcal}</span></div>
-                  <div className="hud-label text-[10px] text-muted-foreground">P <span className="text-foreground">{w.p}g</span></div>
-                  <div className="hud-label text-[10px] text-muted-foreground">C <span className="text-foreground">{w.c}g</span></div>
-                  <div className="hud-label text-[10px] text-muted-foreground">F <span className="text-foreground">{w.f}g</span></div>
-                  <div className="hud-label text-[10px] text-muted-foreground">Water <span className="text-foreground">{w.water}</span></div>
+                  <div className="hud-label text-[10px] text-muted-foreground">
+                    Cal <span className="text-foreground">{w.kcal}</span>
+                  </div>
+                  <div className="hud-label text-[10px] text-muted-foreground">
+                    P <span className="text-foreground">{w.p}g</span>
+                  </div>
+                  <div className="hud-label text-[10px] text-muted-foreground">
+                    C <span className="text-foreground">{w.c}g</span>
+                  </div>
+                  <div className="hud-label text-[10px] text-muted-foreground">
+                    F <span className="text-foreground">{w.f}g</span>
+                  </div>
+                  <div className="hud-label text-[10px] text-muted-foreground">
+                    Water <span className="text-foreground">{w.water}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1195,32 +1664,82 @@ function NutritionPage() {
       {/* Custom-meal modal */}
       <Dialog open={mealOpen} onOpenChange={setMealOpen}>
         <DialogContent className="hud-card border-primary/40">
-          <DialogHeader><DialogTitle className="hud-label text-primary hud-glow">Log Meal</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="hud-label text-primary hud-glow">Log Meal</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Meal name" value={mName} onChange={(e) => setMName(e.target.value)} className="h-9 text-xs" />
+            <Input
+              placeholder="Meal name"
+              value={mName}
+              onChange={(e) => setMName(e.target.value)}
+              className="h-9 text-xs"
+            />
             <div className="grid grid-cols-4 gap-2">
-              <Input type="number" placeholder="kcal" value={mKcal} onChange={(e) => setMKcal(e.target.value)} className="h-9 text-xs" />
-              <Input type="number" placeholder="P" value={mP} onChange={(e) => setMP(e.target.value)} className="h-9 text-xs" />
-              <Input type="number" placeholder="C" value={mC} onChange={(e) => setMC(e.target.value)} className="h-9 text-xs" />
-              <Input type="number" placeholder="F" value={mF} onChange={(e) => setMF(e.target.value)} className="h-9 text-xs" />
+              <Input
+                type="number"
+                placeholder="kcal"
+                value={mKcal}
+                onChange={(e) => setMKcal(e.target.value)}
+                className="h-9 text-xs"
+              />
+              <Input
+                type="number"
+                placeholder="P"
+                value={mP}
+                onChange={(e) => setMP(e.target.value)}
+                className="h-9 text-xs"
+              />
+              <Input
+                type="number"
+                placeholder="C"
+                value={mC}
+                onChange={(e) => setMC(e.target.value)}
+                className="h-9 text-xs"
+              />
+              <Input
+                type="number"
+                placeholder="F"
+                value={mF}
+                onChange={(e) => setMF(e.target.value)}
+                className="h-9 text-xs"
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <label className="block">
                 <span className="hud-label text-[10px] text-muted-foreground">Time</span>
-                <Input type="time" value={mTime} onChange={(e) => { setMTime(e.target.value); setMType(categoryFromTime(e.target.value)); }} className="h-9 text-xs mt-1" />
+                <Input
+                  type="time"
+                  value={mTime}
+                  onChange={(e) => {
+                    setMTime(e.target.value);
+                    setMType(categoryFromTime(e.target.value));
+                  }}
+                  className="h-9 text-xs mt-1"
+                />
               </label>
               <label className="block">
                 <span className="hud-label text-[10px] text-muted-foreground">Meal</span>
-                <select value={mType} onChange={(e) => setMType(e.target.value as MealType)}
-                  className="h-9 text-xs mt-1 w-full rounded-md border border-input bg-transparent px-2">
-                  {MEAL_TYPES.map((mt) => <option key={mt} value={mt}>{mt}</option>)}
+                <select
+                  value={mType}
+                  onChange={(e) => setMType(e.target.value as MealType)}
+                  className="h-9 text-xs mt-1 w-full rounded-md border border-input bg-transparent px-2"
+                >
+                  {MEAL_TYPES.map((mt) => (
+                    <option key={mt} value={mt}>
+                      {mt}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMealOpen(false)} className="hud-label text-[10px]">Cancel</Button>
-            <Button onClick={submitMeal} className="hud-label text-[10px]">Save Meal</Button>
+            <Button variant="outline" onClick={() => setMealOpen(false)} className="hud-label text-[10px]">
+              Cancel
+            </Button>
+            <Button onClick={submitMeal} className="hud-label text-[10px]">
+              Save Meal
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1228,24 +1747,39 @@ function NutritionPage() {
       {/* History day modal */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="hud-card border-primary/40">
-          <DialogHeader><DialogTitle className="hud-label text-primary hud-glow">{historyDate}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="hud-label text-primary hud-glow">{historyDate}</DialogTitle>
+          </DialogHeader>
           <ul className="divide-y divide-border max-h-[50vh] overflow-y-auto">
             {historyMeals.map((m) => (
               <li key={m.id} className="py-2 grid grid-cols-[60px_1fr_auto] items-center gap-2">
                 <span className="hud-label text-[10px] text-primary">{m.time ?? "—"}</span>
                 <div>
                   <div className="hud-label text-xs text-foreground">{m.name}</div>
-                  <div className="hud-label text-[10px] text-muted-foreground">P{m.protein} · C{m.carbs} · F{m.fats}</div>
+                  <div className="hud-label text-[10px] text-muted-foreground">
+                    P{m.protein} · C{m.carbs} · F{m.fats}
+                  </div>
                 </div>
                 <span className="hud-label text-xs text-primary">{m.calories} kcal</span>
               </li>
             ))}
-            {!historyMeals.length && <li className="text-xs text-muted-foreground py-4 text-center">No meals logged.</li>}
+            {!historyMeals.length && (
+              <li className="text-xs text-muted-foreground py-4 text-center">No meals logged.</li>
+            )}
           </ul>
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
-            <div className="hud-label text-[10px] text-muted-foreground">Total: <span className="text-primary">{historyTotals.kcal} kcal</span></div>
-            <div className="hud-label text-[10px] text-muted-foreground">Macros: <span className="text-foreground">P{historyTotals.p} · C{historyTotals.c} · F{historyTotals.f}</span></div>
-            <div className="hud-label text-[10px] text-muted-foreground col-span-2">Water: <span className="text-primary">{historyWater} glasses</span></div>
+            <div className="hud-label text-[10px] text-muted-foreground">
+              Total: <span className="text-primary">{historyTotals.kcal} kcal</span>
+            </div>
+            <div className="hud-label text-[10px] text-muted-foreground">
+              Macros:{" "}
+              <span className="text-foreground">
+                P{historyTotals.p} · C{historyTotals.c} · F{historyTotals.f}
+              </span>
+            </div>
+            <div className="hud-label text-[10px] text-muted-foreground col-span-2">
+              Water: <span className="text-primary">{historyWater} glasses</span>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1257,12 +1791,14 @@ function NutritionPage() {
             <DialogTitle className="hud-label text-destructive">Reset Today's Log?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            This clears all <span className="text-foreground">{todayMeals.length}</span> meal{todayMeals.length === 1 ? "" : "s"} and{" "}
-            <span className="text-foreground">{todayWater}</span> glass{todayWater === 1 ? "" : "es"} of water for today.
-            You can undo this immediately after.
+            This clears all <span className="text-foreground">{todayMeals.length}</span> meal
+            {todayMeals.length === 1 ? "" : "s"} and <span className="text-foreground">{todayWater}</span> glass
+            {todayWater === 1 ? "" : "es"} of water for today. You can undo this immediately after.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setResetOpen(false)} className="hud-label text-[10px]">Cancel</Button>
+            <Button variant="outline" onClick={() => setResetOpen(false)} className="hud-label text-[10px]">
+              Cancel
+            </Button>
             <Button
               onClick={resetToday}
               className="hud-label text-[10px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
