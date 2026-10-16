@@ -413,7 +413,10 @@ function EvoAssistantPage() {
       </div>
     );
   return (
-    <div className="evo-workspace">
+    <div
+      className={"evo-workspace" + (view === "chat" ? " evo-chat-screen" : "")}
+      style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
+    >
       <style>{EVO_WORKSPACE_CSS}</style>
       <header className="evo-header evo-frame">
         <a href="/" className="evo-brand" aria-label="Evolution home">
