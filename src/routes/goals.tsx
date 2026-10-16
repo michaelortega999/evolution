@@ -4,10 +4,28 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Target, Plus, Trash2, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
-import { useEvolutionData, type Goal, type GoalCategory, todayDate, dayTotals, tradingTotals, workoutCount, guitarFocusOnly } from "@/lib/evolution-data";
+import {
+  useEvolutionData,
+  type Goal,
+  type GoalCategory,
+  todayDate,
+  dayTotals,
+  tradingTotals,
+  workoutCount,
+  guitarFocusOnly,
+} from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/goals")({
-  head: () => ({ meta: [{ title: "Goals — Evolution" }, { name: "description", content: "Goals module of Evolution OS." }, { property: "og:title", content: "Goals — Evolution" }, { property: "og:description", content: "Goals module of Evolution OS." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({
+    meta: [
+      { title: "Goals — Evolution" },
+      { name: "description", content: "Goals module of Evolution OS." },
+      { property: "og:title", content: "Goals — Evolution" },
+      { property: "og:description", content: "Goals module of Evolution OS." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: GoalsPage,
 });
 
@@ -33,18 +51,44 @@ function GoalsPage() {
     const todayCalories = dayTotals(today, data.mealLogs).kcal;
     const monthKey = today.slice(0, 7);
     const monthRevenue = data.revenue.filter((r) => r.date.startsWith(monthKey)).reduce((a, r) => a + r.amount, 0);
-    const weeklyHobbyHours = data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0) / 60
-      + guitarFocusOnly(data.focusSessions, data.guitarSessions).filter((s) => isThisWeek(localISO(new Date(s.completedAt)))).reduce((a, s) => a + s.durationSec / 3600, 0);
+    const weeklyHobbyHours =
+      data.guitarSessions.filter((s) => isThisWeek(s.date)).reduce((a, s) => a + s.durationMin, 0) / 60 +
+      guitarFocusOnly(data.focusSessions, data.guitarSessions)
+        .filter((s) => isThisWeek(localISO(new Date(s.completedAt))))
+        .reduce((a, s) => a + s.durationSec / 3600, 0);
 
     return [
-      { category: "Investing", title: "Portfolio Goal", current: investingCurrent, target: data.profile.goal || 50000, unit: "$" },
-      { category: "Fitness", title: "Weekly Sessions", current: weeklySessions, target: data.profile.gymSessionsTarget || 4, unit: "" },
-      { category: "Nutrition", title: "Daily Calories", current: todayCalories, target: data.profile.calorieTarget || 2000, unit: "kcal" },
+      {
+        category: "Investing",
+        title: "Portfolio Goal",
+        current: investingCurrent,
+        target: data.profile.goal || 50000,
+        unit: "$",
+      },
+      {
+        category: "Fitness",
+        title: "Weekly Sessions",
+        current: weeklySessions,
+        target: data.profile.gymSessionsTarget || 4,
+        unit: "",
+      },
+      {
+        category: "Nutrition",
+        title: "Daily Calories",
+        current: todayCalories,
+        target: data.profile.calorieTarget || 2000,
+        unit: "kcal",
+      },
       { category: "Business", title: "Monthly Revenue", current: monthRevenue, target: 10000, unit: "$" },
-      { category: "Hobby", title: "Weekly Guitar Hours", current: Math.round(weeklyHobbyHours * 10) / 10, target: data.guitarWeeklyHoursTarget || 5, unit: "h" },
+      {
+        category: "Hobby",
+        title: "Weekly Guitar Hours",
+        current: Math.round(weeklyHobbyHours * 10) / 10,
+        target: data.guitarWeeklyHoursTarget || 5,
+        unit: "h",
+      },
     ];
   }, [data]);
-
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<GoalCategory>("Wealth");
@@ -54,8 +98,14 @@ function GoalsPage() {
   const [unit, setUnit] = useState("");
 
   function addGoal() {
-    if (!title.trim()) { toast.error("Give the goal a title."); return; }
-    if (!(Number(target) > 0)) { toast.error("Target must be above 0."); return; }
+    if (!title.trim()) {
+      toast.error("Give the goal a title.");
+      return;
+    }
+    if (!(Number(target) > 0)) {
+      toast.error("Target must be above 0.");
+      return;
+    }
     const g: Goal = {
       id: crypto.randomUUID(),
       title: title.trim(),
@@ -67,11 +117,15 @@ function GoalsPage() {
       completed: false,
     };
     mutate((p) => ({ goals: [...(p.goals ?? []), g] }));
-    setTitle(""); setTarget(100); setCurrent(0); setDeadline(""); setUnit("");
+    setTitle("");
+    setTarget(100);
+    setCurrent(0);
+    setDeadline("");
+    setUnit("");
   }
 
   function update(id: string, patch: Partial<Goal>) {
-    mutate((p) => ({ goals: (p.goals ?? []).map((g) => g.id === id ? { ...g, ...patch } : g) }));
+    mutate((p) => ({ goals: (p.goals ?? []).map((g) => (g.id === id ? { ...g, ...patch } : g)) }));
   }
 
   function del(id: string) {
@@ -87,39 +141,68 @@ function GoalsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2">
             <label className="hud-label text-[10px] text-muted-foreground">Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100}
-              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground" />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={100}
+              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
             <label className="hud-label text-[10px] text-muted-foreground">Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value as GoalCategory)}
-              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground">
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as GoalCategory)}
+              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
           <div>
             <label className="hud-label text-[10px] text-muted-foreground">Current</label>
-            <input type="number" value={current} onChange={(e) => setCurrent(Number(e.target.value))}
-              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground" />
+            <input
+              type="number"
+              value={current}
+              onChange={(e) => setCurrent(Number(e.target.value))}
+              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
             <label className="hud-label text-[10px] text-muted-foreground">Target</label>
-            <input type="number" value={target} onChange={(e) => setTarget(Number(e.target.value))}
-              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground" />
+            <input
+              type="number"
+              value={target}
+              onChange={(e) => setTarget(Number(e.target.value))}
+              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
             <label className="hud-label text-[10px] text-muted-foreground">Unit (optional)</label>
-            <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="$, lbs, hrs..."
-              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground" />
+            <input
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder="$, lbs, hrs..."
+              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div>
             <label className="hud-label text-[10px] text-muted-foreground">Deadline</label>
-            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)}
-              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground" />
+            <input
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
+            />
           </div>
           <div className="flex items-end">
-            <button onClick={addGoal}
-              className="flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-xs rounded hover:bg-primary/25 w-full justify-center">
+            <button
+              onClick={addGoal}
+              className="flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-xs rounded hover:bg-primary/25 w-full justify-center"
+            >
               <Plus className="h-4 w-4" /> Add Goal
             </button>
           </div>
@@ -130,17 +213,23 @@ function GoalsPage() {
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {moduleGoals.map((g) => {
             const pct = Math.min(100, Math.round((g.current / g.target) * 100));
-            const display = (n: number) => g.unit === "$" ? `$${n.toLocaleString()}` : `${n}${g.unit ? ` ${g.unit}` : ""}`;
+            const display = (n: number) =>
+              g.unit === "$" ? `$${n.toLocaleString()}` : `${n}${g.unit ? ` ${g.unit}` : ""}`;
             return (
-              <li key={g.title} className="p-3 border border-border rounded bg-primary/5">
+              <li key={g.title} className="evo-surface p-3 border border-border rounded bg-primary/5">
                 <div className="flex items-center justify-between mb-1">
                   <span className="hud-label text-[10px] text-accent">{g.category}</span>
                   <span className="hud-label text-[10px] text-primary">{pct}%</span>
                 </div>
                 <div className="hud-label text-sm text-foreground">{g.title}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{display(g.current)} / {display(g.target)}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {display(g.current)} / {display(g.target)}
+                </div>
                 <div className="mt-2 h-2 bg-secondary rounded overflow-hidden">
-                  <div className="h-full bg-primary transition-all" style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--glow)" }} />
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--glow)" }}
+                  />
                 </div>
               </li>
             );
@@ -156,7 +245,7 @@ function GoalsPage() {
             {active.map((g) => {
               const pct = Math.min(100, Math.round((g.current / g.target) * 100));
               return (
-                <li key={g.id} className="p-4 border border-border rounded bg-primary/5">
+                <li key={g.id} className="evo-surface p-4 border border-border rounded bg-primary/5">
                   <div className="flex items-start gap-3 mb-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -164,13 +253,17 @@ function GoalsPage() {
                         <h3 className="hud-label text-sm text-foreground truncate">{g.title}</h3>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {g.current}{g.unit ? ` ${g.unit}` : ""} / {g.target}{g.unit ? ` ${g.unit}` : ""}
+                        {g.current}
+                        {g.unit ? ` ${g.unit}` : ""} / {g.target}
+                        {g.unit ? ` ${g.unit}` : ""}
                         {g.deadline && <span className="ml-2">· due {g.deadline}</span>}
                       </div>
                     </div>
-                    <button onClick={() => update(g.id, { completed: true })}
+                    <button
+                      onClick={() => update(g.id, { completed: true })}
                       title="Mark complete"
-                      className="p-2 border border-border rounded text-primary hover:bg-primary/10">
+                      className="p-2 border border-border rounded text-primary hover:bg-primary/10"
+                    >
                       <Check className="h-4 w-4" />
                     </button>
                     <button onClick={() => del(g.id)} className="p-2 text-destructive hover:bg-destructive/10 rounded">
@@ -178,12 +271,18 @@ function GoalsPage() {
                     </button>
                   </div>
                   <div className="h-2 bg-secondary rounded overflow-hidden">
-                    <div className="h-full bg-primary transition-all" style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--glow)" }} />
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${pct}%`, boxShadow: "0 0 8px var(--glow)" }}
+                    />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <input type="number" value={g.current}
+                    <input
+                      type="number"
+                      value={g.current}
                       onChange={(e) => update(g.id, { current: Number(e.target.value) })}
-                      className="w-28 bg-input border border-border rounded px-2 py-1 text-xs text-foreground" />
+                      className="w-28 bg-input border border-border rounded px-2 py-1 text-xs text-foreground"
+                    />
                     <span className="hud-label text-[10px] text-primary">{pct}%</span>
                   </div>
                 </li>
@@ -197,12 +296,19 @@ function GoalsPage() {
         <Panel title={`COMPLETED · ${completed.length}`}>
           <ul className="flex flex-col gap-2">
             {completed.map((g) => (
-              <li key={g.id} className="flex items-center gap-3 p-2 border border-border rounded opacity-60">
+              <li
+                key={g.id}
+                className="evo-surface flex items-center gap-3 p-2 border border-border rounded opacity-60"
+              >
                 <Check className="h-4 w-4 text-primary" />
                 <span className="hud-label text-[10px] text-accent">{g.category}</span>
                 <span className="text-sm text-foreground line-through flex-1 truncate">{g.title}</span>
-                <button onClick={() => update(g.id, { completed: false })}
-                  className="text-[10px] hud-label text-primary hover:underline">Reopen</button>
+                <button
+                  onClick={() => update(g.id, { completed: false })}
+                  className="text-[10px] hud-label text-primary hover:underline"
+                >
+                  Reopen
+                </button>
                 <button onClick={() => del(g.id)} className="text-destructive">
                   <Trash2 className="h-4 w-4" />
                 </button>
