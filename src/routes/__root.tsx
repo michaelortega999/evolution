@@ -140,6 +140,18 @@ function EvoAssistantPage() {
   const cloud = useCloudStatus();
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<"chat" | "routines" | "calendar" | "goals">("chat");
+  const [viewportHeight, setViewportHeight] = useState<number | undefined>();
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const resize = () => setViewportHeight(viewport?.height || window.innerHeight);
+    resize();
+    viewport?.addEventListener("resize", resize);
+    window.addEventListener("resize", resize);
+    return () => {
+      viewport?.removeEventListener("resize", resize);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
   const [message, setMessage] = useState("");
   const [notice, setNotice] = useState("");
   const [draftTask, setDraftTask] = useState("");
@@ -392,7 +404,10 @@ function EvoAssistantPage() {
             : "Guest · saved on this device";
   if (!ready)
     return (
-      <div className="evo-workspace">
+      <div
+        className={"evo-workspace" + (view === "chat" ? " evo-chat-screen" : "")}
+        style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
+      >
         <style>{EVO_WORKSPACE_CSS}</style>
         <p role="status">Loading your workspace…</p>
       </div>
@@ -415,7 +430,7 @@ function EvoAssistantPage() {
           <a href={isPhone ? "/?mobilePage=profile" : "/settings"}>Settings</a>
         </nav>
         <div className="evo-head-status">
-          <strong>EVO</strong>
+          <strong>EVO AI</strong>
           <small>{statusLabel}</small>
         </div>
       </header>
@@ -529,7 +544,12 @@ function EvoAssistantPage() {
                     <small>Choose your dates before applying a schedule.</small>
                   </div>
                 ) : (
-                  <div className="evo-message-list" aria-live="polite">
+                  <div
+                    className="evo-message-list"
+                    role="log"
+                    aria-live="polite"
+                    aria-label="Saved planning conversation"
+                  >
                     {history.map((m) => (
                       <article className={"evo-message " + m.role} key={m.id}>
                         <div>
@@ -598,7 +618,12 @@ function EvoAssistantPage() {
                     runCommand(message);
                   }}
                 >
-                  <button type="button" aria-label="Open planning tools" onClick={() => setShowTools((s) => !s)}>
+                  <button
+                    type="button"
+                    aria-label="Open planning tools"
+                    aria-expanded={showTools}
+                    onClick={() => setShowTools((s) => !s)}
+                  >
                     <Plus />
                   </button>
                   <input
@@ -1123,4 +1148,19 @@ const EVO_WORKSPACE_CSS = `.evo-workspace{--evo-blue:#70c8ff;--evo-line:#254e77;
 @media(max-width:767px){.evo-workspace{padding:0 13px calc(100px + env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 30%,#0c213b70,transparent 60%),#050b13;min-height:100dvh}.evo-header{border:0;border-bottom:1px solid #263e54;border-radius:0;background:transparent;box-shadow:none;height:85px;padding:12px 0;gap:8px}.evo-header:before,.evo-header:after{display:none}.evo-brand{gap:6px}.evo-brand img{width:45px;height:47px}.evo-brand span{font-size:13px;letter-spacing:1.2px}.evo-brand small{font-size:5.5px;letter-spacing:1px}.evo-header nav{display:none}.evo-head-status strong{font-size:19px;letter-spacing:3px}.evo-head-status small{font-size:8px;max-width:95px;line-height:1.3}.evo-mobile-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:17px 0 10px}.evo-mobile-quick button{font-size:11px;line-height:1.2;min-height:73px;padding:8px 2px;background:linear-gradient(145deg,#1a3147,#0b1724);border-color:#3c5a75;box-shadow:inset 0 0 12px #7badcd12}.evo-mobile-quick svg{display:block;margin:0 auto 7px;width:20px;height:20px;color:#c7dff3}.evo-body{display:block;margin-top:0}.evo-side{display:none}.evo-view-tabs{display:flex;gap:5px;justify-content:center;margin:12px 0}.evo-view-tabs button{font-size:11px;padding:5px 13px;border-color:#223e57;background:transparent;text-transform:capitalize}.evo-view-tabs button[aria-pressed=true]{background:#17344e;border-color:#40749a}.evo-chat-layout{display:flex;flex-direction:column;gap:14px}.evo-chat-layout:not(.has-history) .evo-conversation{display:none}.evo-hero{min-height:350px;order:0;padding:10px 0 16px;overflow:visible}.evo-orb{width:255px;max-width:85vw}.evo-hero h2{font-size:24px;margin:16px 0 10px}.evo-hero>p{font-size:10px;letter-spacing:3px}.evo-hero-line{margin:18px 0 7px;width:78%}.evo-hero>small{font-size:9px}.evo-conversation{order:1;min-height:0;max-height:420px;padding:14px}.has-history .evo-hero{min-height:0;padding:0}.has-history .evo-orb{width:125px}.has-history .evo-hero h2{font-size:15px;letter-spacing:4px;margin:6px 0}.has-history .evo-hero>p,.has-history .evo-hero-line,.has-history .evo-hero>small{display:none}.evo-composer{order:2;padding:10px 11px;border-radius:10px}.evo-composer form{gap:7px}.evo-composer form>input{font-size:14px;padding:8px 0}.evo-composer form>button{padding:7px}.evo-command-pills{display:none}.evo-message p{font-size:13px}.evo-section-title{font-size:10px;padding-bottom:12px;margin-bottom:14px}.evo-section-title small{font-size:9px}.evo-bottom-actions{display:none}.evo-mobile-nav{position:fixed;z-index:50;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;height:calc(72px + env(safe-area-inset-bottom));padding:5px 8px calc(5px + env(safe-area-inset-bottom));background:#07121ef5;border-top:1px solid #294c6c;backdrop-filter:blur(14px)}.evo-mobile-nav a,.evo-mobile-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:0;background:none;width:58px;height:55px;padding:4px;color:#8da8c0;font-size:10px}.evo-mobile-nav [aria-current=page]{color:#91caff}.evo-mobile-nav svg{width:21px;height:21px}.evo-mobile-nav .evo-nav-bonsai{width:70px;height:65px;margin-top:-15px;border:1px solid #417eae;border-radius:50%;background:radial-gradient(#174f7c,#071725);box-shadow:0 0 15px #2e88c83a}.evo-nav-bonsai img{width:57px;height:54px;object-fit:contain}.evo-two-column{display:flex;flex-direction:column;gap:14px}.evo-panel{padding:17px}.evo-panel h2{font-size:21px}.evo-form{gap:14px}.evo-workspace label input,.evo-workspace label select{font-size:16px;padding:10px 8px;min-height:42px}.evo-calendar-controls{gap:12px}.evo-calendar-controls h2{font-size:16px;margin:0 3px}.evo-calendar-controls>div:last-child{width:100%;justify-content:center}.evo-calendar{gap:3px}.evo-workspace .evo-day{min-height:69px;padding:6px 3px}.evo-day>span{font-size:11px}.evo-event{font-size:8px;padding:2px;margin:3px 0}.evo-event time{font-size:7px}.evo-calendar.week{grid-template-columns:1fr}.evo-calendar.week .evo-weekday{display:none}.evo-calendar.week .evo-day{min-height:80px;padding:12px}.evo-calendar.week .evo-event{font-size:12px}.evo-calendar.week .evo-event time{font-size:10px}.evo-calendar.day .evo-event{font-size:12px;gap:10px}.evo-calendar.day .evo-event>span{white-space:normal}.evo-preview-cycle{gap:5px}.evo-preview-cycle>div{font-size:10px;padding:6px}.evo-notice{font-size:12px}.evo-button-row{flex-direction:column}.evo-workspace .evo-habit{font-size:13px}.evo-habit small{font-size:9px}.evo-tools button{font-size:11px;padding:7px}}
 @media(max-width:767px) and (max-height:760px){.evo-hero{min-height:285px;padding:2px 0 8px}.evo-orb{width:205px}.evo-hero h2{font-size:21px;margin:9px 0 7px}.evo-hero-line{margin:12px 0 7px}.evo-mobile-quick{margin-top:12px}.evo-mobile-quick button{min-height:67px}.evo-view-tabs{margin:9px 0}.evo-header{height:77px}}
 @media(prefers-reduced-motion:reduce){.evo-workspace *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Full-height conversation stage with a reachable composer on phone and desktop. */
+.evo-message p{overflow-wrap:anywhere}.evo-message-list{flex:1;min-height:0;overscroll-behavior:contain}.evo-inline-task{flex-shrink:0;max-height:45vh}.evo-chat-screen .evo-side{min-height:0}.evo-chat-screen .evo-composer{flex-shrink:0;background:linear-gradient(145deg,#142a3e,#081420);z-index:3}.evo-chat-screen .evo-orb{filter:drop-shadow(0 0 24px #3aaeff55)}.evo-chat-screen .evo-orb:before{box-shadow:inset 0 0 32px #45aaff55,0 0 30px #3b9de533}.evo-chat-screen .evo-orb img{width:78%;height:78%;filter:drop-shadow(0 0 19px #28a5ff)}
+@media(min-width:1051px){.evo-chat-screen .evo-body{min-height:calc(100dvh - 155px)}.evo-chat-screen .evo-chat-layout{grid-template-rows:minmax(380px,1fr) auto;min-height:calc(100dvh - 275px)}.evo-chat-screen .evo-conversation{max-height:calc(100dvh - 310px);min-height:380px}.evo-chat-screen .evo-hero{min-height:380px}.evo-chat-screen .evo-bottom-actions{margin-top:14px}.evo-chat-screen .evo-bottom-actions button{min-height:75px;padding:11px;gap:5px}}
+@media(max-width:767px){
+.evo-chat-screen{position:relative;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0 13px calc(82px + env(safe-area-inset-bottom));}
+.evo-chat-screen .evo-mobile-nav{position:absolute;}
+.evo-chat-screen .evo-header{height:76px;min-height:76px;flex-shrink:0;}.evo-chat-screen .evo-head-status strong{font-size:16px;letter-spacing:2px}
+.evo-chat-screen .evo-mobile-quick{flex-shrink:0;margin:14px 0 6px;gap:7px}.evo-chat-screen .evo-mobile-quick button{min-height:62px;border-radius:10px;font-size:11px;}.evo-chat-screen .evo-mobile-quick svg{width:18px;height:18px;margin-bottom:5px}
+.evo-chat-screen .evo-body{flex:1;min-height:0;display:flex;flex-direction:column;}.evo-chat-screen .evo-main{flex:1;min-height:0;display:flex;flex-direction:column;}.evo-chat-screen .evo-view-tabs{flex-shrink:0;margin:6px 0 9px;}.evo-chat-screen .evo-view-tabs button{padding:4px 10px;min-height:30px;}
+.evo-chat-screen .evo-chat-layout{flex:1;min-height:0;display:flex;gap:9px;}.evo-chat-screen .evo-hero{flex:1;min-height:0;padding:0 0 7px;overflow:hidden;}.evo-chat-screen .evo-orb{width:min(265px,62vw);max-height:calc(100% - 86px);flex-shrink:1;}.evo-chat-screen .evo-hero h2{font-size:22px;margin:9px 0 7px;}.evo-chat-screen .evo-hero-line{margin:13px 0 7px}.evo-chat-screen .evo-hero>small{font-size:9px;}
+.evo-chat-screen .has-history .evo-hero{display:none;}.evo-chat-screen .evo-conversation{flex:1;min-height:0;max-height:none;overflow:hidden;padding:13px;}.evo-chat-screen .evo-section-title{flex-shrink:0;margin-bottom:10px;padding-bottom:9px;}.evo-chat-screen .evo-welcome{padding:10px 0;}.evo-chat-screen .evo-welcome h2{font-size:20px;margin:4px 0;}.evo-chat-screen .evo-welcome p,.evo-chat-screen .evo-welcome small{display:none;}.evo-chat-screen .evo-welcome button{margin-top:8px;}
+.evo-chat-screen .evo-composer{padding:10px 12px;min-height:61px;}.evo-chat-screen .evo-composer form>input{font-size:16px;min-height:38px;}.evo-chat-screen .evo-composer form>button{min-width:38px;min-height:38px;}.evo-chat-screen .evo-tools{max-height:120px;overflow:auto;padding-bottom:9px;}.evo-chat-screen .evo-notice{flex-shrink:0;max-height:100px;overflow:auto;margin-bottom:7px;}
+}
+@media(max-width:767px) and (max-height:610px){.evo-chat-screen .evo-header{height:54px;min-height:54px;}.evo-chat-screen .evo-mobile-quick{display:none;}.evo-chat-screen .evo-hero h2,.evo-chat-screen .evo-hero>p,.evo-chat-screen .evo-hero-line{display:none;}.evo-chat-screen .evo-orb{max-height:calc(100% - 22px);width:170px;}}
 `;
