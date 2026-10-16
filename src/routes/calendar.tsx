@@ -325,7 +325,7 @@ function CalendarPage() {
               ].map((s, i) => (
                 <div
                   key={i}
-                  className="flex flex-col items-center text-center gap-1 p-2 border border-border/50 rounded"
+                  className="evo-surface flex flex-col items-center text-center gap-1 p-2 border border-border/50 rounded"
                 >
                   <s.icon className="h-4 w-4 text-primary" />
                   <div className="text-xl font-semibold text-foreground">{s.value}</div>
@@ -353,7 +353,10 @@ function CalendarPage() {
             ) : (
               <ul className="flex flex-col gap-1.5 max-h-[320px] overflow-y-auto">
                 {upcoming.map((e) => (
-                  <li key={e.id} className="flex items-center gap-2 p-2 border border-border rounded bg-primary/5">
+                  <li
+                    key={e.id}
+                    className="evo-surface flex items-center gap-2 p-2 border border-border rounded bg-primary/5"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="hud-label text-[10px] text-primary truncate">
                         {e.date} · {fmt12(e.time)}
@@ -613,7 +616,7 @@ function WeekView({
       </div>
 
       {events.some((e) => dayKeys.includes(e.date) && !e.time) && (
-        <div className="mb-3 border border-border rounded p-3">
+        <div className="evo-surface mb-3 border border-border rounded p-3">
           <h3 className="text-xs text-primary mb-2">ANY TIME THIS WEEK</h3>
           <ul className="space-y-1 text-sm">
             {events
@@ -873,7 +876,10 @@ function CalendarListView({
       ) : (
         <ul className="space-y-3">
           {shown.map((event) => (
-            <li key={event.id} className="flex items-center gap-3 border border-primary/30 bg-primary/5 p-4 rounded">
+            <li
+              key={event.id}
+              className="evo-surface flex items-center gap-3 border border-primary/30 bg-primary/5 p-4 rounded"
+            >
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-primary">
                   {event.date} · {event.time || "Any time"}
