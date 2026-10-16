@@ -2895,3 +2895,13 @@ html[data-card-style] .evo-surface {
 html[data-card-style] :is(.hud-card, .evo-surface)[class*="border-destructive"] {
   border-color: var(--destructive, #f87171) !important;
 }
+
+html[data-card-style] .evo-habit.complete {
+  border-color: #3f8471 !important;
+  background: #123b30 !important;
+  color: #a2e2c9;
+}
+html[data-card-style] .evo-goal {
+  padding: 14px;
+  margin-bottom: 10px;
+}
