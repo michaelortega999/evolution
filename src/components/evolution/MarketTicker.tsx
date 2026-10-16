@@ -14,7 +14,7 @@ export function MarketTicker() {
       <div className="hud-label text-sm text-foreground/90 mb-4">Market Overview</div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {markets.map((m) => (
-          <div key={m.name} className="border border-border rounded-md p-3 bg-primary/5">
+          <div key={m.name} className="evo-surface border border-border rounded-md p-3 bg-primary/5">
             <div className="hud-label text-[10px] text-muted-foreground">{m.name}</div>
             <div className="hud-label text-sm text-primary hud-glow my-1">{m.change}</div>
             <Sparkline data={m.data} height={30} fill={false} />
