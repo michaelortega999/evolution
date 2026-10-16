@@ -12,7 +12,16 @@ import { useEvolutionData, todayDate, uid, type Mood } from "@/lib/evolution-dat
 import { useSelectedMonth } from "@/lib/use-selected-month";
 
 export const Route = createFileRoute("/journal")({
-  head: () => ({ meta: [{ title: "Journal — Evolution" }, { property: "og:title", content: "Journal — Evolution" }, { property: "og:description", content: "Daily reflections, mood tracking, and prompts." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Daily reflections, mood tracking, and prompts." }] }),
+  head: () => ({
+    meta: [
+      { title: "Journal — Evolution" },
+      { property: "og:title", content: "Journal — Evolution" },
+      { property: "og:description", content: "Daily reflections, mood tracking, and prompts." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "description", content: "Daily reflections, mood tracking, and prompts." },
+    ],
+  }),
   component: JournalPage,
 });
 
@@ -34,7 +43,7 @@ function JournalPage() {
   const { key: monthKey } = useSelectedMonth();
   const filteredEntries = useMemo(
     () => data.journalEntries.filter((e) => e.date.startsWith(monthKey)),
-    [data.journalEntries, monthKey]
+    [data.journalEntries, monthKey],
   );
   const [readId, setReadId] = useState<string | null>(null);
 
@@ -47,21 +56,34 @@ function JournalPage() {
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
   const save = () => {
-    if (!text.trim()) { toast.error("Write something before saving the entry."); return; }
+    if (!text.trim()) {
+      toast.error("Write something before saving the entry.");
+      return;
+    }
     mutate((prev) => ({
-      journalEntries: [...prev.journalEntries, {
-        id: uid(), date: todayDate(),
-        title: title.trim() || "Untitled",
-        text: text.trim(), mood,
-        tags: tagsRaw.split(",").map((t) => t.trim()).filter(Boolean),
-      }],
+      journalEntries: [
+        ...prev.journalEntries,
+        {
+          id: uid(),
+          date: todayDate(),
+          title: title.trim() || "Untitled",
+          text: text.trim(),
+          mood,
+          tags: tagsRaw
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean),
+        },
+      ],
     }));
-    setTitle(""); setText(""); setTagsRaw(""); setMood("Good");
+    setTitle("");
+    setText("");
+    setTagsRaw("");
+    setMood("Good");
     toast.success("Journal entry saved.");
   };
 
-  const remove = (id: string) =>
-    mutate((prev) => ({ journalEntries: prev.journalEntries.filter((e) => e.id !== id) }));
+  const remove = (id: string) => mutate((prev) => ({ journalEntries: prev.journalEntries.filter((e) => e.id !== id) }));
 
   // Reflection
   const todayReflection = data.reflections.find((r) => r.date === todayDate());
@@ -77,7 +99,11 @@ function JournalPage() {
   const refTouched = useRef(false);
   useEffect(() => {
     if (refTouched.current || !todayReflection) return;
-    setRefDraft({ wins: todayReflection.wins ?? "", challenges: todayReflection.challenges ?? "", lessons: todayReflection.lessons ?? "" });
+    setRefDraft({
+      wins: todayReflection.wins ?? "",
+      challenges: todayReflection.challenges ?? "",
+      lessons: todayReflection.lessons ?? "",
+    });
   }, [todayReflection?.id, todayReflection?.wins, todayReflection?.challenges, todayReflection?.lessons]);
   const saveReflection = () => {
     mutate((prev) => {
@@ -86,7 +112,7 @@ function JournalPage() {
       const entry = { id: exists?.id ?? uid(), date: today, ...refDraft };
       return {
         reflections: exists
-          ? prev.reflections.map((r) => r.date === today ? entry : r)
+          ? prev.reflections.map((r) => (r.date === today ? entry : r))
           : [...prev.reflections, entry],
       };
     });
@@ -99,12 +125,11 @@ function JournalPage() {
     const out: number[] = [];
     const now = new Date();
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now); d.setDate(now.getDate() - i);
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
       const date = localISO(d);
       const entries = data.journalEntries.filter((e) => e.date === date);
-      const avg = entries.length
-        ? entries.reduce((a, e) => a + MOOD_VALUE[e.mood], 0) / entries.length
-        : 0;
+      const avg = entries.length ? entries.reduce((a, e) => a + MOOD_VALUE[e.mood], 0) / entries.length : 0;
       out.push(avg);
     }
     return out;
@@ -132,20 +157,35 @@ function JournalPage() {
               <span className="hud-label text-[10px] text-muted-foreground">Mood</span>
               <div className="grid grid-cols-5 gap-2 mt-1">
                 {MOODS.map((m) => (
-                  <button key={m} type="button" onClick={() => setMood(m)}
-                    className={`hud-label text-[10px] py-2 rounded border ${mood === m ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}>
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMood(m)}
+                    className={`hud-label text-[10px] py-2 rounded border ${mood === m ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}
+                  >
                     {m}
                   </button>
                 ))}
               </div>
             </div>
-            <Input placeholder="Tags (comma separated)" value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} className="h-9 text-xs mb-3" />
-            <textarea value={text} onChange={(e) => setText(e.target.value)} rows={12}
+            <Input
+              placeholder="Tags (comma separated)"
+              value={tagsRaw}
+              onChange={(e) => setTagsRaw(e.target.value)}
+              className="h-9 text-xs mb-3"
+            />
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={12}
               placeholder="What's on your mind?"
-              className="w-full bg-transparent border border-border rounded p-3 text-sm resize-none focus:outline-none focus:border-primary/50 leading-relaxed" />
+              className="w-full bg-transparent border border-border rounded p-3 text-sm resize-none focus:outline-none focus:border-primary/50 leading-relaxed"
+            />
             <div className="flex items-center justify-between mt-3">
               <div className="hud-label text-[10px] text-muted-foreground">{wordCount} words</div>
-              <Button onClick={save} className="hud-label text-[10px]">Save Entry</Button>
+              <Button onClick={save} className="hud-label text-[10px]">
+                Save Entry
+              </Button>
             </div>
           </Panel>
         </TabsContent>
@@ -154,36 +194,66 @@ function JournalPage() {
           <Panel title={`Entries (${filteredEntries.length}) · ${monthKey}`}>
             <ul className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
               {[...filteredEntries].reverse().map((e) => (
-                <li key={e.id} className="border border-border rounded p-4 group cursor-pointer hover:border-primary/40 transition-colors"
-                    onClick={() => setReadId(e.id)}>
+                <li
+                  key={e.id}
+                  className="evo-surface border border-border rounded p-4 group cursor-pointer hover:border-primary/40 transition-colors"
+                  onClick={() => setReadId(e.id)}
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="hud-label text-xs text-foreground">{e.title}</div>
-                      <div className="hud-label text-[10px] text-muted-foreground mt-0.5">{e.date} · {e.mood}</div>
+                      <div className="hud-label text-[10px] text-muted-foreground mt-0.5">
+                        {e.date} · {e.mood}
+                      </div>
                     </div>
-                    <button onClick={(ev) => { ev.stopPropagation(); remove(e.id); }} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">
+                    <button
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        remove(e.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                    >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <p className="text-xs text-foreground/70 line-clamp-2">{e.text}</p>
                   {e.tags.length > 0 && (
                     <div className="flex gap-1 mt-2 flex-wrap">
-                      {e.tags.map((t, i) => <span key={i} className="hud-label text-[9px] px-2 py-0.5 rounded border border-border text-primary/80">#{t}</span>)}
+                      {e.tags.map((t, i) => (
+                        <span
+                          key={i}
+                          className="hud-label text-[9px] px-2 py-0.5 rounded border border-border text-primary/80"
+                        >
+                          #{t}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </li>
               ))}
-              {!filteredEntries.length && <li className="text-xs text-muted-foreground py-6 text-center">No entries in this month.</li>}
+              {!filteredEntries.length && (
+                <li className="text-xs text-muted-foreground py-6 text-center">No entries in this month.</li>
+              )}
             </ul>
           </Panel>
 
           {reading && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80" onClick={() => setReadId(null)}>
-              <div className="hud-card max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
-                <div className="hud-label text-[10px] text-muted-foreground">{reading.date} · {reading.mood}</div>
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80"
+              onClick={() => setReadId(null)}
+            >
+              <div
+                className="hud-card max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="hud-label text-[10px] text-muted-foreground">
+                  {reading.date} · {reading.mood}
+                </div>
                 <h2 className="hud-label text-xl text-primary hud-glow mt-1">{reading.title}</h2>
                 <p className="text-sm text-foreground/90 leading-relaxed mt-4 whitespace-pre-wrap">{reading.text}</p>
-                <Button onClick={() => setReadId(null)} className="mt-6 hud-label text-[10px]">Close</Button>
+                <Button onClick={() => setReadId(null)} className="mt-6 hud-label text-[10px]">
+                  Close
+                </Button>
               </div>
             </div>
           )}
@@ -195,11 +265,20 @@ function JournalPage() {
               {(["wins", "challenges", "lessons"] as const).map((key, i) => (
                 <label key={key} className="block">
                   <span className="hud-label text-[10px] text-muted-foreground">{prompts[i]}</span>
-                  <textarea value={refDraft[key]} onChange={(e) => { refTouched.current = true; setRefDraft((d) => ({ ...d, [key]: e.target.value })); }}
-                    rows={3} className="w-full mt-1 bg-transparent border border-border rounded p-2 text-sm resize-none focus:outline-none focus:border-primary/50" />
+                  <textarea
+                    value={refDraft[key]}
+                    onChange={(e) => {
+                      refTouched.current = true;
+                      setRefDraft((d) => ({ ...d, [key]: e.target.value }));
+                    }}
+                    rows={3}
+                    className="w-full mt-1 bg-transparent border border-border rounded p-2 text-sm resize-none focus:outline-none focus:border-primary/50"
+                  />
                 </label>
               ))}
-              <Button onClick={saveReflection} className="hud-label text-[10px]">Save Reflection</Button>
+              <Button onClick={saveReflection} className="hud-label text-[10px]">
+                Save Reflection
+              </Button>
             </div>
           </Panel>
         </TabsContent>
