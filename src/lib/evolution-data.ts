@@ -57,7 +57,7 @@ export interface CalendarEvent {
 export type ThemeKey = "default" | "gold" | "orange" | "green" | "red" | "purple" | "white" | "black";
 
 export interface Settings {
-  cardStyle?: "jarvis" | "glass" | "tactical" | "classic";
+  cardStyle?: "jarvis" | "glass" | "tactical" | "classic" | "minimal-clean" | "tech-hud" | "armored-edge";
   applyCardStyleGlobally?: boolean;
   theme: ThemeKey;
   notifications: {
