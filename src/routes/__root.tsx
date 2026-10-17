@@ -1102,17 +1102,17 @@ function EvoAssistantPage() {
             </div>
           )}
           <div className="evo-bottom-actions">
-            <button onClick={() => setView("routines")}>
+            <button className="evo-surface" onClick={() => setView("routines")}>
               <Workflow />
               <strong>OPTIMIZE MY ROUTINE</strong>
               <small>Small changes. Real structure.</small>
             </button>
-            <button onClick={() => runCommand("Review my progress")}>
+            <button className="evo-surface" onClick={() => runCommand("Review my progress")}>
               <Sprout />
               <strong>EVOLVE</strong>
               <small>A higher you.</small>
             </button>
-            <button onClick={() => setView("goals")}>
+            <button className="evo-surface" onClick={() => setView("goals")}>
               <Target />
               <strong>SET GOALS</strong>
               <small>Turn plans into progress.</small>
