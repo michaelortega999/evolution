@@ -201,6 +201,17 @@ export const CARD_STYLES = [
     name: "Classic",
     description: "Simple clean edges with a restrained border. Timeless and versatile.",
   },
+  { id: "minimal-clean", name: "Minimal Clean", description: "Clean chamfered edges with precise cyan corner lights." },
+  {
+    id: "tech-hud",
+    name: "Tech HUD",
+    description: "Layered circuit rails, a fine grid and detailed luminous corners.",
+  },
+  {
+    id: "armored-edge",
+    name: "Armored Edge",
+    description: "Bold double rails with diagonal accents and an electric blue glow.",
+  },
 ] as const;
 export type CardStyle = (typeof CARD_STYLES)[number]["id"];
 export function normalizeCardStyle(value: unknown): CardStyle {
