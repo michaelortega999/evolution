@@ -2905,3 +2905,195 @@ html[data-card-style] .evo-goal {
   padding: 14px;
   margin-bottom: 10px;
 }
+
+/* Additional reference styles: scoped frames; no data or layout replacement. */
+html[data-card-style="minimal-clean"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card),
+.card-style-minimal-clean {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid #319dc3 !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  clip-path: polygon(
+    var(--evo-cut, 16px) 0,
+    calc(100% - var(--evo-cut, 16px)) 0,
+    100% var(--evo-cut, 16px),
+    100% calc(100% - var(--evo-cut, 16px)),
+    calc(100% - var(--evo-cut, 16px)) 100%,
+    var(--evo-cut, 16px) 100%,
+    0 calc(100% - var(--evo-cut, 16px)),
+    0 var(--evo-cut, 16px)
+  ) !important;
+  background: linear-gradient(135deg, #061522, #020a12) !important;
+  box-shadow:
+    inset 0 0 0 4px #07111c,
+    inset 0 0 0 5px #227b9344,
+    inset 0 0 24px #178ec514 !important;
+}
+html[data-card-style="minimal-clean"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::after,
+.card-style-minimal-clean::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 1;
+  clip-path: none !important;
+  box-shadow: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%280%200%29%20scale%281%201%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M2%2046V17L17%202H46%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M7%2040V19L19%207H40%22%20opacity%3D%22.35%22%2F%3E%3Cpath%20d%3D%22M2%2023V17L17%202H23%22%20stroke%3D%22%23a5f6ff%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%2864%200%29%20scale%28-1%201%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M2%2046V17L17%202H46%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M7%2040V19L19%207H40%22%20opacity%3D%22.35%22%2F%3E%3Cpath%20d%3D%22M2%2023V17L17%202H23%22%20stroke%3D%22%23a5f6ff%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%280%2064%29%20scale%281%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M2%2046V17L17%202H46%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M7%2040V19L19%207H40%22%20opacity%3D%22.35%22%2F%3E%3Cpath%20d%3D%22M2%2023V17L17%202H23%22%20stroke%3D%22%23a5f6ff%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%2864%2064%29%20scale%28-1%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M2%2046V17L17%202H46%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M7%2040V19L19%207H40%22%20opacity%3D%22.35%22%2F%3E%3Cpath%20d%3D%22M2%2023V17L17%202H23%22%20stroke%3D%22%23a5f6ff%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-size: var(--evo-corner-size, 48px) var(--evo-corner-size, 48px);
+  background-position:
+    left top,
+    right top,
+    left bottom,
+    right bottom;
+}
+html[data-card-style="minimal-clean"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::before,
+.card-style-minimal-clean::before {
+  display: none !important;
+}
+html[data-card-style="tech-hud"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card),
+.card-style-tech-hud {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid #319dc3 !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  clip-path: polygon(
+    var(--evo-cut, 16px) 0,
+    calc(100% - var(--evo-cut, 16px)) 0,
+    100% var(--evo-cut, 16px),
+    100% calc(100% - var(--evo-cut, 16px)),
+    calc(100% - var(--evo-cut, 16px)) 100%,
+    var(--evo-cut, 16px) 100%,
+    0 calc(100% - var(--evo-cut, 16px)),
+    0 var(--evo-cut, 16px)
+  ) !important;
+  background:
+    linear-gradient(#39bde808 1px, transparent 1px), linear-gradient(90deg, #39bde808 1px, transparent 1px),
+    linear-gradient(135deg, #061522, #020a12) !important;
+  background-size:
+    16px 16px,
+    16px 16px,
+    100% 100% !important;
+  box-shadow:
+    inset 0 0 0 4px #07111c,
+    inset 0 0 0 5px #227b9344,
+    inset 0 0 24px #178ec514 !important;
+}
+html[data-card-style="tech-hud"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::after,
+.card-style-tech-hud::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 1;
+  clip-path: none !important;
+  box-shadow: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%280%200%29%20scale%281%201%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M1%2058V18L18%201H58M5%2051V20L20%205H51M10%2044V23L23%2010H44%22%2F%3E%3Cpath%20d%3D%22M15%2037V25L25%2015H37%22%20opacity%3D%22.6%22%2F%3E%3Cpath%20d%3D%22M2%2043H7V35M43%202V7H35%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2237%22%20cy%3D%2215%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2237%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%2864%200%29%20scale%28-1%201%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M1%2058V18L18%201H58M5%2051V20L20%205H51M10%2044V23L23%2010H44%22%2F%3E%3Cpath%20d%3D%22M15%2037V25L25%2015H37%22%20opacity%3D%22.6%22%2F%3E%3Cpath%20d%3D%22M2%2043H7V35M43%202V7H35%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2237%22%20cy%3D%2215%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2237%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%280%2064%29%20scale%281%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M1%2058V18L18%201H58M5%2051V20L20%205H51M10%2044V23L23%2010H44%22%2F%3E%3Cpath%20d%3D%22M15%2037V25L25%2015H37%22%20opacity%3D%22.6%22%2F%3E%3Cpath%20d%3D%22M2%2043H7V35M43%202V7H35%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2237%22%20cy%3D%2215%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2237%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%2864%2064%29%20scale%28-1%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M1%2058V18L18%201H58M5%2051V20L20%205H51M10%2044V23L23%2010H44%22%2F%3E%3Cpath%20d%3D%22M15%2037V25L25%2015H37%22%20opacity%3D%22.6%22%2F%3E%3Cpath%20d%3D%22M2%2043H7V35M43%202V7H35%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2237%22%20cy%3D%2215%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2237%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-size: var(--evo-corner-size, 48px) var(--evo-corner-size, 48px);
+  background-position:
+    left top,
+    right top,
+    left bottom,
+    right bottom;
+}
+html[data-card-style="tech-hud"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::before,
+.card-style-tech-hud::before {
+  display: none !important;
+}
+html[data-card-style="armored-edge"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card),
+.card-style-armored-edge {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid #319dc3 !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  clip-path: polygon(
+    var(--evo-cut, 16px) 0,
+    calc(100% - var(--evo-cut, 16px)) 0,
+    100% var(--evo-cut, 16px),
+    100% calc(100% - var(--evo-cut, 16px)),
+    calc(100% - var(--evo-cut, 16px)) 100%,
+    var(--evo-cut, 16px) 100%,
+    0 calc(100% - var(--evo-cut, 16px)),
+    0 var(--evo-cut, 16px)
+  ) !important;
+  background: linear-gradient(135deg, #061522, #020a12) !important;
+  box-shadow:
+    inset 0 0 0 6px #102e4b,
+    inset 0 0 0 8px #2479ad,
+    inset 0 0 32px #149cfa35 !important;
+}
+html[data-card-style="armored-edge"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::after,
+.card-style-armored-edge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 1;
+  clip-path: none !important;
+  box-shadow: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%280%200%29%20scale%281%201%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M3%2058V20L20%203H58%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M10%2051V24L24%2010H51%22%20stroke%3D%22%232787ef%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M3%2029V20L20%203H29%22%20stroke%3D%22%23a9f9ff%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M36%206L42%200M46%206L52%200M56%206L62%200%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%2864%200%29%20scale%28-1%201%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M3%2058V20L20%203H58%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M10%2051V24L24%2010H51%22%20stroke%3D%22%232787ef%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M3%2029V20L20%203H29%22%20stroke%3D%22%23a9f9ff%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M36%206L42%200M46%206L52%200M56%206L62%200%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%280%2064%29%20scale%281%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M3%2058V20L20%203H58%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M10%2051V24L24%2010H51%22%20stroke%3D%22%232787ef%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M3%2029V20L20%203H29%22%20stroke%3D%22%23a9f9ff%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M36%206L42%200M46%206L52%200M56%206L62%200%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22translate%2864%2064%29%20scale%28-1%20-1%29%22%20fill%3D%22none%22%20stroke%3D%22%234cdcff%22%3E%3Cpath%20d%3D%22M3%2058V20L20%203H58%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M10%2051V24L24%2010H51%22%20stroke%3D%22%232787ef%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M3%2029V20L20%203H29%22%20stroke%3D%22%23a9f9ff%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M36%206L42%200M46%206L52%200M56%206L62%200%22%20stroke-width%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-size: var(--evo-corner-size, 48px) var(--evo-corner-size, 48px);
+  background-position:
+    left top,
+    right top,
+    left bottom,
+    right bottom;
+}
+html[data-card-style="armored-edge"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::before,
+.card-style-armored-edge::before {
+  display: none !important;
+}
+html[data-card-style] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card):focus-visible {
+  outline: 2px solid #b4efff !important;
+  outline-offset: -4px;
+}
+html[data-card-style] :is(.hud-card, .evo-surface)[class*="border-destructive"] {
+  border-color: var(--destructive, #f87171) !important;
+}
+@media (max-width: 767px) {
+  html[data-card-style] .evo-header {
+    clip-path: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid #29445c !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  html[data-card-style] .evo-header::after {
+    display: none !important;
+  }
+}
