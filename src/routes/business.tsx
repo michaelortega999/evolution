@@ -302,6 +302,28 @@ function BusinessPage() {
               Open workspace <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </span>
           </Link>
+          <Link
+            to="/business"
+            search={{ section: "marketing-system" }}
+            className="hud-card group flex flex-wrap items-center gap-5 p-5 border-cyan-400/35 hover:border-cyan-300/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+            style={{
+              background: "linear-gradient(110deg, rgba(8, 47, 73, .85), rgba(3, 12, 25, .95))",
+            }}
+          >
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-cyan-400/40 bg-cyan-400/10 text-cyan-300">
+              <Globe className="h-7 w-7" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="hud-label text-[9px] tracking-[.22em] text-cyan-300/65 mb-1">Business workspace · demo</div>
+              <h2 className="hud-label text-lg text-cyan-200">Marketing System</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Automated marketing overview: traffic, AI agents, workflow, and campaign performance (sample data).
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-2 hud-label text-[10px] text-cyan-300">
+              Open dashboard <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Panel title="Total Revenue">
               <div className="hud-label text-3xl text-primary hud-glow">{fmt(totalRevenue)}</div>
@@ -952,6 +974,31 @@ function SocialMediaPage() {
               </div>
               <span className="inline-flex items-center gap-2 hud-label text-[9px] text-cyan-300">
                 Open planner <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </div>
+          </a>
+          <Link
+            to="/business"
+            search={{ section: "marketing-system" }}
+            className="evo-surface media-panel media-card-link block p-6 group"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="hud-label text-[9px] tracking-[.24em] text-cyan-300/60 mb-2">
+                  03 / Marketing overview · demo
+                </div>
+                <h2 className="hud-label text-xl text-cyan-100">Marketing System</h2>
+              </div>
+              <div className="media-orbit">
+                <Globe className="h-7 w-7 text-cyan-300" />
+              </div>
+            </div>
+            <p className="max-w-sm text-sm leading-relaxed text-slate-400 mt-4">
+              Traffic sources, AI agents, automated workflow, and campaign performance in one dashboard. Sample data shown until real sources are connected.
+            </p>
+            <div className="mt-6 flex items-end justify-end border-t border-cyan-400/15 pt-4">
+              <span className="inline-flex items-center gap-2 hud-label text-[9px] text-cyan-300">
+                Open dashboard <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </div>
           </a>
