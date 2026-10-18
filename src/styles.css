@@ -3097,3 +3097,19 @@ html[data-card-style] :is(.hud-card, .evo-surface)[class*="border-destructive"] 
     display: none !important;
   }
 }
+
+/* Subtle corner dimming: decoration only; text, artwork and focus rings stay unchanged. */
+html[data-card-style="jarvis"] :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::after,
+.card-style-jarvis::after {
+  opacity: 0.8075;
+}
+html:is(
+    [data-card-style="tactical"],
+    [data-card-style="minimal-clean"],
+    [data-card-style="tech-hud"],
+    [data-card-style="armored-edge"]
+  )
+  :is(.hud-card, .evo-frame, .evo-surface, .evo-style-card, .st-card)::after,
+:is(.card-style-tactical, .card-style-minimal-clean, .card-style-tech-hud, .card-style-armored-edge)::after {
+  opacity: 0.85;
+}
