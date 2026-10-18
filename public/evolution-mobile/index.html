@@ -150,6 +150,110 @@
       @media (max-width: 767px) {
        html[data-card-style] .evo-header::after { display: none !important; }
       }
+
+      /* Evolution Media System: coded reference dashboard. Analytics are explicit demo data. */
+      .ems-dashboard{position:relative;display:flex;flex-direction:column;gap:1.8cqw;isolation:isolate;padding:.6cqw .2cqw 4cqw;background:radial-gradient(ellipse at 50% 42%,#06345150,transparent 44%),linear-gradient(90deg,#1395ca0a 1px,transparent 1px),linear-gradient(#1395ca0a 1px,transparent 1px);background-size:auto,7cqw 7cqw,7cqw 7cqw;color:#dff7ff;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}
+      .ems-dashboard *{box-sizing:border-box}
+      .ems-dashboard button,.ems-dashboard select{font:inherit;cursor:pointer}
+      .ems-dashboard button{color:inherit;touch-action:manipulation}
+      .ems-dashboard button:focus-visible,.ems-dashboard select:focus-visible{outline:2px solid #ddfbff!important;outline-offset:-3px}
+      .ems-dashboard h2,.ems-dashboard h3,.ems-dashboard p{margin:0}
+      .ems-masthead{position:relative;display:flex;align-items:center;justify-content:space-between;gap:2cqw;min-height:12cqw;padding:1.4cqw 1cqw 2cqw;border-bottom:1px solid #1e6e8e;background:linear-gradient(90deg,#061523,transparent 50%,#061523);box-shadow:0 6px 12px -12px #40d8ff}
+      .ems-masthead::after{content:'';position:absolute;bottom:-1.2cqw;left:42%;width:16%;height:1.5cqw;border:1px solid #209bd0;border-top:0;background:#03131e;clip-path:polygon(0 0,100% 0,85% 100%,15% 100%);pointer-events:none}
+      .ems-brand{text-align:center;min-width:0}
+      .ems-brand h2{font-size:4.1cqw;font-weight:500;letter-spacing:.17em;color:#77e0f6;text-shadow:0 0 12px #00b9ff75;white-space:nowrap}
+      .ems-brand p{font-size:max(8px,1.35cqw);margin-top:.7cqw;letter-spacing:.25em;color:#69cce1}
+      .ems-nav-button{border:1px solid #205d78;background:#061723;min-height:44px;padding:1.1cqw 1.5cqw;font-size:max(9px,2cqw)!important;color:#aeeaff!important}
+      .ems-back-icon{font-size:5cqw!important;line-height:1;padding:0 2cqw}
+      .ems-toolbar{display:grid;grid-template-columns:1.4fr .9fr 1fr;gap:1.5cqw;align-items:center;margin-top:.5cqw}
+      .ems-control{min-width:0;position:relative;display:flex;align-items:center;border:1px solid #285774;background:#020e19;min-height:44px;padding:0 1.5cqw;color:#c0dce9}
+      .ems-control select{appearance:auto;min-width:0;width:100%;min-height:42px;padding:.6cqw 0;border:0;background:#020e19;color:#c0dce9;font-size:max(8px,1.9cqw)}
+      .ems-demo{display:flex;align-items:center;justify-content:center;gap:1.2cqw;white-space:nowrap;font-size:max(8px,1.8cqw)}
+      .ems-dot{display:inline-block;flex:none;width:1.2cqw;height:1.2cqw;min-width:4px;min-height:4px;border-radius:50%;background:#f2bb58;box-shadow:0 0 7px #e1b75c44}
+      .ems-disclosure{display:flex;justify-content:space-between;align-items:center;gap:1cqw;color:#87abc1;font-size:max(8px,1.65cqw);line-height:1.4;padding:0 .9cqw}
+      .ems-text-button{min-height:32px;border:0;background:transparent;padding:1.5cqw .5cqw;color:#91c6e4!important;font-size:max(8px,1.8cqw)!important;white-space:nowrap}
+      .ems-info{padding:2.4cqw;border:1px solid #31617a;background:#071826;color:#bedbe7;font-size:max(10px,2.1cqw);line-height:1.6}
+      .ems-frame{position:relative;min-width:0;border:1px solid #258eb4;background:linear-gradient(140deg,#061727,#020a12 70%);padding:2.4cqw;box-shadow:inset 0 0 14px #129ee91f,0 0 8px #19b4ff26;--evo-corner-size:4.2cqw;--evo-cut:1.5cqw}
+      .ems-dashboard .ems-frame.evo-style-card{--evo-corner-size:4.2cqw;--evo-cut:1.5cqw}
+      .ems-section-title{display:flex;align-items:center;justify-content:space-between;gap:1cqw;margin-bottom:1.7cqw}
+      .ems-section-title h3,.ems-label{font-size:max(9px,2.35cqw);letter-spacing:.035em;font-weight:500;color:#6ae2ef}
+      .ems-section-title small{font-size:max(8px,1.5cqw);font-weight:400;color:#839fb5;letter-spacing:.06em}
+      .ems-total{display:grid;grid-template-columns:1fr 1.04fr;align-items:center;gap:1cqw;min-height:13.4cqw;padding:2cqw 2.8cqw}
+      .ems-total-main{display:flex;align-items:baseline;gap:1.6cqw;margin-top:.6cqw;white-space:nowrap}
+      .ems-total-main strong{font-weight:600;letter-spacing:.015em;font-size:6.5cqw;line-height:1.1;color:#f0f8ff;font-variant-numeric:tabular-nums}
+      .ems-growth{color:#45e897;font-size:max(8px,2.4cqw);font-weight:600;white-space:nowrap}
+      .ems-bars{display:flex;align-items:flex-end;gap:.7cqw;height:8.7cqw;overflow:hidden;border-bottom:1px solid #145373;padding-top:1cqw;background:repeating-linear-gradient(0deg,transparent 0 3cqw,#28608020 3cqw calc(3cqw + 1px))}
+      .ems-bars i{display:block;flex:1;min-width:1px;background:linear-gradient(0deg,#1554e5,#2489ff);box-shadow:0 0 5px #1e6fff66}
+      .ems-platforms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.2cqw}
+      .ems-platform{padding:2.3cqw 1.6cqw 1.6cqw;text-align:left;min-height:22.8cqw;transition:filter .15s,transform .15s;--evo-corner-size:3.7cqw}
+      .ems-platform[aria-pressed="true"]{outline:1px solid #c1f7ff!important;outline-offset:-3px;filter:brightness(1.25)}
+      .ems-platform-name{display:block;margin:1.2cqw 0 .8cqw;font-size:max(8px,1.65cqw);color:#b2d6e6;white-space:nowrap;letter-spacing:-.02em}
+      .ems-platform-value{display:block;font-size:max(10px,2.6cqw);font-weight:600;color:#eef9ff;line-height:1.15;font-variant-numeric:tabular-nums}
+      .ems-platform .ems-growth{display:block;margin-top:.7cqw;font-size:max(8px,1.85cqw)}
+      .ems-platform .ems-bars{height:6.1cqw;gap:.45cqw;border:0;padding-top:1cqw;margin-top:.3cqw}
+      .ems-platform .ems-bars i{background:currentColor;box-shadow:0 0 5px currentColor}
+      .ems-brand-icon{display:block;width:5.2cqw;height:5.2cqw;min-width:18px;min-height:18px;filter:drop-shadow(0 0 4px currentColor)}
+      .ems-network{position:relative;padding-top:3cqw;min-height:56cqw}
+      .ems-circuit{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 0 4px #16c6ff);opacity:.85}
+      .ems-core-row{position:relative;display:grid;grid-template-columns:1fr 1.21fr 1fr;gap:1.5cqw;align-items:center}
+      .ems-side{min-width:0;padding:2cqw 1.6cqw;min-height:26cqw;--evo-corner-size:3.8cqw}
+      .ems-side h3{font-size:max(8px,2.05cqw);color:#69dfe9;font-weight:500;margin-bottom:1.7cqw;white-space:nowrap}
+      .ems-agent{display:flex;align-items:center;gap:1cqw;min-height:4.6cqw;font-size:max(8px,1.65cqw);color:#bed8e7}
+      .ems-agent-mark{display:flex;align-items:center;justify-content:center;flex:none;width:3.4cqw;height:3.4cqw;border-radius:.6cqw;background:#0b2735;color:#a7ebef;font-size:2.5cqw}
+      .ems-agent .ems-dot{margin-left:auto;background:#71808e;box-shadow:none;width:.9cqw;height:.9cqw;min-width:3px;min-height:3px}
+      .ems-system-row{display:flex;align-items:center;justify-content:space-between;gap:.5cqw;min-height:4.6cqw;color:#a6c4d5;font-size:max(8px,1.55cqw)}
+      .ems-system-row b{font-weight:400;color:#adc0cb;text-align:right;white-space:nowrap}
+      .ems-offline{font-size:max(8px,1.45cqw);color:#d2b979;letter-spacing:.06em;margin-top:1.1cqw}
+      .ems-core{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;min-width:0;border-radius:50%;border:1px solid #247eae;background:radial-gradient(circle,#01468b60 0,#00254080 46%,#020a13 68%);box-shadow:0 0 0 .8cqw #08223b,0 0 0 1cqw #1d649999,0 0 0 1.5cqw #030e1b,0 0 0 1.7cqw #128bd175,0 0 20px #027aff88,inset 0 0 12px #0071ff66}
+      .ems-core::before{content:'';position:absolute;inset:5%;border:1px dashed #46c8fb;border-radius:50%;opacity:.6}
+      .ems-core::after{content:'';position:absolute;inset:-6%;border:1px dashed #149fff80;border-radius:50%;pointer-events:none}
+      .ems-tree{width:78%;height:63%;position:absolute;top:9%;filter:drop-shadow(0 0 3px #009dff) drop-shadow(0 0 7px #006eff)}
+      .ems-core-label{position:absolute;bottom:13%;font-size:2.6cqw;font-weight:500;letter-spacing:.045em;color:#86eafa;text-shadow:0 0 8px #10b9ff;white-space:nowrap}
+      .ems-core-caption{position:absolute;bottom:7%;font-size:max(8px,1.13cqw);letter-spacing:.02em;color:#adcbd8;white-space:nowrap}
+      .ems-db-row{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4cqw;margin:5.5cqw 1.1cqw 0}
+      .ems-db{position:relative;min-height:15.2cqw;padding:3.8cqw 1cqw 3cqw;border:0;border-left:1px solid currentColor!important;border-right:1px solid currentColor!important;background:linear-gradient(90deg,#085d9b66,#020d14 25%,#020d14 75%,#085d9b66);text-align:center;color:#35ccff!important;box-shadow:inset 0 -6px 8px -8px currentColor;isolation:isolate}
+      .ems-db::before,.ems-db::after{content:'';position:absolute;left:-1px;right:-1px;height:4.5cqw;border:1px solid currentColor;border-radius:50%;background:repeating-radial-gradient(ellipse,transparent 0 1.4cqw,#36b9eb35 1.5cqw 1.7cqw);box-shadow:0 0 8px currentColor;pointer-events:none;z-index:-1}
+      .ems-db::before{top:-1.8cqw;background-color:#02121b}
+      .ems-db::after{bottom:-1.3cqw;opacity:.8}
+      .ems-db.leads{color:#2de7ce!important;background:linear-gradient(90deg,#086f6b55,#020d14 25%,#020d14 75%,#086f6b55)}
+      .ems-db.sales{color:#e7c779!important;background:linear-gradient(90deg,#6d582e55,#020d14 25%,#020d14 75%,#6d582e55)}
+      .ems-db-main{display:flex;align-items:center;justify-content:center;gap:1cqw;position:relative}
+      .ems-db svg{width:4.4cqw;height:4.4cqw;flex:none;filter:drop-shadow(0 0 3px currentColor)}
+      .ems-db b{font-size:max(9px,2.35cqw);font-weight:500;white-space:nowrap}
+      .ems-db small{display:block;font-size:max(8px,1.6cqw);margin-top:.6cqw;color:#afd0dc}
+      .ems-db span{display:block;font-size:max(8px,1.22cqw);margin-top:.7cqw;letter-spacing:.02em;white-space:nowrap}
+      .ems-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.5cqw}
+      .ems-metric{padding:2cqw 1.5cqw 1cqw;min-width:0;--evo-corner-size:3.2cqw}
+      .ems-metric-head{display:flex;align-items:center;gap:.8cqw}
+      .ems-metric-icon{width:4.2cqw;height:4.2cqw;flex:none;filter:drop-shadow(0 0 3px currentColor)}
+      .ems-metric-label{display:block;font-size:max(8px,1.6cqw);white-space:nowrap;color:#9bbbd1;line-height:1.3}
+      .ems-metric b{display:block;font-size:max(10px,2.55cqw);font-weight:500;color:#e8f6ff;margin-top:.5cqw;white-space:nowrap}
+      .ems-metric .ems-growth{display:block;margin-top:.6cqw;text-align:right;font-size:max(8px,1.7cqw)}
+      .ems-spark{display:block;width:100%;height:4.6cqw;margin-top:.6cqw;filter:drop-shadow(0 0 3px currentColor)}
+      .ems-metric-details{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5cqw;padding-top:2cqw;color:#9ebed1;font-size:max(9px,1.9cqw)}
+      .ems-metric-details b{display:block;margin-top:.6cqw;font-size:3cqw;color:#d5f2fa;font-weight:500}
+      .ems-revenue-summary{display:flex;align-items:center;gap:2cqw;margin:.8cqw 0 1.6cqw}
+      .ems-revenue-summary strong{font-size:4.8cqw;letter-spacing:.02em;color:#ecf8ff;font-weight:500}
+      .ems-chart-select{min-height:32px;padding:.5cqw 1cqw;border:1px solid #24506b;color:#bbdbe9;background:#04101b;font-size:max(8px,1.8cqw)!important}
+      .ems-chart-wrap{position:relative;padding-left:7cqw}
+      .ems-chart{display:block;width:100%;height:22cqw;overflow:visible;border-bottom:1px solid #246282;background:linear-gradient(#18476255 1px,transparent 1px),linear-gradient(90deg,#18476226 1px,transparent 1px);background-size:100% 25%,5% 100%}
+      .ems-chart-line{filter:drop-shadow(0 0 3px #29baff)}
+      .ems-axis{position:absolute;inset:0 auto 0 0;display:flex;flex-direction:column;justify-content:space-between;color:#a3bcd0;font-size:max(8px,1.65cqw);padding-bottom:.2cqw}
+      .ems-chart-ticks{display:flex;justify-content:space-between;margin:1.2cqw 0 0 7cqw;color:#98b9cc;font-size:max(8px,1.7cqw)}
+      .ems-chart-note{font-size:max(8px,1.55cqw);color:#83a8bd;line-height:1.5;margin-top:1.6cqw!important}
+      .ems-workflows{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.5cqw}
+      .ems-workflow{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:16.6cqw;padding:1.6cqw 1.2cqw 1.3cqw;text-align:center;--evo-corner-size:3.5cqw}
+      .ems-workflow-index{position:absolute;top:1.6cqw;left:1.6cqw;color:#7d9fb8;font-size:max(8px,1.9cqw)}
+      .ems-workflow svg{width:4.5cqw;height:4.5cqw;margin-bottom:1cqw;filter:drop-shadow(0 0 3px currentColor)}
+      .ems-workflow strong{font-size:max(8px,1.8cqw);font-weight:500;white-space:nowrap;letter-spacing:.025em;color:#d9f1ff}
+      .ems-workflow small{margin-top:.7cqw;font-size:max(8px,1.45cqw);white-space:nowrap;color:#9eb6c8}
+      .ems-workflow-track{width:100%;height:.9cqw;min-height:3px;display:block;background:#0c2637;margin-top:1.4cqw;border-radius:1cqw;overflow:hidden}
+      .ems-workflow-track i{height:100%;display:block;background:linear-gradient(90deg,#14a9dd,#51edff);box-shadow:0 0 5px #2ac8ff}
+      .ems-footer{display:flex;align-items:center;justify-content:space-between;gap:2cqw;padding:1.2cqw 1cqw;color:#7f9eb3;font-size:max(8px,1.65cqw)}
+      .ems-planner-nav{display:flex;align-items:center;justify-content:space-between;gap:2cqw;padding:1cqw 0}
+      .ems-planner-nav .media-button{flex:1;font-size:2.25cqw;padding:2.1cqw 1.5cqw}
+      @media(max-width:360px){.ems-metric-icon{display:none}.ems-metric-head{justify-content:center}.ems-metric .ems-growth{text-align:center}}
+      @media(prefers-reduced-motion:reduce){.ems-platform{transition:none}}
     </style>
   </head>
   <body>
@@ -2475,36 +2579,37 @@
               >
                 <sc-if value="{{ mediaVisible }}" hint-placeholder-val="{{ false }}">
                   <section class="media-hub" aria-label="Social Media workspace">
-                    <div>
-                      <div class="media-kicker">BUSINESS / SOCIAL MEDIA</div>
-                      <h2 class="media-title">SOCIAL MEDIA</h2>
-                      <p class="media-subtitle">Create with intention. Build your presence.</p>
-                    </div>
-                    <div class="media-choices">
-                      <button
-                        type="button"
-                        class="media-choice evo-style-card"
-                        onClick="{{ mediaProjects }}"
-                        aria-label="Projects — open project management"
-                      >
-                        <div class="media-orbit" aria-hidden="true">▱</div>
-                        <strong>Projects</strong>
-                        <p>Turn ideas into campaigns and focused work.</p>
-                        <small>{{ mediaProjectCount }} PROJECTS ↗</small>
-                      </button>
-                      <button
-                        type="button"
-                        class="media-choice evo-style-card"
-                        onClick="{{ mediaPlanner }}"
-                        aria-label="Media System — open content planner"
-                      >
-                        <div class="media-orbit" aria-hidden="true">▷</div>
-                        <strong>Media System</strong>
-                        <p>Plan content. Shape the story. Track progress.</p>
-                        <small>{{ mediaItemCount }} CONTENT PLANS ↗</small>
-                      </button>
-                    </div>
                     <sc-if value="{{ mediaOverview }}" hint-placeholder-val="{{ true }}">
+                      <div>
+                        <div class="media-kicker">BUSINESS / SOCIAL MEDIA</div>
+                        <h2 class="media-title">SOCIAL MEDIA</h2>
+                        <p class="media-subtitle">Create with intention. Build your presence.</p>
+                      </div>
+                      <div class="media-choices">
+                        <button
+                          type="button"
+                          class="media-choice evo-style-card"
+                          onClick="{{ mediaProjects }}"
+                          aria-label="Projects — open project management"
+                        >
+                          <div class="media-orbit" aria-hidden="true">▱</div>
+                          <strong>Projects</strong>
+                          <p>Turn ideas into campaigns and focused work.</p>
+                          <small>{{ mediaProjectCount }} PROJECTS ↗</small>
+                        </button>
+                        <button
+                          type="button"
+                          class="media-choice evo-style-card"
+                          onClick="{{ mediaDashboard }}"
+                          aria-label="Media System — open marketing dashboard"
+                        >
+                          <div class="media-orbit" aria-hidden="true">▷</div>
+                          <strong>Media System</strong>
+                          <p>Your marketing command center. Plan, analyze and create.</p>
+                          <small>{{ mediaItemCount }} CONTENT PLANS ↗</small>
+                        </button>
+                      </div>
+
                       <div class="media-flow evo-style-card">
                         <div class="media-kicker">YOUR CONTENT WORKFLOW</div>
                         <div class="media-flow-line">
@@ -2523,16 +2628,635 @@
                           <b>{{ mediaPublishedCount }}</b><span>MARKED PUBLISHED</span>
                         </div>
                       </div>
-                      <button type="button" class="media-button" onClick="{{ mediaPlanner }}">
+                      <button type="button" class="media-button" onClick="{{ mediaDashboard }}">
                         OPEN MEDIA SYSTEM →
                       </button>
                     </sc-if>
+
+                    <sc-if value="{{ mediaIsDashboard }}" hint-placeholder-val="{{ false }}">
+                      <section class="ems-dashboard" aria-label="Evolution Media System dashboard">
+                        <header class="ems-masthead">
+                          <button
+                            type="button"
+                            class="ems-nav-button ems-back-icon"
+                            onClick="{{ mediaBack }}"
+                            aria-label="Back to Social Media overview"
+                          >
+                            ‹
+                          </button>
+                          <div class="ems-brand">
+                            <h2>EVOLUTION OS</h2>
+                            <p>MEDIA &amp; MARKETING SYSTEM</p>
+                          </div>
+                          <button
+                            type="button"
+                            class="ems-nav-button"
+                            onClick="{{ mediaPlanner }}"
+                            aria-label="Open content planner"
+                          >
+                            Planner ↗
+                          </button>
+                        </header>
+                        <div class="ems-toolbar">
+                          <label class="ems-control"
+                            ><select
+                              aria-label="Demo analytics period"
+                              value="{{ mediaDashboardPeriod }}"
+                              onChange="{{ mediaSetDashboardPeriod }}"
+                            >
+                              <option value="october">Oct 1–31, 2026</option>
+                              <option value="september">Sep 1–30, 2026</option>
+                              <option value="week">Oct 25–31, 2026</option>
+                            </select></label
+                          >
+                          <div class="ems-control ems-demo"><i class="ems-dot" aria-hidden="true"></i>Demo data</div>
+                          <label class="ems-control"
+                            ><select
+                              aria-label="Analytics channel"
+                              value="{{ mediaDashboardChannel }}"
+                              onChange="{{ mediaSetDashboardChannel }}"
+                            >
+                              <option value="All">All channels</option>
+                              <option>Instagram</option>
+                              <option>TikTok</option>
+                              <option>Facebook</option>
+                              <option>YouTube</option>
+                              <option>Shopify</option>
+                              <option>Direct / Other</option>
+                            </select></label
+                          >
+                        </div>
+                        <div class="ems-disclosure">
+                          <span>Sample analytics · Accounts disconnected</span
+                          ><button
+                            type="button"
+                            class="ems-text-button"
+                            onClick="{{ mediaToggleSystemInfo }}"
+                            aria-expanded="{{ mediaSystemInfoOpen }}"
+                          >
+                            {{ mediaSystemInfoLabel }}
+                          </button>
+                        </div>
+                        <sc-if value="{{ mediaSystemInfoOpen }}" hint-placeholder-val="{{ false }}"
+                          ><p class="ems-info" role="status">
+                            Traffic, revenue, growth and charts are illustrative demo data. No social accounts, AI
+                            providers or sales platforms are connected. Workflow tiles open your existing workspace;
+                            they do not run automations or post content. Your content plans are saved separately.
+                          </p></sc-if
+                        >
+                        <section class="ems-frame ems-total evo-style-card" aria-label="Demo total traffic">
+                          <div>
+                            <h3 class="ems-label">
+                              TOTAL TRAFFIC <span style="font-size:max(8px,1.4cqw);color:#9bb3c5">DEMO</span>
+                            </h3>
+                            <div class="ems-total-main">
+                              <strong>{{ mediaTraffic }}</strong
+                              ><span class="ems-growth">▲ {{ mediaTrafficGrowth }}</span>
+                            </div>
+                          </div>
+                          <div class="ems-bars" aria-hidden="true">
+                            <sc-for list="{{ mediaTrafficBars }}" as="bar" hint-placeholder-count="0"
+                              ><i style="{{ bar.style }}"></i
+                            ></sc-for>
+                          </div>
+                        </section>
+                        <div class="ems-platforms" aria-label="Demo channel traffic filters">
+                          <sc-for list="{{ mediaPlatforms }}" as="ch" hint-placeholder-count="0">
+                            <button
+                              type="button"
+                              class="ems-frame ems-platform evo-style-card"
+                              style="{{ ch.style }}"
+                              onClick="{{ ch.onClick }}"
+                              aria-label="{{ ch.ariaLabel }}"
+                              aria-pressed="{{ ch.selected }}"
+                            >
+                              <svg class="ems-brand-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="{{ ch.icon }}" fill-rule="evenodd"></path>
+                              </svg>
+                              <span class="ems-platform-name">{{ ch.name }}</span
+                              ><b class="ems-platform-value">{{ ch.traffic }}</b
+                              ><span class="ems-growth">▲ {{ ch.growth }}</span>
+                              <div class="ems-bars" aria-hidden="true">
+                                <sc-for list="{{ ch.bars }}" as="bar" hint-placeholder-count="0"
+                                  ><i style="{{ bar.style }}"></i
+                                ></sc-for>
+                              </div>
+                            </button>
+                          </sc-for>
+                        </div>
+                        <div class="ems-network">
+                          <svg
+                            class="ems-circuit"
+                            viewBox="0 0 900 540"
+                            preserveAspectRatio="none"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <g stroke="#19caff" stroke-width="2">
+                              <path
+                                d="M90 0v10l26 26h149l56 55M270 0l45 48 49 35M450 0v58M630 0l-45 48-49 35M810 0v10l-26 26H635l-56 55M450 314v95M344 270l-52 57H164l-24 25v58M556 270l52 57h128l24 25v58M280 455h45m250 0h45"
+                              />
+                              <path
+                                d="m443 50 7 10 7-10m-15 344 8 12 8-12m-318 2 8 12 8-12m612-12 8 12 8-12M310 449l12 6-12 6m280-12-12 6 12 6"
+                              />
+                              <path
+                                d="M0 13h20l17 17v290l20 20v162l22 23h741l24-24V340l20-20V30l17-17h19"
+                                opacity=".2"
+                              />
+                              <path d="M0 270h23l19 17v213l23 28h770l23-28V287l19-17h23" opacity=".2" />
+                            </g>
+                            <g fill="#b8f6ff">
+                              <circle cx="450" cy="60" r="4" />
+                              <circle cx="450" cy="405" r="4" />
+                              <circle cx="140" cy="406" r="4" />
+                              <circle cx="760" cy="406" r="4" />
+                            </g>
+                          </svg>
+                          <div class="ems-core-row">
+                            <section class="ems-frame ems-side evo-style-card" aria-label="AI agents disconnected">
+                              <h3>AI AGENTS</h3>
+                              <div class="ems-agent">
+                                <span class="ems-agent-mark">◉</span>ChatGPT<i class="ems-dot" aria-hidden="true"></i>
+                              </div>
+                              <div class="ems-agent">
+                                <span class="ems-agent-mark" style="background:#60372b;color:#ffc7a4">✳</span>Claude<i
+                                  class="ems-dot"
+                                  aria-hidden="true"
+                                ></i>
+                              </div>
+                              <div class="ems-agent">
+                                <span class="ems-agent-mark" style="background:#17202a">𝕏</span>Grok<i
+                                  class="ems-dot"
+                                  aria-hidden="true"
+                                ></i>
+                              </div>
+                              <div class="ems-agent">
+                                <span class="ems-agent-mark" style="background:#153658">⚙</span>Custom<i
+                                  class="ems-dot"
+                                  aria-hidden="true"
+                                ></i>
+                              </div>
+                              <p class="ems-offline">NOT CONNECTED</p>
+                            </section>
+                            <div class="ems-core" role="img" aria-label="Evolution AI decorative circuit tree">
+                              <svg
+                                class="ems-tree"
+                                viewBox="0 0 200 172"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                              >
+                                <ellipse cx="100" cy="153" rx="55" ry="8" fill="#043e7777" stroke="#2ebeff" />
+                                <ellipse cx="100" cy="153" rx="40" ry="4" stroke="#218cf0" fill="none" />
+                                <path
+                                  d="M81 151c14-10 15-17 14-30l-7-12-1-25m31 67c-16-8-17-18-16-31l10-18 1-27M95 123l-21-20-15-8m43 25 21-18 23-6M89 99 70 78 49 75m61 27 19-20 28-7M91 94l9-23-6-25m8 43 15-24 12-13M88 85 75 65 63 52"
+                                  fill="none"
+                                  stroke="#35b7ff"
+                                  stroke-width="2.2"
+                                />
+                                <path
+                                  d="M49 75L27 62m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="27" cy="62" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="20" cy="59" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="32" cy="57" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="25" cy="54" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="34" cy="64" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M49 75L41 53m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="41" cy="53" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="34" cy="50" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="46" cy="48" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="39" cy="45" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="48" cy="55" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M70 78L56 65m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="56" cy="65" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="49" cy="62" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="61" cy="60" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="54" cy="57" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="63" cy="67" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M59 95L35 92m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="35" cy="92" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="28" cy="89" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="40" cy="87" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="33" cy="84" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="42" cy="94" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M59 95L43 81m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="43" cy="81" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="36" cy="78" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="48" cy="76" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="41" cy="73" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="50" cy="83" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M75 65L77 44m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="77" cy="44" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="70" cy="41" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="82" cy="39" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="75" cy="36" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="84" cy="46" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M63 52L50 40m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="50" cy="40" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="43" cy="37" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="55" cy="35" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="48" cy="32" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="57" cy="42" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M94 46L83 30m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="83" cy="30" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="76" cy="27" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="88" cy="25" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="81" cy="22" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="90" cy="32" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M94 46L103 24m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="103" cy="24" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="96" cy="21" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="108" cy="19" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="101" cy="16" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="110" cy="26" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M117 65L119 40m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="119" cy="40" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="112" cy="37" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="124" cy="35" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="117" cy="32" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="126" cy="42" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M129 52L144 38m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="144" cy="38" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="137" cy="35" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="149" cy="33" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="142" cy="30" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="151" cy="40" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M157 75L170 60m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="170" cy="60" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="163" cy="57" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="175" cy="55" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="168" cy="52" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="177" cy="62" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M146 96L169 88m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="169" cy="88" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="162" cy="85" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="174" cy="83" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="167" cy="80" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="176" cy="90" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M129 82L147 63m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="147" cy="63" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="140" cy="60" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="152" cy="58" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="145" cy="55" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="154" cy="65" r="2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <path
+                                  d="M100 71L108 55m-2 2-8-2m8 2 1-8"
+                                  fill="none"
+                                  stroke="#19a6ff"
+                                  stroke-width="1.5"
+                                />
+                                <circle cx="108" cy="55" r="3.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="101" cy="52" r="2.3" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="113" cy="50" r="2.1" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle cx="106" cy="47" r="2.2" fill="#033b6a" stroke="#28a4ff" stroke-width="1.3" />
+                                <circle
+                                  cx="115"
+                                  cy="57"
+                                  r="2"
+                                  fill="#033b6a"
+                                  stroke="#28a4ff"
+                                  stroke-width="1.3"
+                                /></svg
+                              ><span class="ems-core-label">EVOLUTION AI</span
+                              ><span class="ems-core-caption">PLAN · ANALYZE · CREATE</span>
+                            </div>
+                            <section class="ems-frame ems-side evo-style-card" aria-label="System status">
+                              <h3>SYSTEM STATUS</h3>
+                              <div class="ems-system-row"><span>APIs</span><b>0 / 5</b></div>
+                              <div class="ems-system-row"><span>Automations</span><b>Off</b></div>
+                              <div class="ems-system-row"><span>Data sync</span><b>No sources</b></div>
+                              <div class="ems-system-row"><span>AI agents</span><b>0 / 4</b></div>
+                              <p class="ems-offline">DISCONNECTED</p>
+                            </section>
+                          </div>
+                          <div class="ems-db-row" aria-label="Workspace database shortcuts">
+                            <button
+                              type="button"
+                              class="ems-db"
+                              onClick="{{ mediaProjects }}"
+                              aria-label="ADS.DB — open existing projects"
+                            >
+                              <div class="ems-db-main">
+                                <svg
+                                  class=""
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <ellipse cx="12" cy="4" rx="9" ry="3" />
+                                  <path d="M3 4v15c0 4 18 4 18 0V4M3 9c0 4 18 4 18 0M3 14c0 4 18 4 18 0" /></svg
+                                ><b>ADS.DB</b>
+                              </div>
+                              <small>CAMPAIGN PLANS</small><span>OPEN PROJECTS ↗</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="ems-db leads"
+                              onClick="{{ mediaOpenClients }}"
+                              aria-label="LEADS.DB — open existing clients"
+                            >
+                              <div class="ems-db-main">
+                                <svg
+                                  class=""
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <circle cx="9" cy="7" r="3" />
+                                  <path d="M3 21v-4a6 6 0 0 1 12 0v4zM16 4a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5v2h-3" /></svg
+                                ><b>LEADS.DB</b>
+                              </div>
+                              <small>CLIENT WORKSPACE</small><span>OPEN CLIENTS ↗</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="ems-db sales"
+                              onClick="{{ mediaOpenFinances }}"
+                              aria-label="SALES.DB — open existing finances"
+                            >
+                              <div class="ems-db-main">
+                                <svg
+                                  class=""
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M2 3h3l3 13h11l3-10H6M9 20h.01M18 20h.01" />
+                                  <circle cx="9" cy="20" r="1" />
+                                  <circle cx="18" cy="20" r="1" /></svg
+                                ><b>SALES.DB</b>
+                              </div>
+                              <small>FINANCE WORKSPACE</small><span>OPEN FINANCES ↗</span>
+                            </button>
+                          </div>
+                        </div>
+                        <section class="ems-frame evo-style-card" aria-label="Demo key metrics">
+                          <div class="ems-section-title">
+                            <h3>KEY METRICS <small>DEMO</small></h3>
+                            <button
+                              class="ems-text-button"
+                              type="button"
+                              onClick="{{ mediaToggleMetrics }}"
+                              aria-expanded="{{ mediaMetricsExpanded }}"
+                            >
+                              {{ mediaMetricsToggleLabel }}
+                            </button>
+                          </div>
+                          <div class="ems-metrics">
+                            <sc-for list="{{ mediaDashboardMetrics }}" as="metric" hint-placeholder-count="0"
+                              ><div class="ems-frame ems-metric evo-style-card" style="{{ metric.style }}">
+                                <div class="ems-metric-head">
+                                  <svg
+                                    class="ems-metric-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    aria-hidden="true"
+                                  >
+                                    <path d="{{ metric.icon }}"></path>
+                                  </svg>
+                                  <div>
+                                    <span class="ems-metric-label">{{ metric.label }}</span><b>{{ metric.value }}</b>
+                                  </div>
+                                </div>
+                                <span class="ems-growth">▲ {{ metric.growth }}</span
+                                ><svg
+                                  class="ems-spark"
+                                  viewBox="0 0 100 25"
+                                  preserveAspectRatio="none"
+                                  aria-hidden="true"
+                                >
+                                  <polyline
+                                    points="{{ metric.spark }}"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.3"
+                                  ></polyline>
+                                  <polygon points="{{ metric.area }}" fill="currentColor" opacity=".08"></polygon>
+                                </svg></div
+                            ></sc-for>
+                          </div>
+                          <sc-if value="{{ mediaMetricsExpanded }}" hint-placeholder-val="{{ false }}"
+                            ><div class="ems-metric-details">
+                              <div>Demo orders<b>{{ mediaDemoOrders }}</b></div>
+                              <div>Demo avg. order<b>{{ mediaDemoOrderValue }}</b></div>
+                              <div>Demo ad spend<b>{{ mediaDemoSpend }}</b></div>
+                            </div>
+                            <p class="ems-chart-note">
+                              {{ mediaDashboardScope }}. Values are illustrative and do not describe your business.
+                            </p></sc-if
+                          >
+                        </section>
+                        <section class="ems-frame evo-style-card" aria-label="Demo revenue analytics">
+                          <div class="ems-section-title">
+                            <h3>REVENUE ANALYTICS <small>DEMO</small></h3>
+                            <label
+                              ><select
+                                class="ems-chart-select"
+                                aria-label="Revenue chart view"
+                                value="{{ mediaChartView }}"
+                                onChange="{{ mediaSetChartView }}"
+                              >
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                              </select></label
+                            >
+                          </div>
+                          <div class="ems-revenue-summary">
+                            <strong>{{ mediaRevenue }}</strong
+                            ><span class="ems-growth">▲ {{ mediaRevenueGrowth }}</span>
+                          </div>
+                          <div class="ems-chart-wrap">
+                            <div class="ems-axis" aria-hidden="true">
+                              <span>{{ mediaAxisTop }}</span><span>{{ mediaAxisThree }}</span
+                              ><span>{{ mediaAxisHalf }}</span><span>{{ mediaAxisOne }}</span><span>$0</span>
+                            </div>
+                            <svg
+                              class="ems-chart"
+                              viewBox="0 0 600 160"
+                              preserveAspectRatio="none"
+                              role="img"
+                              aria-label="{{ mediaRevenueChartLabel }}"
+                            >
+                              <defs>
+                                <linearGradient id="ems-revenue-fill" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stop-color="#24ceff"></stop>
+                                  <stop offset="100%" stop-color="#1755ec"></stop>
+                                </linearGradient>
+                              </defs>
+                              <sc-for list="{{ mediaRevenueBars }}" as="point" hint-placeholder-count="0">
+                                <rect
+                                  x="{{ point.x }}"
+                                  y="{{ point.y }}"
+                                  width="{{ point.width }}"
+                                  height="{{ point.height }}"
+                                  fill="url(#ems-revenue-fill)"
+                                  opacity=".84"
+                                  aria-label="{{ point.label }}"
+                                ></rect>
+                              </sc-for>
+                              <polyline
+                                class="ems-chart-line"
+                                points="{{ mediaRevenueLine }}"
+                                fill="none"
+                                stroke="#86e7ff"
+                                stroke-width="1.6"
+                                vector-effect="non-scaling-stroke"
+                              ></polyline>
+                              <sc-for list="{{ mediaRevenueDots }}" as="point" hint-placeholder-count="0">
+                                <circle cx="{{ point.x }}" cy="{{ point.y }}" r="2.5" fill="#cbfaff"></circle>
+                              </sc-for>
+                            </svg>
+                          </div>
+                          <div class="ems-chart-ticks">
+                            <sc-for list="{{ mediaRevenueTicks }}" as="tick" hint-placeholder-count="0"
+                              ><span>{{ tick.label }}</span></sc-for
+                            >
+                          </div>
+                          <p class="ems-chart-note">{{ mediaDashboardScope }} · Sample revenue, not connected sales.</p>
+                        </section>
+                        <section class="ems-frame evo-style-card" aria-label="Marketing workflow workspace shortcuts">
+                          <div class="ems-section-title">
+                            <h3>WORKFLOW WORKSPACE</h3>
+                            <button type="button" class="ems-text-button" onClick="{{ mediaOpenTasks }}">
+                              View tasks ›
+                            </button>
+                          </div>
+                          <div class="ems-workflows">
+                            <sc-for list="{{ mediaWorkflows }}" as="flow" hint-placeholder-count="0"
+                              ><button
+                                type="button"
+                                class="ems-frame ems-workflow evo-style-card"
+                                onClick="{{ flow.onClick }}"
+                                style="{{ flow.style }}"
+                                aria-label="{{ flow.ariaLabel }}"
+                              >
+                                <span class="ems-workflow-index">{{ flow.index }}</span
+                                ><svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="{{ flow.icon }}"></path></svg
+                                ><strong>{{ flow.label }}</strong><small>{{ flow.detail }}</small
+                                ><span class="ems-workflow-track" aria-hidden="true"
+                                  ><i style="{{ flow.progress }}"></i
+                                ></span></button
+                            ></sc-for>
+                          </div>
+                          <p class="ems-chart-note">
+                            Workspace shortcuts · No automations are running. Posting opens your manually managed Ready
+                            plans.
+                          </p>
+                        </section>
+                        <footer class="ems-footer">
+                          <span>{{ mediaItemCount }} saved content plans · {{ mediaReadyCount }} ready</span
+                          ><button class="ems-text-button" type="button" onClick="{{ mediaPlanner }}">
+                            Content planner ↗
+                          </button>
+                        </footer>
+                      </section>
+                    </sc-if>
                     <sc-if value="{{ mediaIsPlanner }}" hint-placeholder-val="{{ false }}">
-                      <div class="media-actions">
-                        <button type="button" class="media-button secondary" onClick="{{ mediaBack }}">
-                          ← OVERVIEW
+                      <nav class="ems-planner-nav" aria-label="Media workspace views">
+                        <button type="button" class="media-button secondary" onClick="{{ mediaDashboard }}">
+                          ← DASHBOARD
                         </button>
-                      </div>
+                        <button type="button" class="media-button secondary" onClick="{{ mediaBack }}">
+                          SOCIAL OVERVIEW
+                        </button>
+                      </nav>
                       <div class="media-panel evo-style-card">
                         <h3>MEDIA SYSTEM</h3>
                         <p class="media-subtitle">
@@ -11215,13 +11939,117 @@
           const shown = items.filter(x => filter === "All" || x.stage === filter);
           const editDraft = key => e => this.setState({ mediaDraft: Object.assign({}, draft, { [key]: e.target.value }), mediaError: "" });
           const clear = () => this.setState({ mediaDraft: null, mediaEditId: null, mediaError: "", mediaDeleteId: null });
+
+          const periodDefs = {
+            october: { label: "Oct 1–31, 2026", factor: 1, days: 31, start: 1, month: "Oct", trafficGrowth: 26, revenueGrowth: 41 },
+            september: { label: "Sep 1–30, 2026", factor: .78, days: 30, start: 1, month: "Sep", trafficGrowth: 18, revenueGrowth: 29 },
+            week: { label: "Oct 25–31, 2026", factor: .24, days: 7, start: 25, month: "Oct", trafficGrowth: 12, revenueGrowth: 19 }
+          };
+          const periodKey = Object.prototype.hasOwnProperty.call(periodDefs, this.state.mediaDashboardPeriod) ? this.state.mediaDashboardPeriod : "october";
+          const period = periodDefs[periodKey];
+          const platformDefs = [
+            { name: "Instagram", visits: 18421, growth: 24, color: "#c95cff", icon: "M7 1h10a6 6 0 0 1 6 6v10a6 6 0 0 1-6 6H7a6 6 0 0 1-6-6V7a6 6 0 0 1 6-6zm0 2a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4H7zm5 3a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm6-4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" },
+            { name: "TikTok", visits: 31208, growth: 37, color: "#29d5ef", icon: "M14 1h4c0 4 2 5 5 5v4a11 11 0 0 1-5-2v9a7 7 0 1 1-7-7v4a3 3 0 1 0 3 3V1z" },
+            { name: "Facebook", visits: 12963, growth: 12, color: "#2585ff", icon: "M19 1H5a4 4 0 0 0-4 4v14a4 4 0 0 0 4 4h7v-9H9v-4h3V8c0-5 3-6 7-5v4h-2c-1 0-1 1-1 2v1h3l-1 4h-2v9h3a4 4 0 0 0 4-4V5a4 4 0 0 0-4-4z" },
+            { name: "YouTube", visits: 8714, growth: 29, color: "#ff454e", icon: "M6 4h12a5 5 0 0 1 5 5v6a5 5 0 0 1-5 5H6a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5zm4 4v8l7-4-7-4z" },
+            { name: "Shopify", visits: 6302, growth: 41, color: "#38e6a1", icon: "M6 6h2c0-8 8-8 8 0h2l3 17H3L6 6zm4 0h4c0-5-4-5-4 0zm5 4c-6-2-9 4-4 6 3 1 1 4-3 2l-1 3c8 3 11-5 5-7-2-1-1-2 2-1l1-3z" }
+          ];
+          const validChannels = ["All", "Direct / Other"].concat(platformDefs.map(x => x.name));
+          const channel = validChannels.includes(this.state.mediaDashboardChannel) ? this.state.mediaDashboardChannel : "All";
+          const chosenPlatform = platformDefs.find(x => x.name === channel);
+          const baseTraffic = chosenPlatform ? chosenPlatform.visits : channel === "Direct / Other" ? 24532 : 102140;
+          const channelFactor = baseTraffic / 102140;
+          const traffic = Math.round(baseTraffic * period.factor);
+          const revenue = Math.round(38755 * period.factor * channelFactor);
+          const leads = Math.round(2856 * period.factor * channelFactor);
+          const orders = Math.max(1, Math.round(413 * period.factor * channelFactor));
+          const growth = chosenPlatform ? chosenPlatform.growth : period.trafficGrowth;
+          const chartView = this.state.mediaChartView === "weekly" ? "weekly" : "daily";
+          const fmt = n => Math.round(n).toLocaleString("en-US");
+          const money = n => "$" + fmt(n);
+          const barShape = [11,9,16,14,18,25,16,31,41,35,32,44,48,37,53,59,51,44,65,69,83,62,94,78,100,72,91,85];
+          const channelBars = index => [12,17,13,24,29,40,34,51,67,85].map((v,i) => ({style:{height:Math.min(100,v + ((index+i)%3)*4) + "%"}}));
+          // Revenue bars always sum to the displayed demo total, including weekly aggregation.
+          const weights = Array.from({length:period.days},(_,i) => 8 + i * .62 + [0,3,2,6,4,7,-1,5][i%8]);
+          const weightSum = weights.reduce((a,v) => a+v,0);
+          let assigned = 0;
+          const daily = weights.map((w,i) => { const value = i === weights.length-1 ? revenue-assigned : Math.floor(revenue*w/weightSum); assigned += value; return value; });
+          const chartValues = chartView === "weekly" ? Array.from({length:Math.ceil(daily.length/7)},(_,i) => daily.slice(i*7,i*7+7).reduce((a,v) => a+v,0)) : daily;
+          const maximum = Math.max(1,...chartValues);
+          const magnitude = Math.pow(10,Math.floor(Math.log10(maximum)));
+          const chartMax = Math.ceil(maximum/magnitude)*magnitude;
+          const chartStep = 600/chartValues.length;
+          const revenueBars = chartValues.map((value,i) => ({ x: (i*chartStep + chartStep*.15).toFixed(2), y: (160-value/chartMax*147).toFixed(2), width: (chartStep*.7).toFixed(2), height: (value/chartMax*147).toFixed(2), value, label: "Demo " + (chartView === "weekly" ? "week " + (i+1) : period.month + " " + (period.start+i)) + ": " + money(value) }));
+          const revenueDots = chartValues.map((value,i) => ({x:(i*chartStep+chartStep*.5).toFixed(2),y:(160-value/chartMax*147).toFixed(2)}));
+          const tickPositions = [...new Set([0,Math.floor((chartValues.length-1)/3),Math.floor((chartValues.length-1)*2/3),chartValues.length-1])];
+          const openBiz = tab => () => this.bizSet({tab,menu:null});
+          const openPlannerStage = stage => () => this.setState({mediaView:"planner",mediaFilter:stage,mediaDeleteId:null});
+          const projects = Array.isArray(b.projects) ? b.projects : [];
+          const tasks = Array.isArray(b.tasks) ? b.tasks : [];
+          const clients = Array.isArray(b.clients) ? b.clients : [];
+          const readyPlans = items.filter(x => x.stage === "Ready").length;
+          const projectProgress = projects.length ? projects.reduce((a,p) => a+(Number(p.pct)||0),0)/projects.length : 0;
+          const taskProgress = tasks.length ? tasks.filter(t=>t.done).length/tasks.length*100 : 0;
+          const glyphs = {
+            research:"M9 3a4 4 0 0 0-5 4 4 4 0 0 0-1 7 4 4 0 0 0 6 5m0-16v18m6-18a4 4 0 0 1 5 4 4 4 0 0 1 1 7 4 4 0 0 1-6 5m0-16v18M5 8h4m-5 6h5m6-6h4m-4 6h5M9 11h6",
+            ads:"M12 12C7-1 1 3 1 12s6 13 11 0c5-13 11-9 11 0s-6 13-11 0z",
+            content:"M3 4h18v16H3zM10 8l6 4-6 4z",
+            posting:"M14 2h4c0 3 1 4 4 4v4l-4-2v8a7 7 0 1 1-7-7v4a3 3 0 1 0 3 3z",
+            leads:"M6 8a3 3 0 1 0 6 0 3 3 0 1 0-6 0M2 21v-4a7 7 0 0 1 14 0v4zM16 4a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5v2h-3",
+            sales:"M2 3h3l3 13h11l3-10H6M9 20h.1M18 20h.1",
+            followups:"M2 4h20v16H2zM2 4l10 8L22 4M2 20l7-7m13 7-7-7",
+            booking:"M3 5h18v17H3zM7 2v6m10-6v6M3 10h18M7 14h3v4H7m7-4h3v4h-3"
+          };
+          const flows = [
+            {label:"RESEARCH",icon:glyphs.research,color:"#c76cff",detail:projects.length+" projects",target:"existing projects",onClick:openBiz("PROJECTS"),pct:projectProgress},
+            {label:"ADS",icon:glyphs.ads,color:"#429bff",detail:"Campaign projects",target:"existing projects",onClick:openBiz("PROJECTS"),pct:projectProgress},
+            {label:"CONTENT",icon:glyphs.content,color:"#cc8be9",detail:items.length+" saved plans",target:"content planner",onClick:openPlannerStage("All"),pct:items.length?readyPlans/items.length*100:0},
+            {label:"POSTING",icon:glyphs.posting,color:"#5ae4ec",detail:readyPlans+" ready plans",target:"Ready content plans; publishing is manual",onClick:openPlannerStage("Ready"),pct:items.length?readyPlans/items.length*100:0},
+            {label:"LEADS",icon:glyphs.leads,color:"#3ce4d1",detail:clients.length+" clients",target:"existing clients",onClick:openBiz("CLIENTS"),pct:clients.length?100:0},
+            {label:"SALES",icon:glyphs.sales,color:"#edd486",detail:"Finance workspace",target:"existing finances",onClick:openBiz("FINANCES"),pct:0},
+            {label:"FOLLOW-UPS",icon:glyphs.followups,color:"#31cfff",detail:tasks.filter(t=>!t.done).length+" open tasks",target:"existing open tasks",onClick:()=>this.bizSet({tab:"TASKS",taskFilter:"OPEN",menu:null}),pct:taskProgress},
+            {label:"BOOKING",icon:glyphs.booking,color:"#358dff",detail:"Today's tasks",target:"existing today tasks",onClick:()=>this.bizSet({tab:"TASKS",taskFilter:"TODAY",menu:null}),pct:taskProgress}
+          ];
+          const spark = index => Array.from({length:25},(_,i) => (i*100/24).toFixed(1) + "," + (23 - i*.62 - [1,4,2,6,3,0,5][(i+index)%7]).toFixed(1)).join(" ");
+          const metrics = [
+            {label:"LEADS",value:fmt(leads),growth:"34%",color:"#2bc9ff",icon:glyphs.leads},
+            {label:"SALES",value:money(revenue),growth:period.revenueGrowth+"%",color:"#e8ce7c",icon:glyphs.sales},
+            {label:"CONVERSION",value:"3.7%",growth:"0.8%",color:"#cd79f8",icon:"M3 4h18l-7 8v8l-4 2V12z"},
+            {label:"ROAS",value:"4.2×",growth:"26%",color:"#36c6ff",icon:"M3 21V13h3v8M10 21V8h3v13M17 21V2h3v19"}
+          ];
           return {
             mediaVisible: b.tab === "SOCIAL",
             mediaOpen: () => { this.bizSet({ tab: "SOCIAL", menu: null }); this.setState({ mediaView: "overview" }); },
             mediaProjects: () => this.bizSet({ tab: "PROJECTS", menu: null }),
             mediaPlanner: () => this.setState({ mediaView: "planner" }),
             mediaBack: () => { clear(); this.setState({ mediaView: "overview" }); },
-            mediaOverview: this.state.mediaView !== "planner", mediaIsPlanner: this.state.mediaView === "planner",
+            mediaOverview: !["planner","dashboard"].includes(this.state.mediaView), mediaIsPlanner: this.state.mediaView === "planner",
+            mediaDashboard: () => this.setState({mediaView:"dashboard",mediaDeleteId:null}),
+            mediaIsDashboard: this.state.mediaView === "dashboard",
+            mediaDashboardPeriod: periodKey, mediaDashboardChannel: channel, mediaChartView: chartView,
+            mediaSetDashboardPeriod: e => { if(Object.prototype.hasOwnProperty.call(periodDefs,e.target.value)) this.setState({mediaDashboardPeriod:e.target.value}); },
+            mediaSetDashboardChannel: e => { if(validChannels.includes(e.target.value)) this.setState({mediaDashboardChannel:e.target.value}); },
+            mediaSetChartView: e => { if(["daily","weekly"].includes(e.target.value)) this.setState({mediaChartView:e.target.value}); },
+            mediaSystemInfoOpen: !!this.state.mediaSystemInfoOpen,
+            mediaSystemInfoLabel: this.state.mediaSystemInfoOpen ? "Hide details ⌃" : "About this view ⌄",
+            mediaToggleSystemInfo: () => this.setState(s=>({mediaSystemInfoOpen:!s.mediaSystemInfoOpen})),
+            mediaMetricsExpanded: !!this.state.mediaMetricsExpanded,
+            mediaMetricsToggleLabel: this.state.mediaMetricsExpanded ? "Show less ⌃" : "View all ›",
+            mediaToggleMetrics: () => this.setState(s=>({mediaMetricsExpanded:!s.mediaMetricsExpanded})),
+            mediaOpenClients: openBiz("CLIENTS"), mediaOpenFinances: openBiz("FINANCES"), mediaOpenTasks: () => this.bizSet({tab:"TASKS",taskFilter:"ALL",menu:null}),
+            mediaTraffic: fmt(traffic), mediaTrafficGrowth: growth+"%",
+            mediaTrafficBars: barShape.map((v,i)=>({style:{height:Math.max(4,v-(periodKey==="september"?((i%5)*4):periodKey==="week"?((i%3)*6):0))+"%"}})),
+            mediaPlatforms: platformDefs.map((p,i)=>({name:p.name,traffic:fmt(p.visits*period.factor),growth:p.growth+"%",icon:p.icon,selected:channel===p.name,ariaLabel:p.name+" demo traffic, "+fmt(p.visits*period.factor)+" visits. Filter dashboard by "+p.name,style:{color:p.color},bars:channelBars(i),onClick:()=>this.setState({mediaDashboardChannel:channel===p.name?"All":p.name})})),
+            mediaDashboardMetrics: metrics.map((m,i)=>Object.assign({},m,{style:{color:m.color},spark:spark(i),area:"0,25 "+spark(i)+" 100,25"})),
+            mediaDemoOrders:fmt(orders),mediaDemoOrderValue:money(revenue/orders),mediaDemoSpend:money(revenue/4.2),
+            mediaRevenue:money(revenue),mediaRevenueGrowth:period.revenueGrowth+"%",
+            mediaRevenueBars:revenueBars,mediaRevenueDots:revenueDots.filter((_,i)=>chartValues.length<12||i%3===0||i===chartValues.length-1),
+            mediaRevenueLine:revenueDots.map(p=>p.x+","+p.y).join(" "),
+            mediaRevenueTicks:tickPositions.map(i=>({label:chartView==="weekly"?"Week "+(i+1):period.month+" "+(period.start+i)})),
+            mediaRevenueChartLabel:"Demo "+chartView+" revenue for "+channel+", "+period.label+". Total "+money(revenue)+". No connected sales data.",
+            mediaAxisTop:money(chartMax),mediaAxisThree:money(chartMax*.75),mediaAxisHalf:money(chartMax*.5),mediaAxisOne:money(chartMax*.25),
+            mediaDashboardScope:channel+" · "+period.label+(channel==="All"?" · Includes direct / other traffic":""),
+            mediaWorkflows:flows.map((f,i)=>Object.assign({},f,{index:String(i+1).padStart(2,"0"),style:{color:f.color},ariaLabel:f.label+" — open "+f.target,progress:{width:Math.min(100,Math.max(0,f.pct))+"%"}})),
             mediaProjectCount: (b.projects || []).length, mediaItemCount: items.length,
             mediaDraftCount: items.filter(x => x.stage === "Idea" || x.stage === "Draft").length,
             mediaReadyCount: items.filter(x => x.stage === "Ready").length,
