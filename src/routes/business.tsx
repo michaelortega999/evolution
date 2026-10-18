@@ -23,9 +23,23 @@ import {
   CalendarDays,
   Search,
   X,
+  Database,
+  Users,
+  ShoppingCart,
+  Bot,
+  BrainCircuit,
+  Mail,
+  Target,
+  BarChart3,
+  Zap,
+  Clock3,
+  ChevronRight,
+  Infinity as InfinityIcon,
+  ListTodo,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
-import { MediaSystemDashboard } from "@/components/evolution/MediaSystemDashboard";
+import { hologramSrc } from "@/lib/holograms";
+import type { CSSProperties, ReactNode } from "react";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { Sparkline } from "@/components/evolution/Sparkline";
 import { Input } from "@/components/ui/input";
@@ -42,13 +56,18 @@ import {
 } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/business")({
-  validateSearch: (search: Record<string, unknown>): { section?: "social-media" | "marketing-system" } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { section?: "social-media" | "media-system" | "marketing-system"; channel?: string } => ({
     section:
-      search.section === "social-media"
-        ? "social-media"
-        : search.section === "marketing-system"
-          ? "marketing-system"
-          : undefined,
+      search.section === "social-media" || search.section === "media-system" || search.section === "marketing-system"
+        ? search.section
+        : undefined,
+    channel:
+      typeof search.channel === "string" &&
+      ["Instagram", "TikTok", "YouTube", "Facebook", "LinkedIn", "Other"].includes(search.channel)
+        ? search.channel
+        : undefined,
   }),
   head: () => ({
     meta: [
@@ -78,15 +97,9 @@ function fmt(n: number) {
 }
 
 function BusinessRoute() {
-  const { section } = Route.useSearch();
-  if (section === "social-media") return <SocialMediaPage />;
-  if (section === "marketing-system") {
-    return (
-      <ModuleLayout number="07" title="Media System" subtitle="Business · Automated marketing overview" icon={Network}>
-        <MediaSystemDashboard />
-      </ModuleLayout>
-    );
-  }
+  const { section, channel } = Route.useSearch();
+  if (section === "social-media") return <SocialMediaPage key={channel ?? "all"} />;
+  if (section === "media-system" || section === "marketing-system") return <MediaSystemPage />;
   return <BusinessPage />;
 }
 
@@ -232,7 +245,9 @@ function BusinessPage() {
     setTaskText("");
   };
   const toggleTask = (id: string) =>
-    mutate((prev) => ({ bizTasks: prev.bizTasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
+    mutate((prev) => ({
+      bizTasks: prev.bizTasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+    }));
   const delTask = (id: string) => mutate((prev) => ({ bizTasks: prev.bizTasks.filter((t) => t.id !== id) }));
   const visibleTasks = data.bizTasks.filter((t) => taskFilter === "All" || t.priority === taskFilter);
 
@@ -394,6 +409,7 @@ function BusinessPage() {
             )}
           </div>
           {/* Revenue */}
+          <div id="business-revenue" className="scroll-mt-6" />
           <Panel title="Add Revenue">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <Input
@@ -450,6 +466,7 @@ function BusinessPage() {
             </ul>
           </Panel>
           {/* Tasks */}
+          <div id="business-tasks" className="scroll-mt-6" />
           <Panel title="Add Task">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_120px_140px_140px_auto] gap-3">
               <Input
@@ -775,7 +792,8 @@ function mediaPatch(data: EvolutionData, update: (items: MediaItem[]) => MediaIt
 function SocialMediaPage() {
   const { data, mutate } = useEvolutionData();
   const items = readMediaItems(data);
-  const [channel, setChannel] = useState("All");
+  const { channel: initialChannel } = Route.useSearch();
+  const [channel, setChannel] = useState(initialChannel ?? "All");
   const [query, setQuery] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -958,7 +976,11 @@ function SocialMediaPage() {
               </span>
             </div>
           </Link>
-          <a href="#media-planner" className="evo-surface media-panel media-card-link block p-6 group">
+          <Link
+            to="/business"
+            search={{ section: "media-system" }}
+            className="evo-surface media-panel media-card-link block p-6 group"
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="hud-label text-[9px] tracking-[.24em] text-cyan-300/60 mb-2">
@@ -971,39 +993,14 @@ function SocialMediaPage() {
               </div>
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-slate-400 mt-4">
-              Capture ideas, develop drafts, and plan your channels. A clear workflow for every piece of content.
+              Open your visual command center for channels, campaigns, and content. Your saved planner stays one click
+              away.
             </p>
             <div className="mt-6 flex items-end justify-between gap-3 border-t border-cyan-400/15 pt-4">
               <div>
                 <span className="hud-label text-2xl text-cyan-200">{items.length}</span>
                 <span className="ml-2 text-xs text-slate-400">content items</span>
               </div>
-              <span className="inline-flex items-center gap-2 hud-label text-[9px] text-cyan-300">
-                Open planner <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </div>
-          </a>
-          <Link
-            to="/business"
-            search={{ section: "marketing-system" }}
-            className="evo-surface media-panel media-card-link block p-6 group"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="hud-label text-[9px] tracking-[.24em] text-cyan-300/60 mb-2">
-                  03 / Marketing overview · demo
-                </div>
-                <h2 className="hud-label text-xl text-cyan-100">Marketing System</h2>
-              </div>
-              <div className="media-orbit">
-                <Globe className="h-7 w-7 text-cyan-300" />
-              </div>
-            </div>
-            <p className="max-w-sm text-sm leading-relaxed text-slate-400 mt-4">
-              Traffic sources, AI agents, automated workflow, and campaign performance in one dashboard. Sample data
-              shown until real sources are connected.
-            </p>
-            <div className="mt-6 flex items-end justify-end border-t border-cyan-400/15 pt-4">
               <span className="inline-flex items-center gap-2 hud-label text-[9px] text-cyan-300">
                 Open dashboard <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
@@ -1320,3 +1317,1178 @@ function SocialMediaPage() {
     </ModuleLayout>
   );
 }
+
+const DASH_TABS = [
+  "Overview",
+  "Automation",
+  "Analytics",
+  "Campaigns",
+  "Leads",
+  "Sales",
+  "Content",
+  "Services",
+] as const;
+type DashboardTab = (typeof DASH_TABS)[number];
+const DASH_SOURCES = [
+  { name: "Meta Ads", icon: InfinityIcon, color: "#218cff", visits: 24532, change: 18 },
+  { name: "Instagram", icon: Instagram, color: "#d946ef", visits: 18421, change: 24 },
+  { name: "TikTok", icon: Music2, color: "#13dcea", visits: 31208, change: 37 },
+  { name: "Facebook", icon: Facebook, color: "#3797ff", visits: 12963, change: 12 },
+  { name: "YouTube", icon: Youtube, color: "#ff4f67", visits: 8714, change: 29 },
+  { name: "Store / Direct", icon: ShoppingCart, color: "#4ade80", visits: 6302, change: 41 },
+];
+const DASH_WORKFLOW = [
+  {
+    name: "Research",
+    icon: BrainCircuit,
+    color: "#c084fc",
+    lines: ["Competitor research", "Market trends", "Audience insights"],
+    count: 42,
+    tab: "Content",
+    stage: "Idea",
+  },
+  {
+    name: "Ads",
+    icon: InfinityIcon,
+    color: "#268bff",
+    lines: ["Campaign planning", "Creative concepts", "Budget notes"],
+    count: 35,
+    tab: "Campaigns",
+    stage: "Draft",
+  },
+  {
+    name: "Content",
+    icon: Youtube,
+    color: "#e879f9",
+    lines: ["Generate ideas", "Create content", "Review drafts"],
+    count: 68,
+    tab: "Content",
+    stage: "Draft",
+  },
+  {
+    name: "Posting",
+    icon: Music2,
+    color: "#21dce7",
+    lines: ["Plan publish dates", "Review ready posts", "Log published work"],
+    count: 52,
+    tab: "Content",
+    stage: "Ready",
+  },
+  {
+    name: "Leads",
+    icon: Users,
+    color: "#20dcc7",
+    lines: ["Capture follow-ups", "Prepare outreach", "Track next steps"],
+    count: 43,
+    tab: "Leads",
+    stage: "Idea",
+  },
+  {
+    name: "Sales",
+    icon: ShoppingCart,
+    color: "#f5d37b",
+    lines: ["Record revenue", "Review sources", "Track business goals"],
+    count: 38,
+    tab: "Sales",
+    stage: "Published",
+  },
+  {
+    name: "Follow-ups",
+    icon: Mail,
+    color: "#21d6ff",
+    lines: ["Plan email / SMS", "Follow-up tasks", "Keep commitments"],
+    count: 44,
+    tab: "Leads",
+    stage: "Ready",
+  },
+  {
+    name: "Booking",
+    icon: CalendarDays,
+    color: "#30c6ff",
+    lines: ["Plan appointments", "Review calendar", "Add meeting details"],
+    count: 27,
+    tab: "Services",
+    stage: "Published",
+  },
+] as const;
+const SAMPLE_TREND = [8, 12, 9, 18, 16, 25, 19, 31, 24, 28, 40, 35, 48, 45, 62, 58, 67, 63, 80, 75, 94];
+const SAMPLE_CAMPAIGNS = [
+  {
+    name: "Meta · ASC",
+    source: "Meta Ads",
+    spend: 2430,
+    leads: 684,
+    sales: 9860,
+    roas: "4.1x",
+    color: "#22d3ee",
+  },
+  {
+    name: "IG · Reels",
+    source: "Instagram",
+    spend: 1280,
+    leads: 412,
+    sales: 5601,
+    roas: "4.4x",
+    color: "#e879f9",
+  },
+  {
+    name: "TikTok · Broad",
+    source: "TikTok",
+    spend: 1950,
+    leads: 890,
+    sales: 13420,
+    roas: "6.9x",
+    color: "#22d3ee",
+  },
+  {
+    name: "Facebook · Local",
+    source: "Facebook",
+    spend: 890,
+    leads: 306,
+    sales: 4125,
+    roas: "4.6x",
+    color: "#60a5fa",
+  },
+  {
+    name: "YouTube · Video",
+    source: "YouTube",
+    spend: 620,
+    leads: 201,
+    sales: 2987,
+    roas: "4.8x",
+    color: "#fb7185",
+  },
+];
+
+function DashPanel({
+  title,
+  children,
+  className = "",
+  color = "#44ceff",
+  detail,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+  color?: string;
+  detail?: string;
+}) {
+  return (
+    <section className={`evo-surface md-panel ${className}`} style={{ "--md-accent": color } as CSSProperties}>
+      <div className="md-panel-heading">
+        <h2>{title}</h2>
+        {detail && <span>{detail}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function DashGraph({
+  values,
+  color = "#28beff",
+  bars = false,
+  label,
+}: {
+  values: number[];
+  color?: string;
+  bars?: boolean;
+  label: string;
+}) {
+  const safe = values.length ? values : [0, 0];
+  const max = Math.max(1, ...safe.map(Math.abs));
+  const coords = safe
+    .map((value, i) => `${8 + (i * 264) / Math.max(1, safe.length - 1)},${93 - (Math.max(0, value) / max) * 80}`)
+    .join(" ");
+  return (
+    <svg viewBox="0 0 280 104" role="img" aria-label={label} className="md-graph" preserveAspectRatio="none">
+      {[23, 46, 69, 92].map((y) => (
+        <line key={y} x1="4" x2="278" y1={y} y2={y} stroke="#68b8e6" strokeOpacity=".1" strokeDasharray="2 4" />
+      ))}
+      {bars &&
+        safe.map((value, i) => (
+          <rect
+            key={i}
+            x={8 + (i * 264) / safe.length}
+            y={94 - (Math.max(0, value) / max) * 70}
+            width={Math.max(2, 264 / safe.length - 4)}
+            height={(Math.max(0, value) / max) * 70}
+            fill={color}
+            opacity={0.45 + (i / safe.length) * 0.4}
+          />
+        ))}
+      <polygon points={`8,94 ${coords} 272,94`} fill={color} opacity=".07" />
+      <polyline
+        points={coords}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.8"
+        vectorEffect="non-scaling-stroke"
+        style={{ filter: `drop-shadow(0 0 3px ${color})` }}
+      />
+      {safe.length <= 8 &&
+        safe.map((value, i) => (
+          <circle
+            key={i}
+            cx={8 + (i * 264) / Math.max(1, safe.length - 1)}
+            cy={93 - (Math.max(0, value) / max) * 80}
+            r="2.3"
+            fill={color}
+          />
+        ))}
+    </svg>
+  );
+}
+
+function DashDonut({
+  values,
+  colors,
+  total,
+  label,
+}: {
+  values: number[];
+  colors: string[];
+  total: string;
+  label: string;
+}) {
+  const sum = values.reduce((a, b) => a + b, 0);
+  let offset = 0;
+  return (
+    <div className="md-donut" role="img" aria-label={`${total} ${label}`}>
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#112b42" strokeWidth="9" />
+        {values.map((value, i) => {
+          const share = sum ? (value / sum) * 301.59 : 0;
+          const start = offset;
+          offset += share;
+          return (
+            <circle
+              key={i}
+              cx="60"
+              cy="60"
+              r="48"
+              fill="none"
+              stroke={colors[i % colors.length]}
+              strokeWidth="9"
+              strokeDasharray={`${Math.max(0, share - 2)} ${301.59 - Math.max(0, share - 2)}`}
+              strokeDashoffset={-start}
+              transform="rotate(-90 60 60)"
+            />
+          );
+        })}
+      </svg>
+      <div>
+        <strong>{total}</strong>
+        <span>{label}</span>
+      </div>
+    </div>
+  );
+}
+
+function DatabaseNode({
+  label,
+  detail,
+  color,
+  icon: Icon,
+  onClick,
+}: {
+  label: string;
+  detail: string;
+  color: string;
+  icon: typeof Database;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="md-database"
+      style={{ "--node-color": color } as CSSProperties}
+      onClick={onClick}
+      aria-label={`Explore ${label}`}
+    >
+      <svg viewBox="0 0 220 155" aria-hidden="true">
+        <ellipse cx="110" cy="127" rx="104" ry="24" />
+        <ellipse cx="110" cy="127" rx="95" ry="20" />
+        <ellipse cx="110" cy="127" rx="84" ry="16" />
+        <path d="M29 29v91c0 30 162 30 162 0V29" fill={color} fillOpacity=".055" />
+        <ellipse cx="110" cy="29" rx="81" ry="24" />
+        <ellipse cx="110" cy="29" rx="72" ry="18" />
+        <ellipse cx="110" cy="29" rx="60" ry="12" />
+        <path d="M29 106c0 30 162 30 162 0" strokeOpacity=".5" />
+      </svg>
+      <div>
+        <Icon size={28} />
+        <span>
+          <strong>{label}</strong>
+          <small>{detail}</small>
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function MediaSystemPage() {
+  const { data, mutate } = useEvolutionData();
+  const [activeTab, setActiveTab] = useState<DashboardTab>("Overview");
+  const [mode, setMode] = useState<"demo" | "saved">("demo");
+  const [selectedSource, setSelectedSource] = useState("All");
+  const [period, setPeriod] = useState("month");
+  const [selectedWorkflow, setSelectedWorkflow] = useState("");
+  const [chartView, setChartView] = useState("Revenue");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDate, setTaskDate] = useState("");
+  const [taskSaved, setTaskSaved] = useState(false);
+  const taskSubmit = useRef(false);
+  const workbench = useRef<HTMLDivElement>(null);
+  const allItems = readMediaItems(data);
+  const today = todayDate();
+  const now = new Date(`${today}T12:00:00`);
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+  const cutoff = period === "month" ? monthStart : period === "30" ? localISO(thirtyDaysAgo) : "";
+  const monthEnd = localISO(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  const upperBound = period === "month" ? monthEnd : period === "30" ? today : "";
+  const inPeriod = (date: string) => !date || ((!cutoff || date >= cutoff) && (!upperBound || date <= upperBound));
+  const savedItems = allItems.filter(
+    (item) => inPeriod(item.date) && (selectedSource === "All" || item.channel === selectedSource),
+  );
+  const revenues = data.revenue.filter((item) => inPeriod(item.date) && item.date <= today);
+  const realRevenue = revenues.reduce((sum, item) => sum + item.amount, 0);
+  const realOpenTasks = data.bizTasks.filter((task) => !task.done);
+  const realActiveProjects = data.projects.filter((project) => project.status !== "Completed");
+  const sources =
+    mode === "demo"
+      ? DASH_SOURCES
+      : MEDIA_CHANNELS.map((source) => ({
+          ...source,
+          visits: savedItems.filter((item) => item.channel === source.name).length,
+          change: 0,
+        }));
+  const factor = period === "30" ? 0.92 : period === "all" ? 1.8 : 1;
+  const chosenDemo = DASH_SOURCES.find((source) => source.name === selectedSource);
+  const portion = chosenDemo ? chosenDemo.visits / 102140 : 1;
+  const sampleTotal = Math.round((chosenDemo?.visits ?? 102140) * factor);
+  const stageCounts = MEDIA_STAGES.map((stage) => savedItems.filter((item) => item.stage === stage).length);
+  const activityValues =
+    mode === "demo" ? [124, 68, 52, 46, 36].map((v) => Math.round(v * factor * portion)) : stageCounts;
+  const activityNames =
+    mode === "demo" ? ["Content", "Research", "Outreach", "Data analysis", "Other"] : [...MEDIA_STAGES];
+  const palette = ["#2aa9ff", "#a855f7", "#20d6bb", "#fbbf24", "#83b1e0"];
+  const demoTrend = SAMPLE_TREND.map((value) => value * factor * portion);
+  const revenueTrend = [...revenues].sort((a, b) => a.date.localeCompare(b.date)).map((entry) => entry.amount);
+  const actualMetricSeries = [
+    stageCounts,
+    revenueTrend,
+    data.projects.map((project) => project.progress),
+    PRIORITIES.map((priority) => realOpenTasks.filter((task) => task.priority === priority).length),
+  ];
+  const totalActivity = activityValues.reduce((sum, value) => sum + value, 0);
+  const metrics =
+    mode === "demo"
+      ? [
+          {
+            title: "Leads",
+            value: Math.round(2856 * factor * portion).toLocaleString(),
+            icon: Users,
+            color: "#2bbaff",
+            detail: "▲ 34% · sample",
+          },
+          {
+            title: "Sales",
+            value: `$${Math.round(38755 * factor * portion).toLocaleString()}`,
+            icon: ShoppingCart,
+            color: "#f1d07a",
+            detail: "▲ 41% · sample",
+          },
+          {
+            title: "Conversion rate",
+            value: "3.7%",
+            icon: Target,
+            color: "#d17cff",
+            detail: "▲ 0.8% · sample",
+          },
+          {
+            title: "ROAS",
+            value: "4.2x",
+            icon: BarChart3,
+            color: "#22c6f5",
+            detail: "▲ 26% · sample",
+          },
+        ]
+      : [
+          {
+            title: "Content",
+            value: String(savedItems.length),
+            icon: Pencil,
+            color: "#2bbaff",
+            detail: "Saved content items",
+          },
+          {
+            title: "Revenue",
+            value: fmt(realRevenue),
+            icon: ShoppingCart,
+            color: "#f1d07a",
+            detail: "Business revenue entries",
+          },
+          {
+            title: "Projects",
+            value: String(realActiveProjects.length),
+            icon: FolderKanban,
+            color: "#d17cff",
+            detail: "Active business projects",
+          },
+          {
+            title: "Open tasks",
+            value: String(realOpenTasks.length),
+            icon: ListTodo,
+            color: "#22c6f5",
+            detail: "Business task list",
+          },
+        ];
+  const validPlannerChannel = MEDIA_CHANNELS.some((source) => source.name === selectedSource)
+    ? selectedSource
+    : undefined;
+  const plannerSearch = {
+    section: "social-media" as const,
+    ...(validPlannerChannel ? { channel: validPlannerChannel } : {}),
+  };
+  const selectTab = (tab: DashboardTab, workflow = "") => {
+    setActiveTab(tab);
+    setSelectedWorkflow(workflow);
+    setTaskSaved(false);
+    if (tab !== "Overview" && tab !== "Analytics")
+      requestAnimationFrame(() => workbench.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+    if (tab === "Analytics")
+      requestAnimationFrame(() =>
+        document.getElementById("media-system-analytics")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+  };
+  const addFollowUp = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (taskSubmit.current) return;
+    if (!taskTitle.trim()) {
+      toast.error("Give the task a title.");
+      return;
+    }
+    taskSubmit.current = true;
+    try {
+      mutate((prev) => ({
+        bizTasks: [
+          ...prev.bizTasks,
+          {
+            id: uid(),
+            text: taskTitle.trim(),
+            priority: "Medium",
+            due: taskDate || todayDate(),
+            category: "Social Media",
+            done: false,
+          },
+        ],
+      }));
+      setTaskTitle("");
+      setTaskDate("");
+      setTaskSaved(true);
+    } catch {
+      taskSubmit.current = false;
+      toast.error("Could not save this task. Please try again.");
+    }
+  };
+  const campaignRows = SAMPLE_CAMPAIGNS.filter((row) => selectedSource === "All" || row.source === selectedSource);
+  const distribution =
+    mode === "demo"
+      ? [28, 42, 18, 8, 4]
+      : MEDIA_CHANNELS.map((channel) => savedItems.filter((item) => item.channel === channel.name).length);
+  const distributionNames =
+    mode === "demo" ? ["18–24", "25–34", "35–44", "45–54", "55+"] : MEDIA_CHANNELS.map((channel) => channel.name);
+  const revenueValues = [...revenues].sort((a, b) => a.date.localeCompare(b.date)).map((entry) => entry.amount);
+
+  return (
+    <main className="media-dashboard">
+      <style>{MEDIA_DASHBOARD_CSS}</style>
+      <div className="md-topline">
+        <Link to="/business" search={{ section: "social-media" }}>
+          <ArrowLeft size={13} /> Social Media
+        </Link>
+        <span>Business / Media System</span>
+        <Link to="/business" search={plannerSearch} hash="media-planner">
+          Open content planner <ArrowRight size={13} />
+        </Link>
+      </div>
+      <header className="md-command-header">
+        <div className="md-brand">
+          <h1>
+            EVOLUTION OS<sup>™</sup>
+          </h1>
+          <p>MEDIA & MARKETING SYSTEM</p>
+        </div>
+        <nav aria-label="Media System sections" className="evo-surface md-nav">
+          {DASH_TABS.map((tab) => (
+            <button
+              type="button"
+              key={tab}
+              onClick={() => selectTab(tab)}
+              className={activeTab === tab ? "is-active" : ""}
+              aria-current={activeTab === tab ? "page" : undefined}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+        <label className="evo-surface md-period">
+          <Clock3 size={14} />
+          <span className="sr-only">Reporting period</span>
+          <select value={period} onChange={(event) => setPeriod(event.target.value)}>
+            <option value="month">This month</option>
+            <option value="30">Last 30 days</option>
+            <option value="all">All time</option>
+          </select>
+          <CalendarDays size={14} />
+        </label>
+      </header>
+      <div className="md-mode-bar">
+        <div className="md-mode-switch" aria-label="Dashboard data source">
+          <button
+            type="button"
+            aria-pressed={mode === "demo"}
+            className={mode === "demo" ? "is-active" : ""}
+            onClick={() => {
+              setMode("demo");
+              setSelectedSource("All");
+            }}
+          >
+            Demo analytics
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === "saved"}
+            className={mode === "saved" ? "is-active" : ""}
+            onClick={() => {
+              setMode("saved");
+              setSelectedSource("All");
+            }}
+          >
+            My workspace
+          </button>
+        </div>
+        <p>
+          {mode === "demo"
+            ? "SAMPLE DATA · Illustrative metrics only. No accounts, agents, or automations connected."
+            : "YOUR SAVED DATA · Manual records from your planner and business workspace. No live social analytics."}
+        </p>
+      </div>
+
+      {activeTab !== "Overview" && activeTab !== "Analytics" && (
+        <div ref={workbench} className="md-workbench evo-surface" role="region" aria-label={`${activeTab} workspace`}>
+          <div className="md-workbench-title">
+            <div>
+              <span>
+                {selectedWorkflow ? `${selectedWorkflow} / ` : ""}
+                {activeTab}
+              </span>
+              <h2>
+                {activeTab === "Content"
+                  ? "Turn the next idea into a saved plan."
+                  : activeTab === "Campaigns"
+                    ? "Build campaigns with your projects."
+                    : activeTab === "Sales"
+                      ? "Your recorded business revenue."
+                      : activeTab === "Automation"
+                        ? "Design the workflow. Run it manually."
+                        : activeTab === "Leads"
+                          ? "Keep the next follow-up on your radar."
+                          : "Plan your next service or appointment."}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("Overview");
+                setSelectedWorkflow("");
+              }}
+              aria-label="Close workspace panel"
+            >
+              <X size={17} />
+            </button>
+          </div>
+          <div className="md-workbench-body">
+            {activeTab === "Content" && (
+              <>
+                <p>
+                  {allItems.length} saved content items across your channels. Capture an idea, draft a caption, set a
+                  planned date, or record a post as published.{" "}
+                  {selectedWorkflow === "Posting" && "Publishing is manual; no post will be sent from this dashboard."}
+                </p>
+                <Link className="md-action" to="/business" search={plannerSearch} hash="media-planner">
+                  Open saved content planner <ArrowRight size={14} />
+                </Link>
+              </>
+            )}
+            {activeTab === "Campaigns" && (
+              <>
+                <p>
+                  {realActiveProjects.length} active projects. Use your existing project manager for campaign goals,
+                  deadlines, progress, and notes.
+                </p>
+                <Link className="md-action" to="/business" search={{}} hash="business-projects">
+                  Manage projects <ArrowRight size={14} />
+                </Link>
+              </>
+            )}
+            {activeTab === "Sales" && (
+              <>
+                <p>
+                  {fmt(realRevenue)} recorded in {revenues.length} revenue entries for this period. These are your
+                  manual business records, independent of demo analytics.
+                </p>
+                <Link className="md-action" to="/business" search={{}} hash="business-revenue">
+                  Open revenue manager <ArrowRight size={14} />
+                </Link>
+              </>
+            )}
+            {activeTab === "Automation" && (
+              <>
+                <p>
+                  The workflow below is a planning map. Choose a step to open its tools. It does not run agents, buy
+                  ads, send messages, or publish content.
+                </p>
+                <div className="md-workbench-actions">
+                  <Link className="md-action" to="/business" search={plannerSearch} hash="media-planner">
+                    Plan content <Pencil size={14} />
+                  </Link>
+                  <Link className="md-action" to="/business" search={{}} hash="business-tasks">
+                    Manage workflow tasks <ListTodo size={14} />
+                  </Link>
+                </div>
+              </>
+            )}
+            {(activeTab === "Leads" || activeTab === "Services") && (
+              <>
+                <p>
+                  {activeTab === "Leads"
+                    ? "Save a manual follow-up to your Business tasks. This does not contact anyone or create a CRM connection."
+                    : "Save a service task or open your calendar to plan an appointment. No booking or message is sent automatically."}
+                </p>
+                <form className="md-task-form" onSubmit={addFollowUp}>
+                  <label>
+                    <span className="sr-only">Follow-up task title</span>
+                    <input
+                      value={taskTitle}
+                      onChange={(event) => {
+                        setTaskTitle(event.target.value);
+                        taskSubmit.current = false;
+                        setTaskSaved(false);
+                      }}
+                      placeholder={
+                        activeTab === "Leads"
+                          ? "e.g. Follow up on a campaign inquiry"
+                          : "e.g. Prepare the next client session"
+                      }
+                      maxLength={200}
+                    />
+                  </label>
+                  <label>
+                    <span className="sr-only">Task due date</span>
+                    <input
+                      type="date"
+                      value={taskDate}
+                      onChange={(event) => {
+                        setTaskDate(event.target.value);
+                        taskSubmit.current = false;
+                      }}
+                    />
+                  </label>
+                  <button className="md-action" type="submit">
+                    <Plus size={14} /> Save task
+                  </button>
+                </form>
+                {taskSaved && (
+                  <p className="md-success" role="status">
+                    Task saved to Business.
+                  </p>
+                )}
+                <div className="md-workbench-actions">
+                  <Link to="/business" search={{}} hash="business-tasks">
+                    View business tasks <ArrowRight size={12} />
+                  </Link>
+                  {activeTab === "Services" && (
+                    <Link to="/calendar">
+                      Open calendar <CalendarDays size={12} />
+                    </Link>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <section className="md-traffic-section" aria-labelledby="md-traffic-title">
+        <div className="md-section-label">
+          <h2 id="md-traffic-title">
+            <Target size={12} />
+            {mode === "demo" ? "Traffic sources" : "Content channels"}
+          </h2>
+          <button type="button" onClick={() => setSelectedSource("All")} aria-pressed={selectedSource === "All"}>
+            {selectedSource === "All" ? "All channels" : `Clear ${selectedSource} filter`} <X size={10} />
+          </button>
+        </div>
+        <div className="md-traffic-row">
+          <div className="md-source-grid">
+            {sources.map(({ name, icon: Icon, color, visits, change }, i) => (
+              <button
+                type="button"
+                key={name}
+                className={`evo-surface md-source ${selectedSource === name ? "is-selected" : ""}`}
+                style={{ "--md-accent": color } as CSSProperties}
+                aria-pressed={selectedSource === name}
+                onClick={() => setSelectedSource(selectedSource === name ? "All" : name)}
+              >
+                <div className="md-source-name">
+                  <Icon size={13} />
+                  <span>{name}</span>
+                </div>
+                <div className="md-source-value">
+                  <Icon size={32} />
+                  <div>
+                    <strong>
+                      {mode === "demo"
+                        ? Math.round(visits * factor).toLocaleString()
+                        : String(allItems.filter((item) => item.channel === name && inPeriod(item.date)).length)}
+                    </strong>
+                    <small>{mode === "demo" ? `▲ ${change}% · demo` : "saved items"}</small>
+                  </div>
+                  <div className="md-mini-bars" aria-hidden="true">
+                    {[12, 20, 29, 22, 37, 48, 60, 76].map((height, j) => (
+                      <i
+                        key={j}
+                        style={{
+                          height: `${mode === "demo" ? height - (i % 2) * 5 : Math.min(76, (visits + j) * (visits ? 7 : 0))}%`,
+                          background: color,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+          <DashPanel
+            title={mode === "demo" ? "Total traffic" : "Saved content"}
+            className="md-traffic-total"
+            detail={mode === "demo" ? "DEMO" : "REAL"}
+          >
+            <div className="md-large-number">
+              {mode === "demo" ? sampleTotal.toLocaleString() : savedItems.length}
+              <span>{mode === "demo" ? "▲ 26%" : "items"}</span>
+            </div>
+            <DashGraph
+              values={mode === "demo" ? demoTrend : stageCounts}
+              bars
+              label={mode === "demo" ? "Illustrative traffic trend" : "Saved content by stage"}
+            />
+          </DashPanel>
+        </div>
+      </section>
+
+      <section className="md-system-grid" aria-label="Media system map">
+        <div className="md-left-stack">
+          <DashPanel title="AI agents" detail="UNCONNECTED">
+            <div className="md-agents">
+              {[
+                { name: "ChatGPT", icon: Bot, color: "#6de1c1" },
+                { name: "Claude", icon: BrainCircuit, color: "#e3b493" },
+                { name: "Grok", icon: Zap, color: "#d7e9ff" },
+                { name: "Custom agents", icon: Bot, color: "#6bafff" },
+              ].map(({ name, icon: Icon, color }) => (
+                <button type="button" key={name} onClick={() => selectTab("Automation")}>
+                  <Icon size={20} style={{ color }} />
+                  <span>{name}</span>
+                  <small>Not connected</small>
+                  <i />
+                </button>
+              ))}
+            </div>
+          </DashPanel>
+          <DashPanel
+            title={mode === "demo" ? "AI activity" : "Content activity"}
+            detail={mode === "demo" ? "DEMO" : "SAVED"}
+            className="md-activity"
+          >
+            <div className="md-activity-body">
+              <DashDonut
+                values={activityValues}
+                colors={palette}
+                total={String(totalActivity)}
+                label={mode === "demo" ? "Sample tasks" : "Content items"}
+              />
+              <ul>
+                {activityNames.map((name, i) => (
+                  <li key={name}>
+                    <i style={{ background: palette[i] }} />
+                    <span>{name}</span>
+                    <b>{activityValues[i]}</b>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </DashPanel>
+        </div>
+        <div className="md-system-center">
+          <svg className="md-circuit-lines" viewBox="0 0 800 430" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M132 78V178Q132 197 153 197H315Q345 197 345 240V285" stroke="#139bff" />
+            <path d="M400 80V254" stroke="#18e1e5" />
+            <path d="M668 80V182Q668 209 640 209H483Q451 209 451 241V285" stroke="#f4d38c" />
+            <path d="M132 132H274M528 132H668" stroke="#27e5ce" />
+            <path d="M400 379V409M400 409H65V425M400 409H735V425" stroke="#21d4ff" />
+            <path d="M20 305H260M540 305H780" stroke="#1a80db" strokeDasharray="4 7" />
+          </svg>
+          <div className="md-database-row">
+            <DatabaseNode
+              label={mode === "demo" ? "ADS.DB" : "CONTENT.DB"}
+              detail={mode === "demo" ? "AD DATA · DEMO" : "YOUR CONTENT PLAN"}
+              color="#1caeff"
+              icon={Database}
+              onClick={() => selectTab(mode === "demo" ? "Campaigns" : "Content")}
+            />
+            <DatabaseNode
+              label={mode === "demo" ? "LEADS.DB" : "PROJECTS.DB"}
+              detail={mode === "demo" ? "LEAD DATA · DEMO" : "GOALS · PROGRESS"}
+              color="#1ce4c9"
+              icon={Users}
+              onClick={() => selectTab(mode === "demo" ? "Leads" : "Campaigns")}
+            />
+            <DatabaseNode
+              label={mode === "demo" ? "SALES.DB" : "TASKS.DB"}
+              detail={mode === "demo" ? "SALES DATA · DEMO" : "YOUR NEXT ACTIONS"}
+              color="#f2d18b"
+              icon={ShoppingCart}
+              onClick={() => selectTab(mode === "demo" ? "Sales" : "Services")}
+            />
+          </div>
+          <Link
+            to="/business"
+            search={plannerSearch}
+            hash="media-planner"
+            className="md-orbital-core"
+            aria-label="Open the saved content planner"
+          >
+            <div className="md-orbit-ring md-orbit-ring-one" />
+            <div className="md-orbit-ring md-orbit-ring-two" />
+            <div className="md-orbit-crosshair" />
+            <img src={hologramSrc("bonsai")} alt="" />
+            <div className="md-core-label">
+              <strong>EVOLUTION AI</strong>
+              <span>PLAN · CREATE · EXECUTE</span>
+              <small>OPEN YOUR CONTENT PLANNER</small>
+            </div>
+          </Link>
+          <div className="md-center-caption">
+            <span>Connected workflow concept</span>
+            <small>Plan the work. Keep the controls.</small>
+          </div>
+          <DashPanel title="System status" className="md-status">
+            <ul>
+              <li>
+                <i />
+                <span>Accounts connected</span>
+                <b>0 / 6</b>
+              </li>
+              <li>
+                <i />
+                <span>Auto-posting</span>
+                <b>Off</b>
+              </li>
+              <li>
+                <i className="available" />
+                <span>Content planner</span>
+                <b>Available</b>
+              </li>
+              <li>
+                <i />
+                <span>Analytics source</span>
+                <b>{mode === "demo" ? "Demo" : "Manual"}</b>
+              </li>
+            </ul>
+          </DashPanel>
+        </div>
+        <DashPanel title="Key metrics" detail={mode === "demo" ? "DEMO" : "SAVED"} className="md-key-metrics">
+          <div className="md-metrics-grid">
+            {metrics.map(({ title, value, icon: Icon, color, detail }, i) => (
+              <div key={title} className="md-metric" style={{ "--metric-color": color } as CSSProperties}>
+                <div>
+                  <Icon size={23} />
+                  <span>
+                    {title}
+                    <strong>{value}</strong>
+                  </span>
+                </div>
+                <small>{detail}</small>
+                <DashGraph
+                  values={mode === "demo" ? SAMPLE_TREND.slice(i, i + 14) : actualMetricSeries[i]}
+                  color={color}
+                  label={
+                    mode === "demo"
+                      ? `${title} illustrative trend`
+                      : `${title}: saved record distribution, not live analytics`
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </DashPanel>
+      </section>
+
+      <section className="md-workflow-section" aria-labelledby="md-workflow-title">
+        <div className="md-flow-heading">
+          <span />
+          <h2 id="md-workflow-title">{mode === "demo" ? "Marketing workflow" : "Your workflow"}</h2>
+          <span />
+        </div>
+        <div className="md-workflow-grid">
+          {DASH_WORKFLOW.map(({ name, icon: Icon, color, lines, count, tab, stage }, i) => {
+            const actual =
+              name === "Ads"
+                ? realActiveProjects.length
+                : name === "Leads" || name === "Follow-ups" || name === "Booking"
+                  ? realOpenTasks.length
+                  : name === "Sales"
+                    ? revenues.length
+                    : allItems.filter((item) => item.stage === stage).length;
+            return (
+              <button
+                type="button"
+                key={name}
+                className={`evo-surface md-workflow-card ${selectedWorkflow === name ? "is-selected" : ""}`}
+                style={{ "--md-accent": color } as CSSProperties}
+                onClick={() => selectTab(tab, name)}
+              >
+                <span className="md-step-number">{String(i + 1).padStart(2, "0")}</span>
+                <Icon size={31} />
+                <h3>{name}</h3>
+                <ul>
+                  {lines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+                <div className="md-workflow-count">
+                  {mode === "demo" ? `${count} sample tasks` : `${actual} saved records`}
+                  <ChevronRight size={12} />
+                </div>
+                <div className="md-progress">
+                  <span
+                    style={{
+                      width: mode === "demo" ? `${count}%` : actual ? "100%" : "0%",
+                      background: color,
+                    }}
+                  />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <p className="md-workflow-note">
+          Interactive planning steps. Agents, publishing, outreach, and bookings are not automated.
+        </p>
+      </section>
+
+      <section id="media-system-analytics" className="md-analytics-grid" aria-label="Analytics panels">
+        <DashPanel
+          title={mode === "demo" ? "Revenue analytics" : "Business revenue"}
+          detail={mode === "demo" ? "DEMO" : "MANUAL"}
+        >
+          <div className="md-chart-tabs">
+            {["Revenue", "Orders", "AOV", "LTV"].map((view) => (
+              <button
+                type="button"
+                key={view}
+                className={chartView === view ? "is-active" : ""}
+                aria-pressed={chartView === view}
+                onClick={() => setChartView(view)}
+              >
+                {view}
+              </button>
+            ))}
+          </div>
+          <div className="md-chart-number">
+            {mode === "demo"
+              ? chartView === "Revenue"
+                ? `$${Math.round(38755 * factor * portion).toLocaleString()}`
+                : chartView === "Orders"
+                  ? Math.round(826 * factor * portion).toLocaleString()
+                  : chartView === "AOV"
+                    ? "$46.92"
+                    : "$168"
+              : chartView === "Revenue"
+                ? fmt(realRevenue)
+                : "—"}
+            <small>
+              {mode === "demo"
+                ? "▲ 41% · sample"
+                : chartView === "Revenue"
+                  ? `${revenues.length} entries`
+                  : "Not tracked"}
+            </small>
+          </div>
+          <DashGraph
+            values={mode === "demo" ? demoTrend : chartView === "Revenue" ? revenueValues : [0, 0]}
+            bars
+            label={
+              mode === "demo"
+                ? `Sample ${chartView.toLowerCase()} chart`
+                : chartView === "Revenue"
+                  ? "Manually recorded revenue entries in date order"
+                  : `${chartView} is not tracked`
+            }
+          />
+          <div className="md-chart-axis">
+            <span>{mode === "demo" ? "Start of sample period" : "Earlier entries"}</span>
+            <span>{mode === "demo" ? "End of sample period" : "Latest entry"}</span>
+          </div>
+        </DashPanel>
+        <DashPanel
+          title={mode === "demo" ? "Lead analytics" : "Content pipeline"}
+          detail={mode === "demo" ? "DEMO" : "SAVED"}
+        >
+          <div className="md-chart-number">
+            {mode === "demo" ? Math.round(2856 * factor * portion).toLocaleString() : savedItems.length}
+            <small>{mode === "demo" ? "▲ 34% · sample" : "content items"}</small>
+          </div>
+          <div className="md-line-legend">
+            {(mode === "demo" ? ["Meta", "Instagram", "TikTok", "Other"] : [...MEDIA_STAGES]).map((name, i) => (
+              <span key={name}>
+                <i style={{ background: palette[i] }} />
+                {name}
+              </span>
+            ))}
+          </div>
+          <div className="md-multi-chart">
+            {mode === "demo" ? (
+              [0, 1, 2, 3].map((i) => (
+                <DashGraph
+                  key={i}
+                  values={SAMPLE_TREND.map(
+                    (value, j) => (value * (1 - i * 0.15) + ((j * 7 + i * 11) % 21)) * factor * portion,
+                  )}
+                  color={palette[i]}
+                  label={`${["Meta", "Instagram", "TikTok", "Other"][i]} sample lead trend`}
+                />
+              ))
+            ) : (
+              <DashGraph
+                values={stageCounts}
+                color="#2dd4bf"
+                bars
+                label="Saved content counts across Idea, Draft, Ready, Published"
+              />
+            )}
+          </div>
+          <div className="md-chart-axis">
+            <span>{mode === "demo" ? "Sample period" : "Idea → Draft → Ready → Published"}</span>
+            <Link to="/business" search={plannerSearch} hash="media-planner">
+              Planner ↗
+            </Link>
+          </div>
+        </DashPanel>
+        <DashPanel
+          title={mode === "demo" ? "Campaign performance" : "Project progress"}
+          detail={mode === "demo" ? "DEMO" : "SAVED"}
+          className="md-campaign-panel"
+        >
+          <div className="md-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  {(mode === "demo"
+                    ? ["Campaign", "Spend", "Leads", "Sales", "ROAS"]
+                    : ["Project", "Status", "Progress"]
+                  ).map((title) => (
+                    <th key={title}>{title}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {mode === "demo"
+                  ? campaignRows.map((row) => (
+                      <tr key={row.name}>
+                        <td>
+                          <i style={{ background: row.color }} />
+                          {row.name}
+                        </td>
+                        <td>${Math.round(row.spend * factor).toLocaleString()}</td>
+                        <td>{Math.round(row.leads * factor)}</td>
+                        <td>${Math.round(row.sales * factor).toLocaleString()}</td>
+                        <td className="md-positive">{row.roas}</td>
+                      </tr>
+                    ))
+                  : data.projects.slice(0, 5).map((project) => (
+                      <tr key={project.id}>
+                        <td>{project.name}</td>
+                        <td>{project.status}</td>
+                        <td>{project.progress}%</td>
+                      </tr>
+                    ))}
+              </tbody>
+            </table>
+            {mode === "demo" && !campaignRows.length && (
+              <p className="md-empty">No sample campaigns for this source.</p>
+            )}
+            {mode === "saved" && !data.projects.length && (
+              <p className="md-empty">No projects yet. Start one in Business.</p>
+            )}
+          </div>
+          <Link className="md-panel-link" to="/business" search={{}} hash="business-projects">
+            Open project manager <ArrowRight size={12} />
+          </Link>
+        </DashPanel>
+        <DashPanel
+          title={mode === "demo" ? "Audience & demographics" : "Channel distribution"}
+          detail={mode === "demo" ? "DEMO" : "SAVED"}
+        >
+          <div className="md-audience">
+            <DashDonut
+              values={distribution}
+              colors={palette}
+              total={mode === "demo" ? Math.round(2856 * factor * portion).toLocaleString() : String(savedItems.length)}
+              label={mode === "demo" ? "Sample leads" : "Content items"}
+            />
+            <ul>
+              {distributionNames.map((name, i) => (
+                <li key={name}>
+                  <i style={{ background: palette[i % palette.length] }} />
+                  <span>{name}</span>
+                  <b>{mode === "demo" ? `${distribution[i]}%` : distribution[i]}</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="md-chart-axis">
+            <span>{mode === "demo" ? "Illustrative age distribution" : "Saved manual content only"}</span>
+          </div>
+        </DashPanel>
+      </section>
+      <footer className="md-footer">
+        <span>EVOLUTION OS · MEDIA SYSTEM</span>
+        <span>
+          {mode === "demo"
+            ? "Demo analytics never overwrite your saved data."
+            : "Undated content is included. Projects and open tasks are current totals."}
+        </span>
+        <Link to="/business" search={plannerSearch} hash="media-planner">
+          Create your next piece <ArrowRight size={12} />
+        </Link>
+      </footer>
+    </main>
+  );
+}
+
+const MEDIA_DASHBOARD_CSS = `
+.media-dashboard{--md-cyan:#29caff;--md-text:#c5e4f3;width:100%;max-width:1800px;min-height:100vh;margin:0 auto;padding:14px 22px 18px;color:var(--md-text);background:radial-gradient(ellipse at 50% 35%,#06314c35,transparent 55%),linear-gradient(#1b73a20b 1px,transparent 1px),linear-gradient(90deg,#1b73a20b 1px,transparent 1px),#020914;background-size:auto,26px 26px,26px 26px,auto;font-family:Rajdhani,Arial,sans-serif;position:relative;isolation:isolate}
+.media-dashboard *{box-sizing:border-box}.media-dashboard button,.media-dashboard a,.media-dashboard select{touch-action:manipulation}.media-dashboard button{cursor:pointer}.media-dashboard a{text-decoration:none}.media-dashboard button:focus-visible,.media-dashboard a:focus-visible,.media-dashboard input:focus-visible,.media-dashboard select:focus-visible{outline:2px solid #8de9ff;outline-offset:3px}.media-dashboard button:hover,.media-dashboard a:hover{color:#e6faff}.md-topline{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;font-size:11px;color:#71a2bb}.md-topline a{display:inline-flex;gap:6px;align-items:center;color:#91cde5}.md-topline>span{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#608ba5}.md-command-header{display:grid;grid-template-columns:310px minmax(450px,1fr) 175px;gap:18px;align-items:center;padding:4px 0 12px;border-bottom:1px solid #21698d66}.md-brand h1{font-family:Orbitron,sans-serif;font-size:27px;letter-spacing:4px;color:#7adfff;margin:0;text-shadow:0 0 18px #1aaaff65;white-space:nowrap}.md-brand sup{font-size:7px;vertical-align:top;position:relative;top:2px;letter-spacing:0}.md-brand p{font-size:10px;letter-spacing:4px;color:#39accc;margin:5px 0 0 3px}.md-nav{display:flex;align-items:center;justify-content:space-around;gap:2px;min-height:43px;padding:4px 8px;border:1px solid #1c4e75;background:linear-gradient(180deg,#071b2b,#030b18);clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)}.md-nav button{font-size:10px;text-transform:uppercase;color:#86aeca;padding:9px 10px;white-space:nowrap;border:1px solid transparent;background:transparent;border-radius:3px}.md-nav button.is-active{background:linear-gradient(180deg,#0b2b53,#0c3560);border-color:#229dff;color:#e1f6ff;box-shadow:inset 0 0 16px #179eff30,0 0 10px #168aff35}.md-period{display:flex;align-items:center;justify-content:space-between;gap:7px;border:1px solid #1d5278;background:#04101d;padding:11px 13px;color:#84c4e1;font-size:11px}.md-period select{color:inherit;background:#04101d;border:0;min-width:0;width:100%;outline-offset:4px;color-scheme:dark}.md-mode-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}.md-mode-bar p{font-size:10px;letter-spacing:.5px;color:#8aabc1;margin:0;text-align:right}.md-mode-switch{display:flex;flex-shrink:0;border:1px solid #204767;border-radius:3px;padding:2px;gap:2px}.md-mode-switch button{font-size:10px;padding:4px 10px;border:0;border-radius:2px;background:transparent;color:#7ca9c7}.md-mode-switch .is-active{background:#0f4264;color:#b9f3ff}.md-section-label{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 8px}.md-section-label h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:6px;color:#8ce6ff;margin:0}.md-section-label button{display:flex;align-items:center;gap:6px;font-size:10px;color:#70a9c8;background:transparent;border:0}.md-traffic-row{display:grid;grid-template-columns:minmax(0,1fr) 248px;gap:16px}.md-source-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.md-source,.md-panel,.md-workflow-card{position:relative;border:1px solid color-mix(in srgb,var(--md-accent,#31baf8) 50%,#071523);background:linear-gradient(135deg,#071827e6,#020a16f5);box-shadow:inset 0 0 22px #0a96e80a,0 0 13px #0d99fb0b;isolation:isolate;min-width:0}.md-source{padding:10px 12px 12px;text-align:left;clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px),0 9px)}.md-source:hover,.md-source.is-selected,.md-workflow-card:hover,.md-workflow-card.is-selected{border-color:var(--md-accent,#31baf8);box-shadow:inset 0 0 22px #0a96e818,0 0 14px #0d99fb35}.md-source.is-selected{outline:2px solid #a1eeff!important;outline-offset:-4px}.md-source-name{display:flex;align-items:center;gap:8px;font-size:10px;text-transform:uppercase;color:#cae9f6;white-space:nowrap}.md-source-name svg{color:var(--md-accent)}.md-source-value{display:flex;gap:9px;align-items:center;margin-top:12px}.md-source-value>svg{color:var(--md-accent);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--md-accent) 40%,transparent));flex-shrink:0}.md-source-value strong{font-family:Arial,sans-serif;font-size:17px;font-weight:600;color:#eef8ff;white-space:nowrap}.md-source-value small{display:block;color:#84e7a6;font-size:9px;white-space:nowrap;margin-top:5px}.md-mini-bars{display:flex;align-items:flex-end;justify-content:flex-end;gap:3px;margin-left:auto;width:45px;height:42px;flex-shrink:0;overflow:hidden}.md-mini-bars i{display:block;flex:1;min-width:2px;box-shadow:0 0 7px var(--md-accent);opacity:.85}.md-panel{padding:12px 14px}.md-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;min-height:14px}.md-panel-heading h2{font-size:12px;letter-spacing:.7px;font-weight:600;text-transform:uppercase;line-height:1.2;margin:0;color:#8fe7ff}.md-panel-heading>span{font-size:8px;letter-spacing:.8px;color:#74a5c2;border:1px solid #244763;padding:2px 4px;white-space:nowrap}.md-traffic-total{padding:9px 13px}.md-traffic-total .md-panel-heading{margin-bottom:4px}.md-large-number{display:flex;align-items:center;gap:12px;font-family:Arial,sans-serif;font-size:26px;font-weight:600;color:#effbff;white-space:nowrap}.md-large-number>span{font-family:Rajdhani,Arial,sans-serif;font-size:13px;color:#81eea9}.md-graph{display:block;width:100%;height:100px;overflow:visible}.md-traffic-total .md-graph{height:36px;margin-top:3px}.md-system-grid{display:grid;grid-template-columns:225px minmax(0,1fr) 248px;gap:16px;margin-top:27px}.md-left-stack{display:grid;grid-template-rows:auto 1fr;gap:14px}.md-agents{display:flex;flex-direction:column;gap:9px}.md-agents button{display:flex;align-items:center;gap:9px;background:transparent;border:0;color:#bcd8ea;text-align:left;padding:0;min-height:21px;font-size:12px}.md-agents small{font-size:8px;color:#638398;margin-left:auto;white-space:nowrap}.md-agents i{width:5px;height:5px;border-radius:50%;background:#486374;flex-shrink:0}.md-activity{display:flex;flex-direction:column;justify-content:space-between;padding-bottom:15px}.md-activity-body{display:flex;align-items:center;gap:10px;min-width:0}.md-donut{width:112px;height:112px;flex-shrink:0;position:relative}.md-donut svg{width:100%;height:100%;filter:drop-shadow(0 0 5px #14acff15)}.md-donut>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.md-donut strong{font-family:Arial,sans-serif;font-size:24px;color:#eef8ff}.md-donut span{font-size:10px;color:#85a9c2}.md-activity ul,.md-audience ul{padding:0;margin:0;list-style:none;flex:1;min-width:0}.md-activity li,.md-audience li{display:flex;gap:7px;align-items:center;margin:9px 0;font-size:10px;white-space:nowrap}.md-activity li i,.md-audience li i,.md-line-legend i{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}.md-activity li b,.md-audience li b{margin-left:auto;font-weight:500;color:#d5ebf4}.md-activity li span{overflow:hidden;text-overflow:ellipsis}.md-system-center{position:relative;min-height:350px}.md-circuit-lines{position:absolute;width:100%;height:100%;inset:0;pointer-events:none;overflow:visible}.md-circuit-lines path{fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px #18b7ff);vector-effect:non-scaling-stroke}.md-database-row{display:flex;align-items:flex-start;justify-content:space-between;gap:3px;position:relative;z-index:1}.md-database{position:relative;background:transparent;border:0;padding:0;color:var(--node-color);width:31%;height:147px;filter:drop-shadow(0 0 9px color-mix(in srgb,var(--node-color) 22%,transparent));transition:filter .2s}.md-database:hover{filter:drop-shadow(0 0 14px color-mix(in srgb,var(--node-color) 42%,transparent))}.md-database>svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--node-color);stroke-width:.8;overflow:visible}.md-database>div{position:absolute;inset:48px 0 28px;display:flex;align-items:center;justify-content:center;gap:9px}.md-database strong{display:block;text-align:left;font-size:15px;font-weight:700;letter-spacing:.6px;color:var(--node-color)}.md-database small{display:block;text-align:left;font-size:8px;margin-top:4px;color:#bddbe9;letter-spacing:.3px}.md-orbital-core{position:absolute;width:228px;height:228px;bottom:1px;left:50%;transform:translateX(-50%);border:1px solid #258bce;border-radius:50%;background:radial-gradient(circle,#05284265,#030f1dd9 60%,#032341);box-shadow:0 0 25px #058dff30,inset 0 0 30px #119ae52b;z-index:2;overflow:hidden}.md-orbital-core::before,.md-orbital-core::after{content:'';position:absolute;border-radius:50%;pointer-events:none;z-index:2}.md-orbital-core::before{inset:7px;border:1px solid #24bbff80}.md-orbital-core::after{inset:13px;border:1px dashed #28b2ef90}.md-orbit-ring{position:absolute;inset:2px;border-radius:50%;border:3px solid transparent;border-top-color:#5fe4ff;border-bottom-color:#166eff;filter:drop-shadow(0 0 4px #0badff);pointer-events:none;z-index:3}.md-orbit-ring-two{inset:16px;border-width:1px;transform:rotate(70deg)}.md-orbit-crosshair{position:absolute;inset:0;background:linear-gradient(transparent 49.8%,#1495e328 50%,transparent 50.2%),linear-gradient(90deg,transparent 49.8%,#1495e328 50%,transparent 50.2%);z-index:1}.md-orbital-core img{position:absolute;left:22%;top:12%;width:56%;height:59%;object-fit:contain;mix-blend-mode:screen;filter:drop-shadow(0 0 7px #137cff75);opacity:.98}.md-core-label{position:absolute;bottom:37px;left:0;right:0;text-align:center;z-index:3}.md-core-label strong{font-size:17px;letter-spacing:1.7px;color:#9aeaff;text-shadow:0 0 8px #169dff}.md-core-label span{display:block;font-size:7px;letter-spacing:1.2px;color:#69cdec;margin-top:3px}.md-core-label small{display:block;font-size:6px;letter-spacing:.7px;color:#71a6bd;margin-top:8px}.md-center-caption{position:absolute;bottom:67px;left:3%;max-width:145px;color:#5286a5;text-transform:uppercase;font-size:8px;letter-spacing:1px;line-height:1.8}.md-center-caption span{display:block;border-top:1px solid #1a567d;border-bottom:1px solid #1a567d;padding:5px 0;color:#7ebbd6}.md-center-caption small{font-size:8px;color:#5f93b0;display:block;margin-top:8px}.md-status{position:absolute;right:0;bottom:8px;width:188px;z-index:3;padding:11px 12px;background:#04101df2}.md-status .md-panel-heading h2{font-size:11px}.md-status ul{list-style:none;padding:0;margin:0}.md-status li{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:9px;white-space:nowrap}.md-status li i{width:5px;height:5px;border:1px solid #5e7c8f;border-radius:50%}.md-status li i.available{background:#41e6b0;border-color:#41e6b0;box-shadow:0 0 6px #41e6b060}.md-status li span{color:#9abdd3}.md-status li b{margin-left:auto;color:#b8dfec;font-size:9px;font-weight:500}.md-key-metrics{padding:12px}.md-metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;height:calc(100% - 27px)}.md-metric{min-width:0;position:relative;padding:11px 8px 6px;border:1px solid color-mix(in srgb,var(--metric-color) 40%,#071523);background:linear-gradient(160deg,color-mix(in srgb,var(--metric-color) 5%,#030d19),#020915);clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);overflow:hidden}.md-metric>div{display:flex;gap:7px;align-items:center}.md-metric>div svg{color:var(--metric-color);flex-shrink:0}.md-metric>div span{font-size:8px;text-transform:uppercase;color:#b3d3e6;min-width:0}.md-metric strong{display:block;font-family:Arial,sans-serif;font-size:18px;font-weight:500;color:#f0f8ff;margin-top:5px;white-space:nowrap}.md-metric small{display:block;font-size:8px;color:#80dcaa;margin-top:9px;text-align:center;line-height:1.3}.md-metric .md-graph{height:45px;margin-top:10px}.md-flow-heading{display:flex;align-items:center;justify-content:center;gap:15px;margin:15px 0 10px}.md-flow-heading span{height:1px;background:linear-gradient(90deg,transparent,#17b8ff);width:23%}.md-flow-heading span:last-child{transform:rotate(180deg)}.md-flow-heading h2{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;padding:6px 24px;margin:0;border:1px solid #238bc2;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px);background:#061829;white-space:nowrap;color:#b4e6f5}.md-workflow-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:13px}.md-workflow-card{padding:12px 12px 10px;text-align:left;min-height:162px;clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px),0 9px)}.md-step-number{position:absolute;top:12px;left:12px;font-size:12px;color:#8eb6ce}.md-workflow-card>svg{display:block;margin:0 auto 7px;color:var(--md-accent);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--md-accent) 55%,transparent))}.md-workflow-card h3{margin:0 0 8px;text-align:center;text-transform:uppercase;font-size:12px;font-weight:600;color:#8fe6ff}.md-workflow-card ul{padding:0;margin:0;list-style:none}.md-workflow-card li{font-size:11px;line-height:1.65;color:#96bed5;white-space:nowrap}.md-workflow-card li::before{content:'–';margin-right:6px;color:#70c6ea}.md-workflow-count{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#6197ba;margin-top:7px}.md-progress{height:4px;border:1px solid #124b75;margin-top:3px;background:#020a14;border-radius:2px;overflow:hidden}.md-progress span{display:block;height:100%;box-shadow:0 0 6px #1ba4ff}.md-workflow-note{font-size:9px;text-align:center;color:#648da8;margin:7px 0 10px}.md-analytics-grid{display:grid;grid-template-columns:1.05fr 1.05fr 1.15fr 1fr;gap:13px;scroll-margin-top:18px}.md-analytics-grid>.md-panel{min-height:197px;padding:12px 13px}.md-chart-tabs{display:flex;align-items:center;border:1px solid #173c59;border-radius:3px;width:fit-content;max-width:100%;overflow:auto;margin-bottom:9px}.md-chart-tabs button{font-size:9px;color:#83aeca;background:transparent;border:0;padding:4px 11px;white-space:nowrap}.md-chart-tabs button.is-active{color:#e0f4ff;background:#0c3e73;box-shadow:inset 0 0 10px #125fc640}.md-chart-number{display:flex;align-items:center;gap:12px;color:#f0f7ff;font-size:23px;font-family:Arial,sans-serif;font-weight:500;white-space:nowrap}.md-chart-number small{font-family:Rajdhani,Arial,sans-serif;font-size:10px;color:#86e7ac}.md-analytics-grid .md-graph{height:89px;margin-top:3px}.md-chart-axis{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:8px;color:#7dabc7;margin-top:2px}.md-chart-axis a{color:#85cce8}.md-line-legend{display:flex;align-items:center;gap:9px;margin:7px 0 3px;flex-wrap:wrap}.md-line-legend span{display:flex;align-items:center;gap:4px;font-size:8px;color:#83adca}.md-line-legend i{height:4px;width:4px}.md-multi-chart{position:relative;height:101px}.md-multi-chart .md-graph{position:absolute;inset:0;height:95px}.md-table-wrap{overflow-x:auto}.md-campaign-panel table{width:100%;border-collapse:collapse;font-size:9px;white-space:nowrap}.md-campaign-panel th{font-weight:500;color:#7baccb;text-align:right;padding:5px 5px 7px;border-bottom:1px solid #1d4864}.md-campaign-panel td{padding:8px 5px;border-bottom:1px solid #16405b55;text-align:right;color:#b8d6e9}.md-campaign-panel th:first-child,.md-campaign-panel td:first-child{text-align:left;padding-left:0;max-width:125px;overflow:hidden;text-overflow:ellipsis}.md-campaign-panel td i{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:5px}.md-campaign-panel .md-positive{color:#7be9b0}.md-panel-link{display:inline-flex;gap:5px;align-items:center;font-size:9px;color:#7dbcdc;margin-top:10px}.md-audience{display:flex;align-items:center;gap:15px;justify-content:center;margin-top:8px}.md-audience .md-donut{width:129px;height:129px}.md-audience li{font-size:11px;gap:8px;margin:10px 0}.md-audience li span{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.md-footer{display:flex;justify-content:space-between;gap:15px;align-items:center;color:#4e7b99;font-size:9px;padding-top:14px}.md-footer>span:first-child{letter-spacing:2px}.md-footer a{display:flex;gap:5px;align-items:center;color:#79b8d8}.md-empty{font-size:11px;color:#7a9fba;margin:15px 0;line-height:1.6}.md-workbench{position:relative;border:1px solid #3c92b8;background:linear-gradient(100deg,#08253b,#061321);padding:18px 22px;margin:3px 0 15px;scroll-margin-top:16px}.md-workbench-title{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.md-workbench-title span{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#60cfee}.md-workbench-title h2{font-family:Rajdhani,Arial,sans-serif;font-size:23px;font-weight:500;color:#d0efff;margin:5px 0 0}.md-workbench-title>button{background:transparent;border:0;color:#8fc3dd;padding:3px}.md-workbench-body{display:flex;flex-direction:column;gap:12px;align-items:flex-start}.md-workbench-body p{font-size:13px;color:#94b7cf;line-height:1.6;max-width:900px;margin:9px 0 0}.md-action{display:inline-flex;align-items:center;gap:8px;border:1px solid #2995c6;background:#0b3855;color:#b9f2ff!important;padding:8px 12px;font-size:12px;border-radius:3px;min-height:34px}.md-workbench-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.md-workbench-actions>a{display:flex;align-items:center;gap:6px;font-size:12px;color:#7ec3e6}.md-task-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:100%;max-width:840px}.md-task-form label:first-child{flex:1;min-width:220px}.md-task-form input{width:100%;background:#020c18;color:#ccecff;border:1px solid #255b7b;border-radius:3px;padding:9px 11px;font-size:13px;min-height:36px;color-scheme:dark}.md-task-form input::placeholder{color:#658ca9}.md-workbench-body .md-success{color:#6fe6b1;margin:0;font-size:12px}.media-dashboard .evo-surface{--evo-cut:9px;--evo-corner-size:26px}.md-nav.evo-surface,.md-period.evo-surface{--evo-rail-width:8px}.md-panel.evo-surface,.md-workflow-card.evo-surface,.md-source.evo-surface{--evo-rail-width:11px}
+@media(min-width:1600px){.media-dashboard{padding-left:28px;padding-right:28px}.md-system-grid{grid-template-columns:265px minmax(0,1fr) 270px}.md-traffic-row{grid-template-columns:minmax(0,1fr) 270px}.md-system-center{min-height:370px}.md-orbital-core{width:250px;height:250px}.md-database{height:155px}.md-core-label{bottom:42px}.md-status{width:210px}.md-center-caption{max-width:170px}.md-metric strong{font-size:21px}.md-activity-body{gap:16px}.md-activity li{font-size:11px}.md-workflow-card{min-height:178px;padding:14px 16px}.md-workflow-card li{font-size:12px}.md-audience{gap:20px}}
+@media(max-width:1390px){.md-command-header{grid-template-columns:250px minmax(400px,1fr) 150px;gap:12px}.md-brand h1{font-size:22px;letter-spacing:3px}.md-brand p{font-size:8px;letter-spacing:3px}.md-nav button{font-size:9px;padding:9px 7px}.md-source{padding:10px}.md-source-value{gap:6px}.md-source-value>svg{width:25px}.md-source-value strong{font-size:15px}.md-mini-bars{width:30px;gap:2px}.md-source-name{gap:5px;font-size:9px}.md-system-grid{grid-template-columns:200px minmax(0,1fr) 220px;gap:12px}.md-traffic-row{grid-template-columns:minmax(0,1fr) 220px;gap:12px}.md-activity-body{flex-direction:column;gap:0}.md-activity .md-donut{width:95px;height:95px}.md-activity ul{display:grid;grid-template-columns:1fr 1fr;column-gap:9px;width:100%}.md-activity li{margin:3px 0;font-size:8px;gap:4px}.md-agents small{font-size:7px}.md-agents button{gap:6px;font-size:11px}.md-system-center{min-height:363px}.md-status{width:155px;padding:10px}.md-status li{font-size:8px;gap:4px}.md-status li b{font-size:8px}.md-status .md-panel-heading h2{font-size:10px}.md-orbital-core{width:213px;height:213px}.md-center-caption{max-width:115px;left:0;font-size:7px}.md-center-caption small{font-size:7px}.md-database strong{font-size:13px}.md-database small{font-size:7px}.md-database>div{gap:5px}.md-database>div svg{width:22px}.md-metric strong{font-size:16px}.md-metric>div{gap:4px}.md-metric>div>svg{width:19px}.md-workflow-grid{gap:9px}.md-workflow-card{padding:12px 10px;min-height:162px}.md-workflow-card li{font-size:10px}.md-workflow-card h3{font-size:11px}.md-step-number{font-size:10px;left:9px}.md-analytics-grid{gap:10px;grid-template-columns:1fr 1fr 1.15fr 1fr}.md-panel-heading h2{font-size:10px}.md-audience{gap:8px}.md-audience .md-donut{width:100px;height:100px}.md-audience .md-donut strong{font-size:20px}.md-audience li{font-size:9px}.md-campaign-panel table{font-size:8px}.md-chart-tabs button{padding:4px 8px}.md-analytics-grid>.md-panel{padding:12px 10px}.md-chart-number{font-size:21px;gap:7px}.md-chart-number small{font-size:8px}}
+@media(max-width:1120px){.media-dashboard{padding:14px}.md-command-header{grid-template-columns:1fr 170px;gap:10px}.md-brand{grid-column:1}.md-nav{grid-column:1/-1;grid-row:2;justify-content:space-between}.md-nav button{font-size:10px;padding:9px 15px}.md-period{grid-column:2;grid-row:1}.md-mode-bar{align-items:flex-start}.md-mode-bar p{font-size:9px;max-width:440px}.md-source-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.md-source-value{margin-top:8px}.md-source-value strong{font-size:18px}.md-source-value>svg{width:29px}.md-mini-bars{width:55px}.md-traffic-total .md-graph{height:100px}.md-traffic-total .md-large-number{margin-top:15px}.md-source-name{font-size:10px}.md-system-grid{grid-template-columns:185px minmax(0,1fr) 205px;gap:10px;margin-top:20px}.md-center-caption{display:none}.md-status{width:140px;right:-2px;bottom:1px}.md-orbital-core{left:39%;bottom:8px;width:200px;height:200px}.md-database{height:130px}.md-database>div{inset:44px 0 24px;gap:4px;flex-direction:column}.md-database>div>svg{display:none}.md-database strong{text-align:center;font-size:12px}.md-database small{text-align:center;font-size:6px}.md-metrics-grid{gap:8px}.md-metric{padding:9px 5px}.md-metric>div>svg{display:none}.md-metric strong{font-size:16px}.md-workflow-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.md-workflow-card{padding:12px 16px;min-height:160px}.md-workflow-card li{font-size:11px}.md-workflow-card h3{font-size:12px}.md-analytics-grid{grid-template-columns:1fr 1fr}.md-analytics-grid>.md-panel{padding:14px;min-height:205px}.md-panel-heading h2{font-size:11px}.md-campaign-panel table{font-size:10px}.md-audience .md-donut{width:135px;height:135px}.md-audience{gap:30px}.md-audience li{font-size:11px}.md-chart-number{font-size:24px}}
+@media(max-width:820px){.md-topline>span{display:none}.md-topline{font-size:10px}.md-system-grid{grid-template-columns:1fr 1fr}.md-system-center{grid-column:1/-1;grid-row:1;min-height:390px}.md-orbital-core{left:50%;width:235px;height:235px;bottom:0}.md-database{height:150px}.md-database>div{flex-direction:row;inset:46px 0 26px;gap:8px}.md-database>div>svg{display:block}.md-database strong{font-size:14px}.md-database small{font-size:8px}.md-status{width:180px;right:0;bottom:14px}.md-status li{font-size:9px}.md-left-stack{grid-column:1;grid-row:2;grid-template-columns:1fr;gap:10px}.md-key-metrics{grid-column:2;grid-row:2}.md-activity-body{flex-direction:row;gap:15px}.md-activity ul{display:block}.md-activity li{font-size:10px;margin:7px 0}.md-activity .md-donut{width:105px;height:105px}.md-agents small{font-size:9px}.md-metric>div>svg{display:block}.md-metric strong{font-size:21px}.md-metric{padding:12px 9px}.md-metric .md-graph{height:65px}.md-nav button{padding:8px;font-size:9px}.md-traffic-row{grid-template-columns:1fr}.md-traffic-total{display:none}.md-mode-bar{flex-direction:column;gap:7px}.md-mode-bar p{text-align:left;max-width:none}.md-footer{flex-wrap:wrap;font-size:9px}.md-flow-heading h2{font-size:11px;letter-spacing:2px}.md-center-caption{display:block;max-width:145px;left:0}.md-workbench-title h2{font-size:20px}}
+@media(max-width:600px){.media-dashboard{padding:10px}.md-command-header{grid-template-columns:1fr 128px}.md-brand h1{font-size:17px;letter-spacing:2px}.md-brand p{font-size:6px;letter-spacing:2px}.md-period{font-size:10px;padding:9px}.md-nav{overflow-x:auto;justify-content:flex-start;clip-path:none!important;padding:5px;gap:4px}.md-nav button{font-size:9px;padding:7px 10px}.md-topline a:last-child{font-size:9px}.md-source-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.md-source-value strong{font-size:17px}.md-source-value>svg{width:26px}.md-system-center{min-height:350px}.md-database{height:125px}.md-database>div>svg{display:none}.md-database strong{font-size:12px}.md-database small{font-size:6px}.md-status{display:none}.md-center-caption{display:none}.md-orbital-core{width:220px;height:220px}.md-left-stack{gap:9px}.md-left-stack .md-panel{padding:10px}.md-agents button{font-size:10px;gap:5px}.md-agents svg{width:17px}.md-agents small{font-size:7px}.md-agents i{display:none}.md-activity-body{flex-direction:column;gap:0}.md-activity ul{display:grid;grid-template-columns:1fr 1fr;column-gap:7px}.md-activity li{font-size:8px;margin:3px 0;gap:3px}.md-panel-heading h2{font-size:10px}.md-panel-heading>span{font-size:6px}.md-metrics-grid{gap:7px}.md-metric{padding:9px 5px}.md-metric>div>svg{display:none}.md-metric strong{font-size:15px}.md-metric small{font-size:7px}.md-metric .md-graph{height:50px}.md-workflow-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.md-workflow-card{min-height:162px;padding:13px 16px}.md-workflow-card li{font-size:11px}.md-analytics-grid{grid-template-columns:1fr}.md-analytics-grid>.md-panel{min-height:210px}.md-audience{justify-content:space-around}.md-audience ul{max-width:160px}.md-footer>span:nth-child(2){order:3;width:100%;font-size:8px}.md-task-form label:first-child{min-width:100%;width:100%}.md-task-form label:nth-child(2){flex:1;min-width:120px}.md-workbench{padding:14px}.md-workbench-body p{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.media-dashboard *{scroll-behavior:auto!important;transition:none!important}}
+`;
