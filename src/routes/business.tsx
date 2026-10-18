@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
+import { MediaSystemDashboard } from "@/components/evolution/MediaSystemDashboard";
 import { RingProgress } from "@/components/evolution/RingProgress";
 import { Sparkline } from "@/components/evolution/Sparkline";
 import { Input } from "@/components/ui/input";
