@@ -44,7 +44,11 @@ import {
 export const Route = createFileRoute("/business")({
   validateSearch: (search: Record<string, unknown>): { section?: "social-media" | "marketing-system" } => ({
     section:
-      search.section === "social-media" ? "social-media" : search.section === "marketing-system" ? "marketing-system" : undefined,
+      search.section === "social-media"
+        ? "social-media"
+        : search.section === "marketing-system"
+          ? "marketing-system"
+          : undefined,
   }),
   head: () => ({
     meta: [
@@ -314,7 +318,9 @@ function BusinessPage() {
               <Globe className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="hud-label text-[9px] tracking-[.22em] text-cyan-300/65 mb-1">Business workspace · demo</div>
+              <div className="hud-label text-[9px] tracking-[.22em] text-cyan-300/65 mb-1">
+                Business workspace · demo
+              </div>
               <h2 className="hud-label text-lg text-cyan-200">Marketing System</h2>
               <p className="mt-1 text-sm text-slate-400">
                 Automated marketing overview: traffic, AI agents, workflow, and campaign performance (sample data).
@@ -994,14 +1000,15 @@ function SocialMediaPage() {
               </div>
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-slate-400 mt-4">
-              Traffic sources, AI agents, automated workflow, and campaign performance in one dashboard. Sample data shown until real sources are connected.
+              Traffic sources, AI agents, automated workflow, and campaign performance in one dashboard. Sample data
+              shown until real sources are connected.
             </p>
             <div className="mt-6 flex items-end justify-end border-t border-cyan-400/15 pt-4">
               <span className="inline-flex items-center gap-2 hud-label text-[9px] text-cyan-300">
                 Open dashboard <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </div>
-          </a>
+          </Link>
         </div>
 
         <section aria-labelledby="media-channels-title">
