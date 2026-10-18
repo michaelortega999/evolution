@@ -41,8 +41,9 @@ import {
 } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/business")({
-  validateSearch: (search: Record<string, unknown>): { section?: "social-media" } => ({
-    section: search.section === "social-media" ? "social-media" : undefined,
+  validateSearch: (search: Record<string, unknown>): { section?: "social-media" | "marketing-system" } => ({
+    section:
+      search.section === "social-media" ? "social-media" : search.section === "marketing-system" ? "marketing-system" : undefined,
   }),
   head: () => ({
     meta: [
@@ -73,7 +74,15 @@ function fmt(n: number) {
 
 function BusinessRoute() {
   const { section } = Route.useSearch();
-  return section === "social-media" ? <SocialMediaPage /> : <BusinessPage />;
+  if (section === "social-media") return <SocialMediaPage />;
+  if (section === "marketing-system") {
+    return (
+      <ModuleLayout number="07" title="Media System" subtitle="Business · Automated marketing overview" icon={Network}>
+        <MediaSystemDashboard />
+      </ModuleLayout>
+    );
+  }
+  return <BusinessPage />;
 }
 
 function BusinessPage() {
