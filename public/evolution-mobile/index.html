@@ -28,6 +28,44 @@
       .evo-calendar-cell:focus-visible,.evo-calendar-tab:focus-visible{outline:2px solid #fff;outline-offset:1px}
       @media(prefers-reduced-motion:reduce){.evo-style-card,.st-card{transition:none!important;animation:none!important}}
       .evo-calendar-cell > span { border-radius:0!important;clip-path:polygon(5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 5px); }
+
+      /* Social media workspace: real plans, shared through the existing account store. */
+      .media-hub{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:3cqw;padding:1.2cqw .4cqw 4cqw;color:#dff4ff}
+      .media-hub button,.media-hub input,.media-hub select,.media-hub textarea{font-family:inherit}
+      .media-hub button{cursor:pointer}
+      .media-hub button:focus-visible,.media-hub input:focus-visible,.media-hub select:focus-visible,.media-hub textarea:focus-visible{outline:2px solid #8fe4ff;outline-offset:3px}
+      .media-kicker{font-size:2.1cqw;letter-spacing:.18em;color:#63d8ff}
+      .media-title{font-size:5.8cqw;letter-spacing:.13em;font-weight:600;margin:1cqw 0;color:#dff8ff;text-shadow:0 0 15px #24beff65}
+      .media-subtitle{font-size:2.7cqw;line-height:1.5;color:#8bb6c8;margin:0}
+      .media-choices{display:grid;grid-template-columns:1fr 1fr;gap:2.4cqw}
+      .media-choice{position:relative;min-width:0;padding:4cqw 3cqw;text-align:left;background:linear-gradient(145deg,#082438,#02090f 70%);border:1px solid #267e9e;color:#dff8ff;min-height:39cqw;overflow:hidden}
+      .media-choice strong{font-size:3.6cqw;letter-spacing:.06em;display:block;position:relative;margin:2cqw 0}
+      .media-choice p{font-size:2.5cqw;line-height:1.5;margin:0;color:#8bb6c8}
+      .media-choice small{display:block;color:#6ad8ff;font-size:2.2cqw;margin-top:3cqw}
+      .media-orbit{width:14cqw;height:14cqw;border:1px solid #1ab7f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6cqw;color:#75dfff;box-shadow:0 0 18px #009bff40,inset 0 0 14px #009bff40;position:relative}
+      .media-orbit:after{content:'';position:absolute;inset:-1.7cqw;border:1px solid #31c1ff30;border-radius:50%}
+      .media-choice:last-child .media-orbit{color:#59f1dc;border-color:#29bdac;box-shadow:0 0 18px #00d5ba35,inset 0 0 14px #00d5ba30}
+      .media-flow{position:relative;border:1px solid #20708d;background:radial-gradient(ellipse at 50% 30%,#07334b,#020b12 70%);padding:4cqw 3cqw}
+      .media-flow-line{display:flex;justify-content:space-between;align-items:center;font-size:2.3cqw;color:#7ddfff;gap:1cqw;margin-top:3cqw}
+      .media-flow-line span{border:1px solid #1a6887;padding:2cqw 1.5cqw;background:#062030}
+      .media-panel{border:1px solid #24576d;padding:3cqw;background:#030f19;display:flex;flex-direction:column;gap:2.6cqw}
+      .media-panel h3{font-size:3.5cqw;font-weight:500;margin:0;letter-spacing:.08em;color:#85e5ff}
+      .media-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:2cqw}
+      .media-stat{padding:2.8cqw 2cqw;border:1px solid #17445a;background:#05131e}
+      .media-stat b{display:block;font-size:5cqw;font-weight:400;color:#b3edff}
+      .media-stat span{font-size:2cqw;letter-spacing:.1em;color:#75a3b9}
+      .media-field{display:flex;flex-direction:column;gap:1.3cqw;font-size:2.4cqw;color:#94bacd;letter-spacing:.04em;min-width:0}
+      .media-input{box-sizing:border-box;width:100%;min-width:0;padding:2.5cqw;background:#04121f;border:1px solid #286480;color:#eafaff;font-size:3cqw;border-radius:2px;min-height:10cqw}
+      .media-fields{display:grid;grid-template-columns:1fr 1fr;gap:2cqw}
+      .media-button{padding:2.5cqw 3cqw;min-height:10cqw;border:1px solid #3ba7c9;background:#07304a;color:#d9f8ff;font-size:2.6cqw;letter-spacing:.08em}
+      .media-button.secondary{background:transparent;color:#9ac5d9;border-color:#285466}
+      .media-row{padding:3cqw;border:1px solid #1c4c60;background:#06141f;display:flex;flex-direction:column;gap:2cqw;overflow-wrap:anywhere}
+      .media-row strong{font-size:3.5cqw;font-weight:500;color:#d7f5ff}
+      .media-row p{font-size:2.8cqw;white-space:pre-wrap;margin:0;line-height:1.5;color:#a8c5d4}
+      .media-row small{font-size:2.4cqw;color:#68c8e8;line-height:1.5}
+      .media-actions{display:flex;gap:2cqw;flex-wrap:wrap}
+      .media-empty{padding:5cqw 3cqw;border:1px dashed #24576d;text-align:center;color:#8bb6c8;font-size:3cqw;line-height:1.6}
+      .media-error{font-size:2.8cqw;color:#ffacb9}
     </style>
     <style>
       /* Evolution shared card geometry v2: decoration never receives pointer input. */
@@ -2435,6 +2473,181 @@
               <div
                 style="position:absolute; left:3.4%; top:21.2%; width:93.2%; bottom:11.6%; display:flex; flex-direction:column; gap:1.1cqw"
               >
+                <sc-if value="{{ mediaVisible }}" hint-placeholder-val="{{ false }}">
+                  <section class="media-hub" aria-label="Social Media workspace">
+                    <div>
+                      <div class="media-kicker">BUSINESS / SOCIAL MEDIA</div>
+                      <h2 class="media-title">SOCIAL MEDIA</h2>
+                      <p class="media-subtitle">Create with intention. Build your presence.</p>
+                    </div>
+                    <div class="media-choices">
+                      <button
+                        type="button"
+                        class="media-choice evo-style-card"
+                        onClick="{{ mediaProjects }}"
+                        aria-label="Projects — open project management"
+                      >
+                        <div class="media-orbit" aria-hidden="true">▱</div>
+                        <strong>Projects</strong>
+                        <p>Turn ideas into campaigns and focused work.</p>
+                        <small>{{ mediaProjectCount }} PROJECTS ↗</small>
+                      </button>
+                      <button
+                        type="button"
+                        class="media-choice evo-style-card"
+                        onClick="{{ mediaPlanner }}"
+                        aria-label="Media System — open content planner"
+                      >
+                        <div class="media-orbit" aria-hidden="true">▷</div>
+                        <strong>Media System</strong>
+                        <p>Plan content. Shape the story. Track progress.</p>
+                        <small>{{ mediaItemCount }} CONTENT PLANS ↗</small>
+                      </button>
+                    </div>
+                    <sc-if value="{{ mediaOverview }}" hint-placeholder-val="{{ true }}">
+                      <div class="media-flow evo-style-card">
+                        <div class="media-kicker">YOUR CONTENT WORKFLOW</div>
+                        <div class="media-flow-line">
+                          <span>IDEA</span>→<span>DRAFT</span>→<span>READY</span>→<span>REVIEW</span>
+                        </div>
+                        <p class="media-subtitle" style="margin-top:3cqw">
+                          A workspace for your plans. Publishing and channel metrics are managed outside Evolution.
+                        </p>
+                      </div>
+                      <div class="media-stats">
+                        <div class="media-stat evo-style-card">
+                          <b>{{ mediaDraftCount }}</b><span>IN PRODUCTION</span>
+                        </div>
+                        <div class="media-stat evo-style-card"><b>{{ mediaReadyCount }}</b><span>READY</span></div>
+                        <div class="media-stat evo-style-card">
+                          <b>{{ mediaPublishedCount }}</b><span>MARKED PUBLISHED</span>
+                        </div>
+                      </div>
+                      <button type="button" class="media-button" onClick="{{ mediaPlanner }}">
+                        OPEN MEDIA SYSTEM →
+                      </button>
+                    </sc-if>
+                    <sc-if value="{{ mediaIsPlanner }}" hint-placeholder-val="{{ false }}">
+                      <div class="media-actions">
+                        <button type="button" class="media-button secondary" onClick="{{ mediaBack }}">
+                          ← OVERVIEW
+                        </button>
+                      </div>
+                      <div class="media-panel evo-style-card">
+                        <h3>MEDIA SYSTEM</h3>
+                        <p class="media-subtitle">
+                          Content planning only. Statuses are updated manually; nothing is posted automatically.
+                        </p>
+                        <h3>{{ mediaFormHeading }}</h3>
+                        <label class="media-field"
+                          >CONTENT TITLE<input
+                            class="media-input"
+                            aria-label="Content title"
+                            maxlength="160"
+                            value="{{ mediaTitle }}"
+                            onChange="{{ mediaSetTitle }}"
+                            placeholder="What are you creating?"
+                        /></label>
+                        <div class="media-fields">
+                          <label class="media-field"
+                            >CHANNEL<select
+                              class="media-input"
+                              aria-label="Content channel"
+                              value="{{ mediaChannel }}"
+                              onChange="{{ mediaSetChannel }}"
+                            >
+                              <option>Instagram</option>
+                              <option>TikTok</option>
+                              <option>YouTube</option>
+                              <option>Facebook</option>
+                              <option>LinkedIn</option>
+                              <option>Other</option>
+                            </select></label
+                          >
+                          <label class="media-field"
+                            >STAGE<select
+                              class="media-input"
+                              aria-label="Content stage"
+                              value="{{ mediaStage }}"
+                              onChange="{{ mediaSetStage }}"
+                            >
+                              <option>Idea</option>
+                              <option>Draft</option>
+                              <option>Ready</option>
+                              <option value="Published">Published (manual)</option>
+                            </select></label
+                          >
+                        </div>
+                        <label class="media-field"
+                          >PLANNED DATE (OPTIONAL)<input
+                            type="date"
+                            class="media-input"
+                            aria-label="Content planned date"
+                            value="{{ mediaDate }}"
+                            onChange="{{ mediaSetDate }}"
+                        /></label>
+                        <label class="media-field"
+                          >NOTES<textarea
+                            rows="3"
+                            class="media-input"
+                            aria-label="Content notes"
+                            maxlength="10000"
+                            value="{{ mediaNotes }}"
+                            onChange="{{ mediaSetNotes }}"
+                            placeholder="Brief, caption or creative direction"
+                          ></textarea>
+                        </label>
+                        <sc-if value="{{ mediaHasError }}" hint-placeholder-val="{{ false }}"
+                          ><div class="media-error" role="alert">{{ mediaError }}</div></sc-if
+                        >
+                        <div class="media-actions">
+                          <button type="button" class="media-button" onClick="{{ mediaSave }}">
+                            {{ mediaSaveLabel }}</button
+                          ><button type="button" class="media-button secondary" onClick="{{ mediaCancel }}">
+                            CANCEL
+                          </button>
+                        </div>
+                      </div>
+                      <div class="media-panel evo-style-card">
+                        <h3>CONTENT PIPELINE</h3>
+                        <label class="media-field"
+                          >FILTER BY STAGE<select
+                            class="media-input"
+                            aria-label="Filter content stage"
+                            value="{{ mediaFilter }}"
+                            onChange="{{ mediaSetFilter }}"
+                          >
+                            <option>All</option>
+                            <option>Idea</option>
+                            <option>Draft</option>
+                            <option>Ready</option>
+                            <option>Published</option>
+                          </select></label
+                        >
+                        <sc-if value="{{ mediaEmpty }}" hint-placeholder-val="{{ true }}"
+                          ><div class="media-empty">{{ mediaEmptyLabel }}</div></sc-if
+                        >
+                        <sc-for list="{{ mediaRows }}" as="m" hint-placeholder-count="0">
+                          <article class="media-row evo-style-card">
+                            <strong>{{ m.title }}</strong><small>{{ m.meta }}</small>
+                            <p>{{ m.notes }}</p>
+                            <div class="media-actions">
+                              <button class="media-button secondary" type="button" onClick="{{ m.onEdit }}">EDIT</button
+                              ><button class="media-button secondary" type="button" onClick="{{ m.onDelete }}">
+                                {{ m.deleteLabel }}</button
+                              ><sc-if value="{{ m.confirming }}" hint-placeholder-val="{{ false }}"
+                                ><button class="media-button secondary" type="button" onClick="{{ m.onKeep }}">
+                                  KEEP
+                                </button></sc-if
+                              >
+                            </div>
+                          </article>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </section>
+                </sc-if>
+
                 <sc-if value="{{ bizIsProjects }}" hint-placeholder-val="{{ true }}">
                   <div
                     class="evo-style-card"
@@ -2451,6 +2664,14 @@
                         {{ bizNewProjectLabel }}
                       </button>
                     </div>
+                    <button
+                      class="media-button secondary"
+                      type="button"
+                      onClick="{{ mediaOpen }}"
+                      style="font-size:2.4cqw;min-height:8cqw;text-align:left"
+                    >
+                      SOCIAL MEDIA <span style="float:right">PROJECTS + MEDIA SYSTEM ↗</span>
+                    </button>
                     <div style="flex:none; display:flex; justify-content:flex-end; gap:0.8cqw">
                       <sc-for list="{{ bizFilters }}" as="f" hint-placeholder-count="4">
                         <button type="button" onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
@@ -9674,7 +9895,7 @@
             tasks: [],
             clients: [],
             entries: [],
-            notes: []
+            notes: [], mediaItems: []
           },
           tasks: [],
           events: []
@@ -9754,6 +9975,7 @@
           this._loaded = true;
           this._seedChecked = true; // older seed versions are migrated in place, never wiped
           if (saved && typeof saved === "object") {
+            if (saved.biz && typeof saved.biz === "object") saved.biz = Object.assign({}, this.state.biz, saved.biz);
             if (saved.inv && saved.inv.selDay == null) saved.inv.selDay = new Date().getDate();
             if (saved.inv && window.EvoInvLedger) saved.inv = window.EvoInvLedger.migrate(saved.inv); // stable ids + ledger balances
           }
@@ -10984,6 +11206,59 @@
           this.setState(s => ({ biz: Object.assign({}, s.biz, patch) }));
         }
 
+
+        mediaVals() {
+          const b = this.state.biz;
+          const items = Array.isArray(b.mediaItems) ? b.mediaItems : [];
+          const draft = this.state.mediaDraft || { title: "", channel: "Instagram", stage: "Idea", date: "", notes: "" };
+          const filter = this.state.mediaFilter || "All";
+          const shown = items.filter(x => filter === "All" || x.stage === filter);
+          const editDraft = key => e => this.setState({ mediaDraft: Object.assign({}, draft, { [key]: e.target.value }), mediaError: "" });
+          const clear = () => this.setState({ mediaDraft: null, mediaEditId: null, mediaError: "", mediaDeleteId: null });
+          return {
+            mediaVisible: b.tab === "SOCIAL",
+            mediaOpen: () => { this.bizSet({ tab: "SOCIAL", menu: null }); this.setState({ mediaView: "overview" }); },
+            mediaProjects: () => this.bizSet({ tab: "PROJECTS", menu: null }),
+            mediaPlanner: () => this.setState({ mediaView: "planner" }),
+            mediaBack: () => { clear(); this.setState({ mediaView: "overview" }); },
+            mediaOverview: this.state.mediaView !== "planner", mediaIsPlanner: this.state.mediaView === "planner",
+            mediaProjectCount: (b.projects || []).length, mediaItemCount: items.length,
+            mediaDraftCount: items.filter(x => x.stage === "Idea" || x.stage === "Draft").length,
+            mediaReadyCount: items.filter(x => x.stage === "Ready").length,
+            mediaPublishedCount: items.filter(x => x.stage === "Published").length,
+            mediaFormHeading: this.state.mediaEditId ? "EDIT CONTENT PLAN" : "NEW CONTENT PLAN",
+            mediaTitle: draft.title, mediaChannel: draft.channel, mediaStage: draft.stage, mediaDate: draft.date, mediaNotes: draft.notes || "",
+            mediaSetTitle: editDraft("title"), mediaSetChannel: editDraft("channel"), mediaSetStage: editDraft("stage"), mediaSetDate: editDraft("date"), mediaSetNotes: editDraft("notes"),
+            mediaHasError: !!this.state.mediaError, mediaError: this.state.mediaError || "",
+            mediaFilter: filter, mediaSetFilter: e => this.setState({ mediaFilter: e.target.value, mediaDeleteId: null }),
+            mediaSaveLabel: this.state.mediaEditId ? "SAVE CHANGES" : "ADD CONTENT PLAN",
+            mediaCancel: clear,
+            mediaSave: () => {
+              if (!draft.title.trim()) return this.setState({ mediaError: "Add a title to your content plan." });
+              if (draft.date && !/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return this.setState({ mediaError: "Choose a valid planned date." });
+              const editId = this.state.mediaEditId;
+              this.setState(s => {
+                const current = Array.isArray(s.biz.mediaItems) ? s.biz.mediaItems : [];
+                if (editId && !current.some(x => x.id === editId)) return { mediaError: "This plan was removed. Cancel to create a new plan." };
+                const item = { id: editId || (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : "media-" + Date.now() + "-" + Math.random().toString(36).slice(2)), title: draft.title.trim(), channel: draft.channel, stage: draft.stage, date: draft.date, notes: draft.notes || "" };
+                return { biz: Object.assign({}, s.biz, { mediaItems: editId ? current.map(x => x.id === editId ? Object.assign({}, x, item) : x) : current.concat(item) }), mediaDraft: null, mediaEditId: null, mediaError: "", mediaFilter: "All", mediaDeleteId: null };
+              });
+            },
+            mediaEmpty: shown.length === 0,
+            mediaEmptyLabel: items.length ? "No plans in this stage. Choose another filter." : "Your pipeline starts here. Add your first content plan above.",
+            mediaRows: shown.map(x => ({
+              title: x.title, meta: x.channel + " · " + (x.stage === "Published" ? "Published (manual)" : x.stage) + " · " + (x.date || "No date set"), notes: x.notes || "",
+              onEdit: () => this.setState({ mediaDraft: { title: x.title, channel: x.channel, stage: x.stage, date: x.date || "", notes: x.notes || "" }, mediaEditId: x.id, mediaError: "", mediaDeleteId: null }),
+              confirming: this.state.mediaDeleteId === x.id, deleteLabel: this.state.mediaDeleteId === x.id ? "CONFIRM DELETE" : "DELETE",
+              onKeep: () => this.setState({ mediaDeleteId: null }),
+              onDelete: () => {
+                if (this.state.mediaDeleteId !== x.id) return this.setState({ mediaDeleteId: x.id });
+                this.setState(s => ({ biz: Object.assign({}, s.biz, { mediaItems: (s.biz.mediaItems || []).filter(i => i.id !== x.id) }), mediaDeleteId: null, ...(s.mediaEditId === x.id ? { mediaEditId: null, mediaDraft: null, mediaError: "" } : {}) }));
+              }
+            }))
+          };
+        }
+
         bizVals() {
           const b = this.state.biz;
           const money = n => "$" + Math.round(n).toLocaleString("en-US");
@@ -10998,7 +11273,7 @@
             border: on ? "1px solid #5fd3ff" : "1px solid transparent",
             borderRadius: 0
           });
-          const TABS = ["PROJECTS", "TASKS", "CLIENTS", "FINANCES", "INSIGHTS", "LIBRARY"];
+          const TABS = ["PROJECTS", "TASKS", "CLIENTS", "FINANCES", "INSIGHTS", "LIBRARY", "SOCIAL"];
           const bizTabs = TABS.map(t => ({
             label: t, onClick: () => this.bizSet({ tab: t, menu: null }), style: tabStyle(b.tab === t)
           }));
@@ -14152,6 +14427,7 @@
             ...this.investingVals(),
             ...this.journalVals(),
             ...this.bizVals(),
+            ...this.mediaVals(),
             ...this.fitVals(),
             ...this.nutVals(),
             ...this.wlVals(),
