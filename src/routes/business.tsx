@@ -1817,9 +1817,12 @@ function MediaSystemPage() {
           <ArrowLeft size={13} /> Social Media
         </Link>
         <span>Business / Media System</span>
-        <Link to="/business" search={plannerSearch} hash="media-planner">
-          Open content planner <ArrowRight size={13} />
-        </Link>
+        <span className="flex items-center gap-4">
+          <Link to="/business" search={{ section: "content-creator" }}>Content Creator</Link>
+          <Link to="/business" search={plannerSearch} hash="media-planner">
+            Open content planner <ArrowRight size={13} />
+          </Link>
+        </span>
       </div>
       <header className="md-command-header">
         <div className="md-brand">
