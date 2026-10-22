@@ -1349,7 +1349,10 @@ function readContentGoals(data: EvolutionData): ContentGoal[] {
   });
 }
 
-function bizPatch(data: EvolutionData, update: (biz: Record<string, unknown>) => Record<string, unknown>): Partial<EvolutionData> {
+function bizPatch(
+  data: EvolutionData,
+  update: (biz: Record<string, unknown>) => Record<string, unknown>,
+): Partial<EvolutionData> {
   const phoneData = data.phoneStore?.data ?? {};
   return {
     phoneStore: {
@@ -1361,8 +1364,18 @@ function bizPatch(data: EvolutionData, update: (biz: Record<string, unknown>) =>
 
 const CC_WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const CC_MONTHS = [
-  "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+  "JANUARY",
+  "FEBRUARY",
+  "MARCH",
+  "APRIL",
+  "MAY",
+  "JUNE",
+  "JULY",
+  "AUGUST",
+  "SEPTEMBER",
+  "OCTOBER",
+  "NOVEMBER",
+  "DECEMBER",
 ];
 
 function ccFmtDate(y: number, m: number, d: number) {
@@ -1406,7 +1419,9 @@ function ContentCreatorPage() {
   const [goalCurrent, setGoalCurrent] = useState("");
 
   const monthKey = `${view.year}-${String(view.month + 1).padStart(2, "0")}`;
-  const publishedThisMonth = items.filter((item) => item.stage === "Published" && item.date.startsWith(monthKey)).length;
+  const publishedThisMonth = items.filter(
+    (item) => item.stage === "Published" && item.date.startsWith(monthKey),
+  ).length;
   const inPipeline = items.filter((item) => item.stage !== "Published").length;
 
   const cells = useMemo(() => {
@@ -1420,7 +1435,8 @@ function ContentCreatorPage() {
       const m = view.month - 1;
       arr.push({ date: ccFmtDate(m < 0 ? view.year - 1 : view.year, (m + 12) % 12, d), day: d, outside: true });
     }
-    for (let d = 1; d <= daysInMonth; d++) arr.push({ date: ccFmtDate(view.year, view.month, d), day: d, outside: false });
+    for (let d = 1; d <= daysInMonth; d++)
+      arr.push({ date: ccFmtDate(view.year, view.month, d), day: d, outside: false });
     let idx = 1;
     while (arr.length < 42) {
       const m = view.month + 1;
@@ -1594,22 +1610,33 @@ function ContentCreatorPage() {
 
   return (
     <ModuleLayout number="07" title="Content Creator" subtitle="Business · Creator studio" icon={Clapperboard}>
+      {" "}
+      <style>{`@media(max-width:767px){main:has(.creator-page) > div:first-child h1{font-size:16px;letter-spacing:1px;overflow-wrap:anywhere}main:has(.creator-page){padding-bottom:90px}.creator-back-desktop{display:none}}@media(min-width:768px){.creator-back-phone{display:none}}`}</style>
       <style>{MEDIA_WORKSPACE_CSS}</style>
-      <div className="media-workspace space-y-6">
+      <div className="media-workspace creator-page space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             to="/business"
             search={{ section: "media-system" }}
             className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-200"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Media System
+            <ArrowLeft className="h-3.5 w-3.5" /> <span className="creator-back-desktop">Back to Media System</span>
+            <span className="creator-back-phone">Back to mobile workspace</span>
           </Link>
-          <span className="hud-label text-[9px] tracking-widest text-cyan-300/60">Ideas · Plan · Shoot · Edit · Post · Grow</span>
+          <span className="hud-label text-[9px] tracking-widest text-cyan-300/60">
+            Ideas · Plan · Shoot · Edit · Post · Grow
+          </span>
         </div>
 
         {/* Studio banner — counts are real derived totals from your saved content */}
-        <section className="evo-surface media-panel media-grid overflow-hidden p-6 md:p-7" aria-label="Creator studio summary">
-          <div className="absolute -right-10 -top-20 h-64 w-64 rounded-full border border-cyan-400/10" aria-hidden="true" />
+        <section
+          className="evo-surface media-panel media-grid overflow-hidden p-6 md:p-7"
+          aria-label="Creator studio summary"
+        >
+          <div
+            className="absolute -right-10 -top-20 h-64 w-64 rounded-full border border-cyan-400/10"
+            aria-hidden="true"
+          />
           <div className="relative flex flex-wrap items-center justify-between gap-5">
             <div>
               <p className="hud-label text-[9px] tracking-[.3em] text-cyan-300 mb-3">Evolution / Creator studio</p>
@@ -1684,7 +1711,9 @@ function ContentCreatorPage() {
             </div>
             <div className="grid grid-cols-7 gap-1 mb-1">
               {CC_WEEKDAYS.map((d) => (
-                <div key={d} className="hud-label text-[8px] text-slate-500 text-center">{d}</div>
+                <div key={d} className="hud-label text-[8px] text-slate-500 text-center">
+                  {d}
+                </div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -1698,11 +1727,15 @@ function ContentCreatorPage() {
                     onClick={() => openEditor(undefined, "Idea", cell.date)}
                     className={[
                       "min-h-14 md:min-h-16 rounded border p-1 text-left align-top transition-colors overflow-hidden",
-                      cell.outside ? "border-transparent opacity-40" : "border-cyan-400/15 hover:border-cyan-300/50 hover:bg-cyan-400/5",
+                      cell.outside
+                        ? "border-transparent opacity-40"
+                        : "border-cyan-400/15 hover:border-cyan-300/50 hover:bg-cyan-400/5",
                       isToday ? "border-cyan-300/70 bg-cyan-400/10" : "",
                     ].join(" ")}
                   >
-                    <span className={`hud-label text-[9px] ${isToday ? "text-cyan-200" : "text-slate-400"}`}>{cell.day}</span>
+                    <span className={`hud-label text-[9px] ${isToday ? "text-cyan-200" : "text-slate-400"}`}>
+                      {cell.day}
+                    </span>
                     <span className="block space-y-0.5 mt-0.5">
                       {dayItems.slice(0, 2).map((item) => {
                         const meta = MEDIA_CHANNELS.find((entry) => entry.name === item.channel);
@@ -1729,7 +1762,9 @@ function ContentCreatorPage() {
                         );
                       })}
                       {dayItems.length > 2 && (
-                        <span className="block hud-label text-[8px] text-cyan-300/70 px-1">+{dayItems.length - 2} more</span>
+                        <span className="block hud-label text-[8px] text-cyan-300/70 px-1">
+                          +{dayItems.length - 2} more
+                        </span>
                       )}
                     </span>
                   </button>
@@ -1745,23 +1780,50 @@ function ContentCreatorPage() {
                 <Zap className="h-4 w-4 text-cyan-300" /> Quick actions
               </h3>
               <div className="space-y-2">
-                <button type="button" onClick={() => openEditor(undefined, "Idea")} className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openEditor(undefined, "Idea")}
+                  className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2"
+                >
                   <Lightbulb className="h-3.5 w-3.5 text-cyan-300" /> New video idea
                 </button>
-                <button type="button" onClick={() => openEditor(undefined, "Idea", today)} className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openEditor(undefined, "Idea", today)}
+                  className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2"
+                >
                   <CalendarDays className="h-3.5 w-3.5 text-cyan-300" /> Plan on calendar
                 </button>
-                <button type="button" onClick={() => openEditor(undefined, "Draft")} className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openEditor(undefined, "Draft")}
+                  className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2"
+                >
                   <Pencil className="h-3.5 w-3.5 text-cyan-300" /> Write script / notes
                 </button>
-                <button type="button" onClick={() => notBuiltYet("Video upload")} className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2">
-                  <Send className="h-3.5 w-3.5" /> Upload video <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
+                <button
+                  type="button"
+                  onClick={() => notBuiltYet("Video upload")}
+                  className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2"
+                >
+                  <Send className="h-3.5 w-3.5" /> Upload video{" "}
+                  <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
                 </button>
-                <button type="button" onClick={() => notBuiltYet("Video editing")} className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2">
-                  <Clapperboard className="h-3.5 w-3.5" /> Edit video <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
+                <button
+                  type="button"
+                  onClick={() => notBuiltYet("Video editing")}
+                  className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2"
+                >
+                  <Clapperboard className="h-3.5 w-3.5" /> Edit video{" "}
+                  <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
                 </button>
-                <button type="button" onClick={() => notBuiltYet("Thumbnail creation")} className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2">
-                  <ImageIcon className="h-3.5 w-3.5" /> Create thumbnail <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
+                <button
+                  type="button"
+                  onClick={() => notBuiltYet("Thumbnail creation")}
+                  className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" /> Create thumbnail{" "}
+                  <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
                 </button>
               </div>
             </section>
@@ -1821,7 +1883,9 @@ function ContentCreatorPage() {
                     <div className="flex items-center gap-2">
                       <Icon className="h-4 w-4" style={{ color }} />
                       <span className="hud-label text-[10px] text-slate-200">{name}</span>
-                      <span className="ml-auto hud-label text-lg" style={{ color }}>{stageItems.length}</span>
+                      <span className="ml-auto hud-label text-lg" style={{ color }}>
+                        {stageItems.length}
+                      </span>
                     </div>
                     <p className="text-[10px] text-slate-500 mt-1">{hint}</p>
                   </button>
@@ -1837,7 +1901,9 @@ function ContentCreatorPage() {
                       </button>
                     ))}
                     {stageItems.length > 4 && (
-                      <span className="block hud-label text-[8px] text-cyan-300/70 px-1">+{stageItems.length - 4} more</span>
+                      <span className="block hud-label text-[8px] text-cyan-300/70 px-1">
+                        +{stageItems.length - 4} more
+                      </span>
                     )}
                   </div>
                   <button
@@ -1878,7 +1944,9 @@ function ContentCreatorPage() {
                 >
                   <option value="All">All stages</option>
                   {MEDIA_STAGES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1911,7 +1979,9 @@ function ContentCreatorPage() {
                         aria-label={`Move ${item.title} to another stage`}
                       >
                         {MEDIA_STAGES.map((s) => (
-                          <option key={s} value={s}>{s}</option>
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
                         ))}
                       </select>
                       <button
@@ -2007,7 +2077,6 @@ function ContentCreatorPage() {
           </section>
         </div>
       </div>
-
       {/* Content editor dialog */}
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent>
@@ -2039,7 +2108,12 @@ function ContentCreatorPage() {
                 ))}
               </select>
             </div>
-            <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} aria-label="Planned date" />
+            <Input
+              type="date"
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              aria-label="Planned date"
+            />
             <textarea
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
@@ -2049,12 +2123,13 @@ function ContentCreatorPage() {
             />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setEditorOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={saveItem}>{editingId ? "Save changes" : "Save content"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
@@ -2065,12 +2140,15 @@ function ContentCreatorPage() {
             Remove “{deleteTarget?.title}” from your library? This won't remove anything from a social platform.
           </p>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Keep it</Button>
-            <Button variant="destructive" onClick={deleteItem}>Remove</Button>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Keep it
+            </Button>
+            <Button variant="destructive" onClick={deleteItem}>
+              Remove
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Goal editor dialog */}
       <Dialog open={goalOpen} onOpenChange={setGoalOpen}>
         <DialogContent>
@@ -2078,14 +2156,32 @@ function ContentCreatorPage() {
             <DialogTitle>{goalEditId ? "Edit goal" : "New content goal"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input value={goalLabel} onChange={(event) => setGoalLabel(event.target.value)} placeholder="Goal — e.g. Post 5x per week" />
+            <Input
+              value={goalLabel}
+              onChange={(event) => setGoalLabel(event.target.value)}
+              placeholder="Goal — e.g. Post 5x per week"
+            />
             <div className="grid grid-cols-2 gap-3">
-              <Input value={goalCurrent} onChange={(event) => setGoalCurrent(event.target.value)} placeholder="Progress (e.g. 3)" inputMode="numeric" aria-label="Current progress" />
-              <Input value={goalTarget} onChange={(event) => setGoalTarget(event.target.value)} placeholder="Target (e.g. 5)" inputMode="numeric" aria-label="Target" />
+              <Input
+                value={goalCurrent}
+                onChange={(event) => setGoalCurrent(event.target.value)}
+                placeholder="Progress (e.g. 3)"
+                inputMode="numeric"
+                aria-label="Current progress"
+              />
+              <Input
+                value={goalTarget}
+                onChange={(event) => setGoalTarget(event.target.value)}
+                placeholder="Target (e.g. 5)"
+                inputMode="numeric"
+                aria-label="Target"
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setGoalOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setGoalOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={saveGoal}>{goalEditId ? "Save changes" : "Save goal"}</Button>
           </DialogFooter>
         </DialogContent>
@@ -2588,7 +2684,9 @@ function MediaSystemPage() {
         </Link>
         <span>Business / Media System</span>
         <span className="flex items-center gap-4">
-          <Link to="/business" search={{ section: "content-creator" }}>Content Creator</Link>
+          <Link to="/business" search={{ section: "content-creator" }}>
+            Content Creator
+          </Link>
           <Link to="/business" search={plannerSearch} hash="media-planner">
             Open content planner <ArrowRight size={13} />
           </Link>
