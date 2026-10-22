@@ -775,6 +775,20 @@ function readMediaItems(data: EvolutionData): MediaItem[] {
   });
 }
 
+const MEDIA_WORKSPACE_CSS = `
+        .media-workspace { --media-cyan: #22d3ee; color: #e2e8f0; }
+        .media-panel { position: relative; border: 1px solid rgba(34,211,238,.24); background: linear-gradient(135deg,rgba(8,28,46,.96),rgba(3,10,22,.98)); box-shadow: inset 0 0 26px rgba(14,165,233,.035),0 0 18px rgba(14,165,233,.035); border-radius: 12px; }
+        html:not([data-card-style]) .media-panel::before { content: ''; pointer-events: none; position: absolute; top: -1px; left: 22px; width: 55px; height: 2px; background: #22d3ee; box-shadow: 0 0 11px #22d3ee70; }
+        html:not([data-card-style]) .media-panel::after { content: ''; pointer-events: none; position: absolute; bottom: -1px; right: 22px; width: 32px; height: 2px; background: #22d3ee80; }
+        .media-card-link { transition: border-color .18s, box-shadow .18s; }
+        .media-card-link:hover { border-color: rgba(103,232,249,.65); box-shadow: inset 0 0 28px #0ea5e90a,0 0 22px #0ea5e915; }
+        .media-card-link:focus-visible,.media-workspace button:focus-visible,.media-workspace a:focus-visible { outline: 2px solid #67e8f9; outline-offset: 4px; }
+        .media-orbit { position: relative; width: 78px; height: 78px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid #22d3ee50; border-radius: 50%; background: radial-gradient(circle,#0ea5e922,transparent 70%); box-shadow: 0 0 26px #0ea5e915,inset 0 0 18px #0ea5e915; }
+        .media-orbit::before { content: ''; position: absolute; inset: 7px; border: 1px dashed #22d3ee40; border-radius: 50%; }
+        .media-grid { background-image: linear-gradient(#22d3ee05 1px,transparent 1px),linear-gradient(90deg,#22d3ee05 1px,transparent 1px); background-size: 28px 28px; }
+        .media-workspace select { color-scheme: dark; }
+      `;
+
 // Keep the planner in the existing, account-scoped phone store. The existing
 // three-way record merge preserves desktop/phone edits without a new schema.
 function mediaPatch(data: EvolutionData, update: (items: MediaItem[]) => MediaItem[]): Partial<EvolutionData> {
@@ -890,19 +904,7 @@ function SocialMediaPage() {
 
   return (
     <ModuleLayout number="07" title="Social Media" subtitle="Business · Content command center" icon={Network}>
-      <style>{`
-        .media-workspace { --media-cyan: #22d3ee; color: #e2e8f0; }
-        .media-panel { position: relative; border: 1px solid rgba(34,211,238,.24); background: linear-gradient(135deg,rgba(8,28,46,.96),rgba(3,10,22,.98)); box-shadow: inset 0 0 26px rgba(14,165,233,.035),0 0 18px rgba(14,165,233,.035); border-radius: 12px; }
-        html:not([data-card-style]) .media-panel::before { content: ''; pointer-events: none; position: absolute; top: -1px; left: 22px; width: 55px; height: 2px; background: #22d3ee; box-shadow: 0 0 11px #22d3ee70; }
-        html:not([data-card-style]) .media-panel::after { content: ''; pointer-events: none; position: absolute; bottom: -1px; right: 22px; width: 32px; height: 2px; background: #22d3ee80; }
-        .media-card-link { transition: border-color .18s, box-shadow .18s; }
-        .media-card-link:hover { border-color: rgba(103,232,249,.65); box-shadow: inset 0 0 28px #0ea5e90a,0 0 22px #0ea5e915; }
-        .media-card-link:focus-visible,.media-workspace button:focus-visible,.media-workspace a:focus-visible { outline: 2px solid #67e8f9; outline-offset: 4px; }
-        .media-orbit { position: relative; width: 78px; height: 78px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid #22d3ee50; border-radius: 50%; background: radial-gradient(circle,#0ea5e922,transparent 70%); box-shadow: 0 0 26px #0ea5e915,inset 0 0 18px #0ea5e915; }
-        .media-orbit::before { content: ''; position: absolute; inset: 7px; border: 1px dashed #22d3ee40; border-radius: 50%; }
-        .media-grid { background-image: linear-gradient(#22d3ee05 1px,transparent 1px),linear-gradient(90deg,#22d3ee05 1px,transparent 1px); background-size: 28px 28px; }
-        .media-workspace select { color-scheme: dark; }
-      `}</style>
+      <style>{MEDIA_WORKSPACE_CSS}</style>
       <div className="media-workspace space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
