@@ -36,6 +36,8 @@ import {
   ChevronRight,
   Infinity as InfinityIcon,
   ListTodo,
+  Clapperboard,
+  Image as ImageIcon,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { hologramSrc } from "@/lib/holograms";
@@ -58,9 +60,12 @@ import {
 export const Route = createFileRoute("/business")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { section?: "social-media" | "media-system" | "marketing-system"; channel?: string } => ({
+  ): { section?: "social-media" | "media-system" | "marketing-system" | "content-creator"; channel?: string } => ({
     section:
-      search.section === "social-media" || search.section === "media-system" || search.section === "marketing-system"
+      search.section === "social-media" ||
+      search.section === "media-system" ||
+      search.section === "marketing-system" ||
+      search.section === "content-creator"
         ? search.section
         : undefined,
     channel:
@@ -100,6 +105,7 @@ function BusinessRoute() {
   const { section, channel } = Route.useSearch();
   if (section === "social-media") return <SocialMediaPage key={channel ?? "all"} />;
   if (section === "media-system" || section === "marketing-system") return <MediaSystemPage />;
+  if (section === "content-creator") return <ContentCreatorPage />;
   return <BusinessPage />;
 }
 
@@ -771,6 +777,20 @@ function readMediaItems(data: EvolutionData): MediaItem[] {
   });
 }
 
+const MEDIA_WORKSPACE_CSS = `
+        .media-workspace { --media-cyan: #22d3ee; color: #e2e8f0; }
+        .media-panel { position: relative; border: 1px solid rgba(34,211,238,.24); background: linear-gradient(135deg,rgba(8,28,46,.96),rgba(3,10,22,.98)); box-shadow: inset 0 0 26px rgba(14,165,233,.035),0 0 18px rgba(14,165,233,.035); border-radius: 12px; }
+        html:not([data-card-style]) .media-panel::before { content: ''; pointer-events: none; position: absolute; top: -1px; left: 22px; width: 55px; height: 2px; background: #22d3ee; box-shadow: 0 0 11px #22d3ee70; }
+        html:not([data-card-style]) .media-panel::after { content: ''; pointer-events: none; position: absolute; bottom: -1px; right: 22px; width: 32px; height: 2px; background: #22d3ee80; }
+        .media-card-link { transition: border-color .18s, box-shadow .18s; }
+        .media-card-link:hover { border-color: rgba(103,232,249,.65); box-shadow: inset 0 0 28px #0ea5e90a,0 0 22px #0ea5e915; }
+        .media-card-link:focus-visible,.media-workspace button:focus-visible,.media-workspace a:focus-visible { outline: 2px solid #67e8f9; outline-offset: 4px; }
+        .media-orbit { position: relative; width: 78px; height: 78px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid #22d3ee50; border-radius: 50%; background: radial-gradient(circle,#0ea5e922,transparent 70%); box-shadow: 0 0 26px #0ea5e915,inset 0 0 18px #0ea5e915; }
+        .media-orbit::before { content: ''; position: absolute; inset: 7px; border: 1px dashed #22d3ee40; border-radius: 50%; }
+        .media-grid { background-image: linear-gradient(#22d3ee05 1px,transparent 1px),linear-gradient(90deg,#22d3ee05 1px,transparent 1px); background-size: 28px 28px; }
+        .media-workspace select { color-scheme: dark; }
+      `;
+
 // Keep the planner in the existing, account-scoped phone store. The existing
 // three-way record merge preserves desktop/phone edits without a new schema.
 function mediaPatch(data: EvolutionData, update: (items: MediaItem[]) => MediaItem[]): Partial<EvolutionData> {
@@ -886,19 +906,7 @@ function SocialMediaPage() {
 
   return (
     <ModuleLayout number="07" title="Social Media" subtitle="Business · Content command center" icon={Network}>
-      <style>{`
-        .media-workspace { --media-cyan: #22d3ee; color: #e2e8f0; }
-        .media-panel { position: relative; border: 1px solid rgba(34,211,238,.24); background: linear-gradient(135deg,rgba(8,28,46,.96),rgba(3,10,22,.98)); box-shadow: inset 0 0 26px rgba(14,165,233,.035),0 0 18px rgba(14,165,233,.035); border-radius: 12px; }
-        html:not([data-card-style]) .media-panel::before { content: ''; pointer-events: none; position: absolute; top: -1px; left: 22px; width: 55px; height: 2px; background: #22d3ee; box-shadow: 0 0 11px #22d3ee70; }
-        html:not([data-card-style]) .media-panel::after { content: ''; pointer-events: none; position: absolute; bottom: -1px; right: 22px; width: 32px; height: 2px; background: #22d3ee80; }
-        .media-card-link { transition: border-color .18s, box-shadow .18s; }
-        .media-card-link:hover { border-color: rgba(103,232,249,.65); box-shadow: inset 0 0 28px #0ea5e90a,0 0 22px #0ea5e915; }
-        .media-card-link:focus-visible,.media-workspace button:focus-visible,.media-workspace a:focus-visible { outline: 2px solid #67e8f9; outline-offset: 4px; }
-        .media-orbit { position: relative; width: 78px; height: 78px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid #22d3ee50; border-radius: 50%; background: radial-gradient(circle,#0ea5e922,transparent 70%); box-shadow: 0 0 26px #0ea5e915,inset 0 0 18px #0ea5e915; }
-        .media-orbit::before { content: ''; position: absolute; inset: 7px; border: 1px dashed #22d3ee40; border-radius: 50%; }
-        .media-grid { background-image: linear-gradient(#22d3ee05 1px,transparent 1px),linear-gradient(90deg,#22d3ee05 1px,transparent 1px); background-size: 28px 28px; }
-        .media-workspace select { color-scheme: dark; }
-      `}</style>
+      <style>{MEDIA_WORKSPACE_CSS}</style>
       <div className="media-workspace space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
@@ -1311,6 +1319,774 @@ function SocialMediaPage() {
             <Button variant="destructive" onClick={deleteItem}>
               Delete
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </ModuleLayout>
+  );
+}
+
+// ============= Content Creator hub (second page of the Media System) =============
+// Reuses the same account-scoped planner records (phoneStore biz.mediaItems) so
+// desktop/phone three-way merge keeps working with no new schema.
+
+type ContentGoal = { id: string; label: string; target: number; current: number };
+
+function readContentGoals(data: EvolutionData): ContentGoal[] {
+  const goals = mediaRecord(data.phoneStore?.data?.biz).contentGoals;
+  if (!Array.isArray(goals)) return [];
+  return goals.flatMap((value) => {
+    const goal = mediaRecord(value);
+    if (typeof goal.id !== "string" || typeof goal.label !== "string") return [];
+    return [
+      {
+        id: goal.id,
+        label: goal.label,
+        target: typeof goal.target === "number" && goal.target > 0 ? goal.target : 1,
+        current: typeof goal.current === "number" && goal.current >= 0 ? goal.current : 0,
+      },
+    ];
+  });
+}
+
+function bizPatch(data: EvolutionData, update: (biz: Record<string, unknown>) => Record<string, unknown>): Partial<EvolutionData> {
+  const phoneData = data.phoneStore?.data ?? {};
+  return {
+    phoneStore: {
+      v: data.phoneStore?.v ?? 1,
+      data: { ...phoneData, biz: update(mediaRecord(phoneData.biz)) },
+    },
+  };
+}
+
+const CC_WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const CC_MONTHS = [
+  "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+];
+
+function ccFmtDate(y: number, m: number, d: number) {
+  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function ContentCreatorPage() {
+  const { data, mutate } = useEvolutionData();
+  const items = readMediaItems(data);
+  const goals = readContentGoals(data);
+  const today = todayDate();
+
+  // Calendar state
+  const [view, setView] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
+
+  // Library state
+  const [query, setQuery] = useState("");
+  const [stageFilter, setStageFilter] = useState<"All" | MediaStage>("All");
+
+  // Editor dialog state
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const submitGuard = useRef(false);
+  const newItemId = useRef<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [itemChannel, setItemChannel] = useState("TikTok");
+  const [stage, setStage] = useState<MediaStage>("Idea");
+  const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
+
+  // Goal dialog state
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [goalEditId, setGoalEditId] = useState<string | null>(null);
+  const goalGuard = useRef(false);
+  const [goalLabel, setGoalLabel] = useState("");
+  const [goalTarget, setGoalTarget] = useState("");
+  const [goalCurrent, setGoalCurrent] = useState("");
+
+  const monthKey = `${view.year}-${String(view.month + 1).padStart(2, "0")}`;
+  const publishedThisMonth = items.filter((item) => item.stage === "Published" && item.date.startsWith(monthKey)).length;
+  const inPipeline = items.filter((item) => item.stage !== "Published").length;
+
+  const cells = useMemo(() => {
+    const first = new Date(view.year, view.month, 1);
+    const startWeekday = first.getDay();
+    const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+    const prevMonthDays = new Date(view.year, view.month, 0).getDate();
+    const arr: { date: string; day: number; outside: boolean }[] = [];
+    for (let i = startWeekday - 1; i >= 0; i--) {
+      const d = prevMonthDays - i;
+      const m = view.month - 1;
+      arr.push({ date: ccFmtDate(m < 0 ? view.year - 1 : view.year, (m + 12) % 12, d), day: d, outside: true });
+    }
+    for (let d = 1; d <= daysInMonth; d++) arr.push({ date: ccFmtDate(view.year, view.month, d), day: d, outside: false });
+    let idx = 1;
+    while (arr.length < 42) {
+      const m = view.month + 1;
+      arr.push({ date: ccFmtDate(m > 11 ? view.year + 1 : view.year, m % 12, idx), day: idx, outside: true });
+      idx++;
+    }
+    return arr;
+  }, [view]);
+
+  const itemsByDate = useMemo(() => {
+    const map = new Map<string, MediaItem[]>();
+    for (const item of items) {
+      if (!item.date) continue;
+      if (!map.has(item.date)) map.set(item.date, []);
+      map.get(item.date)!.push(item);
+    }
+    return map;
+  }, [items]);
+
+  const visibleItems = items
+    .filter(
+      (item) =>
+        (stageFilter === "All" || item.stage === stageFilter) &&
+        `${item.title} ${item.notes ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()),
+    )
+    .sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+
+  const navigateMonth = (delta: number) => {
+    setView((v) => {
+      const m = v.month + delta;
+      if (m < 0) return { year: v.year - 1, month: 11 };
+      if (m > 11) return { year: v.year + 1, month: 0 };
+      return { year: v.year, month: m };
+    });
+  };
+  const goToday = () => {
+    const now = new Date();
+    setView({ year: now.getFullYear(), month: now.getMonth() });
+  };
+
+  const openEditor = (item?: MediaItem, initialStage: MediaStage = "Idea", initialDate = "") => {
+    submitGuard.current = false;
+    newItemId.current = item?.id ?? uid();
+    setEditingId(item?.id ?? null);
+    setTitle(item?.title ?? "");
+    setItemChannel(item?.channel ?? "TikTok");
+    setStage(item?.stage ?? initialStage);
+    setDate(item?.date ?? initialDate);
+    setNotes(item?.notes ?? "");
+    setEditorOpen(true);
+  };
+
+  const saveItem = () => {
+    if (submitGuard.current) return;
+    if (!title.trim()) {
+      toast.error("Give your content a title.");
+      return;
+    }
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      toast.error("Choose a valid planned date.");
+      return;
+    }
+    const item: MediaItem = {
+      id: editingId ?? newItemId.current ?? uid(),
+      title: title.trim(),
+      channel: itemChannel,
+      stage,
+      date,
+      notes: notes.trim(),
+    };
+    submitGuard.current = true;
+    let removed = false;
+    try {
+      mutate((prev) => {
+        if (editingId && !readMediaItems(prev).some((record) => record.id === editingId)) {
+          removed = true;
+          return {};
+        }
+        return mediaPatch(prev, (current) =>
+          editingId
+            ? current.map((record) => (record.id === editingId ? { ...record, ...item } : record))
+            : current.some((record) => record.id === item.id)
+              ? current
+              : [...current, item],
+        );
+      });
+    } catch {
+      submitGuard.current = false;
+      toast.error("Content could not be saved. Please try again.");
+      return;
+    }
+    if (removed) {
+      submitGuard.current = false;
+      toast.error("This content was removed elsewhere. Copy your changes before closing.");
+      return;
+    }
+    setEditorOpen(false);
+  };
+
+  const moveItem = (id: string, nextStage: MediaStage) => {
+    mutate((prev) =>
+      mediaPatch(prev, (current) => current.map((item) => (item.id === id ? { ...item, stage: nextStage } : item))),
+    );
+  };
+
+  const deleteItem = () => {
+    if (!deleteTarget) return;
+    mutate((prev) => mediaPatch(prev, (current) => current.filter((item) => item.id !== deleteTarget.id)));
+    setDeleteTarget(null);
+  };
+
+  const notBuiltYet = (feature: string) => {
+    toast.info(
+      `${feature} isn't built into Evolution yet. Create it in your usual editor, then log it here as Ready or Published so your plan stays accurate.`,
+    );
+  };
+
+  const openGoalEditor = (goal?: ContentGoal) => {
+    goalGuard.current = false;
+    setGoalEditId(goal?.id ?? null);
+    setGoalLabel(goal?.label ?? "");
+    setGoalTarget(goal ? String(goal.target) : "");
+    setGoalCurrent(goal ? String(goal.current) : "");
+    setGoalOpen(true);
+  };
+
+  const saveGoal = () => {
+    if (goalGuard.current) return;
+    if (!goalLabel.trim()) {
+      toast.error("Give your goal a name.");
+      return;
+    }
+    const target = Number(goalTarget);
+    const current = goalCurrent.trim() === "" ? 0 : Number(goalCurrent);
+    if (!Number.isFinite(target) || target <= 0) {
+      toast.error("Target must be a number above zero.");
+      return;
+    }
+    if (!Number.isFinite(current) || current < 0) {
+      toast.error("Progress must be zero or more.");
+      return;
+    }
+    goalGuard.current = true;
+    const id = goalEditId ?? uid();
+    try {
+      mutate((prev) =>
+        bizPatch(prev, (biz) => {
+          const current2 = readContentGoals(prev);
+          const next: ContentGoal = { id, label: goalLabel.trim(), target, current };
+          return {
+            ...biz,
+            contentGoals: goalEditId
+              ? current2.map((goal) => (goal.id === goalEditId ? next : goal))
+              : [...current2, next],
+          };
+        }),
+      );
+    } catch {
+      goalGuard.current = false;
+      toast.error("Goal could not be saved. Please try again.");
+      return;
+    }
+    setGoalOpen(false);
+  };
+
+  const deleteGoal = (id: string) => {
+    mutate((prev) =>
+      bizPatch(prev, (biz) => ({ ...biz, contentGoals: readContentGoals(prev).filter((goal) => goal.id !== id) })),
+    );
+  };
+
+  return (
+    <ModuleLayout number="07" title="Content Creator" subtitle="Business · Creator studio" icon={Clapperboard}>
+      <style>{MEDIA_WORKSPACE_CSS}</style>
+      <div className="media-workspace space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            to="/business"
+            search={{ section: "media-system" }}
+            className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-200"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to Media System
+          </Link>
+          <span className="hud-label text-[9px] tracking-widest text-cyan-300/60">Ideas · Plan · Shoot · Edit · Post · Grow</span>
+        </div>
+
+        {/* Studio banner — counts are real derived totals from your saved content */}
+        <section className="evo-surface media-panel media-grid overflow-hidden p-6 md:p-7" aria-label="Creator studio summary">
+          <div className="absolute -right-10 -top-20 h-64 w-64 rounded-full border border-cyan-400/10" aria-hidden="true" />
+          <div className="relative flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <p className="hud-label text-[9px] tracking-[.3em] text-cyan-300 mb-3">Evolution / Creator studio</p>
+              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
+                Plan it. Shoot it. Post it.
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-slate-400">
+                Your content calendar, library, and pipeline — built from the records you save here.
+              </p>
+            </div>
+            <div className="flex items-center gap-5 rounded-lg border border-cyan-400/15 bg-[#030b16]/70 px-5 py-3">
+              <div>
+                <div className="hud-label text-xl text-cyan-200">{items.length}</div>
+                <div className="hud-label text-[8px] tracking-widest text-slate-400 mt-1">Saved items</div>
+              </div>
+              <div className="h-8 w-px bg-cyan-400/15" />
+              <div>
+                <div className="hud-label text-xl text-cyan-200">{inPipeline}</div>
+                <div className="hud-label text-[8px] tracking-widest text-slate-400 mt-1">In pipeline</div>
+              </div>
+              <div className="h-8 w-px bg-cyan-400/15" />
+              <div>
+                <div className="hud-label text-xl text-cyan-200">{publishedThisMonth}</div>
+                <div className="hud-label text-[8px] tracking-widest text-slate-400 mt-1">Posted this month</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5">
+          {/* Content calendar */}
+          <section className="evo-surface media-panel p-5" aria-label="Content calendar">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <h3 className="hud-label text-xs text-cyan-200 flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-cyan-300" /> Content calendar
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigateMonth(-1)}
+                  className="h-7 w-7 rounded border border-cyan-400/20 flex items-center justify-center text-cyan-300 hover:bg-cyan-400/10"
+                  aria-label="Previous month"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                </button>
+                <span className="hud-label text-[10px] text-cyan-100 tracking-widest min-w-28 text-center">
+                  {CC_MONTHS[view.month]} {view.year}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => navigateMonth(1)}
+                  className="h-7 w-7 rounded border border-cyan-400/20 flex items-center justify-center text-cyan-300 hover:bg-cyan-400/10"
+                  aria-label="Next month"
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goToday}
+                  className="h-7 px-2 rounded border border-cyan-400/20 hud-label text-[9px] text-cyan-300 hover:bg-cyan-400/10"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openEditor(undefined, "Idea", today)}
+                  className="h-7 px-2 rounded border border-cyan-400/40 bg-cyan-400/10 hud-label text-[9px] text-cyan-100 hover:bg-cyan-400/20 inline-flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3" /> Add
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {CC_WEEKDAYS.map((d) => (
+                <div key={d} className="hud-label text-[8px] text-slate-500 text-center">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {cells.map((cell) => {
+                const dayItems = itemsByDate.get(cell.date) ?? [];
+                const isToday = cell.date === today;
+                return (
+                  <button
+                    key={cell.date + (cell.outside ? "o" : "")}
+                    type="button"
+                    onClick={() => openEditor(undefined, "Idea", cell.date)}
+                    className={[
+                      "min-h-14 md:min-h-16 rounded border p-1 text-left align-top transition-colors overflow-hidden",
+                      cell.outside ? "border-transparent opacity-40" : "border-cyan-400/15 hover:border-cyan-300/50 hover:bg-cyan-400/5",
+                      isToday ? "border-cyan-300/70 bg-cyan-400/10" : "",
+                    ].join(" ")}
+                  >
+                    <span className={`hud-label text-[9px] ${isToday ? "text-cyan-200" : "text-slate-400"}`}>{cell.day}</span>
+                    <span className="block space-y-0.5 mt-0.5">
+                      {dayItems.slice(0, 2).map((item) => {
+                        const meta = MEDIA_CHANNELS.find((entry) => entry.name === item.channel);
+                        return (
+                          <span
+                            key={item.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openEditor(item);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.stopPropagation();
+                                openEditor(item);
+                              }
+                            }}
+                            className="block truncate rounded px-1 py-0.5 text-[9px] text-slate-200 hover:bg-cyan-400/15"
+                            style={{ borderLeft: `2px solid ${meta?.color ?? "#22d3ee"}` }}
+                          >
+                            {item.title}
+                          </span>
+                        );
+                      })}
+                      {dayItems.length > 2 && (
+                        <span className="block hud-label text-[8px] text-cyan-300/70 px-1">+{dayItems.length - 2} more</span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Quick actions + platforms */}
+          <div className="space-y-5">
+            <section className="evo-surface media-panel p-5" aria-label="Quick actions">
+              <h3 className="hud-label text-xs text-cyan-200 mb-3 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-cyan-300" /> Quick actions
+              </h3>
+              <div className="space-y-2">
+                <button type="button" onClick={() => openEditor(undefined, "Idea")} className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2">
+                  <Lightbulb className="h-3.5 w-3.5 text-cyan-300" /> New video idea
+                </button>
+                <button type="button" onClick={() => openEditor(undefined, "Idea", today)} className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2">
+                  <CalendarDays className="h-3.5 w-3.5 text-cyan-300" /> Plan on calendar
+                </button>
+                <button type="button" onClick={() => openEditor(undefined, "Draft")} className="w-full rounded border border-cyan-400/20 px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-400/10 inline-flex items-center gap-2">
+                  <Pencil className="h-3.5 w-3.5 text-cyan-300" /> Write script / notes
+                </button>
+                <button type="button" onClick={() => notBuiltYet("Video upload")} className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2">
+                  <Send className="h-3.5 w-3.5" /> Upload video <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
+                </button>
+                <button type="button" onClick={() => notBuiltYet("Video editing")} className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2">
+                  <Clapperboard className="h-3.5 w-3.5" /> Edit video <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
+                </button>
+                <button type="button" onClick={() => notBuiltYet("Thumbnail creation")} className="w-full rounded border border-cyan-400/10 px-3 py-2 text-left text-xs text-slate-500 hover:bg-cyan-400/5 inline-flex items-center gap-2">
+                  <ImageIcon className="h-3.5 w-3.5" /> Create thumbnail <span className="ml-auto hud-label text-[8px] text-slate-500">not built in</span>
+                </button>
+              </div>
+            </section>
+
+            <section className="evo-surface media-panel p-5" aria-label="Platforms">
+              <h3 className="hud-label text-xs text-cyan-200 mb-1 flex items-center gap-2">
+                <Network className="h-4 w-4 text-cyan-300" /> Platforms
+              </h3>
+              <p className="text-[10px] text-slate-500 mb-3">
+                No platform accounts are connected, so there are no live follower or view stats. Counts below are your
+                saved content items.
+              </p>
+              <div className="space-y-2">
+                {MEDIA_CHANNELS.map(({ name, icon: Icon, color }) => {
+                  const count = items.filter((item) => item.channel === name).length;
+                  const status =
+                    name === "TikTok" ? "Current platform" : name === "Instagram" ? "Planned next" : "Not connected";
+                  return (
+                    <div key={name} className="flex items-center gap-3 rounded border border-cyan-400/10 px-3 py-2">
+                      <Icon className="h-4 w-4 shrink-0" style={{ color }} />
+                      <div className="min-w-0">
+                        <div className="text-xs text-slate-200">{name}</div>
+                        <div className="hud-label text-[8px] text-slate-500">{status}</div>
+                      </div>
+                      <span className="ml-auto hud-label text-[10px] text-cyan-200 whitespace-nowrap">
+                        {count} saved
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        {/* Production pipeline */}
+        <section className="evo-surface media-panel p-5" aria-label="Production pipeline">
+          <h3 className="hud-label text-xs text-cyan-200 mb-3 flex items-center gap-2">
+            <ListTodo className="h-4 w-4 text-cyan-300" /> Production pipeline
+          </h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {MEDIA_STAGE_META.map(({ name, icon: Icon, color, hint, action }) => {
+              const stageItems = items.filter((item) => item.stage === name);
+              return (
+                <div
+                  key={name}
+                  className={`rounded-lg border p-3 transition-colors ${
+                    stageFilter === name ? "border-cyan-300/60 bg-cyan-400/10" : "border-cyan-400/15"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setStageFilter(stageFilter === name ? "All" : name)}
+                    className="w-full text-left"
+                    aria-pressed={stageFilter === name}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-4 w-4" style={{ color }} />
+                      <span className="hud-label text-[10px] text-slate-200">{name}</span>
+                      <span className="ml-auto hud-label text-lg" style={{ color }}>{stageItems.length}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">{hint}</p>
+                  </button>
+                  <div className="mt-2 space-y-1">
+                    {stageItems.slice(0, 4).map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => openEditor(item)}
+                        className="block w-full truncate text-left text-[10px] text-slate-300 hover:text-cyan-200 px-1 py-0.5 rounded hover:bg-cyan-400/10"
+                      >
+                        {item.title}
+                      </button>
+                    ))}
+                    {stageItems.length > 4 && (
+                      <span className="block hud-label text-[8px] text-cyan-300/70 px-1">+{stageItems.length - 4} more</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openEditor(undefined, name)}
+                    className="mt-2 inline-flex items-center gap-1 hud-label text-[9px] text-cyan-300 hover:text-cyan-100"
+                  >
+                    <Plus className="h-3 w-3" /> {action}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5">
+          {/* Content library */}
+          <section className="evo-surface media-panel p-5" aria-label="Content library">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <h3 className="hud-label text-xs text-cyan-200 flex items-center gap-2">
+                <FolderKanban className="h-4 w-4 text-cyan-300" /> Content library
+              </h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                  <Input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search titles and notes…"
+                    className="h-8 pl-7 text-xs w-52"
+                  />
+                </div>
+                <select
+                  value={stageFilter}
+                  onChange={(event) => setStageFilter(event.target.value as "All" | MediaStage)}
+                  className="h-8 rounded border border-cyan-400/20 bg-[#04101d] px-2 text-xs text-slate-200"
+                  aria-label="Filter by stage"
+                >
+                  <option value="All">All stages</option>
+                  {MEDIA_STAGES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {visibleItems.length === 0 ? (
+              <p className="text-xs text-slate-500">
+                {items.length === 0
+                  ? "Nothing saved yet. Add your first idea with a quick action above."
+                  : "No content matches this search or filter."}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {visibleItems.map((item) => {
+                  const meta = MEDIA_CHANNELS.find((entry) => entry.name === item.channel);
+                  const stageMeta = MEDIA_STAGE_META.find((entry) => entry.name === item.stage);
+                  return (
+                    <li key={item.id} className="flex items-center gap-3 rounded border border-cyan-400/10 px-3 py-2">
+                      {meta && <meta.icon className="h-4 w-4 shrink-0" style={{ color: meta.color }} />}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-slate-200 truncate">{item.title}</div>
+                        <div className="hud-label text-[8px] text-slate-500">
+                          {item.channel} · {item.stage}
+                          {item.date ? ` · ${item.date}` : " · no date"}
+                        </div>
+                      </div>
+                      <select
+                        value={item.stage}
+                        onChange={(event) => moveItem(item.id, event.target.value as MediaStage)}
+                        className="h-7 rounded border border-cyan-400/20 bg-[#04101d] px-1.5 text-[10px] text-slate-200"
+                        aria-label={`Move ${item.title} to another stage`}
+                      >
+                        {MEDIA_STAGES.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openEditor(item)}
+                        className="h-7 w-7 rounded border border-cyan-400/20 flex items-center justify-center text-cyan-300 hover:bg-cyan-400/10"
+                        aria-label={`Edit ${item.title}`}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(item)}
+                        className="h-7 w-7 rounded border border-cyan-400/20 flex items-center justify-center text-rose-300/80 hover:bg-rose-400/10"
+                        aria-label={`Delete ${item.title}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                      {stageMeta && <span className="sr-only">{stageMeta.hint}</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          {/* Content goals */}
+          <section className="evo-surface media-panel p-5" aria-label="Content goals">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h3 className="hud-label text-xs text-cyan-200 flex items-center gap-2">
+                <Target className="h-4 w-4 text-cyan-300" /> Content goals
+              </h3>
+              <button
+                type="button"
+                onClick={() => openGoalEditor()}
+                className="inline-flex items-center gap-1 hud-label text-[9px] text-cyan-300 hover:text-cyan-100"
+              >
+                <Plus className="h-3 w-3" /> Add goal
+              </button>
+            </div>
+            {goals.length === 0 ? (
+              <p className="text-xs text-slate-500">
+                No goals yet. Add one — for example "Post 5x per week" — and update your progress as you go.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {goals.map((goal) => {
+                  const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
+                  const done = goal.current >= goal.target;
+                  return (
+                    <li key={goal.id}>
+                      <div className="flex items-center gap-2">
+                        {done ? (
+                          <CircleCheck className="h-3.5 w-3.5 text-emerald-300 shrink-0" />
+                        ) : (
+                          <span className="h-3.5 w-3.5 rounded-full border border-cyan-400/40 shrink-0" />
+                        )}
+                        <span className="text-xs text-slate-200 truncate">{goal.label}</span>
+                        <span className="ml-auto hud-label text-[9px] text-cyan-200 whitespace-nowrap">
+                          {goal.current} / {goal.target}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => openGoalEditor(goal)}
+                          className="text-slate-500 hover:text-cyan-200"
+                          aria-label={`Edit goal ${goal.label}`}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteGoal(goal.id)}
+                          className="text-slate-500 hover:text-rose-300"
+                          aria-label={`Delete goal ${goal.label}`}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="mt-1 h-1.5 rounded-full bg-cyan-400/10 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${done ? "bg-emerald-400" : "bg-cyan-400"}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <p className="mt-4 text-[10px] text-slate-500 border-t border-cyan-400/10 pt-3">
+              Goal progress is updated by you — Evolution doesn't pull live stats from any platform.
+            </p>
+          </section>
+        </div>
+      </div>
+
+      {/* Content editor dialog */}
+      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit content" : "New content"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Title" />
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={itemChannel}
+                onChange={(event) => setItemChannel(event.target.value)}
+                className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+                aria-label="Platform"
+              >
+                {MEDIA_CHANNELS.map(({ name }) => (
+                  <option key={name}>{name}</option>
+                ))}
+                {!MEDIA_CHANNELS.some((entry) => entry.name === itemChannel) && <option>{itemChannel}</option>}
+              </select>
+              <select
+                value={stage}
+                onChange={(event) => setStage(event.target.value as MediaStage)}
+                className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+                aria-label="Stage"
+              >
+                {MEDIA_STAGES.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} aria-label="Planned date" />
+            <textarea
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="Script, shot list, or notes…"
+              rows={4}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
+            <Button onClick={saveItem}>{editingId ? "Save changes" : "Save content"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove content?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Remove “{deleteTarget?.title}” from your library? This won't remove anything from a social platform.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Keep it</Button>
+            <Button variant="destructive" onClick={deleteItem}>Remove</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Goal editor dialog */}
+      <Dialog open={goalOpen} onOpenChange={setGoalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{goalEditId ? "Edit goal" : "New content goal"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input value={goalLabel} onChange={(event) => setGoalLabel(event.target.value)} placeholder="Goal — e.g. Post 5x per week" />
+            <div className="grid grid-cols-2 gap-3">
+              <Input value={goalCurrent} onChange={(event) => setGoalCurrent(event.target.value)} placeholder="Progress (e.g. 3)" inputMode="numeric" aria-label="Current progress" />
+              <Input value={goalTarget} onChange={(event) => setGoalTarget(event.target.value)} placeholder="Target (e.g. 5)" inputMode="numeric" aria-label="Target" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setGoalOpen(false)}>Cancel</Button>
+            <Button onClick={saveGoal}>{goalEditId ? "Save changes" : "Save goal"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1811,9 +2587,12 @@ function MediaSystemPage() {
           <ArrowLeft size={13} /> Social Media
         </Link>
         <span>Business / Media System</span>
-        <Link to="/business" search={plannerSearch} hash="media-planner">
-          Open content planner <ArrowRight size={13} />
-        </Link>
+        <span className="flex items-center gap-4">
+          <Link to="/business" search={{ section: "content-creator" }}>Content Creator</Link>
+          <Link to="/business" search={plannerSearch} hash="media-planner">
+            Open content planner <ArrowRight size={13} />
+          </Link>
+        </span>
       </div>
       <header className="md-command-header">
         <div className="md-brand">
