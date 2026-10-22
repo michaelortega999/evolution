@@ -58,9 +58,12 @@ import {
 export const Route = createFileRoute("/business")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { section?: "social-media" | "media-system" | "marketing-system"; channel?: string } => ({
+  ): { section?: "social-media" | "media-system" | "marketing-system" | "content-creator"; channel?: string } => ({
     section:
-      search.section === "social-media" || search.section === "media-system" || search.section === "marketing-system"
+      search.section === "social-media" ||
+      search.section === "media-system" ||
+      search.section === "marketing-system" ||
+      search.section === "content-creator"
         ? search.section
         : undefined,
     channel:
@@ -100,6 +103,7 @@ function BusinessRoute() {
   const { section, channel } = Route.useSearch();
   if (section === "social-media") return <SocialMediaPage key={channel ?? "all"} />;
   if (section === "media-system" || section === "marketing-system") return <MediaSystemPage />;
+  if (section === "content-creator") return <ContentCreatorPage />;
   return <BusinessPage />;
 }
 
