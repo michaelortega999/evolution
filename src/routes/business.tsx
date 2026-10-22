@@ -36,6 +36,8 @@ import {
   ChevronRight,
   Infinity as InfinityIcon,
   ListTodo,
+  Clapperboard,
+  Image as ImageIcon,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { hologramSrc } from "@/lib/holograms";
