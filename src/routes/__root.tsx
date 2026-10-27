@@ -117,6 +117,8 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const section = new URLSearchParams(searchStr).get("section");
+  if (pathname.startsWith("/evolution-mobile/"))
+    return <div role="alert">Mobile asset unavailable. Open the Dashboard from the main app.</div>;
   if (section === "evo" || section === "alfred")
     return (
       <>
@@ -126,6 +128,8 @@ function RootComponent() {
     );
   if (
     isPhone &&
+    !(pathname === "/" && !new URLSearchParams(searchStr).has("mobilePage")) &&
+    new URLSearchParams(searchStr).get("mobileFallback") !== "1" &&
     pathname !== "/auth" &&
     pathname !== "/settings" &&
     pathname !== "/business" &&
