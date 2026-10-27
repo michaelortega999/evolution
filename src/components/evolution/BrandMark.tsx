@@ -3,12 +3,16 @@ import { cn } from "@/lib/utils";
 /** EVOLUTION OS wordmark: spaced ink EVOLUTION + accent OS, angled accent, tagline, short dash. */
 export function BrandMark({ compact = false, className }: { compact?: boolean; className?: string }) {
   return (
-    <div className={cn("relative inline-flex flex-col select-none", className)} aria-label="Evolution OS — Higher standards. Brighter days." role="img">
-      <div className="relative flex items-baseline pr-10">
+    <div
+      className={cn("relative inline-flex flex-col select-none", className)}
+      aria-label="Evolution OS — Higher standards. Brighter days."
+      role="img"
+    >
+      <div className={cn("relative flex items-baseline", compact ? "pr-6" : "pr-10")}>
         <span
           className={cn(
             "evo-brand__word font-light text-brand-ink uppercase leading-none",
-            compact ? "text-base" : "text-xl sm:text-2xl",
+            compact ? "text-[13px]" : "text-xl sm:text-2xl",
           )}
           style={{ fontFamily: "'Orbitron', 'Rajdhani', ui-sans-serif, system-ui" }}
         >
@@ -17,16 +21,22 @@ export function BrandMark({ compact = false, className }: { compact?: boolean; c
         <span
           className={cn(
             "evo-brand__word evo-brand__glow font-light text-primary uppercase leading-none",
-            compact ? "text-base" : "text-xl sm:text-2xl",
+            compact ? "text-[13px]" : "text-xl sm:text-2xl",
           )}
-          style={{ fontFamily: "'Orbitron', 'Rajdhani', ui-sans-serif, system-ui", letterSpacing: "0.12em" }}
+          style={{
+            fontFamily: "'Orbitron', 'Rajdhani', ui-sans-serif, system-ui",
+            letterSpacing: "0.12em",
+          }}
         >
           OS
         </span>
         <svg
           aria-hidden
           viewBox="0 0 60 30"
-          className={cn("evo-brand__glow absolute right-0 text-primary", compact ? "-top-2 h-5 w-10" : "-top-3 h-7 w-12")}
+          className={cn(
+            "evo-brand__glow absolute right-0 text-primary",
+            compact ? "-top-2 h-4 w-7" : "-top-3 h-7 w-12",
+          )}
         >
           <path d="M2 28 L58 2 L40 14 Z" fill="currentColor" opacity="0.9" />
           <path d="M2 28 L58 2" stroke="currentColor" strokeWidth="1.2" fill="none" />
