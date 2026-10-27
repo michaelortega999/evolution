@@ -38,6 +38,7 @@ import { useTheme } from "@/lib/use-theme";
 import { FocusNotification } from "@/components/evolution/FocusNotification";
 import { MobileBottomNav } from "@/components/evolution/MobileBottomNav";
 import { MobileApp, useIsPhone } from "@/components/evolution/MobileApp";
+import { AppBrandBar } from "@/components/evolution/AppBrandBar";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -127,7 +128,10 @@ function RootComponent() {
     isPhone &&
     pathname !== "/auth" &&
     pathname !== "/settings" &&
-    !(pathname === "/business" && section === "content-creator")
+    pathname !== "/business" &&
+    pathname !== "/hobby" &&
+    pathname !== "/calendar" &&
+    pathname !== "/goals"
   )
     return <MobileApp />;
   return (
@@ -424,7 +428,12 @@ function EvoAssistantPage() {
       style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
     >
       <style>{EVO_WORKSPACE_CSS}</style>
-      <header className="evo-header evo-frame">
+      <AppBrandBar />
+      <div className="flex items-center justify-between gap-3 px-1 py-2 text-xs text-muted-foreground" role="status">
+        <span className="tracking-widest text-primary">EVO AI</span>
+        <span>{statusLabel}</span>
+      </div>
+      <header className="evo-header evo-frame" style={{ display: "none" }}>
         <a href="/" className="evo-brand" aria-label="Evolution home">
           <img src={hologramSrc("bonsai")} alt="" />
           <span>
