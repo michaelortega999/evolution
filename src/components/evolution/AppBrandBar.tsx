@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { mainNav, secondaryNav } from "./Sidebar";
 
 function sectionLabel(pathname: string, search: Record<string, unknown>): string {
-  if (pathname === "/") return search.section === "evo" ? "Evo Assistant" : "Dashboard";
+  if (pathname === "/") return search.section === "evo" || search.section === "alfred" ? "Evo Assistant" : "Dashboard";
   const all = [...mainNav, ...secondaryNav];
   const hit = all.find((n) => n.to !== "/" && pathname.startsWith(n.to));
   if (!hit) return "";
@@ -29,13 +29,21 @@ export function AppBrandBar() {
   const label = sectionLabel(pathname, search);
 
   return (
-    <header className="hud-card px-4 py-3 sm:px-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+    <header className="hud-card px-4 py-3 sm:px-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:gap-4">
       <Link to="/" aria-label="Evolution OS home" className="min-w-0 justify-self-start">
-        <BrandMark />
+        <span className="sm:hidden">
+          <BrandMark compact />
+        </span>
+        <span className="hidden sm:block">
+          <BrandMark />
+        </span>
       </Link>
       <div className="flex items-center gap-3 shrink-0">
         {label && (
-          <span aria-current="page" className="hud-label text-[10px] sm:text-xs text-primary border border-primary/40 bg-primary/10 rounded-md px-3 py-1.5 max-w-[46vw] truncate">
+          <span
+            aria-current="page"
+            className="hidden sm:block hud-label text-[10px] sm:text-xs text-primary border border-primary/40 bg-primary/10 rounded-md px-3 py-1.5 max-w-[46vw] truncate"
+          >
             {label}
           </span>
         )}
@@ -55,7 +63,11 @@ export function AppBrandBar() {
               <BrandMark compact />
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-1" aria-label="Main">
-              <a href="/?section=evo" onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary">
+              <a
+                href="/?section=evo"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary"
+              >
                 <Zap className="h-4 w-4" /> Evo Assistant
               </a>
               {[...mainNav, ...secondaryNav].map((item) => {
@@ -68,7 +80,9 @@ export function AppBrandBar() {
                     aria-current={active ? "page" : undefined}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border",
-                      active ? "bg-primary/10 border-primary/40 text-primary" : "border-transparent text-foreground/80 hover:bg-primary/5",
+                      active
+                        ? "bg-primary/10 border-primary/40 text-primary"
+                        : "border-transparent text-foreground/80 hover:bg-primary/5",
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
