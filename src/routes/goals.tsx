@@ -741,7 +741,7 @@ function GoalsPlanner() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {CATS.map((c) => {
           const items = scoped.filter((g) => plannerCategoryOf(g) === c.name),
             done = items.filter((g) => g.completed).length,
@@ -802,7 +802,7 @@ function GoalsPlanner() {
           />
         </label>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
         <Box
           title={`${scope === "yearly" ? "Yearly" : "Recorded"} progress`}
           action={<span className="text-xs text-slate-400">{year}</span>}
@@ -873,7 +873,7 @@ function GoalsPlanner() {
           </div>
         </Box>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
         <Box title={scope === "yearly" ? "This year's milestones" : "Lifetime milestones"}>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {milestones.map((g) => {
