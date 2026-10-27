@@ -1,3 +1,436 @@
+import { BrandMark } from "@/components/evolution/BrandMark";
+function BusinessOverviewRefined() {
+  const { data } = useEvolutionData();
+  const [selected, setSelected] = useState(0);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+  const [notice, setNotice] = useState<"Ads" | "Automation" | null>(null);
+  const month = localISO().slice(0, 7);
+  const monthly = data.revenue.filter((r) => r.date.startsWith(month));
+  const active = data.projects.filter((p) => p.status !== "Completed");
+  const contentItems = readMediaItems(data);
+  const recent = [...data.revenue].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+  const timeline = [...active]
+    .filter((p) => p.deadline)
+    .sort((a, b) => a.deadline.localeCompare(b.deadline))
+    .slice(0, 3);
+  type HubCard = {
+    id: string;
+    name: string;
+    detail: string;
+    section: "workspace" | "social-media" | "content-creator" | "media-system";
+    icon: typeof Globe;
+    progress?: number;
+    evolution?: boolean;
+    dashboard?: boolean;
+  };
+  const cards: HubCard[] = [
+    {
+      id: "evolution-workspace",
+      name: "Evolution OS",
+      detail: "Life operating system · workspace",
+      section: "workspace",
+      icon: Globe,
+      evolution: true,
+      dashboard: true,
+    },
+    ...data.projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      detail: p.status,
+      section: "workspace" as const,
+      icon: FolderKanban,
+      progress: p.progress,
+      evolution: /^evolution[\s-]*(os)?$/i.test(p.name.trim()),
+    })),
+    {
+      id: "social",
+      name: "Social Media",
+      detail: "Plan your publishing",
+      section: "social-media",
+      icon: Network,
+    },
+    {
+      id: "creator",
+      name: "Content Creator",
+      detail: "Ideas into content",
+      section: "content-creator",
+      icon: Clapperboard,
+    },
+    {
+      id: "media",
+      name: "Media System",
+      detail: "Explore the demo",
+      section: "media-system",
+      icon: Globe,
+    },
+  ];
+  const index = selected % cards.length;
+  const current = cards[index];
+  const move = (step: number) => setSelected((index + step + cards.length) % cards.length);
+  const actionClass =
+    "inline-flex items-center justify-center gap-2 rounded-md border border-cyan-400/30 px-3 py-2 text-xs text-cyan-100 transition hover:border-cyan-200 hover:bg-cyan-300/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200";
+  return (
+    <ModuleLayout number="07" title="Business Overview" subtitle="Build. Create. Grow." icon={Briefcase}>
+      {" "}
+      <div className="business-overview space-y-5 text-slate-200">
+        {" "}
+        <style>{`
+          .business-overview .bo-panel{border:1px solid #4bbfff36;border-radius:12px;background:linear-gradient(135deg,#071a2ce8,#030914f5);box-shadow:inset 0 1px 0 #b0eaff0a,0 8px 30px #0003}
+          .business-overview .bo-hub{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 65%,#0965ad33,transparent 62%),linear-gradient(#061220,#020711)}
+          .business-overview .bo-hub:before{content:"";position:absolute;inset:45% -20% -70%;background:linear-gradient(#20adff16 1px,transparent 1px),linear-gradient(90deg,#20adff16 1px,transparent 1px);background-size:55px 55px;transform:perspective(350px) rotateX(60deg);pointer-events:none}
+          .business-overview .bo-orbit{position:absolute;left:4%;right:4%;height:145px;bottom:100px;border:1px solid #7ddfff99;border-radius:50%;box-shadow:0 0 20px #16acff44,inset 0 0 30px #008cff29;pointer-events:none}
+          .business-overview .bo-orbit:after,.business-overview .bo-orbit:before{content:"";position:absolute;inset:16px -3%;border:1px solid #37beff60;border-radius:50%}
+          .business-overview .bo-orbit:before{inset:35px 8%;box-shadow:0 0 18px #36c6ff66}
+          .business-overview .bo-wheel{--bo-step:clamp(112px,15vw,190px);position:relative;height:365px;margin:14px 0 10px;perspective:1100px;isolation:isolate;touch-action:pan-y;outline-offset:-3px}
+          .business-overview .bo-card{position:absolute;top:28px;left:50%;width:220px;height:290px;margin-left:-110px;border:1px solid #36bcff80;border-radius:13px;background:linear-gradient(155deg,#0a2d49f5,#030b18fa);padding:20px 14px;box-shadow:0 22px 32px #0009,inset 0 0 15px #22baff0e;transform:translate3d(calc(var(--bo-offset)*var(--bo-step)),calc(var(--bo-distance)*12px),calc(var(--bo-distance)*-120px)) rotateY(calc(var(--bo-offset)*-18deg));opacity:var(--bo-opacity);z-index:var(--bo-layer);transition:transform .55s cubic-bezier(.2,.75,.25,1),opacity .45s,border-color .3s;user-select:none}
+          .business-overview .bo-card[data-active="true"]{border-color:#a2edff;box-shadow:0 0 28px #1caaff55,inset 0 0 24px #24bcff22}
+          .business-overview .bo-card:after{content:"";position:absolute;bottom:-12px;left:8%;right:8%;height:4px;border-radius:50%;background:#21bcff;box-shadow:0 0 18px #25c3ff;opacity:.65}
+          .business-overview .bo-emblem{height:140px;display:grid;place-items:center;color:#8de5ff;margin-bottom:18px;background:radial-gradient(ellipse,#24acff20,transparent 68%)}
+          .business-overview .bo-emblem svg{filter:drop-shadow(0 0 10px #1cafff)}
+          .business-overview .bo-bonsai{height:139px;width:100%;object-fit:contain;mix-blend-mode:screen;pointer-events:none;filter:drop-shadow(0 0 9px #1cafff44)}
+          .business-overview .bo-card-brand{display:flex;align-items:center;min-height:48px;transform:scale(.85);transform-origin:center top}
+          .business-overview .bo-card-brand .text-primary{color:#67e8f9}.business-overview .bo-card-brand .text-brand-ink{color:#e6faff}
+          @media(max-width:600px){.business-overview .bo-wheel{--bo-step:125px;height:335px}.business-overview .bo-card{width:200px;margin-left:-100px;height:275px;padding:17px 12px}.business-overview .bo-orbit{bottom:115px;left:-20%;right:-20%}.business-overview .bo-bonsai{height:125px}}
+          @media(prefers-reduced-motion:reduce){.business-overview .bo-card{transition:none}}
+        `}</style>{" "}
+        <nav
+          aria-label="Business sections"
+          className="flex items-center gap-1 overflow-x-auto border-b border-cyan-400/20 pb-3 text-xs"
+        >
+          {" "}
+          <span aria-current="page" className="rounded-md bg-cyan-400/15 px-4 py-2 text-cyan-200">
+            {" "}
+            Overview{" "}
+          </span>{" "}
+          <Link to="/business" search={{ section: "workspace" }} hash="business-projects" className={actionClass}>
+            {" "}
+            Projects{" "}
+          </Link>{" "}
+          <Link to="/business" search={{ section: "content-creator" }} className={actionClass}>
+            {" "}
+            Content{" "}
+          </Link>{" "}
+          <Link to="/business" search={{ section: "workspace" }} hash="business-revenue" className={actionClass}>
+            {" "}
+            Sales{" "}
+          </Link>{" "}
+          <button type="button" onClick={() => setNotice("Ads")} className={actionClass}>
+            {" "}
+            Ads{" "}
+          </button>{" "}
+          <Link to="/business" search={{ section: "workspace" }} hash="business-revenue" className={actionClass}>
+            {" "}
+            Analytics{" "}
+          </Link>{" "}
+          <button type="button" onClick={() => setNotice("Automation")} className={actionClass}>
+            {" "}
+            Automation{" "}
+          </button>{" "}
+        </nav>{" "}
+        {notice && (
+          <div className="bo-panel flex items-start gap-3 p-4 text-sm" role="status">
+            {" "}
+            <div className="flex-1">
+              {" "}
+              <strong className="text-cyan-200"> {notice} — not connected </strong>{" "}
+              <p className="mt-1 text-slate-400">
+                {" "}
+                {notice === "Ads"
+                  ? "No live ad account is connected here. The Media System is a separate demo, not your campaign results."
+                  : "No live business automations are connected here. Plan work in Tasks; the Media System remains a demo."}{" "}
+              </p>{" "}
+            </div>{" "}
+            <button
+              type="button"
+              aria-label="Dismiss information"
+              onClick={() => setNotice(null)}
+              className={actionClass}
+            >
+              {" "}
+              <X size={16} />{" "}
+            </button>{" "}
+          </div>
+        )}{" "}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {" "}
+          {[
+            {
+              label: "Active projects",
+              value: String(active.length),
+              detail: `${data.projects.length} saved projects`,
+              icon: FolderKanban,
+            },
+            {
+              label: "Content pieces",
+              value: String(contentItems.length),
+              detail: "Saved planner items · all stages",
+              icon: Clapperboard,
+            },
+            {
+              label: "Total followers",
+              value: "—",
+              detail: "Live accounts not connected",
+              icon: Users,
+            },
+            {
+              label: "Total views",
+              value: "—",
+              detail: "Live analytics not connected",
+              icon: BarChart3,
+            },
+            {
+              label: "Monthly revenue",
+              value: monthly.length ? fmt(monthly.reduce((sum, r) => sum + r.amount, 0)) : "—",
+              detail: monthly.length ? "Manually logged · this month" : "No entries this month",
+              icon: Target,
+            },
+          ].map(({ label, value, detail, icon: Icon }) => (
+            <section key={label} className="bo-panel min-w-0 p-4 last:col-span-2 lg:last:col-span-1">
+              {" "}
+              <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-slate-400">
+                {" "}
+                <span>{label}</span> <Icon size={15} className="shrink-0 text-cyan-300" />{" "}
+              </div>{" "}
+              <div className="mt-3 text-2xl font-semibold tracking-wide text-cyan-100"> {value} </div>{" "}
+              <p className="mt-2 text-[10px] text-slate-400">{detail}</p>{" "}
+            </section>
+          ))}{" "}
+        </div>{" "}
+        <section className="bo-panel bo-hub px-3 pb-5 pt-7 text-center sm:px-6" aria-label="Projects hub">
+          {" "}
+          <p className="text-[10px] uppercase tracking-[.32em] text-cyan-300"> Projects hub </p>{" "}
+          <h2 className="mt-3 text-xl font-semibold tracking-[.12em] text-cyan-50 sm:text-3xl">
+            {" "}
+            BUILD. CREATE. GROW.{" "}
+          </h2>{" "}
+          <p className="mt-2 text-[10px] uppercase tracking-[.2em] text-slate-400">
+            {" "}
+            All your projects. One system.{" "}
+          </p>{" "}
+          <div className="bo-orbit" aria-hidden="true" />{" "}
+          <div
+            className="bo-wheel focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Rotating project selector"
+            tabIndex={0}
+            onPointerDown={(e) => {
+              swipeStart.current = { x: e.clientX, y: e.clientY };
+              suppressClick.current = false;
+            }}
+            onPointerCancel={() => {
+              swipeStart.current = null;
+            }}
+            onPointerUp={(e) => {
+              const start = swipeStart.current;
+              swipeStart.current = null;
+              if (!start) return;
+              const dx = e.clientX - start.x;
+              const dy = e.clientY - start.y;
+              if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                suppressClick.current = true;
+                move(dx < 0 ? 1 : -1);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+                e.preventDefault();
+                e.currentTarget.focus();
+                if (e.key === "Home") setSelected(0);
+                else if (e.key === "End") setSelected(cards.length - 1);
+                else move(e.key === "ArrowLeft" ? -1 : 1);
+              }
+            }}
+          >
+            {cards.map((card, position) => {
+              let offset = (position - index + cards.length) % cards.length;
+              if (offset > cards.length / 2) offset -= cards.length;
+              const distance = Math.abs(offset);
+              const visible = distance <= 2;
+              const Icon = card.icon;
+              return (
+                <button
+                  type="button"
+                  key={`${card.dashboard ? "hub" : card.section}-${card.id}`}
+                  data-active={offset === 0}
+                  className="bo-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+                  style={
+                    {
+                      "--bo-offset": offset,
+                      "--bo-distance": distance,
+                      "--bo-opacity": visible ? (offset === 0 ? 1 : 0.78) : 0,
+                      "--bo-layer": 10 - distance,
+                      pointerEvents: visible ? "auto" : "none",
+                    } as CSSProperties
+                  }
+                  tabIndex={offset === 0 ? 0 : -1}
+                  aria-hidden={!visible}
+                  aria-label={`${card.name}${offset === 0 ? ", selected" : ", select"}`}
+                  aria-pressed={offset === 0}
+                  onClick={() => {
+                    if (suppressClick.current) {
+                      suppressClick.current = false;
+                      return;
+                    }
+                    setSelected(position);
+                  }}
+                >
+                  {card.evolution ? (
+                    <>
+                      <BrandMark compact className="bo-card-brand" />
+                      <img src={hologramSrc("bonsai")} alt="Cyan bonsai tree" draggable={false} className="bo-bonsai" />
+                    </>
+                  ) : (
+                    <span className="bo-emblem">
+                      <Icon size={72} strokeWidth={1} />
+                    </span>
+                  )}
+                  <span className="block truncate text-sm font-semibold tracking-wide text-cyan-100">{card.name}</span>
+                  <span className="mt-2 block text-[10px] uppercase tracking-wider text-slate-400">{card.detail}</span>
+                  {card.progress !== undefined && (
+                    <span className="mt-3 block text-[10px] text-cyan-300">{card.progress}% recorded progress</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="relative flex flex-wrap items-center justify-center gap-3">
+            {" "}
+            <button
+              type="button"
+              className={actionClass}
+              aria-label="Previous project or workspace"
+              onClick={() => move(-1)}
+            >
+              {" "}
+              <ArrowLeft size={16} />{" "}
+            </button>{" "}
+            {current.dashboard ? (
+              <Link to="/" className={`${actionClass} bg-cyan-400/10`}>
+                Open Evolution OS <ArrowRight size={14} />
+              </Link>
+            ) : (
+              <Link
+                to="/business"
+                search={{ section: current.section }}
+                hash={current.section === "workspace" ? `business-project-${current.id}` : undefined}
+                className={`${actionClass} bg-cyan-400/10`}
+              >
+                {" "}
+                Open {current.name} <ArrowRight size={14} />{" "}
+              </Link>
+            )}{" "}
+            <button
+              type="button"
+              className={actionClass}
+              aria-label="Next project or workspace"
+              onClick={() => move(1)}
+            >
+              {" "}
+              <ArrowRight size={16} />{" "}
+            </button>{" "}
+          </div>{" "}
+          <p aria-live="polite" className="relative mt-3 text-[10px] text-slate-400">
+            {" "}
+            {index + 1} / {cards.length} · {current.name}{" "}
+          </p>{" "}
+          {!data.projects.length && (
+            <p className="relative mt-2 text-xs text-slate-400">
+              {" "}
+              No saved projects yet. Select a workspace to get started.{" "}
+            </p>
+          )}{" "}
+        </section>{" "}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {" "}
+          <section className="bo-panel p-5">
+            {" "}
+            <h2 className="text-xs uppercase tracking-widest text-cyan-200"> Recent activity </h2>{" "}
+            <p className="mt-1 text-[10px] text-slate-500"> Latest manually logged revenue </p>{" "}
+            <div className="mt-4 space-y-4">
+              {" "}
+              {recent.length ? (
+                recent.map((r) => (
+                  <div key={r.id} className="flex justify-between gap-3 text-xs">
+                    {" "}
+                    <div className="min-w-0">
+                      {" "}
+                      <p className="truncate text-slate-200">{r.source}</p>{" "}
+                      <p className="mt-1 text-[10px] text-slate-500"> {r.date} </p>{" "}
+                    </div>{" "}
+                    <span className="shrink-0 text-cyan-200"> {fmt(r.amount)} </span>{" "}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs leading-6 text-slate-400">
+                  {" "}
+                  No revenue entries yet. Log an entry to start your activity history.{" "}
+                </p>
+              )}{" "}
+            </div>{" "}
+          </section>{" "}
+          <section className="bo-panel p-5">
+            {" "}
+            <h2 className="text-xs uppercase tracking-widest text-cyan-200"> Project timeline </h2>{" "}
+            <div className="mt-4 space-y-4">
+              {" "}
+              {timeline.length ? (
+                timeline.map((p) => (
+                  <div key={p.id} className="border-l border-cyan-400/40 pl-3">
+                    {" "}
+                    <p className="truncate text-xs">{p.name}</p>{" "}
+                    <p className="mt-1 text-[10px] text-slate-400">
+                      {" "}
+                      {p.deadline} · {p.status}{" "}
+                    </p>{" "}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs leading-6 text-slate-400">
+                  {" "}
+                  No active project deadlines recorded. Add a project to build your timeline.{" "}
+                </p>
+              )}{" "}
+            </div>{" "}
+          </section>{" "}
+          <section className="bo-panel p-5">
+            {" "}
+            <h2 className="text-xs uppercase tracking-widest text-cyan-200"> Quick actions </h2>{" "}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {" "}
+              <Link to="/business" search={{ section: "workspace" }} hash="business-projects" className={actionClass}>
+                {" "}
+                <Plus size={14} /> Projects{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "workspace" }} hash="business-tasks" className={actionClass}>
+                {" "}
+                <ListTodo size={14} /> Tasks{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "content-creator" }} className={actionClass}>
+                {" "}
+                <Clapperboard size={14} /> Create{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "social-media" }} className={actionClass}>
+                {" "}
+                <Network size={14} /> Social{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "workspace" }} hash="business-revenue" className={actionClass}>
+                {" "}
+                Log revenue{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "media-system" }} className={actionClass}>
+                {" "}
+                Media demo{" "}
+              </Link>{" "}
+            </div>{" "}
+          </section>{" "}
+        </div>{" "}
+      </div>{" "}
+    </ModuleLayout>
+  );
+}
+
 import { localISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -111,7 +544,7 @@ function BusinessRoute() {
   if (section === "media-system" || section === "marketing-system") return <MediaSystemPage />;
   if (section === "content-creator") return <ContentCreatorPage />;
   if (section === "workspace") return <BusinessPage />;
-  return <BusinessOverview />;
+  return <BusinessOverviewRefined />;
 }
 function BusinessOverview() {
   const { data } = useEvolutionData();
