@@ -26,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createSignOut } from "@/lib/auth-actions";
 
-const mainNav = [
+export const mainNav = [
   { icon: Home, label: "Dashboard", num: "", to: "/" as const },
   { icon: CheckSquare, label: "Tasks", num: "1", to: "/notes" as const },
   { icon: Zap, label: "Focus", num: "2", to: "/focus" as const },
@@ -38,7 +38,7 @@ const mainNav = [
   { icon: Star, label: "Hobby", num: "8", to: "/hobby" as const },
 ];
 
-const secondaryNav = [
+export const secondaryNav = [
   { icon: Calendar, label: "Calendar", to: "/calendar" as const },
   { icon: Target, label: "Goals", to: "/goals" as const },
   { icon: FileText, label: "Journal", to: "/journal" as const },
@@ -79,10 +79,6 @@ export function Sidebar() {
   return (
     <aside className="hud-card p-4 flex flex-col gap-1 w-full h-full">
       <div className="mb-4 pb-4 border-b border-border flex flex-col items-center text-center gap-3">
-        <div>
-          <div className="hud-label text-primary hud-glow text-sm">Evolution</div>
-          <div className="hud-label text-[8px] text-muted-foreground">Growing today, building forever</div>
-        </div>
         <button
           type="button"
           onClick={() => setPickerOpen(true)}

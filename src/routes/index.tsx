@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Sidebar } from "@/components/evolution/Sidebar";
+import { AppBrandBar } from "@/components/evolution/AppBrandBar";
 import { TopBar } from "@/components/evolution/TopBar";
 import { WeeklyTasksCard } from "@/components/evolution/WeeklyTasksCard";
 import { Onboarding } from "@/components/evolution/Onboarding";
@@ -47,6 +48,7 @@ function Index() {
         </div>
 
         <main className="flex flex-col gap-6 min-w-0">
+          <AppBrandBar />
           <TopBar />
 
           <MonthSelector />
