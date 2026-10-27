@@ -1,749 +1,1102 @@
-import { taskDaySummary } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import {
-  Calendar as CalIcon,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   Plus,
-  Trash2,
-  X,
-  Bell,
-  BellOff,
+  Search,
+  Dumbbell,
+  Apple,
   TrendingUp,
-  Eye,
+  Briefcase,
+  Plane,
+  BookOpen,
   Target,
-  Quote,
-  Files,
+  Check,
+  Clock,
+  Edit3,
+  Trash2,
+  Copy,
+  Bell,
+  X,
+  NotebookPen,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
-import { useEvolutionData, type CalendarEvent, type ReminderOffset } from "@/lib/evolution-data";
-import { cn } from "@/lib/utils";
-import mountainImg from "@/assets/calendar-mountain.jpg";
+import { toast } from "sonner";
+import { ModuleLayout } from "@/components/evolution/ModuleLayout";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  useEvolutionData,
+  type CalendarEvent,
+  type ReminderOffset,
+  type EvoCategory,
+  type Goal,
+  type GoalCategory,
+} from "@/lib/evolution-data";
+import { resolveHabits } from "@/lib/habits";
 
 export const Route = createFileRoute("/calendar")({
   head: () => ({
     meta: [
-      { title: "Calendar — Evolution" },
-      { name: "description", content: "Calendar module of Evolution OS." },
-      { property: "og:title", content: "Calendar — Evolution" },
-      { property: "og:description", content: "Calendar module of Evolution OS." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { title: "Planning — Evolution" },
+      { name: "description", content: "Plan your calendar, goals, tasks, habits and notes." },
     ],
   }),
-  component: CalendarPage,
+  component: PlanningPage,
 });
-
-// ---------- date helpers ----------
-function ymd(d: Date) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-function parseHM(t: string): number {
-  const [h, m] = t.split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
-function fmtHM(mins: number): string {
-  const h = Math.floor(mins / 60) % 24;
-  const m = mins % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-function fmt12(t: string): string {
-  if (!t) return "Any time";
-  const [hh, mm] = t.split(":").map(Number);
-  const h12 = ((hh + 11) % 12) + 1;
-  const ap = hh < 12 ? "AM" : "PM";
-  return `${h12}:${String(mm).padStart(2, "0")} ${ap}`;
-}
-function startOfWeek(d: Date): Date {
-  // Monday-start week
-  const day = d.getDay(); // 0 Sun..6 Sat
-  const diff = (day + 6) % 7; // days since Monday
-  const out = new Date(d.getFullYear(), d.getMonth(), d.getDate() - diff);
-  return out;
-}
-function addDays(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-}
-function eventStartMs(e: CalendarEvent): number {
-  return new Date(`${e.date}T${e.time}:00`).getTime();
-}
-
-// ---------- main ----------
-function CalendarPage() {
-  const { data, mutate } = useEvolutionData();
-  const events = data.calendar ?? [];
-  const [view, setView] = useState<"month" | "week" | "day" | "agenda">("month");
-  const [cursor, setCursor] = useState(() => new Date());
-  const [weekCursor, setWeekCursor] = useState(() => startOfWeek(new Date()));
-
-  // form state (shared)
-  const [formDate, setFormDate] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [time, setTime] = useState("12:00");
-  const [endTime, setEndTime] = useState("13:00");
-  const [reminder, setReminder] = useState<ReminderOffset>(0);
-
-  const eventsByDate = useMemo(() => {
-    const m: Record<string, CalendarEvent[]> = {};
-    events.forEach((e) => {
-      (m[e.date] ||= []).push(e);
-    });
-    Object.values(m).forEach((arr) => arr.sort((a, b) => (a.time || "").localeCompare(b.time || "")));
-    return m;
-  }, [events]);
-
-  const upcoming = useMemo(() => {
-    const today = ymd(new Date());
-    return [...events]
-      .filter((e) => e.date >= today)
-      .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")))
-      .slice(0, 8);
-  }, [events]);
-
-  function openForm(date: string, startHM = "12:00") {
-    setFormDate(date);
-    setTime(startHM);
-    setEndTime(fmtHM(Math.min(23 * 60 + 59, parseHM(startHM) + 60)));
-    setTitle("");
-    setReminder(0);
-  }
-
-  function addEvent() {
-    if (!formDate || !title.trim()) return;
-    const ev: CalendarEvent = {
-      id: crypto.randomUUID(),
-      date: formDate,
-      time,
-      endTime,
-      title: title.trim(),
-      reminder,
-    };
-    mutate((p) => ({ calendar: [...(p.calendar ?? []), ev] }));
-    setTitle("");
-    setFormDate(null);
-  }
-
-  function delEvent(id: string) {
-    mutate((p) => ({ calendar: (p.calendar ?? []).filter((e) => e.id !== id) }));
-  }
-
-  function duplicateEvent(ev: CalendarEvent) {
-    const [y, m, d] = ev.date.split("-").map(Number);
-    const next = new Date(y, m - 1, d);
-    next.setDate(next.getDate() + 1);
-    const copy: CalendarEvent = {
-      id: crypto.randomUUID(),
-      date: ymd(next),
-      time: ev.time,
-      endTime: ev.endTime,
-      title: ev.title,
-      reminder: ev.reminder,
-    };
-    mutate((p) => ({ calendar: [...(p.calendar ?? []), copy] }));
-  }
-
-  // Month overview stats derived from cursor month
-  const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
-  const monthEvents = useMemo(() => events.filter((e) => e.date.startsWith(monthKey)), [events, monthKey]);
-  const tradingDays = new Set(monthEvents.filter((e) => /trad|market|backtest/i.test(e.title)).map((e) => e.date)).size;
-  const reviewDays = new Set(monthEvents.filter((e) => /review|journal|reflect/i.test(e.title)).map((e) => e.date))
-    .size;
-  const goals = data.goals ?? [];
-  const goalCompletion = goals.length
-    ? Math.round((goals.reduce((s, g) => s + Math.min(1, g.current / Math.max(1, g.target)), 0) / goals.length) * 100)
-    : 0;
-  const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-
+const CATS = [
+  { name: "Fitness", icon: Dumbbell, color: "#38bdf8", image: "photo-1534438327276-14e5300c3a48" },
+  { name: "Nutrition", icon: Apple, color: "#34d399", image: "photo-1546833999-b9f581a1996d" },
+  { name: "Wealth", icon: TrendingUp, color: "#fbbf24", image: "photo-1485871981521-5b1fd3805eee" },
+  { name: "Business", icon: Briefcase, color: "#c084fc", image: "photo-1497366754035-f200968a6e72" },
+  { name: "Travel", icon: Plane, color: "#818cf8", image: "photo-1516483638261-f4dbaf036963" },
+  { name: "Knowledge", icon: BookOpen, color: "#fb923c", image: "photo-1507842217343-583bb7270b66" },
+] as const;
+const photo = (id: string, w = 500) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
+const field =
+  "mt-1 w-full rounded-lg border border-sky-400/25 bg-[#06131e] px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-400/60";
+const button =
+  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-sky-400/25 bg-sky-400/5 px-3 py-2 text-xs text-sky-200 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:opacity-40";
+const active =
+  "bg-gradient-to-b from-blue-500/40 to-sky-500/10 border-sky-300/70 shadow-[inset_0_0_14px_#0ea5e955,0_0_10px_#0ea5e925]";
+function Box({
+  title,
+  children,
+  action,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <ModuleLayout number="" title="Calendar" subtitle="Schedule and events" icon={CalIcon}>
-      <ReminderEngine events={events} />
-
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-lg border border-border mb-3">
-        <img
-          src={mountainImg}
-          alt=""
-          width={1024}
-          height={768}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
-        <div className="relative p-6 md:p-8">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">Calendar</h2>
-          <p className="text-sm text-muted-foreground mt-1">Plan your days. Stay consistent. Win the month.</p>
-          <div className="hud-label text-[11px] text-primary mt-3 hud-glow">{monthLabel.toUpperCase()}</div>
-        </div>
+    <section
+      className={`min-w-0 rounded-xl border border-sky-400/30 bg-gradient-to-br from-[#071623] to-[#02090f] p-3 shadow-[inset_0_0_20px_#0ea5e908] ${className}`}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-xs font-medium uppercase tracking-wider text-slate-100">{title}</h2>
+        {action}
       </div>
-
-      {/* View toggle */}
-      <div className="flex flex-wrap items-center gap-2 mb-2" role="group" aria-label="Calendar view">
-        <ViewToggleButton active={view === "month"} onClick={() => setView("month")}>
-          Month
-        </ViewToggleButton>
-        <ViewToggleButton
-          active={view === "week"}
-          onClick={() => {
-            setWeekCursor(startOfWeek(cursor));
-            setView("week");
+      {children}
+    </section>
+  );
+}
+function timeLabel(e: PlanningEvent) {
+  if (e.allDay) return "All day";
+  if (!e.time) return "Any time";
+  const format = (v: string) => {
+    const [h, m] = v.split(":").map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+  };
+  return `${format(e.time)}${e.endTime ? ` – ${format(e.endTime)}` : ""}`;
+}
+function PlanningPage() {
+  const { data, mutate } = useEvolutionData();
+  const [tab, setTab] = useState("Calendar"),
+    [view, setView] = useState<"month" | "week" | "day" | "agenda">("month"),
+    [cursor, setCursor] = useState(() => new Date()),
+    [selected, setSelected] = useState(() => localDateKey(new Date())),
+    [selectedId, setSelectedId] = useState<string | null>(null),
+    [query, setQuery] = useState(""),
+    [category, setCategory] = useState<PlanningCategory | "All">("All");
+  const [draft, setDraft] = useState<PlanningEvent | null>(null),
+    [baseline, setBaseline] = useState<PlanningEvent | null>(null),
+    [error, setError] = useState(""),
+    [deleteId, setDeleteId] = useState<string | null>(null),
+    [taskText, setTaskText] = useState(""),
+    [noteTitle, setNoteTitle] = useState(""),
+    [noteBody, setNoteBody] = useState("");
+  useEffect(() => {
+    const reset = () => {
+      setDraft(null);
+      setBaseline(null);
+      setDeleteId(null);
+      setSelectedId(null);
+      setQuery("");
+      setTaskText("");
+      setNoteTitle("");
+      setNoteBody("");
+      setError("");
+    };
+    window.addEventListener("evolution:owner-changing", reset);
+    return () => window.removeEventListener("evolution:owner-changing", reset);
+  }, []);
+  const events = data.calendar as PlanningEvent[],
+    shown = filterPlanningEvents(events, { query, category: category === "All" ? undefined : category });
+  const today = localDateKey(new Date()),
+    year = cursor.getFullYear(),
+    goals = filterPlannerGoals(data.goals as PlannerGoal[], "yearly", year, new Date().getFullYear()),
+    vision = (data.goals as PlannerGoal[]).filter((g) => g.plannerScope === "lifetime").slice(0, 5);
+  const dayEvents = shown.filter((e) => e.date === selected),
+    selectedEvent = dayEvents.find((e) => e.id === selectedId) ?? dayEvents[0];
+  const dayTasks = data.evoTasks.filter((t) => t.due === selected),
+    habits = resolveHabits(data.customHabits, data.habitOrder, data.hiddenHabits);
+  const cells =
+    view === "month" ? monthCells(cursor) : view === "week" ? weekCells(cursor) : [parseDateKey(selected) ?? cursor];
+  const categoryMeta = (name?: string) => CATS.find((c) => c.name === name);
+  const selectDate = (date: string) => {
+    setSelected(date);
+    setSelectedId(null);
+    setTaskText("");
+    setCursor(parseDateKey(date) ?? cursor);
+  };
+  function step(n: number) {
+    const next =
+      view === "month"
+        ? shiftCalendarMonth(cursor, n)
+        : addCalendarDays(cursor, n * (view === "week" ? 7 : view === "agenda" ? 30 : 1));
+    setCursor(next);
+    setSelected(localDateKey(next));
+    setSelectedId(null);
+  }
+  function openEvent(event?: PlanningEvent, date = selected) {
+    setError("");
+    setBaseline(event ? { ...event } : null);
+    setDraft(
+      event
+        ? { ...event }
+        : {
+            id: "",
+            title: "",
+            date,
+            time: "12:00",
+            endTime: "13:00",
+            reminder: 0,
+            category: category === "All" ? "Other" : category,
+            allDay: false,
+            description: "",
+            relatedGoalId: "",
+          },
+    );
+  }
+  function saveEvent() {
+    if (!draft) return;
+    const issue = validatePlanningEvent(draft);
+    if (issue) {
+      setError(issue);
+      return;
+    }
+    const patch: Partial<PlanningEvent> = {};
+    for (const key of [
+      "title",
+      "date",
+      "time",
+      "endTime",
+      "reminder",
+      "category",
+      "description",
+      "allDay",
+      "relatedGoalId",
+    ] as const) {
+      if (!baseline || draft[key] !== baseline[key]) (patch as Record<string, unknown>)[key] = draft[key];
+    }
+    try {
+      mutate((p) => {
+        if (draft.id && !p.calendar.some((e) => e.id === draft.id))
+          throw new Error("This event was removed elsewhere. Close and create a new event.");
+        return {
+          calendar: draft.id
+            ? p.calendar.map((e) => (e.id === draft.id ? applyEventPatch(e, patch) : e))
+            : [...p.calendar, { ...draft, id: crypto.randomUUID(), title: draft.title.trim() }],
+        };
+      });
+      selectDate(draft.date);
+      setDraft(null);
+      setBaseline(null);
+      toast.success("Event saved");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to save event");
+    }
+  }
+  function duplicate(event: PlanningEvent) {
+    const date = localDateKey(addCalendarDays(parseDateKey(event.date) ?? cursor, 1));
+    openEvent({ ...event, id: "", date }, date);
+    setBaseline(null);
+  }
+  function addTask() {
+    const text = taskText.trim();
+    if (!text) return;
+    mutate((p) => ({
+      evoTasks: [
+        ...p.evoTasks,
+        {
+          id: crypto.randomUUID(),
+          text,
+          category: (["Fitness", "Nutrition", "Wealth", "Business"].includes(category)
+            ? category
+            : "Notes") as EvoCategory,
+          priority: "Medium",
+          due: selected,
+          status: "Not Started",
+        },
+      ],
+    }));
+    setTaskText("");
+  }
+  function toggleTask(id: string) {
+    mutate((p) => ({
+      evoTasks: p.evoTasks.map((t) =>
+        t.id === id ? { ...t, status: t.status === "Done" ? "Not Started" : "Done" } : t,
+      ),
+    }));
+  }
+  function toggleHabit(id: string) {
+    if (selected > today) return;
+    mutate((p) => {
+      const log = p.habitLog[selected] ?? [];
+      return { habitLog: { ...p.habitLog, [selected]: log.includes(id) ? log.filter((x) => x !== id) : [...log, id] } };
+    });
+  }
+  function saveNote() {
+    if (!noteTitle.trim()) return;
+    mutate((p) => ({
+      richNotes: [
+        ...p.richNotes,
+        {
+          id: crypto.randomUUID(),
+          date: selected,
+          title: noteTitle.trim(),
+          body: noteBody.trim(),
+          category: "General",
+        },
+      ],
+    }));
+    setNoteTitle("");
+    setNoteBody("");
+    toast.success("Note saved");
+  }
+  const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  function TaskList({ all = false }: { all?: boolean }) {
+    const list = (all ? data.evoTasks : dayTasks).filter((t) => t.text.toLowerCase().includes(query.toLowerCase()));
+    return (
+      <>
+        <div className="space-y-2">
+          {list.map((t) => (
+            <label
+              key={t.id}
+              className="flex items-start gap-2 rounded-lg border border-sky-400/10 bg-sky-400/5 p-2 text-xs"
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-sky-400"
+                checked={t.status === "Done"}
+                onChange={() => toggleTask(t.id)}
+              />
+              <span
+                className={`min-w-0 break-words ${t.status === "Done" ? "text-slate-500 line-through" : "text-slate-200"}`}
+              >
+                {t.text}
+                {all && (
+                  <small className="mt-1 block text-slate-500">
+                    {t.due || "No due date"} · {t.category}
+                  </small>
+                )}
+              </span>
+            </label>
+          ))}
+        </div>
+        {!list.length && (
+          <p className="py-5 text-center text-xs text-slate-500">
+            {query ? "No matching tasks." : `No tasks ${all ? "yet" : "due this day"}.`}
+          </p>
+        )}
+      </>
+    );
+  }
+  return (
+    <ModuleLayout number="" title="Planning" subtitle="Plan. Execute. Evolve." icon={CalendarDays}>
+      <div className="space-y-4 text-slate-200" data-planning-calendar="v1">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <nav
+            aria-label="Planning sections"
+            className="flex max-w-full overflow-x-auto rounded-lg border border-sky-400/30 p-1"
+          >
+            {["Calendar", "Goals", "Tasks", "Habits", "Notes"].map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                aria-pressed={tab === t}
+                className={`${button} shrink-0 border-transparent ${tab === t ? active : ""}`}
+              >
+                {t}
+              </button>
+            ))}
+          </nav>
+          <label className="flex min-w-0 items-center gap-2 rounded-lg border border-sky-400/25 px-3">
+            <Search size={15} className="text-sky-300" />
+            <input
+              aria-label="Search planning"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search your plan"
+              className="min-w-0 w-36 bg-transparent py-2 text-xs outline-none"
+            />
+          </label>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-[1.7fr_1fr] xl:grid-cols-[1.8fr_1fr_.9fr]">
+          <Box
+            title="Goals overview"
+            action={
+              <Link to="/goals" search={{ section: "planner" }} className="text-[10px] text-sky-300">
+                View all
+              </Link>
+            }
+          >
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {CATS.map((c) => {
+                const list = goals.filter((g) => plannerCategoryOf(g) === c.name),
+                  done = list.filter((g) => g.completed).length;
+                return (
+                  <button
+                    key={c.name}
+                    className={`min-w-0 overflow-hidden rounded-lg border text-left ${category === c.name ? "border-sky-300" : "border-sky-400/20"}`}
+                    onClick={() => setCategory(category === c.name ? "All" : c.name)}
+                    aria-pressed={category === c.name}
+                  >
+                    <img
+                      src={photo(c.image, 240)}
+                      alt={`${c.name} inspiration`}
+                      className="h-20 w-full object-cover opacity-80 xl:h-24"
+                    />
+                    <div className="p-2">
+                      <div className="truncate text-[10px]">{c.name}</div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <c.icon size={16} style={{ color: c.color }} />
+                        <span className="text-[10px] text-slate-400">
+                          {done}/{list.length}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Box>
+          <Box title="Year progress" action={<span className="text-[10px] text-slate-400">{year}</span>}>
+            <div className="space-y-3">
+              {CATS.map((c) => {
+                const list = goals.filter((g) => plannerCategoryOf(g) === c.name),
+                  pct = list.length ? Math.round(list.reduce((s, g) => s + goalProgress(g), 0) / list.length) : 0;
+                return (
+                  <div key={c.name} className="flex items-center gap-2 text-[10px]">
+                    <c.icon size={14} style={{ color: c.color }} />
+                    <span className="w-16 shrink-0">{c.name}</span>
+                    <div className="h-1.5 flex-1 rounded bg-sky-950">
+                      <div className="h-full rounded" style={{ width: `${pct}%`, background: c.color }} />
+                    </div>
+                    <span className="w-7 text-right text-slate-400">{list.length ? `${pct}%` : "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Box>
+          <Box title="Lifetime vision" className="lg:col-span-2 xl:col-span-1">
+            <div className="relative min-h-44 overflow-hidden rounded-lg">
+              <img
+                src={photo("photo-1464822759023-fed622ff2c3b")}
+                alt="Mountain inspiration"
+                className="absolute inset-0 h-full w-full object-cover opacity-40"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#030a12] to-transparent" />
+              <div className="relative space-y-3 p-3">
+                {vision.map((g) => (
+                  <Link key={g.id} to="/goals" search={{ section: "planner" }} className="flex gap-2 text-xs">
+                    <Target size={15} className="shrink-0 text-sky-300" />
+                    {g.title}
+                  </Link>
+                ))}
+                {!vision.length && (
+                  <p className="pt-4 text-xs leading-6 text-slate-300">
+                    Make room for the bigger picture.
+                    <br />
+                    Your lifetime goals appear here.
+                  </p>
+                )}
+                <Link
+                  to="/goals"
+                  search={{ section: "planner" }}
+                  className="inline-flex items-center gap-1 text-[10px] text-sky-300"
+                >
+                  <Plus size={13} />
+                  Plan your vision
+                </Link>
+              </div>
+            </div>
+          </Box>
+        </div>
+        {tab === "Calendar" && (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_230px]">
+            <section className="min-w-0 overflow-hidden rounded-xl border border-sky-400/30 bg-[#030c15] shadow-[0_0_20px_#0ea5e908]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sky-400/15 p-3">
+                <div className="flex items-center gap-2">
+                  <button className={button} aria-label="Previous calendar period" onClick={() => step(-1)}>
+                    <ChevronLeft size={15} />
+                  </button>
+                  <button className={button} aria-label="Next calendar period" onClick={() => step(1)}>
+                    <ChevronRight size={15} />
+                  </button>
+                  <h2 className="text-lg font-medium">{monthLabel}</h2>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {(["month", "week", "day", "agenda"] as const).map((v) => (
+                    <button
+                      key={v}
+                      className={`${button} px-2 capitalize ${view === v ? active : ""}`}
+                      onClick={() => setView(v)}
+                      aria-pressed={view === v}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                  <button className={button} onClick={() => selectDate(today)}>
+                    Today
+                  </button>
+                  <button className={`${button} ${active}`} onClick={() => openEvent()}>
+                    <Plus size={16} />
+                    Add
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+                <select
+                  aria-label="Filter event category"
+                  className="max-w-full rounded border border-sky-400/20 bg-[#06131e] px-2 py-1 text-[10px] text-slate-300"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as PlanningCategory | "All")}
+                >
+                  <option>All</option>
+                  {CATS.map((c) => (
+                    <option key={c.name}>{c.name}</option>
+                  ))}
+                  <option>Other</option>
+                </select>
+                <span className="text-[10px] text-slate-500">Your saved events · local time</span>
+              </div>
+              {view === "month" ? (
+                <>
+                  <div className="grid grid-cols-7 border-y border-sky-400/15">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                      <div key={d} className="py-2 text-center text-[10px] text-slate-400">
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7">
+                    {cells.map((date) => {
+                      const key = localDateKey(date),
+                        list = shown.filter((e) => e.date === key),
+                        isSelected = selected === key;
+                      return (
+                        <div
+                          key={key}
+                          className={`min-w-0 min-h-[88px] border-b border-r border-sky-400/10 p-1 sm:min-h-[105px] sm:p-1.5 ${date.getMonth() !== cursor.getMonth() ? "opacity-40" : ""} ${isSelected ? "bg-sky-500/10 shadow-[inset_0_0_0_1px_#38bdf8]" : ""}`}
+                        >
+                          <button
+                            aria-label={`Select ${key}`}
+                            aria-pressed={isSelected}
+                            onClick={() => selectDate(key)}
+                            className={`mb-1 flex h-6 w-6 items-center justify-center rounded-full text-[10px] ${key === today ? "bg-sky-400 text-slate-950" : "text-slate-300 hover:bg-sky-500/20"}`}
+                          >
+                            {date.getDate()}
+                          </button>
+                          {list.slice(0, 2).map((e) => {
+                            const c = categoryMeta(e.category);
+                            return (
+                              <button
+                                key={e.id}
+                                onClick={() => {
+                                  selectDate(key);
+                                  setSelectedId(e.id);
+                                }}
+                                className="mb-1 block w-full min-w-0 rounded border border-sky-400/15 bg-sky-950/30 p-1 text-left"
+                                style={{ borderLeftColor: c?.color ?? "#38bdf8", borderLeftWidth: 2 }}
+                              >
+                                <span className="block truncate text-[8px] sm:text-[10px]">{e.title}</span>
+                                <span className="hidden truncate text-[9px] text-slate-500 sm:block">
+                                  {e.allDay ? "All day" : e.time || "Any time"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                          {list.length > 2 && (
+                            <button
+                              onClick={() => {
+                                selectDate(key);
+                                setView("day");
+                              }}
+                              className="text-[8px] text-sky-300"
+                            >
+                              +{list.length - 2} more
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className={`grid gap-2 p-3 ${view === "week" ? "sm:grid-cols-2 lg:grid-cols-4" : ""}`}>
+                  {(view === "agenda"
+                    ? Array.from(
+                        new Set(
+                          shown
+                            .filter(
+                              (e) =>
+                                e.date >= selected &&
+                                e.date < localDateKey(addCalendarDays(parseDateKey(selected) ?? cursor, 30)),
+                            )
+                            .map((e) => e.date),
+                        ),
+                      )
+                    : cells.map(localDateKey)
+                  ).map((key) => {
+                    const list = shown.filter((e) => e.date === key);
+                    return (
+                      <div key={key} className="min-w-0 rounded-lg border border-sky-400/15 bg-sky-950/10 p-3">
+                        <button className="mb-3 text-xs text-sky-200" onClick={() => selectDate(key)}>
+                          {parseDateKey(key)?.toLocaleDateString(undefined, {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </button>
+                        <div className="space-y-2">
+                          {list.map((e) => (
+                            <button
+                              key={e.id}
+                              onClick={() => {
+                                selectDate(key);
+                                setSelectedId(e.id);
+                              }}
+                              className="block w-full rounded-lg border border-sky-400/20 bg-sky-400/5 p-3 text-left"
+                            >
+                              <p className="break-words text-xs">{e.title}</p>
+                              <p className="mt-1 text-[10px] text-slate-400">{timeLabel(e)}</p>
+                              <p className="mt-1 text-[9px] text-sky-400">{e.category ?? "Other"}</p>
+                            </button>
+                          ))}
+                        </div>
+                        {!list.length && <p className="py-5 text-xs text-slate-500">Nothing scheduled.</p>}
+                        <button className={`${button} mt-3 w-full`} onClick={() => openEvent(undefined, key)}>
+                          <Plus size={13} />
+                          Event
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {view === "agenda" &&
+                    !shown.some(
+                      (e) =>
+                        e.date >= selected &&
+                        e.date < localDateKey(addCalendarDays(parseDateKey(selected) ?? cursor, 30)),
+                    ) && <p className="py-16 text-center text-sm text-slate-500">No events in the next 30 days.</p>}
+                </div>
+              )}
+            </section>
+            <aside className="space-y-3 min-w-0">
+              <Box
+                title={(parseDateKey(selected) ?? cursor).toLocaleDateString(undefined, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                action={
+                  <div className="flex">
+                    <button
+                      aria-label="Previous selected day"
+                      className="p-1 text-sky-300"
+                      onClick={() => selectDate(localDateKey(addCalendarDays(parseDateKey(selected) ?? cursor, -1)))}
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+                    <button
+                      aria-label="Next selected day"
+                      className="p-1 text-sky-300"
+                      onClick={() => selectDate(localDateKey(addCalendarDays(parseDateKey(selected) ?? cursor, 1)))}
+                    >
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                }
+              >
+                {selectedEvent ? (
+                  <>
+                    <div className="overflow-hidden rounded-lg border border-sky-400/15">
+                      {categoryMeta(selectedEvent.category) && (
+                        <img
+                          src={photo(categoryMeta(selectedEvent.category)!.image)}
+                          alt=""
+                          className="h-28 w-full object-cover opacity-80"
+                        />
+                      )}
+                      <div className="p-3">
+                        <h3 className="break-words text-sm font-medium">{selectedEvent.title}</h3>
+                        {selectedEvent.description && (
+                          <p className="mt-2 whitespace-pre-wrap break-words text-xs text-slate-400">
+                            {selectedEvent.description}
+                          </p>
+                        )}
+                        <p className="mt-3 flex items-center gap-1 text-[10px] text-sky-300">
+                          <Clock size={13} />
+                          {timeLabel(selectedEvent)}
+                        </p>
+                        <div className="mt-3 flex gap-1">
+                          <button
+                            className={button}
+                            aria-label="Edit selected event"
+                            onClick={() => openEvent(selectedEvent)}
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button
+                            className={button}
+                            aria-label="Duplicate selected event"
+                            onClick={() => duplicate(selectedEvent)}
+                          >
+                            <Copy size={14} />
+                          </button>
+                          <button
+                            className={button}
+                            aria-label="Delete selected event"
+                            onClick={() => setDeleteId(selectedEvent.id)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    {dayEvents.length > 1 && (
+                      <select
+                        aria-label="Selected event"
+                        className={field}
+                        value={selectedEvent.id}
+                        onChange={(e) => setSelectedId(e.target.value)}
+                      >
+                        {dayEvents.map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.title}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </>
+                ) : (
+                  <div className="py-6 text-center">
+                    <CalendarDays size={28} className="mx-auto mb-3 text-sky-500/50" />
+                    <p className="mb-4 text-xs text-slate-500">A little space for what matters.</p>
+                    <button className={button} onClick={() => openEvent()}>
+                      Plan this day
+                    </button>
+                  </div>
+                )}
+              </Box>
+              <Box title={`Tasks (${dayTasks.length})`}>
+                <TaskList />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addTask();
+                  }}
+                  className="mt-3 flex gap-1"
+                >
+                  <input
+                    aria-label="New task"
+                    value={taskText}
+                    maxLength={200}
+                    onChange={(e) => setTaskText(e.target.value)}
+                    placeholder="Add a task…"
+                    className={`${field} mt-0 min-w-0 text-xs`}
+                  />
+                  <button className={button} aria-label="Add task">
+                    <Plus size={15} />
+                  </button>
+                </form>
+              </Box>
+              <Box title="Related goals">
+                {(selectedEvent?.relatedGoalId
+                  ? data.goals.filter((g) => g.id === selectedEvent.relatedGoalId)
+                  : goals.filter((g) => category !== "All" && plannerCategoryOf(g) === category)
+                )
+                  .slice(0, 4)
+                  .map((g) => (
+                    <Link key={g.id} to="/goals" search={{ section: "planner" }} className="mb-3 block text-xs">
+                      <span>{g.title}</span>
+                      <div className="mt-2 h-1 rounded bg-sky-950">
+                        <div className="h-full rounded bg-sky-400" style={{ width: `${goalProgress(g)}%` }} />
+                      </div>
+                    </Link>
+                  ))}
+                {!selectedEvent?.relatedGoalId && category === "All" && (
+                  <p className="text-xs leading-5 text-slate-500">
+                    Link a goal when editing an event, or choose a goal category above.
+                  </p>
+                )}
+              </Box>
+            </aside>
+          </div>
+        )}
+        {tab === "Goals" && (
+          <Box
+            title={`Your goals · ${year}`}
+            action={
+              <Link to="/goals" search={{ section: "planner" }} className={button}>
+                Open Goals Planner
+              </Link>
+            }
+          >
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {goals
+                .filter(
+                  (g) =>
+                    g.title.toLowerCase().includes(query.toLowerCase()) &&
+                    (category === "All" || plannerCategoryOf(g) === category),
+                )
+                .map((g) => (
+                  <Link
+                    key={g.id}
+                    to="/goals"
+                    search={{ section: "planner" }}
+                    className="rounded-lg border border-sky-400/20 p-4"
+                  >
+                    <span className="text-xs">{g.title}</span>
+                    <p className="mt-2 text-[10px] text-slate-400">
+                      {plannerCategoryOf(g)} · {Math.round(goalProgress(g))}%
+                    </p>
+                    <div className="mt-3 h-1 rounded bg-sky-950">
+                      <div className="h-full rounded bg-sky-400" style={{ width: `${goalProgress(g)}%` }} />
+                    </div>
+                  </Link>
+                ))}
+            </div>
+            {!goals.length && (
+              <p className="py-12 text-center text-sm text-slate-500">Your goals will bring this plan to life.</p>
+            )}
+          </Box>
+        )}
+        {tab === "Tasks" && (
+          <Box
+            title="Tasks"
+            action={
+              <Link to="/notes" className={button}>
+                Manage tasks
+              </Link>
+            }
+          >
+            <TaskList all />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                addTask();
+              }}
+              className="mt-4 flex flex-wrap gap-2"
+            >
+              <input
+                aria-label="Task title"
+                className={`${field} min-w-0 flex-1`}
+                value={taskText}
+                onChange={(e) => setTaskText(e.target.value)}
+                placeholder="What needs to get done?"
+                maxLength={200}
+              />
+              <input
+                aria-label="Task due date"
+                type="date"
+                value={selected}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelected(e.target.value);
+                    setCursor(parseDateKey(e.target.value) ?? cursor);
+                  }
+                }}
+                className={`${field} w-auto`}
+              />
+              <button className={button}>Add task</button>
+            </form>
+          </Box>
+        )}
+        {tab === "Habits" && (
+          <Box
+            title="Daily habits"
+            action={
+              <input
+                aria-label="Habit date"
+                type="date"
+                value={selected}
+                max={today}
+                className={`${field} mt-0 w-auto`}
+                onChange={(e) => e.target.value && selectDate(e.target.value)}
+              />
+            }
+          >
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {habits.map((h) => (
+                <button
+                  key={h.id}
+                  disabled={selected > today}
+                  aria-pressed={(data.habitLog[selected] ?? []).includes(h.id)}
+                  onClick={() => toggleHabit(h.id)}
+                  className="flex items-center gap-3 rounded-lg border border-sky-400/20 p-4 text-left text-sm"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-sky-400/40 text-sky-300">
+                    {(data.habitLog[selected] ?? []).includes(h.id) && <Check size={16} />}
+                  </span>
+                  {h.name}
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-slate-500">
+              Shared with your existing habit tracker. Future days cannot be marked complete.
+            </p>
+          </Box>
+        )}
+        {tab === "Notes" && (
+          <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+            <Box title="Planning notes">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {data.richNotes
+                  .filter((n) => (n.title + " " + n.body).toLowerCase().includes(query.toLowerCase()))
+                  .map((n) => (
+                    <article key={n.id} className="rounded-lg border border-sky-400/20 p-4">
+                      <h3 className="break-words text-sm">{n.title}</h3>
+                      <p className="mt-1 text-[10px] text-sky-400">
+                        {n.date} · {n.category}
+                      </p>
+                      <p className="mt-3 whitespace-pre-wrap break-words text-xs leading-6 text-slate-400">{n.body}</p>
+                    </article>
+                  ))}
+              </div>
+              {!data.richNotes.length && (
+                <p className="py-12 text-center text-sm text-slate-500">Capture an idea for your next chapter.</p>
+              )}
+            </Box>
+            <Box title="New note">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveNote();
+                }}
+                className="space-y-3"
+              >
+                <label className="block text-xs">
+                  Title
+                  <input
+                    required
+                    maxLength={100}
+                    className={field}
+                    value={noteTitle}
+                    onChange={(e) => setNoteTitle(e.target.value)}
+                  />
+                </label>
+                <label className="block text-xs">
+                  Note
+                  <textarea
+                    className={`${field} min-h-32`}
+                    value={noteBody}
+                    onChange={(e) => setNoteBody(e.target.value)}
+                    maxLength={10000}
+                  />
+                </label>
+                <button className={button}>
+                  <NotebookPen size={14} />
+                  Save note
+                </button>
+              </form>
+            </Box>
+          </div>
+        )}
+        <p className="text-[10px] text-slate-500">
+          Planning uses your Evolution calendar. No external calendar connection or background notification service is
+          added.
+        </p>
+        <Dialog
+          open={!!draft}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDraft(null);
+              setBaseline(null);
+              setError("");
+            }
           }}
         >
-          Week
-        </ViewToggleButton>
-        <ViewToggleButton active={view === "day"} onClick={() => setView("day")}>
-          Day
-        </ViewToggleButton>
-        <ViewToggleButton active={view === "agenda"} onClick={() => setView("agenda")}>
-          Agenda
-        </ViewToggleButton>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2.8fr)_minmax(220px,1fr)]">
-        {/* LEFT: calendar */}
-        <div className="min-w-0 flex flex-col gap-3">
-          <div key={view} className="animate-in fade-in duration-300">
-            {view === "month" ? (
-              <MonthView
-                cursor={cursor}
-                setCursor={setCursor}
-                eventsByDate={eventsByDate}
-                onPickDay={(ds) => {
-                  setCursor(new Date(`${ds}T12:00:00`));
-                  openForm(ds);
+          {draft && (
+            <DialogContent className="max-h-[90dvh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-xl border-sky-400/30 bg-[#06111c] p-5">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveEvent();
                 }}
-                selected={formDate}
-              />
-            ) : view === "week" ? (
-              <WeekView
-                weekCursor={weekCursor}
-                setWeekCursor={(next) => {
-                  setWeekCursor(next);
-                  setCursor(next);
-                }}
-                events={events}
-                onPickSlot={(ds, hm) => {
-                  setCursor(new Date(`${ds}T12:00:00`));
-                  openForm(ds, hm);
-                }}
-                onDuplicate={duplicateEvent}
-              />
-            ) : (
-              <CalendarListView
-                view={view}
-                cursor={cursor}
-                setCursor={setCursor}
-                events={events}
-                onAdd={openForm}
-                onDelete={delEvent}
-              />
-            )}
-          </div>
-
-          {formDate && (
-            <Panel title={`ADD EVENT · ${formDate}`}>
-              <div className="flex flex-wrap gap-2 items-end">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="hud-label text-[10px] text-muted-foreground">Title</label>
-                  <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    maxLength={100}
-                    autoFocus
-                    className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="hud-label text-[10px] text-muted-foreground">Date</label>
-                  <input
-                    type="date"
-                    value={formDate}
-                    onChange={(e) => setFormDate(e.target.value || formDate)}
-                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="hud-label text-[10px] text-muted-foreground">Start</label>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="hud-label text-[10px] text-muted-foreground">End</label>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="hud-label text-[10px] text-muted-foreground">Reminder</label>
-                  <select
-                    value={reminder}
-                    onChange={(e) => setReminder(Number(e.target.value) as ReminderOffset)}
-                    className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-                  >
-                    <option value={0}>None</option>
-                    <option value={15}>15 min before</option>
-                    <option value={30}>30 min before</option>
-                    <option value={60}>1 hour before</option>
-                    <option value={1440}>1 day before</option>
-                  </select>
-                </div>
-                <button
-                  onClick={addEvent}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary text-primary hud-label text-xs rounded hover:bg-primary/25"
-                >
-                  <Plus className="h-4 w-4" /> Add
-                </button>
-                <button
-                  onClick={() => setFormDate(null)}
-                  className="p-2 text-muted-foreground hover:text-foreground"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </Panel>
-          )}
-        </div>
-
-        {/* RIGHT: widgets */}
-        <aside className="flex flex-col gap-3 min-w-0">
-          <Panel title="MONTH OVERVIEW">
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { icon: CalIcon, value: monthEvents.length, label: "Total Events" },
-                { icon: TrendingUp, value: tradingDays, label: "Trading Days" },
-                { icon: Eye, value: reviewDays, label: "Review Days" },
-                { icon: Target, value: `${goalCompletion}%`, label: "Goal Completion" },
-              ].map((s, i) => (
-                <div
-                  key={i}
-                  className="evo-surface flex flex-col items-center text-center gap-1 p-2 border border-border/50 rounded"
-                >
-                  <s.icon className="h-4 w-4 text-primary" />
-                  <div className="text-xl font-semibold text-foreground">{s.value}</div>
-                  <div className="hud-label text-[9px] text-muted-foreground">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel title="FOCUS THIS MONTH">
-            <div className="flex gap-2">
-              <Quote className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <p className="text-xs text-foreground italic leading-relaxed">
-                  Discipline is doing what needs to be done, even when you don't feel like doing it.
-                </p>
-                <p className="hud-label text-[10px] text-primary mt-2">— STAY CONSISTENT</p>
-              </div>
-            </div>
-          </Panel>
-
-          <Panel title="UPCOMING">
-            {upcoming.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No upcoming events. Click a day to add one.</p>
-            ) : (
-              <ul className="flex flex-col gap-1.5 max-h-[320px] overflow-y-auto">
-                {upcoming.map((e) => (
-                  <li
-                    key={e.id}
-                    className="evo-surface flex items-center gap-2 p-2 border border-border rounded bg-primary/5"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="hud-label text-[10px] text-primary truncate">
-                        {e.date} · {fmt12(e.time)}
-                      </div>
-                      <div className="text-xs text-foreground truncate">{e.title}</div>
-                    </div>
-                    {e.reminder ? (
-                      <Bell className="h-3 w-3 text-primary shrink-0" />
-                    ) : (
-                      <BellOff className="h-3 w-3 text-muted-foreground/50 shrink-0" />
-                    )}
-                    <button
-                      onClick={() => delEvent(e.id)}
-                      className="text-destructive hover:text-destructive/80 shrink-0"
-                      aria-label="Delete"
+              >
+                <DialogTitle className="text-sky-200">{draft.id ? "Edit event" : "Plan an event"}</DialogTitle>
+                <DialogDescription className="mt-1 text-xs text-slate-400">
+                  Saved to your Evolution calendar. Times use this device’s local time.
+                </DialogDescription>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <label className="col-span-2 text-xs">
+                    Event title
+                    <input
+                      autoFocus
+                      required
+                      maxLength={100}
+                      className={field}
+                      value={draft.title}
+                      onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-xs">
+                    Date
+                    <input
+                      required
+                      type="date"
+                      className={field}
+                      value={draft.date}
+                      onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-xs">
+                    Category
+                    <select
+                      className={field}
+                      value={draft.category ?? "Other"}
+                      onChange={(e) => setDraft({ ...draft, category: e.target.value as PlanningCategory })}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-
-          <Panel title="CATEGORIES">
-            <div className="flex flex-col gap-2">
-              {[
-                { label: "Trading", color: "hsl(var(--primary))" },
-                { label: "Planning", color: "#60a5fa" },
-                { label: "Personal", color: "#f59e0b" },
-                { label: "Review", color: "#a78bfa" },
-              ].map((c) => (
-                <div key={c.label} className="flex items-center gap-2">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }}
-                  />
-                  <span className="hud-label text-[10px] text-muted-foreground">{c.label}</span>
+                      {CATS.map((c) => (
+                        <option key={c.name}>{c.name}</option>
+                      ))}
+                      <option>Other</option>
+                    </select>
+                  </label>
+                  <label className="col-span-2 flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={!!draft.allDay}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          allDay: e.target.checked,
+                          reminder: e.target.checked ? 0 : draft.reminder,
+                        })
+                      }
+                    />
+                    All-day event
+                  </label>
+                  {!draft.allDay && (
+                    <>
+                      <label className="text-xs">
+                        Start time
+                        <input
+                          required
+                          type="time"
+                          className={field}
+                          value={draft.time}
+                          onChange={(e) => setDraft({ ...draft, time: e.target.value })}
+                        />
+                      </label>
+                      <label className="text-xs">
+                        End time
+                        <input
+                          type="time"
+                          className={field}
+                          value={draft.endTime ?? ""}
+                          onChange={(e) => setDraft({ ...draft, endTime: e.target.value })}
+                        />
+                      </label>
+                    </>
+                  )}
+                  <label className="col-span-2 text-xs">
+                    Description
+                    <textarea
+                      className={field}
+                      maxLength={2000}
+                      value={draft.description ?? ""}
+                      onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-xs">
+                    Related goal
+                    <select
+                      className={field}
+                      value={draft.relatedGoalId ?? ""}
+                      onChange={(e) => setDraft({ ...draft, relatedGoalId: e.target.value })}
+                    >
+                      <option value="">None</option>
+                      {data.goals.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-xs">
+                    In-page reminder
+                    <select
+                      disabled={draft.allDay}
+                      className={field}
+                      value={draft.reminder ?? 0}
+                      onChange={(e) => setDraft({ ...draft, reminder: Number(e.target.value) as ReminderOffset })}
+                    >
+                      <option value={0}>None</option>
+                      <option value={15}>15 minutes before</option>
+                      <option value={30}>30 minutes before</option>
+                      <option value={60}>1 hour before</option>
+                      <option value={1440}>1 day before</option>
+                    </select>
+                  </label>
                 </div>
-              ))}
+                <p className="mt-3 text-[10px] text-slate-500">
+                  Reminders only display while this page is open. No push notifications are promised.
+                </p>
+                {error && (
+                  <p role="alert" className="mt-3 text-xs text-red-300">
+                    {error}
+                  </p>
+                )}
+                <div className="mt-5 flex justify-end gap-2">
+                  <button type="button" className={button} onClick={() => setDraft(null)}>
+                    Cancel
+                  </button>
+                  <button className={`${button} ${active}`}>Save event</button>
+                </div>
+              </form>
+            </DialogContent>
+          )}
+        </Dialog>
+        <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+          <DialogContent className="w-[calc(100%_-_1.5rem)] max-w-sm border-sky-400/30 bg-[#06111c]">
+            <DialogTitle>Delete this event?</DialogTitle>
+            <DialogDescription>
+              Only this calendar event will be removed. Tasks and related goals remain.
+            </DialogDescription>
+            <div className="flex justify-end gap-2">
+              <button className={button} onClick={() => setDeleteId(null)}>
+                Cancel
+              </button>
+              <button
+                className={button}
+                onClick={() => {
+                  mutate((p) => ({ calendar: p.calendar.filter((e) => e.id !== deleteId) }));
+                  setDeleteId(null);
+                  setSelectedId(null);
+                  toast.success("Event removed");
+                }}
+              >
+                Delete event
+              </button>
             </div>
-          </Panel>
-        </aside>
+          </DialogContent>
+        </Dialog>
+        <ReminderEngine events={events} />
       </div>
     </ModuleLayout>
   );
 }
-
-// ---------- view toggle button ----------
-function ViewToggleButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "min-h-11 px-4 py-1.5 hud-label text-[11px] rounded border transition-all",
-        active
-          ? "border-primary bg-primary/15 text-primary hud-glow"
-          : "border-border text-muted-foreground hover:text-foreground hover:bg-primary/5",
-      )}
-    >
-      {children}
-    </button>
-  );
+function eventStartMs(e: CalendarEvent) {
+  return new Date(`${e.date}T${e.time}:00`).getTime();
 }
-
-// ---------- month view ----------
-function MonthView({
-  cursor,
-  setCursor,
-  eventsByDate,
-  onPickDay,
-  selected,
-}: {
-  cursor: Date;
-  setCursor: (d: Date) => void;
-  eventsByDate: Record<string, CalendarEvent[]>;
-  onPickDay: (ds: string) => void;
-  selected: string | null;
-}) {
-  const { data } = useEvolutionData();
-  const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-  const grid = useMemo(() => {
-    const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const startOffset = (first.getDay() + 6) % 7;
-    const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
-    const cells: (Date | null)[] = [];
-    for (let i = 0; i < startOffset; i++) cells.push(null);
-    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), d));
-    while (cells.length % 7 !== 0) cells.push(null);
-    return cells;
-  }, [cursor]);
-  const todayStr = ymd(new Date());
-
-  return (
-    <Panel title={`MONTH · ${monthLabel.toUpperCase()}`}>
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
-          className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
-        >
-          ‹ Prev
-        </button>
-        <button
-          onClick={() => setCursor(new Date())}
-          className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
-        >
-          Today
-        </button>
-        <button
-          onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
-          className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
-        >
-          Next ›
-        </button>
-      </div>
-      <p className="text-xs text-emerald-300 mb-3">
-        ✓ means all scheduled tasks complete. Empty days have no check; events are separate.
-      </p>
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="hud-label text-[10px] text-muted-foreground text-center py-1">
-            {d}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1">
-        {grid.map((d, i) => {
-          if (!d) return <div key={i} className="aspect-square" />;
-          const ds = ymd(d);
-          const dayEvents = eventsByDate[ds] ?? [];
-          const isToday = ds === todayStr;
-          const isSelected = ds === selected;
-          const progress = taskDaySummary(data.evoTasks ?? [], ds);
-          return (
-            <button
-              key={i}
-              onClick={() => onPickDay(ds)}
-              aria-label={`${ds}: ${progress.done} of ${progress.total} tasks complete, ${dayEvents.length} events. Add event.`}
-              className={cn(
-                "aspect-square border rounded p-1 flex flex-col items-start text-left transition-colors hover:bg-primary/10",
-                isSelected
-                  ? "border-primary bg-primary/15"
-                  : progress.complete
-                    ? "border-emerald-400 bg-emerald-400/10"
-                    : "border-border",
-                isToday && "ring-1 ring-primary",
-              )}
-            >
-              <span className={cn("hud-label text-[11px]", isToday ? "text-primary hud-glow" : "text-foreground/80")}>
-                {d.getDate()}{" "}
-                {progress.complete && (
-                  <span className="text-emerald-300" aria-hidden="true">
-                    ✓
-                  </span>
-                )}
-              </span>
-              <div className="flex flex-col gap-0.5 mt-0.5 w-full overflow-hidden">
-                {dayEvents.slice(0, 2).map((e) => (
-                  <span key={e.id} className="text-[9px] truncate text-primary bg-primary/10 px-1 rounded">
-                    {e.time} {e.title}
-                  </span>
-                ))}
-                {dayEvents.length > 2 && (
-                  <span className="text-[9px] text-muted-foreground">+{dayEvents.length - 2}</span>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </Panel>
-  );
+function fmt12(t: string) {
+  return timeLabel({ id: "", date: "", title: "", time: t });
 }
-
-// ---------- week view ----------
-const HOUR_PX = 48;
-
-function WeekView({
-  weekCursor,
-  setWeekCursor,
-  events,
-  onPickSlot,
-  onDuplicate,
-}: {
-  weekCursor: Date;
-  setWeekCursor: (d: Date) => void;
-  events: CalendarEvent[];
-  onPickSlot: (ds: string, hm: string) => void;
-  onDuplicate: (event: CalendarEvent) => void;
-}) {
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekCursor, i)), [weekCursor]);
-  const dayKeys = days.map(ymd);
-
-  // current time tick — re-renders every 30s for smooth movement
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(id);
-  }, []);
-  const todayStr = ymd(now);
-  const todayIdx = dayKeys.indexOf(todayStr);
-  const nowMins = now.getHours() * 60 + now.getMinutes();
-
-  const rangeLabel = `${days[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${days[6].toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
-
-  return (
-    <Panel title={`WEEK · ${rangeLabel.toUpperCase()}`}>
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => setWeekCursor(addDays(weekCursor, -7))}
-          className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
-        >
-          ‹ Prev
-        </button>
-        <button
-          onClick={() => setWeekCursor(startOfWeek(new Date()))}
-          className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
-        >
-          This Week
-        </button>
-        <button
-          onClick={() => setWeekCursor(addDays(weekCursor, 7))}
-          className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
-        >
-          Next ›
-        </button>
-      </div>
-
-      {/* Header row */}
-      <div className="grid border-b border-border" style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}>
-        <div />
-        {days.map((d) => {
-          const isToday = ymd(d) === todayStr;
-          const dayName = d.toLocaleDateString(undefined, { weekday: "short" }).toUpperCase();
-          return (
-            <div key={ymd(d)} className={cn("text-center py-2 border-l border-border", isToday && "bg-primary/5")}>
-              <div className={cn("hud-label text-[10px]", isToday ? "text-primary hud-glow" : "text-muted-foreground")}>
-                {dayName}
-              </div>
-              <div
-                className={cn("hud-label text-base mt-0.5", isToday ? "text-primary hud-glow" : "text-foreground/80")}
-              >
-                {d.getDate()}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {events.some((e) => dayKeys.includes(e.date) && !e.time) && (
-        <div className="evo-surface mb-3 border border-border rounded p-3">
-          <h3 className="text-xs text-primary mb-2">ANY TIME THIS WEEK</h3>
-          <ul className="space-y-1 text-sm">
-            {events
-              .filter((e) => dayKeys.includes(e.date) && !e.time)
-              .map((e) => (
-                <li key={e.id}>
-                  <span className="text-muted-foreground">{e.date}</span> · {e.title}
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
-      {/* Body grid */}
-      <div className="overflow-auto max-h-[640px]">
-        <div className="relative grid" style={{ gridTemplateColumns: `60px repeat(7, minmax(0, 1fr))` }}>
-          {/* Time column */}
-          <div className="flex flex-col border-r border-border">
-            {Array.from({ length: 24 }).map((_, h) => (
-              <div
-                key={h}
-                className="hud-label text-[9px] text-muted-foreground text-right pr-2 pt-0.5"
-                style={{ height: HOUR_PX }}
-              >
-                {h === 0 ? "12 AM" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h - 12} PM`}
-              </div>
-            ))}
-          </div>
-
-          {/* Day columns */}
-          {days.map((d) => {
-            const ds = ymd(d);
-            const dayEvents = events.filter((e) => e.date === ds && !!e.time);
-            const isToday = ds === todayStr;
-            return (
-              <div key={ds} className={cn("relative border-l border-border", isToday && "bg-primary/[0.03]")}>
-                {Array.from({ length: 24 }).map((_, h) => (
-                  <button
-                    key={h}
-                    onClick={() => onPickSlot(ds, `${String(h).padStart(2, "0")}:00`)}
-                    className="block w-full border-b border-border/40 hover:bg-primary/10 transition-colors"
-                    style={{ height: HOUR_PX }}
-                    aria-label={`Add event ${ds} ${h}:00`}
-                  />
-                ))}
-                {dayEvents.map((e) => (
-                  <EventBlock key={e.id} event={e} onDuplicate={() => onDuplicate(e)} />
-                ))}
-              </div>
-            );
-          })}
-
-          {/* Now line — only when today is in the visible week */}
-          {todayIdx >= 0 && (
-            <div className="pointer-events-none absolute left-[60px] right-0" style={{ top: (nowMins / 60) * HOUR_PX }}>
-              <div className="relative">
-                <div
-                  className="absolute h-[2px] bg-primary"
-                  style={{
-                    left: `calc(${todayIdx} * (100% / 7))`,
-                    width: `calc(100% / 7)`,
-                    boxShadow: "0 0 8px var(--glow), 0 0 16px var(--glow)",
-                  }}
-                />
-                <div
-                  className="absolute h-2 w-2 rounded-full bg-primary -translate-y-[3px] -translate-x-1"
-                  style={{
-                    left: `calc(${todayIdx} * (100% / 7))`,
-                    boxShadow: "0 0 8px var(--glow)",
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function EventBlock({ event, onDuplicate }: { event: CalendarEvent; onDuplicate: () => void }) {
-  const start = parseHM(event.time);
-  const end = event.endTime ? parseHM(event.endTime) : start + 60;
-  const top = (start / 60) * HOUR_PX;
-  const height = Math.max(24, ((end - start) / 60) * HOUR_PX - 2);
-  return (
-    <div
-      className="group absolute left-1 right-1 rounded border border-primary bg-primary/20 px-1.5 py-1 overflow-hidden cursor-default transition-all hover:bg-primary/35 hover:border-primary hover:z-10"
-      style={{
-        top,
-        height,
-        boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--glow) 25%, transparent)",
-      }}
-      title={`${event.title} — ${fmt12(event.time)}${event.endTime ? ` – ${fmt12(event.endTime)}` : ""}`}
-    >
-      <div className="hud-label text-[9px] text-primary truncate group-hover:hud-glow">{fmt12(event.time)}</div>
-      <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDuplicate();
-        }}
-        className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-primary hover:text-[#00f0ff] hover:drop-shadow-[0_0_4px_#00f0ff]"
-        aria-label="Duplicate event"
-        title="Duplicate event"
-        type="button"
-      >
-        <Files className="h-2.5 w-2.5" />
-      </button>
-
-      {/* tooltip */}
-      <div className="absolute z-20 left-full ml-2 top-0 hidden group-hover:block bg-popover border border-primary rounded px-2 py-1.5 shadow-lg whitespace-nowrap pointer-events-none">
-        <div className="text-xs text-foreground font-medium">{event.title}</div>
-        <div className="hud-label text-[9px] text-muted-foreground mt-0.5">
-          {fmt12(event.time)}
-          {event.endTime ? ` – ${fmt12(event.endTime)}` : ""}
-        </div>
-        {event.reminder ? (
-          <div className="hud-label text-[9px] text-primary mt-0.5 flex items-center gap-1">
-            <Bell className="h-2.5 w-2.5" /> {event.reminder} min before
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 // ---------- reminder engine + popups ----------
 interface ActiveNotification {
   id: string;
@@ -755,23 +1108,44 @@ interface ActiveNotification {
 function ReminderEngine({ events }: { events: CalendarEvent[] }) {
   const [popups, setPopups] = useState<ActiveNotification[]>([]);
   const firedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const reset = () => {
+      firedRef.current.clear();
+      setPopups([]);
+    };
+    window.addEventListener("evolution:owner-changing", reset);
+    return () => window.removeEventListener("evolution:owner-changing", reset);
+  }, []);
 
   useEffect(() => {
+    let validOwner = true;
+    const ownerChanged = () => {
+      validOwner = false;
+    };
+    window.addEventListener("evolution:owner-changing", ownerChanged);
     const tick = () => {
+      if (!validOwner) return;
       const now = Date.now();
       events.forEach((e) => {
-        if (!e.reminder) return;
+        if (!e.reminder || (e as PlanningEvent).allDay) return;
         const trigger = eventStartMs(e) - e.reminder * 60_000;
         // fire window: trigger reached within last 60s and not yet fired
-        if (trigger <= now && now - trigger < 60_000 && !firedRef.current.has(e.id)) {
-          firedRef.current.add(e.id);
+        if (
+          trigger <= now &&
+          now - trigger < 60_000 &&
+          !firedRef.current.has(`${e.id}:${e.date}:${e.time}:${e.reminder}`)
+        ) {
+          firedRef.current.add(`${e.id}:${e.date}:${e.time}:${e.reminder}`);
           setPopups((prev) => [...prev, { id: e.id + ":" + now, title: e.title, time: e.time, date: e.date }]);
         }
       });
     };
     tick();
     const id = setInterval(tick, 20_000);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("evolution:owner-changing", ownerChanged);
+    };
   }, [events]);
 
   // auto-dismiss after 10s
@@ -821,83 +1195,270 @@ function ReminderEngine({ events }: { events: CalendarEvent[] }) {
   );
 }
 
-function CalendarListView({
-  view,
-  cursor,
-  setCursor,
-  events,
-  onAdd,
-  onDelete,
-}: {
-  view: "day" | "agenda";
-  cursor: Date;
-  setCursor: (date: Date) => void;
-  events: CalendarEvent[];
-  onAdd: (date: string) => void;
-  onDelete: (id: string) => void;
-}) {
-  const key = ymd(cursor);
-  const end = ymd(addDays(cursor, 30));
-  const shown = [...events]
-    .filter((e) => (view === "day" ? e.date === key : e.date >= key && e.date < end))
-    .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
-  return (
-    <Panel title={view === "day" ? `DAY · ${cursor.toLocaleDateString()}` : "AGENDA · NEXT 30 DAYS"}>
-      <div className="flex flex-wrap gap-2 mb-4">
-        <button
-          className="min-h-11 border border-border px-3 rounded text-sm"
-          onClick={() => setCursor(addDays(cursor, view === "day" ? -1 : -30))}
-        >
-          ‹ Previous
-        </button>
-        <button
-          className="min-h-11 border border-primary px-3 rounded text-sm text-primary"
-          onClick={() => setCursor(new Date())}
-        >
-          Today
-        </button>
-        <button
-          className="min-h-11 border border-border px-3 rounded text-sm"
-          onClick={() => setCursor(addDays(cursor, view === "day" ? 1 : 30))}
-        >
-          Next ›
-        </button>
-        <button className="min-h-11 border border-primary px-3 rounded text-sm text-primary" onClick={() => onAdd(key)}>
-          + Add event
-        </button>
-      </div>
-      <p className="text-xs text-muted-foreground mb-3">
-        {view === "agenda" ? `From ${key} through ${ymd(addDays(cursor, 29))}. ` : ""}Events from your saved calendar.
-      </p>
-      {!shown.length ? (
-        <p className="py-10 text-center text-muted-foreground">
-          Nothing scheduled {view === "day" ? "for this day" : "in this period"}.
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {shown.map((event) => (
-            <li
-              key={event.id}
-              className="evo-surface flex items-center gap-3 border border-primary/30 bg-primary/5 p-4 rounded"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-primary">
-                  {event.date} · {event.time || "Any time"}
-                  {event.endTime ? ` – ${event.endTime}` : ""}
-                </p>
-                <p className="text-base break-words mt-1">{event.title}</p>
-              </div>
-              <button
-                className="min-h-11 min-w-11 text-muted-foreground hover:text-destructive"
-                aria-label={`Delete ${event.title}`}
-                onClick={() => onDelete(event.id)}
-              >
-                <Trash2 className="h-4 w-4 mx-auto" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
+const PLANNER_CATEGORIES = ["Fitness", "Nutrition", "Wealth", "Business", "Travel", "Knowledge"] as const;
+type PlannerCategory = (typeof PLANNER_CATEGORIES)[number] | "Other";
+type PlannerScope = "yearly" | "lifetime";
+/** value is a measured completion percentage, not a raw current amount. */
+interface GoalProgressPoint {
+  date: string;
+  value: number;
+}
+interface PlannerGoal extends Goal {
+  plannerCategory?: PlannerCategory;
+  plannerScope?: PlannerScope;
+  plannerYear?: number;
+  progressHistory?: GoalProgressPoint[];
+}
+type PlannerGoalPatch = Partial<Omit<PlannerGoal, "id" | "progressHistory">>;
+
+function validPlannerDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return day <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+}
+
+function goalProgress(goal: Pick<Goal, "current" | "target" | "completed">): number {
+  if (goal.completed) return 100;
+  if (!Number.isFinite(goal.current) || !Number.isFinite(goal.target) || goal.target <= 0) return 0;
+  return Math.min(100, Math.max(0, (goal.current / goal.target) * 100));
+}
+
+function plannerCategoryOf(goal: PlannerGoal): PlannerCategory {
+  if (goal.plannerCategory && [...PLANNER_CATEGORIES, "Other"].includes(goal.plannerCategory))
+    return goal.plannerCategory;
+  if (goal.category === "Trading") return "Wealth";
+  if (goal.category === "Hobby") return "Other";
+  return PLANNER_CATEGORIES.includes(goal.category as (typeof PLANNER_CATEGORIES)[number])
+    ? (goal.category as PlannerCategory)
+    : "Other";
+}
+
+function categoryForPlanner(category: PlannerCategory): GoalCategory {
+  return category === "Travel" || category === "Knowledge" || category === "Other" ? "Hobby" : category;
+}
+
+function goalYear(goal: PlannerGoal, fallbackYear: number): number {
+  if (Number.isInteger(goal.plannerYear) && goal.plannerYear! >= 1 && goal.plannerYear! <= 9999)
+    return goal.plannerYear!;
+  if (validPlannerDate(goal.deadline)) return Number(goal.deadline.slice(0, 4));
+  return fallbackYear;
+}
+
+function matchesPlannerScope(goal: PlannerGoal, scope: PlannerScope, year: number, currentYear: number): boolean {
+  if (scope === "lifetime") return goal.plannerScope === "lifetime";
+  return goal.plannerScope !== "lifetime" && goalYear(goal, currentYear) === year;
+}
+
+function filterPlannerGoals(
+  goals: readonly PlannerGoal[],
+  scope: PlannerScope,
+  year: number,
+  currentYear: number,
+): PlannerGoal[] {
+  return goals.filter((goal) => matchesPlannerScope(goal, scope, year, currentYear));
+}
+
+/** Only real observations in each month. No carry-forward, fabricated baseline, or future curve. */
+function monthlyProgress(
+  goals: readonly PlannerGoal[],
+  year: number,
+): Array<{ month: string; date: string } & Record<PlannerCategory, number | null>> {
+  const categories: PlannerCategory[] = [...PLANNER_CATEGORIES, "Other"];
+  return Array.from({ length: 12 }, (_, month) => {
+    const prefix = `${String(year).padStart(4, "0")}-${String(month + 1).padStart(2, "0")}`;
+    const row = Object.fromEntries(categories.map((category) => [category, null])) as Record<
+      PlannerCategory,
+      number | null
+    >;
+    for (const category of categories) {
+      const observations: number[] = [];
+      for (const goal of goals) {
+        if (plannerCategoryOf(goal) !== category) continue;
+        const points = (goal.progressHistory ?? [])
+          .filter(
+            (point) =>
+              validPlannerDate(point.date) &&
+              point.date.startsWith(prefix) &&
+              Number.isFinite(point.value) &&
+              point.value >= 0 &&
+              point.value <= 100,
+          )
+          .sort((a, b) => a.date.localeCompare(b.date));
+        if (points.length) observations.push(points[points.length - 1].value);
+      }
+      if (observations.length)
+        row[category] = observations.reduce((sum, value) => sum + value, 0) / observations.length;
+    }
+    return {
+      month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month],
+      date: `${prefix}-01`,
+      ...row,
+    };
+  });
+}
+
+/** Empty string means valid. This validates editable fields without discarding legacy properties. */
+function validatePlannerGoal(
+  goal: Pick<PlannerGoal, "title" | "target" | "current" | "deadline"> & Partial<PlannerGoal>,
+): string {
+  if (!goal.title.trim()) return "Give the goal a title.";
+  if (goal.title.trim().length > 100) return "Keep the title to 100 characters.";
+  if (!Number.isFinite(goal.target) || goal.target <= 0) return "Target must be above zero.";
+  if (!Number.isFinite(goal.current) || goal.current < 0) return "Current progress must be zero or above.";
+  if (goal.deadline && !validPlannerDate(goal.deadline)) return "Choose a valid deadline.";
+  if (
+    goal.plannerYear !== undefined &&
+    (!Number.isInteger(goal.plannerYear) || goal.plannerYear < 1 || goal.plannerYear > 9999)
+  )
+    return "Choose a valid year.";
+  if (goal.plannerScope !== undefined && goal.plannerScope !== "yearly" && goal.plannerScope !== "lifetime")
+    return "Choose a valid planning period.";
+  if (goal.plannerCategory !== undefined && ![...PLANNER_CATEGORIES, "Other"].includes(goal.plannerCategory))
+    return "Choose a valid category.";
+  return "";
+}
+
+/** Apply to the latest record inside mutate, never replace it with a stale form snapshot. */
+function applyGoalPatch(latest: PlannerGoal, patch: PlannerGoalPatch, today: string): PlannerGoal {
+  const next: PlannerGoal = { ...latest, ...patch, id: latest.id };
+  const error = validatePlannerGoal(next);
+  if (error) throw new Error(error);
+  if (!validPlannerDate(today)) throw new Error("A valid progress date is required.");
+  next.title = next.title.trim();
+  const progressChanged = ["current", "target", "completed"].some(
+    (key) =>
+      key in patch &&
+      next[key as "current" | "target" | "completed"] !== latest[key as "current" | "target" | "completed"],
   );
+  if (progressChanged) {
+    next.progressHistory = [
+      ...(latest.progressHistory ?? []).filter((point) => point.date !== today),
+      { date: today, value: goalProgress(next) },
+    ].sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return next;
+}
+
+const PLANNING_CATEGORIES = ["Fitness", "Nutrition", "Wealth", "Business", "Travel", "Knowledge", "Other"] as const;
+type PlanningCategory = (typeof PLANNING_CATEGORIES)[number];
+interface PlanningEvent extends CalendarEvent {
+  category?: PlanningCategory;
+  description?: string;
+  allDay?: boolean;
+  relatedGoalId?: string;
+}
+type PlanningEventPatch = Partial<Omit<PlanningEvent, "id">>;
+
+function validDateKey(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return day <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+}
+
+/** Construct at local noon to avoid DST midnight boundaries and UTC day shifts. */
+function localDate(year: number, month: number, day: number): Date {
+  const result = new Date(2000, 0, 1, 12, 0, 0, 0);
+  result.setFullYear(year, month, day);
+  return result;
+}
+
+function localDateKey(date: Date): string {
+  if (!Number.isFinite(date.getTime())) throw new Error("A valid date is required.");
+  return `${String(date.getFullYear()).padStart(4, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function parseDateKey(value: string): Date | null {
+  if (!validDateKey(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  return localDate(year, month - 1, day);
+}
+
+function addCalendarDays(date: Date, days: number): Date {
+  if (!Number.isFinite(date.getTime()) || !Number.isInteger(days))
+    throw new Error("A valid date and whole day offset are required.");
+  return localDate(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function monthCells(date: Date): Date[] {
+  if (!Number.isFinite(date.getTime())) throw new Error("A valid date is required.");
+  const first = localDate(date.getFullYear(), date.getMonth(), 1);
+  const start = addCalendarDays(first, -first.getDay());
+  return Array.from({ length: 42 }, (_, index) => addCalendarDays(start, index));
+}
+
+function weekCells(date: Date): Date[] {
+  const start = addCalendarDays(date, -date.getDay());
+  return Array.from({ length: 7 }, (_, index) => addCalendarDays(start, index));
+}
+
+/** Jan 31 -> Feb's last day, never silently roll into March. */
+function shiftCalendarMonth(date: Date, months: number): Date {
+  if (!Number.isFinite(date.getTime()) || !Number.isInteger(months))
+    throw new Error("A valid date and whole month offset are required.");
+  const first = localDate(date.getFullYear(), date.getMonth() + months, 1);
+  const last = localDate(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  return localDate(first.getFullYear(), first.getMonth(), Math.min(date.getDate(), last));
+}
+
+function sortPlanningEvents<T extends PlanningEvent>(events: readonly T[]): T[] {
+  return [...events].sort(
+    (a, b) =>
+      a.date.localeCompare(b.date) ||
+      Number(!!b.allDay) - Number(!!a.allDay) ||
+      (a.time || "").localeCompare(b.time || "") ||
+      a.title.localeCompare(b.title) ||
+      a.id.localeCompare(b.id),
+  );
+}
+
+/** Inclusive date range. Never mutates, drops fields from, or reseeds stored records. */
+function filterPlanningEvents<T extends PlanningEvent>(
+  events: readonly T[],
+  filters: {
+    start?: string;
+    end?: string;
+    query?: string;
+    category?: PlanningCategory | "All";
+  } = {},
+): T[] {
+  const query = (filters.query ?? "").trim().toLocaleLowerCase();
+  return sortPlanningEvents(
+    events.filter(
+      (event) =>
+        (!filters.start || event.date >= filters.start) &&
+        (!filters.end || event.date <= filters.end) &&
+        (!filters.category || filters.category === "All" || (event.category ?? "Other") === filters.category) &&
+        (!query || `${event.title} ${event.description ?? ""}`.toLocaleLowerCase().includes(query)),
+    ),
+  );
+}
+
+const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+function validatePlanningEvent(event: Omit<PlanningEvent, "id"> | PlanningEvent): string {
+  if (!event.title.trim()) return "Give the event a title.";
+  if (event.title.trim().length > 100) return "Keep the title to 100 characters.";
+  if (!validDateKey(event.date)) return "Choose a valid date.";
+  if (!event.allDay) {
+    if (!validTime(event.time)) return "Choose a valid start time.";
+    if (event.endTime && !validTime(event.endTime)) return "Choose a valid end time.";
+    if (event.endTime && event.endTime <= event.time) return "End time must be after start time on the same day.";
+  }
+  if (event.category !== undefined && !PLANNING_CATEGORIES.includes(event.category)) return "Choose a valid category.";
+  if (event.description && event.description.length > 2000) return "Keep the description to 2,000 characters.";
+  if (event.reminder !== undefined && ![0, 15, 30, 60, 1440].includes(event.reminder))
+    return "Choose a valid reminder.";
+  return "";
+}
+
+/** Merge only changed fields into the latest record inside mutate; preserve identity and legacy fields. */
+function applyEventPatch<T extends PlanningEvent>(latest: T, patch: PlanningEventPatch): T {
+  const next = { ...latest, ...patch, id: latest.id };
+  const error = validatePlanningEvent(next);
+  if (error) throw new Error(error);
+  next.title = next.title.trim();
+  return next;
 }
