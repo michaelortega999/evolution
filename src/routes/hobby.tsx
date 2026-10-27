@@ -1,6 +1,6 @@
 import { localISO } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
   Star,
   Trash2,
@@ -15,12 +15,38 @@ import {
   MapPin,
   Fuel,
   Activity,
+  Search,
+  Globe2,
+  Heart,
+  ArrowRight,
+  ArrowLeft,
+  CalendarDays,
+  Wallet,
+  Compass,
+  ExternalLink,
+  Pencil,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  X,
+  CheckCircle2,
+  Map,
+  List,
+  Download,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   useEvolutionData,
   todayDate,
@@ -60,6 +86,9 @@ import vehicleHud from "@/assets/vehicle-hud.png";
 import { HoloFloat } from "@/components/evolution/HoloFloat";
 
 export const Route = createFileRoute("/hobby")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    section: typeof search.section === "string" ? search.section : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Hobby — Evolution" },
@@ -111,7 +140,12 @@ function HobbyPage() {
   const { data, mutate } = useEvolutionData();
 
   // Tab state controlled so cards can navigate
-  const [tab, setTab] = useState<string>("overview");
+  const { section } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const tab = section || "overview";
+  const setTab = (next: string) => {
+    void navigate({ search: { section: next } });
+  };
 
   // ---------- Weekly stats ----------
   const weeklyTravelHrs = data.trips.filter((t) => isThisWeek(t.startDate)).length * 6; // approx 6h prep per upcoming trip
@@ -176,23 +210,25 @@ function HobbyPage() {
   return (
     <ModuleLayout number="08" title="Hobby" subtitle="Craft · Time · Mastery" icon={Star}>
       {/* Hero hologram */}
-      <div className="relative w-full h-[260px] overflow-hidden rounded-lg border border-border bg-black">
-        <img
-          src={hobbyHologram}
-          alt=""
-          aria-hidden
-          className="hobby-holo-img absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.95 }}
-        />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(0,0,0,0.15)" }} />
-        <div
-          className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
-          style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }}
-        />
-      </div>
+      {tab !== "travel" && (
+        <div className="relative w-full h-[260px] overflow-hidden rounded-lg border border-border bg-black">
+          <img
+            src={hobbyHologram}
+            alt=""
+            aria-hidden
+            className="hobby-holo-img absolute inset-0 w-full h-full object-cover"
+            style={{ opacity: 0.95 }}
+          />
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(0,0,0,0.15)" }} />
+          <div
+            className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }}
+          />
+        </div>
+      )}
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-card border border-border">
+        <TabsList className="bg-card border border-border max-w-full overflow-x-auto justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="travel">Travel</TabsTrigger>
           <TabsTrigger value="photography">Photography</TabsTrigger>
@@ -325,7 +361,7 @@ function HobbyPage() {
 
         {/* ============ TRAVEL ============ */}
         <TabsContent value="travel" className="space-y-6">
-          <TravelSection />
+          <TravelWorkspace />
         </TabsContent>
 
         {/* ============ CARS ============ */}
@@ -519,6 +555,7 @@ function TravelSection() {
     if (!dest.trim()) return;
     const tripId = editId || uid();
     const trip: Trip = {
+      ...(editId ? data.trips.find((t) => t.id === editId) : {}),
       id: tripId,
       destination: dest.trim(),
       startDate: start || todayDate(),
@@ -2135,3 +2172,2201 @@ function InteractiveVehicleHud({
     </div>
   );
 }
+
+// Travel workspace: account-owned trip records, with a separate unsaved sample.
+
+interface TravelActivity {
+  id: string;
+  date: string;
+  time: string;
+  title: string;
+  location: string;
+  category: string;
+  estimatedCost: number;
+  done: boolean;
+}
+interface TravelExpense {
+  id: string;
+  category: string;
+  label: string;
+  planned: number;
+  /** Undefined/null means not recorded; never default an actual cost to its estimate. */
+  actual?: number | null;
+}
+type TravelPlanTrip = Trip & {
+  destinationId?: string;
+  travelers?: number;
+  itinerary?: TravelActivity[];
+  expenses?: TravelExpense[];
+};
+type TripDraft = Pick<Trip, "destination" | "startDate" | "endDate" | "budget"> & { travelers?: number };
+
+/** Strict Gregorian date-only parsing. UTC is used only as a calendar calculation,
+ * never to convert the user's local timestamp into a date key. */
+function validTravelDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  if (y < 1000 || y > 9999 || m < 1 || m > 12 || d < 1 || d > 31) return false;
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
+}
+function calendarDate(value: string): Date {
+  if (!validTravelDate(value)) throw new RangeError("Use a valid YYYY-MM-DD date.");
+  const [y, m, d] = value.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+function dateKey(date: Date): string {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+function shiftTravelDate(value: string, days: number): string {
+  const date = calendarDate(value);
+  date.setUTCDate(date.getUTCDate() + Math.trunc(days));
+  return dateKey(date);
+}
+function travelWeek(value: string): string[] {
+  const date = calendarDate(value);
+  const monday = shiftTravelDate(value, -((date.getUTCDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, day) => shiftTravelDate(monday, day));
+}
+function clampTripDate(value: string, start: string, end: string): string {
+  if (!validTravelDate(start) || !validTravelDate(end) || end < start) return value;
+  if (!validTravelDate(value) || value < start) return start;
+  return value > end ? end : value;
+}
+function validateTripDraft(draft: TripDraft): { valid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  if (!draft.destination.trim()) errors.destination = "Enter a destination.";
+  if (!validTravelDate(draft.startDate)) errors.startDate = "Choose a valid departure date.";
+  if (!validTravelDate(draft.endDate)) errors.endDate = "Choose a valid return date.";
+  if (!errors.startDate && !errors.endDate && draft.endDate < draft.startDate)
+    errors.endDate = "Return must be on or after departure.";
+  if (!Number.isFinite(draft.budget) || draft.budget < 0) errors.budget = "Budget must be zero or more.";
+  const travelers = draft.travelers ?? 1;
+  if (!Number.isInteger(travelers) || travelers < 1 || travelers > 99) errors.travelers = "Use 1–99 travelers.";
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+const validAmount = (amount: unknown): amount is number =>
+  typeof amount === "number" && Number.isFinite(amount) && amount >= 0;
+function travelBudgetTotals(trip: Pick<TravelPlanTrip, "budget" | "expenses" | "itinerary">) {
+  const expenses = trip.expenses ?? [];
+  const planned = expenses.reduce((sum, item) => sum + (validAmount(item.planned) ? item.planned : 0), 0);
+  const actualRows = expenses.filter((item) => validAmount(item.actual));
+  const actual = actualRows.reduce((sum, item) => sum + (item.actual as number), 0);
+  const itineraryEstimate = (trip.itinerary ?? []).reduce(
+    (sum, item) => sum + (validAmount(item.estimatedCost) ? item.estimatedCost : 0),
+    0,
+  );
+  // Itinerary estimates may already be covered by expense categories. Keep separate.
+  const budget = validAmount(trip.budget) ? trip.budget : 0;
+  return {
+    planned,
+    actual,
+    actualEntries: actualRows.length,
+    itineraryEstimate,
+    remaining: budget - actual,
+    plannedRemaining: budget - planned,
+  };
+}
+function formatTravelUSD(amount: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(
+    Number.isFinite(amount) ? amount : 0,
+  );
+}
+function travelMapsUrl(location: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.trim())}`;
+}
+function patchTravelTrip<T extends TravelPlanTrip>(trip: T, patch: Partial<TravelPlanTrip>): T {
+  return { ...trip, ...patch, id: trip.id };
+}
+
+/** Only used for an explicitly labelled sample view. Never auto-insert into user data. */
+function sampleJapanTrip(weekDate: string, id = "sample-japan"): TravelPlanTrip {
+  const days = travelWeek(weekDate);
+  const titles = [
+    "Arrive in Tokyo",
+    "Explore Shibuya",
+    "Mount Fuji day trip",
+    "Kyoto temples",
+    "Osaka food walk",
+    "Nara day trip",
+    "Return from Tokyo",
+  ];
+  const places = [
+    "Tokyo Station, Tokyo, Japan",
+    "Shibuya Crossing, Tokyo, Japan",
+    "Lake Kawaguchi, Japan",
+    "Fushimi Inari Taisha, Kyoto, Japan",
+    "Dotonbori, Osaka, Japan",
+    "Nara Park, Japan",
+    "Tokyo Station, Tokyo, Japan",
+  ];
+  const estimates = [80, 60, 100, 50, 70, 50, 40];
+  return {
+    id,
+    destination: "Japan",
+    destinationId: "japan",
+    startDate: days[0],
+    endDate: days[6],
+    budget: 2400,
+    status: "Planning",
+    travelers: 1,
+    notes: "SAMPLE ONLY. Illustrative schedule and USD planning figures, not a booking, live quote, or personal trip.",
+    packing: [],
+    itinerary: days.map((date, i) => ({
+      id: `${id}-day-${i}`,
+      date,
+      time: i === 0 ? "15:00" : "09:00",
+      title: titles[i],
+      location: places[i],
+      category: i === 0 || i === 6 ? "Transport" : "Experience",
+      estimatedCost: estimates[i],
+      done: false,
+    })),
+    expenses: [
+      { id: `${id}-flight`, category: "Flights", label: "Illustrative flight allowance", planned: 900, actual: null },
+      { id: `${id}-stay`, category: "Stay", label: "Illustrative accommodation allowance", planned: 700, actual: null },
+      { id: `${id}-food`, category: "Food", label: "Illustrative food allowance", planned: 300, actual: null },
+      {
+        id: `${id}-transport`,
+        category: "Transport",
+        label: "Illustrative local transport",
+        planned: 200,
+        actual: null,
+      },
+      {
+        id: `${id}-experiences`,
+        category: "Experiences",
+        label: "Illustrative activities",
+        planned: 200,
+        actual: null,
+      },
+    ],
+  };
+}
+
+interface AtlasDestination {
+  id: string;
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+  image: string;
+}
+interface TravelAtlasProps {
+  destinations: AtlasDestination[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+  compact?: boolean;
+}
+
+type AtlasCoordinate = [number, number]; // longitude, latitude
+// Intentionally simplified coastlines, not political boundaries. City pins use geographic coordinates.
+const ATLAS_LAND: AtlasCoordinate[][] = [
+  [
+    [-168, 66],
+    [-156, 71],
+    [-140, 70],
+    [-130, 72],
+    [-112, 73],
+    [-95, 76],
+    [-82, 73],
+    [-62, 60],
+    [-64, 47],
+    [-53, 47],
+    [-60, 43],
+    [-72, 43],
+    [-75, 35],
+    [-81, 25],
+    [-83, 29],
+    [-90, 29],
+    [-97, 26],
+    [-97, 21],
+    [-87, 21],
+    [-87, 16],
+    [-83, 10],
+    [-78, 8],
+    [-78, 6],
+    [-84, 9],
+    [-92, 15],
+    [-105, 20],
+    [-112, 28],
+    [-115, 29],
+    [-118, 34],
+    [-124, 42],
+    [-130, 52],
+    [-139, 59],
+    [-152, 59],
+    [-165, 55],
+    [-168, 60],
+    [-168, 66],
+  ],
+  [
+    [-73, 60],
+    [-60, 60],
+    [-43, 60],
+    [-22, 70],
+    [-20, 79],
+    [-40, 84],
+    [-59, 81],
+    [-73, 73],
+    [-73, 60],
+  ],
+  [
+    [-81, 12],
+    [-71, 11],
+    [-62, 10],
+    [-52, 4],
+    [-50, 0],
+    [-35, -5],
+    [-35, -12],
+    [-40, -22],
+    [-49, -29],
+    [-54, -36],
+    [-63, -42],
+    [-67, -55],
+    [-74, -51],
+    [-76, -37],
+    [-72, -18],
+    [-81, -5],
+    [-81, 12],
+  ],
+  [
+    [-10, 36],
+    [-9, 43],
+    [-2, 44],
+    [-5, 48],
+    [-1, 51],
+    [5, 53],
+    [8, 57],
+    [6, 58],
+    [6, 62],
+    [15, 70],
+    [29, 71],
+    [32, 65],
+    [45, 67],
+    [60, 70],
+    [90, 75],
+    [110, 73],
+    [135, 71],
+    [160, 70],
+    [179, 65],
+    [174, 60],
+    [164, 60],
+    [157, 51],
+    [146, 46],
+    [140, 43],
+    [135, 35],
+    [129, 34],
+    [127, 38],
+    [121, 39],
+    [118, 32],
+    [122, 25],
+    [116, 22],
+    [110, 20],
+    [108, 10],
+    [104, 1],
+    [100, 4],
+    [98, 14],
+    [91, 22],
+    [86, 21],
+    [80, 9],
+    [77, 8],
+    [73, 20],
+    [68, 23],
+    [62, 26],
+    [57, 25],
+    [51, 13],
+    [43, 12],
+    [42, 18],
+    [36, 28],
+    [32, 31],
+    [35, 36],
+    [29, 41],
+    [26, 40],
+    [23, 36],
+    [20, 40],
+    [17, 40],
+    [16, 38],
+    [12, 42],
+    [9, 44],
+    [7, 43],
+    [3, 42],
+    [0, 40],
+    [-5, 36],
+    [-10, 36],
+  ],
+  [
+    [-17, 15],
+    [-17, 22],
+    [-12, 29],
+    [-6, 36],
+    [10, 37],
+    [24, 32],
+    [32, 31],
+    [35, 23],
+    [43, 12],
+    [51, 11],
+    [45, 2],
+    [41, -2],
+    [40, -12],
+    [35, -20],
+    [32, -26],
+    [26, -34],
+    [18, -35],
+    [14, -23],
+    [12, -17],
+    [12, -5],
+    [8, 4],
+    [1, 6],
+    [-8, 5],
+    [-15, 10],
+    [-17, 15],
+  ],
+  [
+    [112, -11],
+    [121, -14],
+    [130, -12],
+    [137, -12],
+    [141, -10],
+    [146, -17],
+    [153, -25],
+    [151, -33],
+    [145, -39],
+    [137, -36],
+    [130, -32],
+    [121, -34],
+    [114, -27],
+    [112, -21],
+    [112, -11],
+  ],
+  [
+    [45, -13],
+    [50, -16],
+    [49, -25],
+    [45, -26],
+    [43, -20],
+    [45, -13],
+  ],
+  [
+    [130, 31],
+    [133, 34],
+    [137, 35],
+    [141, 41],
+    [144, 44],
+    [146, 44],
+    [145, 42],
+    [141, 40],
+    [140, 36],
+    [135, 33],
+    [131, 31],
+    [130, 31],
+  ],
+  [
+    [95, 5],
+    [103, -1],
+    [106, -6],
+    [104, -6],
+    [98, 0],
+    [95, 5],
+  ],
+  [
+    [109, 7],
+    [117, 7],
+    [119, 1],
+    [115, -4],
+    [109, -3],
+    [109, 7],
+  ],
+  [
+    [106, -6],
+    [115, -8],
+    [122, -9],
+    [119, -10],
+    [110, -8],
+    [106, -6],
+  ],
+  [
+    [131, -1],
+    [140, -3],
+    [150, -6],
+    [147, -10],
+    [139, -8],
+    [131, -4],
+    [131, -1],
+  ],
+  [
+    [120, 19],
+    [123, 15],
+    [125, 11],
+    [126, 6],
+    [122, 7],
+    [120, 14],
+    [120, 19],
+  ],
+  [
+    [166, -35],
+    [173, -40],
+    [178, -39],
+    [177, -37],
+    [173, -35],
+    [166, -35],
+  ],
+  [
+    [166, -47],
+    [171, -44],
+    [174, -41],
+    [170, -42],
+    [166, -45],
+    [166, -47],
+  ],
+  [
+    [-8, 50],
+    [-5, 50],
+    [1, 52],
+    [-2, 56],
+    [-4, 59],
+    [-7, 58],
+    [-5, 54],
+    [-8, 50],
+  ],
+  [
+    [-10, 51],
+    [-6, 51],
+    [-6, 55],
+    [-9, 55],
+    [-10, 51],
+  ],
+  [
+    [-25, 64],
+    [-14, 64],
+    [-14, 67],
+    [-22, 67],
+    [-25, 64],
+  ],
+  [
+    [-85, 22],
+    [-79, 23],
+    [-74, 20],
+    [-78, 20],
+    [-85, 22],
+  ],
+];
+const atlasRad = (n: number) => (n * Math.PI) / 180;
+function atlasContains(lon: number, lat: number, polygon: AtlasCoordinate[]) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i],
+      [xj, yj] = polygon[j];
+    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+const ATLAS_DOTS: AtlasCoordinate[] = [];
+for (let lat = -55; lat <= 80; lat += 3)
+  for (let lon = -177; lon <= 180; lon += 3) {
+    if (ATLAS_LAND.some((p) => atlasContains(lon, lat, p))) ATLAS_DOTS.push([lon, lat]);
+  }
+
+function TravelAtlas({ destinations, selectedId, onSelect, compact = false }: TravelAtlasProps) {
+  const safeId = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const selected = destinations.find((d) => d.id === selectedId) ?? destinations[0];
+  const [zoom, setZoom] = useState(1);
+  const [view, setView] = useState({ id: selectedId, offset: 0 });
+  const offset = view.id === selectedId ? view.offset : 0;
+  const centerLon = (selected?.lon ?? 20) - 12 + offset;
+  const centerLat = Math.max(-25, Math.min(40, (selected?.lat ?? 25) * 0.65));
+  const geometry = useMemo(() => {
+    const r = 220 * zoom,
+      lat0 = atlasRad(centerLat),
+      lon0 = atlasRad(centerLon);
+    const project = ([lon, lat]: AtlasCoordinate) => {
+      const la = atlasRad(lat),
+        dl = atlasRad(lon) - lon0;
+      const depth = Math.sin(lat0) * Math.sin(la) + Math.cos(lat0) * Math.cos(la) * Math.cos(dl);
+      return {
+        x: 320 + r * Math.cos(la) * Math.sin(dl),
+        y: 272 - r * (Math.cos(lat0) * Math.sin(la) - Math.sin(lat0) * Math.cos(la) * Math.cos(dl)),
+        visible: depth >= 0.015,
+      };
+    };
+    const line = (points: AtlasCoordinate[]) => {
+      let drawing = false,
+        path = "";
+      for (const point of points) {
+        const p = project(point);
+        if (!p.visible) {
+          drawing = false;
+          continue;
+        }
+        path += `${drawing ? "L" : "M"}${p.x.toFixed(2)},${p.y.toFixed(2)} `;
+        drawing = true;
+      }
+      return path;
+    };
+    const grid = [];
+    for (let lat = -60; lat <= 60; lat += 20)
+      grid.push(line(Array.from({ length: 181 }, (_, i) => [i * 2 - 180, lat] as AtlasCoordinate)));
+    for (let lon = -180; lon < 180; lon += 30)
+      grid.push(line(Array.from({ length: 91 }, (_, i) => [lon, i * 2 - 90] as AtlasCoordinate)));
+    const coasts = ATLAS_LAND.map((poly) => {
+      const fine: AtlasCoordinate[] = [];
+      for (let i = 1; i < poly.length; i++) {
+        const a = poly[i - 1],
+          b = poly[i];
+        const steps = Math.max(1, Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])) / 2));
+        for (let s = 0; s < steps; s++)
+          fine.push([a[0] + ((b[0] - a[0]) * s) / steps, a[1] + ((b[1] - a[1]) * s) / steps]);
+      }
+      fine.push(poly[poly.length - 1]);
+      return line(fine);
+    });
+    const dots = ATLAS_DOTS.map(project)
+      .filter((p) => p.visible)
+      .map((p) => `M${p.x.toFixed(1)},${p.y.toFixed(1)}h.15`)
+      .join(" ");
+    return { r, grid, coasts, dots, pins: destinations.map((d) => ({ ...d, ...project([d.lon, d.lat]) })) };
+  }, [destinations, centerLat, centerLon, zoom]);
+  const rotate = (direction: number) => setView({ id: selectedId, offset: offset + direction * 40 });
+  return (
+    <section
+      className={`travel-atlas ${compact ? "travel-atlas--compact" : ""}`}
+      aria-label="Interactive destination globe"
+    >
+      <style>{ATLAS_STYLE}</style>
+      <div className="travel-atlas__top">
+        <span>THE WORLD IS OPEN</span>
+        <span className="travel-atlas__signal">EXPLORE</span>
+      </div>
+      <div className="travel-atlas__stage">
+        <svg
+          viewBox="0 0 640 565"
+          className="travel-atlas__globe"
+          aria-label="Geographic destination globe. Use destination buttons below to select a place."
+          role="img"
+        >
+          <defs>
+            <radialGradient id={`${safeId}sea`} cx="37%" cy="30%">
+              <stop offset="0" stopColor="#123d5d" />
+              <stop offset=".55" stopColor="#041b30" />
+              <stop offset="1" stopColor="#01080f" />
+            </radialGradient>
+            <radialGradient id={`${safeId}aura`}>
+              <stop offset=".7" stopColor="#009cff" stopOpacity="0" />
+              <stop offset=".86" stopColor="#12baff" stopOpacity=".17" />
+              <stop offset="1" stopColor="#12baff" stopOpacity="0" />
+            </radialGradient>
+            <filter id={`${safeId}glow`} x="-70%" y="-70%" width="240%" height="240%">
+              <feGaussianBlur stdDeviation="3" />
+            </filter>
+            <clipPath id={`${safeId}bounds`}>
+              <rect width="640" height="535" rx="16" />
+            </clipPath>
+          </defs>
+          <g clipPath={`url(#${safeId}bounds)`}>
+            <circle cx="320" cy="272" r={geometry.r + 43} fill={`url(#${safeId}aura)`} />
+            <ellipse cx="320" cy="499" rx="204" ry="24" fill="none" stroke="#1ba6e8" strokeOpacity=".24" />
+            <ellipse cx="320" cy="499" rx="237" ry="38" fill="none" stroke="#1ba6e8" strokeOpacity=".12" />
+            <circle cx="320" cy="272" r={geometry.r} fill={`url(#${safeId}sea)`} stroke="#35bbf4" strokeWidth="1.6" />
+            {geometry.grid.map((d, i) => (
+              <path key={`grid${i}`} d={d} fill="none" stroke="#2793c0" strokeWidth=".6" opacity=".24" />
+            ))}
+            <path d={geometry.dots} stroke="#50c9ed" strokeWidth="2.1" strokeLinecap="round" opacity=".55" />
+            {geometry.coasts.map((d, i) => (
+              <path key={`coast${i}`} d={d} fill="none" stroke="#7bdef5" strokeWidth="1.1" opacity=".65" />
+            ))}
+            <circle
+              cx="320"
+              cy="272"
+              r={geometry.r + 6}
+              fill="none"
+              stroke="#48cfff"
+              strokeOpacity=".3"
+              strokeDasharray="1 9"
+            />
+            {geometry.pins
+              .filter((d) => d.visible)
+              .map((d) => (
+                <g
+                  key={d.id}
+                  transform={`translate(${d.x},${d.y})`}
+                  className="travel-atlas__pin"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Explore ${d.name}, ${d.country}`}
+                  aria-pressed={d.id === selectedId}
+                  onClick={() => onSelect(d.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onSelect(d.id);
+                    }
+                  }}
+                >
+                  <title>
+                    {d.name}, {d.country}
+                  </title>
+                  <circle r="20" fill="#041828" fillOpacity=".01" />
+                  <circle r={d.id === selectedId ? 15 : 8} fill="#23c7ff" opacity=".5" filter={`url(#${safeId}glow)`} />
+                  <circle r={d.id === selectedId ? 12 : 7} fill="#05243b" stroke="#58dcff" strokeWidth="1.5" />
+                  <circle r={d.id === selectedId ? 5 : 3} fill="#defaff" />
+                  {d.id === selectedId && (
+                    <circle r="20" fill="none" stroke="#39c8ff" strokeOpacity=".5" strokeWidth="1" />
+                  )}
+                </g>
+              ))}
+          </g>
+          <text x="320" y="551" textAnchor="middle" fill="#597d93" fontSize="9" letterSpacing="2">
+            SIMPLIFIED GEOGRAPHIC VIEW · NOT FOR NAVIGATION
+          </text>
+        </svg>
+        <div className="travel-atlas__headline">
+          <span>Find your next</span>
+          <strong>somewhere.</strong>
+        </div>
+        <div className="travel-atlas__controls" aria-label="Globe view controls">
+          <button type="button" onClick={() => rotate(-1)} aria-label="Rotate globe west">
+            ←
+          </button>
+          <button type="button" onClick={() => rotate(1)} aria-label="Rotate globe east">
+            →
+          </button>
+          <span aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => setZoom((z) => Math.min(1.45, +(z + 0.15).toFixed(2)))}
+            disabled={zoom >= 1.45}
+            aria-label="Zoom in globe"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => setZoom((z) => Math.max(0.85, +(z - 0.15).toFixed(2)))}
+            disabled={zoom <= 0.85}
+            aria-label="Zoom out globe"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setZoom(1);
+              setView({ id: selectedId, offset: 0 });
+            }}
+            aria-label="Recenter globe on selected destination"
+          >
+            ◎
+          </button>
+        </div>
+        {selected && (
+          <div className="travel-atlas__readout">
+            <span>DESTINATION IN FOCUS</span>
+            <strong>{selected.name}</strong>
+            <small>
+              {selected.country} · {Math.abs(selected.lat).toFixed(2)}° {selected.lat < 0 ? "S" : "N"} /{" "}
+              {Math.abs(selected.lon).toFixed(2)}° {selected.lon < 0 ? "W" : "E"}
+            </small>
+          </div>
+        )}
+      </div>
+      <div className="travel-atlas__destinations" aria-label="Choose destination">
+        {destinations.map((d) => (
+          <button
+            type="button"
+            key={d.id}
+            className={d.id === selectedId ? "is-active" : ""}
+            onClick={() => {
+              setView({ id: d.id, offset: 0 });
+              onSelect(d.id);
+            }}
+            aria-pressed={d.id === selectedId}
+          >
+            <img src={d.image} alt="" loading="lazy" />
+            <span>
+              <strong>{d.name}</strong>
+              <small>{d.country}</small>
+            </span>
+            <b aria-hidden="true">↗</b>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const ATLAS_STYLE = `
+.travel-atlas{position:relative;min-width:0;overflow:hidden;border:1px solid #16455d;border-radius:14px;background:radial-gradient(ellipse at 48% 47%,#09263b 0%,#030d17 53%,#03080f 85%);color:#e6f5ff;isolation:isolate}.travel-atlas::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(#1a638715 1px,transparent 1px),linear-gradient(90deg,#1a638715 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(black,transparent)}.travel-atlas__top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:18px 22px 0;font-size:9px;letter-spacing:.2em;color:#77a7c1}.travel-atlas__signal{color:#4bd7ff;display:flex;gap:6px;align-items:center}.travel-atlas__signal::before{content:'';width:5px;height:5px;border-radius:50%;background:#4bd7ff;box-shadow:0 0 10px #4bd7ff}.travel-atlas__stage{position:relative;min-width:0}.travel-atlas__globe{display:block;width:100%;height:auto;min-height:280px;max-height:650px;overflow:hidden}.travel-atlas__headline{position:absolute;top:25px;left:24px;pointer-events:none;display:grid;text-shadow:0 2px 18px #010b13}.travel-atlas__headline span{font-size:clamp(13px,1.5vw,20px);color:#a2becd}.travel-atlas__headline strong{font-size:clamp(26px,3vw,42px);font-weight:500;letter-spacing:-.045em;line-height:1.1}.travel-atlas__readout{position:absolute;bottom:47px;left:24px;display:grid;gap:3px;padding:12px 15px;background:#03111de8;border-left:2px solid #31c8ff;border-radius:0 6px 6px 0;max-width:calc(100% - 90px)}.travel-atlas__readout>span{font-size:8px;letter-spacing:.17em;color:#54bde3}.travel-atlas__readout strong{font-size:20px;font-weight:500;line-height:1.2}.travel-atlas__readout small{font-size:9px;color:#87a8bc}.travel-atlas__controls{position:absolute;right:16px;bottom:45px;display:flex;flex-direction:column;gap:3px;padding:4px;border:1px solid #25516b;border-radius:7px;background:#03101de8}.travel-atlas__controls button{width:28px;height:27px;display:grid;place-items:center;color:#78dfff;background:transparent;border:0;font-size:18px;cursor:pointer;line-height:1}.travel-atlas__controls span{height:1px;background:#23445c;margin:2px}.travel-atlas__controls button:disabled{opacity:.3;cursor:default}.travel-atlas__controls button:hover:not(:disabled){background:#0e3850;border-radius:4px}.travel-atlas__controls button:focus-visible,.travel-atlas__destinations button:focus-visible{outline:2px solid #74e6ff;outline-offset:2px}.travel-atlas__pin{cursor:pointer;outline:none}.travel-atlas__pin:focus-visible>circle{stroke:#fff;stroke-width:3}.travel-atlas__destinations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 18px 18px}.travel-atlas__destinations button{display:flex;align-items:center;gap:8px;min-width:0;padding:7px;border:1px solid #17384c;border-radius:7px;background:#05121f;color:#d5e8f3;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}.travel-atlas__destinations button.is-active{border-color:#24b7ef;background:#0b2940;box-shadow:inset 0 0 16px #006fab20}.travel-atlas__destinations button:hover{border-color:#42b8e0}.travel-atlas__destinations img{width:35px;height:37px;object-fit:cover;border-radius:4px;background:#102737}.travel-atlas__destinations span{display:grid;min-width:0;gap:2px}.travel-atlas__destinations strong{font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.travel-atlas__destinations small{font-size:9px;color:#7c9caf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.travel-atlas__destinations b{color:#41c5ee;margin-left:auto;font-weight:400;font-size:13px}.travel-atlas--compact .travel-atlas__globe{max-height:390px}.travel-atlas--compact .travel-atlas__destinations{grid-template-columns:repeat(2,minmax(0,1fr))}.travel-atlas--compact .travel-atlas__headline strong{font-size:30px}@media(max-width:600px){.travel-atlas__top{padding:14px 14px 0;font-size:8px}.travel-atlas__headline{left:17px;top:17px}.travel-atlas__headline span{font-size:12px}.travel-atlas__headline strong{font-size:27px}.travel-atlas__destinations{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 12px 12px}.travel-atlas__readout{bottom:35px;left:14px;padding:8px 10px}.travel-atlas__readout strong{font-size:17px}.travel-atlas__readout small{font-size:8px}.travel-atlas__controls{right:10px;bottom:29px;gap:1px}.travel-atlas__controls button{width:25px;height:24px}.travel-atlas__globe{min-height:300px}.travel-atlas__destinations img{width:30px;height:32px}}@media(prefers-reduced-motion:reduce){.travel-atlas *{transition:none!important}}
+`;
+
+const travelPhoto = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+const TRAVEL_DESTINATIONS = [
+  {
+    id: "japan",
+    name: "Tokyo",
+    country: "Japan",
+    lat: 35.6762,
+    lon: 139.6503,
+    region: "Asia",
+    image: travelPhoto("photo-1493976040374-85c8e12f0c0e"),
+    subtitle: "Tradition meets tomorrow",
+    description:
+      "Temple paths, neighborhood food stops, and luminous city nights. Build your own route through Tokyo, Kyoto, Osaka, and beyond.",
+    tags: ["Culture", "Food", "Nature"],
+    places: ["Shibuya Crossing, Tokyo, Japan", "Fushimi Inari Taisha, Kyoto, Japan", "Lake Kawaguchi, Japan"],
+  },
+  {
+    id: "paris",
+    name: "Paris",
+    country: "France",
+    lat: 48.8566,
+    lon: 2.3522,
+    region: "Europe",
+    image: travelPhoto("photo-1502602898657-3e91760cbb34"),
+    subtitle: "Art. Architecture. Slow mornings.",
+    description:
+      "Make room for neighborhood walks, galleries, cafés, and time beside the Seine. Save the places you want to explore.",
+    tags: ["Art", "Culture", "City"],
+    places: ["Eiffel Tower, Paris, France", "Louvre Museum, Paris, France", "Montmartre, Paris, France"],
+  },
+  {
+    id: "london",
+    name: "London",
+    country: "United Kingdom",
+    lat: 51.5074,
+    lon: -0.1278,
+    region: "Europe",
+    image: travelPhoto("photo-1513635269975-59663e0ac1ad"),
+    subtitle: "Old stories. New perspectives.",
+    description:
+      "Historic landmarks, museum afternoons, and contrasting neighborhoods. Turn a list of ideas into an intentional week.",
+    tags: ["History", "Museums", "City"],
+    places: ["Westminster, London, UK", "British Museum, London, UK", "South Bank, London, UK"],
+  },
+  {
+    id: "bali",
+    name: "Bali",
+    country: "Indonesia",
+    lat: -8.5069,
+    lon: 115.2625,
+    region: "Asia",
+    image: travelPhoto("photo-1537996194471-e657df975ab4"),
+    subtitle: "Find a slower rhythm",
+    description: "Rice terraces, coastlines, and quiet time. Plan travel days and rest days with equal care.",
+    tags: ["Nature", "Coast", "Rest"],
+    places: ["Ubud, Bali, Indonesia", "Uluwatu, Bali, Indonesia", "Sanur, Bali, Indonesia"],
+  },
+  {
+    id: "new-york",
+    name: "New York",
+    country: "United States",
+    lat: 40.7128,
+    lon: -74.006,
+    region: "Americas",
+    image: travelPhoto("photo-1485871981521-5b1fd3805eee"),
+    subtitle: "A city of possibilities",
+    description:
+      "Street photography, skyline views, and neighborhood discoveries. Keep your plans flexible and your favorites together.",
+    tags: ["City", "Photography", "Food"],
+    places: ["Central Park, New York, USA", "Brooklyn Bridge, New York, USA", "The High Line, New York, USA"],
+  },
+  {
+    id: "dubai",
+    name: "Dubai",
+    country: "United Arab Emirates",
+    lat: 25.2048,
+    lon: 55.2708,
+    region: "Middle East",
+    image: travelPhoto("photo-1512453979798-5ea266f8880c"),
+    subtitle: "Desert meets the skyline",
+    description:
+      "Modern architecture, old-town markets, and desert landscapes. Shape a trip around the experiences that matter to you.",
+    tags: ["Architecture", "Desert", "City"],
+    places: ["Dubai Creek, Dubai, UAE", "Downtown Dubai, UAE", "Jumeirah, Dubai, UAE"],
+  },
+];
+const TRAVEL_CATEGORIES = ["Flights", "Stay", "Food", "Transport", "Experiences", "Shopping", "Other"];
+const TRAVEL_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const travelShortDate = (date: string) =>
+  validTravelDate(date)
+    ? new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "Dates not set";
+const travelStatusList: TripStatus[] = ["Planning", "Booked", "In Progress", "Completed"];
+
+function TravelWorkspace() {
+  const { data, mutate } = useEvolutionData();
+  const [view, setView] = useState<"explore" | "destination" | "plan" | "budget">("explore");
+  const [destinationId, setDestinationId] = useState("japan");
+  const [query, setQuery] = useState("");
+  const [region, setRegion] = useState("All regions");
+  const [tripFilter, setTripFilter] = useState("Upcoming");
+  const [tripId, setTripId] = useState("");
+  const [sample, setSample] = useState<TravelPlanTrip>(() => sampleJapanTrip(todayDate()));
+  const [sampleMode, setSampleMode] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(todayDate());
+  const [planMode, setPlanMode] = useState<"schedule" | "map">("schedule");
+  const [notice, setNotice] = useState("");
+  const [tripEditor, setTripEditor] = useState<TravelPlanTrip | null>(null);
+  const [activityEditor, setActivityEditor] = useState<TravelActivity | null>(null);
+  const [expenseEditor, setExpenseEditor] = useState<TravelExpense | null>(null);
+  const [deleteTripId, setDeleteTripId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [goalText, setGoalText] = useState("");
+  const [packText, setPackText] = useState("");
+  const trips = data.trips as TravelPlanTrip[];
+  const destination = TRAVEL_DESTINATIONS.find((d) => d.id === destinationId) ?? TRAVEL_DESTINATIONS[0];
+  const activeTrip = sampleMode ? sample : (trips.find((t) => t.id === tripId) ?? null);
+  const goals = data.goals.filter((g) => g.id.startsWith("travel-goal-"));
+  const saved = (id: string) => goals.some((g) => g.id === `travel-goal-${id}`);
+  const filteredDestinations = TRAVEL_DESTINATIONS.filter(
+    (d) =>
+      (region === "All regions" || d.region === region) &&
+      `${d.name} ${d.country} ${d.tags.join(" ")}`.toLowerCase().includes(query.toLowerCase()),
+  );
+  const shownTrips = trips.filter((t) => (tripFilter === "Past" ? t.status === "Completed" : t.status !== "Completed"));
+  const totals = activeTrip ? travelBudgetTotals(activeTrip) : null;
+  const week = travelWeek(validTravelDate(selectedDay) ? selectedDay : todayDate());
+  const dayItems = [...(activeTrip?.itinerary ?? [])]
+    .filter((a) => a.date === selectedDay)
+    .sort((a, b) => a.time.localeCompare(b.time));
+
+  useEffect(() => {
+    const clear = () => {
+      setTripId("");
+      setSampleMode(false);
+      setTripEditor(null);
+      setActivityEditor(null);
+      setExpenseEditor(null);
+      setDeleteTripId(null);
+      setNotice("");
+    };
+    window.addEventListener("evolution:owner-changing", clear);
+    return () => window.removeEventListener("evolution:owner-changing", clear);
+  }, []);
+  useEffect(() => {
+    if (tripId && !trips.some((t) => t.id === tripId)) setTripId("");
+  }, [trips, tripId]);
+  const chooseDestination = (id: string) => {
+    setDestinationId(id);
+    setView("destination");
+  };
+  const chooseTrip = (trip: TravelPlanTrip, demo = false) => {
+    setSampleMode(demo);
+    setTripId(demo ? "" : trip.id);
+    setDestinationId(trip.destinationId ?? "japan");
+    setSelectedDay(validTravelDate(trip.startDate) ? trip.startDate : todayDate());
+    setView("plan");
+    setNotice("");
+  };
+  const patchActive = (patch: Partial<TravelPlanTrip>) => {
+    if (!activeTrip) return;
+    if (sampleMode) {
+      setSample((p) => ({ ...p, ...patch }));
+      setNotice("Sample changed for this preview only. Your trips were not changed.");
+    } else mutate((p) => ({ trips: p.trips.map((t) => (t.id === activeTrip.id ? { ...t, ...patch } : t)) }));
+  };
+  const toggleSave = (id: string) => {
+    const d = TRAVEL_DESTINATIONS.find((item) => item.id === id)!;
+    if (saved(id)) {
+      setNotice(`${d.country} is already in your travel goals.`);
+      return;
+    }
+    mutate((p) => ({
+      goals: [
+        ...p.goals,
+        {
+          id: `travel-goal-${id}`,
+          title: `Visit ${d.country}`,
+          category: "Hobby",
+          target: 1,
+          current: 0,
+          deadline: "",
+          unit: "trip",
+          completed: false,
+        },
+      ],
+    }));
+    setNotice(`${d.country} saved to Travel goals.`);
+  };
+  const newTrip = () => {
+    setErrors([]);
+    setTripEditor({
+      id: uid(),
+      destination: destination.country === "United States" ? destination.name : destination.country,
+      destinationId: destination.id,
+      startDate: todayDate(),
+      endDate: shiftTravelDate(todayDate(), 6),
+      budget: 0,
+      status: "Planning",
+      packing: [],
+      travelers: 1,
+      itinerary: [],
+      expenses: [],
+    });
+  };
+  const saveTrip = () => {
+    if (!tripEditor) return;
+    const result = validateTripDraft(tripEditor);
+    if (!result.valid) {
+      setErrors(Object.values(result.errors));
+      return;
+    }
+    const next = { ...tripEditor, destination: tripEditor.destination.trim() };
+    const existing = trips.some((t) => t.id === next.id);
+    mutate((p) => ({
+      trips: existing ? p.trips.map((t) => (t.id === next.id ? { ...t, ...next } : t)) : [...p.trips, next],
+      calendar: p.calendar.map((e) =>
+        e.id === `trip-${next.id}-dep`
+          ? { ...e, date: next.startDate }
+          : e.id === `trip-${next.id}-ret`
+            ? { ...e, date: next.endDate }
+            : e,
+      ),
+    }));
+    setTripEditor(null);
+    chooseTrip(next);
+    setNotice(existing ? "Trip details saved." : "Trip created. No bookings or calendar events were made.");
+  };
+  const saveActivity = () => {
+    if (!activityEditor || !activeTrip) return;
+    if (
+      !activityEditor.title.trim() ||
+      !validTravelDate(activityEditor.date) ||
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(activityEditor.time) ||
+      !Number.isFinite(activityEditor.estimatedCost) ||
+      activityEditor.estimatedCost < 0
+    ) {
+      setErrors(["Enter a title, valid date/time, and a nonnegative estimate."]);
+      return;
+    }
+    if (activityEditor.date < activeTrip.startDate || activityEditor.date > activeTrip.endDate) {
+      setErrors(["Activity date must be within this trip's dates. Edit the trip first to extend it."]);
+      return;
+    }
+    const items = activeTrip.itinerary ?? [];
+    patchActive({
+      itinerary: items.some((a) => a.id === activityEditor.id)
+        ? items.map((a) => (a.id === activityEditor.id ? activityEditor : a))
+        : [...items, activityEditor],
+    });
+    setSelectedDay(activityEditor.date);
+    setActivityEditor(null);
+  };
+  const saveExpense = () => {
+    if (!expenseEditor || !activeTrip) return;
+    if (
+      !expenseEditor.label.trim() ||
+      !Number.isFinite(expenseEditor.planned) ||
+      expenseEditor.planned < 0 ||
+      (expenseEditor.actual != null && (!Number.isFinite(expenseEditor.actual) || expenseEditor.actual < 0))
+    ) {
+      setErrors(["Enter a label and nonnegative amounts. Leave actual blank if not recorded."]);
+      return;
+    }
+    const items = activeTrip.expenses ?? [];
+    patchActive({
+      expenses: items.some((a) => a.id === expenseEditor.id)
+        ? items.map((a) => (a.id === expenseEditor.id ? expenseEditor : a))
+        : [...items, expenseEditor],
+    });
+    setExpenseEditor(null);
+  };
+  const addGoal = () => {
+    if (!goalText.trim()) return;
+    mutate((p) => ({
+      goals: [
+        ...p.goals,
+        {
+          id: `travel-goal-${uid()}`,
+          title: goalText.trim(),
+          category: "Hobby",
+          target: 1,
+          current: 0,
+          deadline: "",
+          completed: false,
+        },
+      ],
+    }));
+    setGoalText("");
+  };
+  const openActivity = () => {
+    setErrors([]);
+    const start = activeTrip && validTravelDate(activeTrip.startDate) ? activeTrip.startDate : todayDate();
+    setActivityEditor({
+      id: uid(),
+      date:
+        activeTrip && selectedDay >= activeTrip.startDate && selectedDay <= activeTrip.endDate ? selectedDay : start,
+      time: "09:00",
+      title: "",
+      location: "",
+      category: "Experiences",
+      estimatedCost: 0,
+      done: false,
+    });
+  };
+  const openExpense = () => {
+    setErrors([]);
+    setExpenseEditor({ id: uid(), category: "Flights", label: "", planned: 0, actual: null });
+  };
+
+  return (
+    <section className="travel-os" aria-label="Travel workspace">
+      <style>{TRAVEL_STYLES}</style>
+      <div className="travel-toolbar">
+        <div>
+          <span className="travel-eyebrow">HOBBY / TRAVEL</span>
+          <h2>Explore. Plan. Experience.</h2>
+        </div>
+        <div className="travel-toolbar-actions">
+          <button
+            className="travel-button"
+            onClick={() => {
+              setSample(sampleJapanTrip(todayDate()));
+              chooseTrip(sampleJapanTrip(todayDate()), true);
+            }}
+          >
+            View Japan sample
+          </button>
+          <button className="travel-button primary" onClick={newTrip}>
+            <Plus size={15} /> New trip
+          </button>
+        </div>
+      </div>
+      <nav className="travel-nav" aria-label="Travel sections">
+        {(
+          [
+            ["explore", "Explore", Globe2],
+            ["destination", "Destination", MapPin],
+            ["plan", "Plan", CalendarDays],
+            ["budget", "Budget", Wallet],
+          ] as const
+        ).map(([key, label, Icon]) => (
+          <button
+            key={key}
+            aria-current={view === key ? "page" : undefined}
+            className={view === key ? "active" : ""}
+            onClick={() => setView(key)}
+          >
+            <Icon size={16} />
+            {label}
+          </button>
+        ))}
+      </nav>
+      {notice && (
+        <div className="travel-notice" role="status">
+          <span>{notice}</span>
+          <button aria-label="Dismiss message" onClick={() => setNotice("")}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      {view === "explore" && (
+        <>
+          <div className="travel-explore-grid">
+            <div className="travel-panel travel-atlas-panel">
+              <div className="travel-atlas-title">
+                <span className="travel-eyebrow">YOUR NEXT CHAPTER</span>
+                <h3>
+                  EXPLORE
+                  <br />
+                  THE WORLD.
+                </h3>
+                <p>Follow your curiosity.</p>
+              </div>
+              <TravelAtlas destinations={TRAVEL_DESTINATIONS} selectedId={destinationId} onSelect={chooseDestination} />
+            </div>
+            <aside className="travel-side">
+              <div className="travel-panel">
+                <div className="travel-panel-heading">
+                  <h3>Your trips</h3>
+                  <span>{trips.length} saved</span>
+                </div>
+                <div className="travel-segments">
+                  {["Upcoming", "Past", "Saved"].map((t) => (
+                    <button key={t} className={tripFilter === t ? "active" : ""} onClick={() => setTripFilter(t)}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                {tripFilter === "Saved" ? (
+                  <div className="travel-trip-list">
+                    {TRAVEL_DESTINATIONS.filter((d) => saved(d.id)).map((d) => (
+                      <button key={d.id} className="travel-mini-card" onClick={() => chooseDestination(d.id)}>
+                        <TravelImage src={d.image} alt={d.country} />
+                        <span>
+                          <strong>{d.name}</strong>
+                          <small>{d.country}</small>
+                        </span>
+                        <ArrowRight size={15} />
+                      </button>
+                    ))}
+                    {!TRAVEL_DESTINATIONS.some((d) => saved(d.id)) && (
+                      <TravelEmpty title="Keep your favorites close" text="Save a destination to find it here." />
+                    )}
+                  </div>
+                ) : (
+                  <div className="travel-trip-list">
+                    {shownTrips.map((t) => (
+                      <button key={t.id} className="travel-mini-card" onClick={() => chooseTrip(t)}>
+                        <span className="travel-mini-icon">
+                          <Plane size={20} />
+                        </span>
+                        <span>
+                          <strong>{t.destination}</strong>
+                          <small>
+                            {travelShortDate(t.startDate)} · {t.status}
+                          </small>
+                        </span>
+                        <ArrowRight size={15} />
+                      </button>
+                    ))}
+                    {!shownTrips.length && (
+                      <TravelEmpty
+                        title={tripFilter === "Past" ? "The story is still ahead" : "Where will you go next?"}
+                        text={
+                          tripFilter === "Past"
+                            ? "Completed trips will appear here."
+                            : "Create a trip. Build the details at your pace."
+                        }
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="travel-panel">
+                <div className="travel-panel-heading">
+                  <h3>Travel goals</h3>
+                  <Compass size={17} />
+                </div>
+                <div className="travel-goals">
+                  {goals.map((g) => (
+                    <label key={g.id}>
+                      <input
+                        type="checkbox"
+                        checked={g.completed}
+                        onChange={(e) =>
+                          mutate((p) => ({
+                            goals: p.goals.map((v) =>
+                              v.id === g.id
+                                ? { ...v, completed: e.target.checked, current: e.target.checked ? v.target : 0 }
+                                : v,
+                            ),
+                          }))
+                        }
+                      />
+                      <span className={g.completed ? "complete" : ""}>{g.title}</span>
+                    </label>
+                  ))}
+                  {!goals.length && <p className="travel-muted">Save a destination or set your first travel goal.</p>}
+                </div>
+                <form
+                  className="travel-inline-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addGoal();
+                  }}
+                >
+                  <input
+                    aria-label="New travel goal"
+                    placeholder="Visit somewhere new…"
+                    value={goalText}
+                    onChange={(e) => setGoalText(e.target.value)}
+                    maxLength={120}
+                  />
+                  <button aria-label="Add travel goal">
+                    <Plus size={17} />
+                  </button>
+                </form>
+              </div>
+            </aside>
+          </div>
+          <div className="travel-search-row">
+            <label className="travel-search">
+              <Search size={17} />
+              <input
+                aria-label="Search destinations"
+                placeholder="Find a city, country, or experience…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+            <select
+              aria-label="Filter destinations by region"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            >
+              {["All regions", "Asia", "Europe", "Americas", "Middle East"].map((r) => (
+                <option key={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+          <div className="travel-destinations">
+            {filteredDestinations.map((d) => (
+              <article className="travel-destination-card" key={d.id}>
+                <button className="travel-card-main" onClick={() => chooseDestination(d.id)}>
+                  <TravelImage src={d.image} alt={`${d.name}, ${d.country}`} />
+                  <span>
+                    <small>{d.region}</small>
+                    <strong>{d.name}</strong>
+                    <em>{d.country}</em>
+                  </span>
+                  <ArrowRight size={18} />
+                </button>
+                <button
+                  className={`travel-save ${saved(d.id) ? "saved" : ""}`}
+                  aria-label={saved(d.id) ? `${d.country} saved` : `Save ${d.country}`}
+                  onClick={() => toggleSave(d.id)}
+                >
+                  <Heart size={16} fill={saved(d.id) ? "currentColor" : "none"} />
+                </button>
+              </article>
+            ))}
+            {!filteredDestinations.length && (
+              <TravelEmpty title="No destinations match" text="Try another city, country, or region." />
+            )}
+          </div>
+          <div className="travel-stats">
+            <div>
+              <Globe2 />
+              <strong>
+                {new Set(trips.filter((t) => t.status === "Completed").map((t) => t.destination.toLowerCase())).size}
+              </strong>
+              <span>Completed destinations</span>
+            </div>
+            <div>
+              <Plane />
+              <strong>{trips.length}</strong>
+              <span>Saved trips</span>
+            </div>
+            <div>
+              <Compass />
+              <strong>
+                {goals.filter((g) => g.completed).length}/{goals.length}
+              </strong>
+              <span>Travel goals reached</span>
+            </div>
+          </div>
+        </>
+      )}
+      {view === "destination" && (
+        <>
+          <div className="travel-destination-grid">
+            <div className="travel-destination-hero">
+              <TravelImage src={destination.image} alt={`${destination.country} travel inspiration`} />
+              <div className="travel-hero-shade" />
+              <div className="travel-hero-content">
+                <button className="travel-back" onClick={() => setView("explore")}>
+                  <ArrowLeft size={15} /> Destinations
+                </button>
+                <span className="travel-eyebrow">{destination.region}</span>
+                <h3>{destination.country}</h3>
+                <p className="travel-destination-tagline">{destination.subtitle}</p>
+                <p>{destination.description}</p>
+                <div className="travel-tags">
+                  {destination.tags.map((t) => (
+                    <span key={t}>{t}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <aside className="travel-panel travel-destination-aside">
+              <div className="travel-toolbar-actions">
+                <button className="travel-button" onClick={() => toggleSave(destination.id)}>
+                  <Heart size={16} fill={saved(destination.id) ? "currentColor" : "none"} />
+                  {saved(destination.id) ? "Saved" : "Save"}
+                </button>
+                <button className="travel-button primary" onClick={newTrip}>
+                  Plan this trip <ArrowRight size={16} />
+                </button>
+              </div>
+              <TravelAtlas
+                compact
+                destinations={TRAVEL_DESTINATIONS}
+                selectedId={destination.id}
+                onSelect={setDestinationId}
+              />
+              <a
+                className="travel-map-link"
+                href={travelMapsUrl(`${destination.name}, ${destination.country}`)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MapPin size={17} />
+                {destination.name}, {destination.country}
+                <ExternalLink size={14} />
+              </a>
+              <p className="travel-muted">
+                Inspiration, not a booking service. Check opening hours, travel requirements, and current prices before
+                you go.
+              </p>
+            </aside>
+          </div>
+          <div className="travel-overview-grid">
+            <div className="travel-panel">
+              <div className="travel-panel-heading">
+                <h3>Make it your own</h3>
+                <Compass size={18} />
+              </div>
+              <p className="travel-muted">
+                Choose your dates and budget, then build a daily schedule. Saved plans are separate from the example
+                itinerary.
+              </p>
+              <div className="travel-feature-list">
+                <span>
+                  <CalendarDays /> A full Monday–Sunday planner
+                </span>
+                <span>
+                  <Wallet /> Planned and recorded costs
+                </span>
+                <span>
+                  <MapPin /> Place links beside every activity
+                </span>
+              </div>
+              <button className="travel-button primary" onClick={newTrip}>
+                <Plus size={15} /> Create my trip
+              </button>
+            </div>
+            <div className="travel-panel">
+              <div className="travel-panel-heading">
+                <h3>Places to explore</h3>
+                <MapPin size={18} />
+              </div>
+              {destination.places.map((p, i) => (
+                <a
+                  className="travel-place-row"
+                  href={travelMapsUrl(p)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={p}
+                >
+                  <span className="travel-place-number">0{i + 1}</span>
+                  <span>{p}</span>
+                  <ExternalLink size={14} />
+                </a>
+              ))}
+            </div>
+            <div className="travel-panel">
+              <span className="travel-eyebrow">TRY THE WORKSPACE</span>
+              <h3 className="travel-sample-title">One week in Japan.</h3>
+              <p className="travel-muted">
+                Explore an editable sample week before creating your own trip. Sample figures are illustrative, not
+                quotes.
+              </p>
+              <button className="travel-button" onClick={() => chooseTrip(sample, true)}>
+                Open sample itinerary <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      {(view === "plan" || view === "budget") && (
+        <>
+          <div className="travel-plan-picker">
+            <label>
+              Working trip
+              <select
+                aria-label="Choose working trip"
+                value={sampleMode ? "sample" : tripId}
+                onChange={(e) => {
+                  if (e.target.value === "sample") chooseTrip(sample, true);
+                  else {
+                    const t = trips.find((t) => t.id === e.target.value);
+                    if (t) {
+                      const prev = view;
+                      chooseTrip(t);
+                      setView(prev);
+                    } else {
+                      setTripId("");
+                      setSampleMode(false);
+                    }
+                  }
+                }}
+              >
+                <option value="">Select a saved trip</option>
+                {trips.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.destination} · {t.startDate}
+                  </option>
+                ))}
+                <option value="sample">Japan sample · not a saved trip</option>
+              </select>
+            </label>
+            {activeTrip && (
+              <span className={`travel-status ${sampleMode ? "sample" : ""}`}>
+                {sampleMode ? "SAMPLE / NOT YOUR TRIP" : activeTrip.status}
+              </span>
+            )}
+          </div>
+          {!activeTrip ? (
+            <div className="travel-panel travel-no-plan">
+              <TravelEmpty
+                title="Give your next adventure a plan"
+                text="Select a saved trip, create one, or explore the clearly labeled Japan sample."
+              />
+              <div className="travel-toolbar-actions">
+                <button className="travel-button primary" onClick={newTrip}>
+                  Create trip
+                </button>
+                <button className="travel-button" onClick={() => chooseTrip(sample, true)}>
+                  View sample
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {sampleMode && (
+                <div className="travel-sample-banner">
+                  Sample itinerary and illustrative USD estimates. Edits stay in this preview and are not saved as your
+                  trip. No reservations or payments.
+                </div>
+              )}
+              <div className="travel-trip-banner">
+                <TravelImage
+                  src={(TRAVEL_DESTINATIONS.find((d) => d.id === activeTrip.destinationId) ?? destination).image}
+                  alt="Destination inspiration"
+                />
+                <div className="travel-hero-shade" />
+                <div>
+                  <span className="travel-eyebrow">{view === "plan" ? "YOUR ITINERARY" : "TRIP BUDGET"}</span>
+                  <h3>{activeTrip.destination}</h3>
+                  <p>
+                    {travelShortDate(activeTrip.startDate)} – {travelShortDate(activeTrip.endDate)} ·{" "}
+                    {activeTrip.travelers ?? 1} traveler{(activeTrip.travelers ?? 1) === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <div className="travel-trip-actions">
+                  <span>
+                    Budget limit<strong>{formatTravelUSD(activeTrip.budget)}</strong>
+                  </span>
+                  {!sampleMode && (
+                    <button
+                      className="travel-button"
+                      onClick={() => {
+                        setErrors([]);
+                        setTripEditor({ ...activeTrip });
+                      }}
+                    >
+                      <Pencil size={14} /> Edit trip
+                    </button>
+                  )}
+                </div>
+              </div>
+              {view === "plan" && (
+                <div className="travel-planner-grid">
+                  <div className="travel-panel travel-schedule">
+                    <div className="travel-panel-heading">
+                      <div>
+                        <h3>Weekly schedule</h3>
+                        <span>
+                          {travelShortDate(week[0])} – {travelShortDate(week[6])}
+                        </span>
+                      </div>
+                      <div className="travel-week-arrows">
+                        <button
+                          aria-label="Previous week"
+                          onClick={() => setSelectedDay(shiftTravelDate(selectedDay, -7))}
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <button aria-label="Next week" onClick={() => setSelectedDay(shiftTravelDate(selectedDay, 7))}>
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="travel-week">
+                      {week.map((day, i) => (
+                        <button
+                          key={day}
+                          className={selectedDay === day ? "active" : ""}
+                          onClick={() => setSelectedDay(day)}
+                          aria-pressed={selectedDay === day}
+                        >
+                          <span>{TRAVEL_DAY_NAMES[i]}</span>
+                          <strong>{Number(day.slice(-2))}</strong>
+                          <i className={(activeTrip.itinerary ?? []).some((a) => a.date === day) ? "has-items" : ""} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="travel-schedule-toolbar">
+                      <div className="travel-segments">
+                        <button
+                          className={planMode === "schedule" ? "active" : ""}
+                          onClick={() => setPlanMode("schedule")}
+                        >
+                          <List size={14} /> Schedule
+                        </button>
+                        <button className={planMode === "map" ? "active" : ""} onClick={() => setPlanMode("map")}>
+                          <Map size={14} /> Places
+                        </button>
+                      </div>
+                      <button className="travel-button" onClick={openActivity}>
+                        <Plus size={14} /> Activity
+                      </button>
+                    </div>
+                    {planMode === "schedule" ? (
+                      <div className="travel-timeline">
+                        {dayItems.map((a) => (
+                          <article key={a.id} className="travel-timeline-item">
+                            <time>{a.time}</time>
+                            <div className="travel-timeline-dot" />
+                            <div className="travel-activity">
+                              <div className="travel-activity-title">
+                                <label>
+                                  <input
+                                    type="checkbox"
+                                    checked={a.done}
+                                    onChange={(e) =>
+                                      patchActive({
+                                        itinerary: (activeTrip.itinerary ?? []).map((v) =>
+                                          v.id === a.id ? { ...v, done: e.target.checked } : v,
+                                        ),
+                                      })
+                                    }
+                                  />
+                                  <strong className={a.done ? "complete" : ""}>{a.title}</strong>
+                                </label>
+                                <button
+                                  aria-label={`Edit ${a.title}`}
+                                  onClick={() => {
+                                    setErrors([]);
+                                    setActivityEditor({ ...a });
+                                  }}
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                              </div>
+                              <span className="travel-muted">
+                                {a.category} · Estimate {formatTravelUSD(a.estimatedCost)}
+                              </span>
+                              {a.location && (
+                                <a
+                                  className="travel-map-link"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  href={travelMapsUrl(a.location)}
+                                >
+                                  <MapPin size={13} />
+                                  {a.location}
+                                  <ExternalLink size={12} />
+                                </a>
+                              )}
+                            </div>
+                          </article>
+                        ))}
+                        {!dayItems.length && (
+                          <TravelEmpty
+                            title={
+                              selectedDay < activeTrip.startDate || selectedDay > activeTrip.endDate
+                                ? "Outside this trip's dates"
+                                : "Leave room for discovery"
+                            }
+                            text={
+                              selectedDay < activeTrip.startDate || selectedDay > activeTrip.endDate
+                                ? "Choose a day within your trip, or edit its dates."
+                                : "No activities yet. Add a place, time, and optional estimate."
+                            }
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="travel-day-places">
+                        <TravelAtlas
+                          compact
+                          destinations={TRAVEL_DESTINATIONS}
+                          selectedId={activeTrip.destinationId ?? destinationId}
+                          onSelect={setDestinationId}
+                        />
+                        <p className="travel-muted">
+                          Destination overview. Open each address for a precise map; this is not a live navigation map.
+                        </p>
+                        {dayItems
+                          .filter((a) => a.location)
+                          .map((a) => (
+                            <a
+                              key={a.id}
+                              className="travel-place-row"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              href={travelMapsUrl(a.location)}
+                            >
+                              <MapPin size={16} />
+                              <span>{a.location}</span>
+                              <ExternalLink size={14} />
+                            </a>
+                          ))}
+                        {!dayItems.some((a) => a.location) && (
+                          <p className="travel-muted">Add an activity address to see its map link here.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <aside className="travel-side">
+                    <div className="travel-panel">
+                      <div className="travel-panel-heading">
+                        <h3>
+                          {TRAVEL_DAY_NAMES[week.indexOf(selectedDay)]} · {travelShortDate(selectedDay)}
+                        </h3>
+                        <CalendarDays size={17} />
+                      </div>
+                      <div className="travel-day-total">
+                        <span>Day activity estimates</span>
+                        <strong>{formatTravelUSD(dayItems.reduce((s, a) => s + a.estimatedCost, 0))}</strong>
+                      </div>
+                      <p className="travel-muted">Planning figures only. Not added again to your expense plan.</p>
+                      <div className="travel-summary-row">
+                        <span>Activities</span>
+                        <strong>{dayItems.length}</strong>
+                      </div>
+                      <div className="travel-summary-row">
+                        <span>Completed</span>
+                        <strong>{dayItems.filter((a) => a.done).length}</strong>
+                      </div>
+                      <button className="travel-button full" onClick={() => setView("budget")}>
+                        Open budget <ArrowRight size={15} />
+                      </button>
+                    </div>
+                    <div className="travel-panel">
+                      <div className="travel-panel-heading">
+                        <h3>Packing checklist</h3>
+                        <CheckCircle2 size={17} />
+                      </div>
+                      <div className="travel-goals">
+                        {(activeTrip.packing ?? []).map((p) => (
+                          <label key={p.id}>
+                            <input
+                              type="checkbox"
+                              checked={p.done}
+                              onChange={(e) =>
+                                patchActive({
+                                  packing: activeTrip.packing.map((v) =>
+                                    v.id === p.id ? { ...v, done: e.target.checked } : v,
+                                  ),
+                                })
+                              }
+                            />
+                            <span className={p.done ? "complete" : ""}>{p.item}</span>
+                            <button
+                              aria-label={`Remove packing item ${p.item}`}
+                              onClick={() => patchActive({ packing: activeTrip.packing.filter((v) => v.id !== p.id) })}
+                            >
+                              <X size={12} />
+                            </button>
+                          </label>
+                        ))}
+                      </div>
+                      <form
+                        className="travel-inline-form"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (packText.trim()) {
+                            patchActive({
+                              packing: [
+                                ...(activeTrip.packing ?? []),
+                                { id: uid(), item: packText.trim(), done: false },
+                              ],
+                            });
+                            setPackText("");
+                          }
+                        }}
+                      >
+                        <input
+                          aria-label="New packing item"
+                          placeholder="Add an essential…"
+                          value={packText}
+                          onChange={(e) => setPackText(e.target.value)}
+                          maxLength={120}
+                        />
+                        <button aria-label="Add packing item">
+                          <Plus size={16} />
+                        </button>
+                      </form>
+                    </div>
+                  </aside>
+                </div>
+              )}
+              {view === "budget" && totals && (
+                <>
+                  <div className="travel-budget-stats">
+                    <div>
+                      <span>Budget limit</span>
+                      <strong>{formatTravelUSD(activeTrip.budget)}</strong>
+                    </div>
+                    <div>
+                      <span>Planned expenses</span>
+                      <strong>{formatTravelUSD(totals.planned)}</strong>
+                    </div>
+                    <div>
+                      <span>Actual recorded</span>
+                      <strong>{totals.actualEntries ? formatTravelUSD(totals.actual) : "Not recorded"}</strong>
+                    </div>
+                    <div>
+                      <span>Budget less recorded</span>
+                      <strong className={totals.remaining < 0 ? "travel-over" : ""}>
+                        {formatTravelUSD(totals.remaining)}
+                      </strong>
+                    </div>
+                  </div>
+                  <div className="travel-budget-grid">
+                    <div className="travel-panel">
+                      <div className="travel-panel-heading">
+                        <h3>Expense plan</h3>
+                        <button className="travel-button" onClick={openExpense}>
+                          <Plus size={14} /> Expense
+                        </button>
+                      </div>
+                      <p className="travel-muted">
+                        All figures in USD. Actual amounts are entered manually, not bank transactions. Blank means
+                        unrecorded.
+                      </p>
+                      <div className="travel-expenses">
+                        {(activeTrip.expenses ?? []).map((e) => (
+                          <article key={e.id}>
+                            <div className="travel-expense-title">
+                              <span className="travel-category">{e.category}</span>
+                              <strong>{e.label}</strong>
+                              <button
+                                aria-label={`Edit expense ${e.label}`}
+                                onClick={() => {
+                                  setErrors([]);
+                                  setExpenseEditor({ ...e });
+                                }}
+                              >
+                                <Pencil size={14} />
+                              </button>
+                            </div>
+                            <div className="travel-expense-values">
+                              <span>
+                                Planned <strong>{formatTravelUSD(e.planned)}</strong>
+                              </span>
+                              <span>
+                                Actual <strong>{e.actual == null ? "Not recorded" : formatTravelUSD(e.actual)}</strong>
+                              </span>
+                            </div>
+                            <div className="travel-cost-bar">
+                              <i
+                                style={{
+                                  width: `${Math.min(100, activeTrip.budget > 0 ? (e.planned / activeTrip.budget) * 100 : 0)}%`,
+                                }}
+                              />
+                            </div>
+                          </article>
+                        ))}
+                        {!(activeTrip.expenses ?? []).length && (
+                          <TravelEmpty
+                            title="Plan the practical details"
+                            text="Add flights, accommodation, food, transport, or your own categories."
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <aside className="travel-panel">
+                      <div className="travel-panel-heading">
+                        <h3>Trip summary</h3>
+                        <Wallet size={18} />
+                      </div>
+                      <div className="travel-summary-row">
+                        <span>Travelers</span>
+                        <strong>{activeTrip.travelers ?? 1}</strong>
+                      </div>
+                      <div className="travel-summary-row">
+                        <span>Plan per traveler</span>
+                        <strong>{formatTravelUSD(totals.planned / Math.max(1, activeTrip.travelers ?? 1))}</strong>
+                      </div>
+                      <div className="travel-summary-row">
+                        <span>Unallocated budget</span>
+                        <strong className={totals.plannedRemaining < 0 ? "travel-over" : ""}>
+                          {formatTravelUSD(totals.plannedRemaining)}
+                        </strong>
+                      </div>
+                      <div className="travel-summary-row">
+                        <span>Activities subtotal</span>
+                        <strong>{formatTravelUSD(totals.itineraryEstimate)}</strong>
+                      </div>
+                      <p className="travel-muted">
+                        Activity estimates are shown separately to avoid counting costs twice. Recorded costs may be
+                        incomplete; remaining budget is not a verified balance.
+                      </p>
+                      {totals.plannedRemaining < 0 && (
+                        <p className="travel-over">Your planned expenses exceed the budget limit.</p>
+                      )}
+                      <button className="travel-button full" onClick={() => setView("plan")}>
+                        Back to itinerary <ArrowRight size={15} />
+                      </button>
+                    </aside>
+                  </div>
+                </>
+              )}
+              {!sampleMode && (
+                <div className="travel-trip-footer">
+                  <p className="travel-muted">
+                    {activeTrip.notes || "Your plans, in one place. No reservations have been made by this app."}
+                  </p>
+                  <button className="travel-button danger" onClick={() => setDeleteTripId(activeTrip.id)}>
+                    <Trash2 size={14} /> Delete trip
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+      <p className="travel-fineprint">
+        Travel workspace · No booking, paid map, or AI service connected. Destination photos: Unsplash. External map
+        links open only when selected.
+      </p>
+      <Dialog
+        open={!!tripEditor}
+        onOpenChange={(v) => {
+          if (!v) setTripEditor(null);
+        }}
+      >
+        <DialogContent className="travel-dialog">
+          <DialogHeader>
+            <DialogTitle>
+              {tripEditor && trips.some((t) => t.id === tripEditor.id) ? "Edit trip" : "Plan a trip"}
+            </DialogTitle>
+            <DialogDescription>
+              Save your own dates and planning budget. This does not book travel or create calendar events.
+            </DialogDescription>
+          </DialogHeader>
+          {tripEditor && (
+            <>
+              <div className="travel-form">
+                <label>
+                  Destination
+                  <Input
+                    value={tripEditor.destination}
+                    onChange={(e) => setTripEditor({ ...tripEditor, destination: e.target.value })}
+                    maxLength={120}
+                  />
+                </label>
+                <div className="travel-form-columns">
+                  <label>
+                    Departure
+                    <Input
+                      type="date"
+                      value={tripEditor.startDate}
+                      onChange={(e) => setTripEditor({ ...tripEditor, startDate: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Return
+                    <Input
+                      type="date"
+                      value={tripEditor.endDate}
+                      onChange={(e) => setTripEditor({ ...tripEditor, endDate: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Budget limit (USD)
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={tripEditor.budget}
+                      onChange={(e) =>
+                        setTripEditor({ ...tripEditor, budget: e.target.value === "" ? 0 : Number(e.target.value) })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Travelers
+                    <Input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={tripEditor.travelers ?? 1}
+                      onChange={(e) => setTripEditor({ ...tripEditor, travelers: Number(e.target.value) })}
+                    />
+                  </label>
+                </div>
+                <label>
+                  Status
+                  <select
+                    value={tripEditor.status}
+                    onChange={(e) => setTripEditor({ ...tripEditor, status: e.target.value as TripStatus })}
+                  >
+                    {travelStatusList.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Notes
+                  <textarea
+                    value={tripEditor.notes ?? ""}
+                    onChange={(e) => setTripEditor({ ...tripEditor, notes: e.target.value })}
+                    rows={3}
+                  />
+                </label>
+                {errors.map((e) => (
+                  <p key={e} role="alert" className="travel-over">
+                    {e}
+                  </p>
+                ))}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setTripEditor(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveTrip}>Save trip</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!activityEditor}
+        onOpenChange={(v) => {
+          if (!v) setActivityEditor(null);
+        }}
+      >
+        <DialogContent className="travel-dialog">
+          <DialogHeader>
+            <DialogTitle>Itinerary activity</DialogTitle>
+            <DialogDescription>
+              {sampleMode
+                ? "You are editing a sample, not a saved trip."
+                : "Times are local to your destination. Add an address for a map link."}
+            </DialogDescription>
+          </DialogHeader>
+          {activityEditor && (
+            <>
+              <div className="travel-form">
+                <label>
+                  Activity title
+                  <Input
+                    value={activityEditor.title}
+                    onChange={(e) => setActivityEditor({ ...activityEditor, title: e.target.value })}
+                    maxLength={140}
+                  />
+                </label>
+                <div className="travel-form-columns">
+                  <label>
+                    Date
+                    <Input
+                      type="date"
+                      value={activityEditor.date}
+                      onChange={(e) => setActivityEditor({ ...activityEditor, date: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Local time
+                    <Input
+                      type="time"
+                      value={activityEditor.time}
+                      onChange={(e) => setActivityEditor({ ...activityEditor, time: e.target.value })}
+                    />
+                  </label>
+                </div>
+                <label>
+                  Location / address
+                  <Input
+                    value={activityEditor.location}
+                    onChange={(e) => setActivityEditor({ ...activityEditor, location: e.target.value })}
+                    maxLength={250}
+                  />
+                </label>
+                <div className="travel-form-columns">
+                  <label>
+                    Category
+                    <select
+                      value={activityEditor.category}
+                      onChange={(e) => setActivityEditor({ ...activityEditor, category: e.target.value })}
+                    >
+                      {[...new Set([...TRAVEL_CATEGORIES, activityEditor.category])].map((c) => (
+                        <option key={c}>{c}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Estimate (USD)
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={activityEditor.estimatedCost}
+                      onChange={(e) => setActivityEditor({ ...activityEditor, estimatedCost: Number(e.target.value) })}
+                    />
+                  </label>
+                </div>
+                {errors.map((e) => (
+                  <p key={e} role="alert" className="travel-over">
+                    {e}
+                  </p>
+                ))}
+              </div>
+              <DialogFooter>
+                {activeTrip?.itinerary?.some((a) => a.id === activityEditor.id) && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      patchActive({ itinerary: activeTrip.itinerary?.filter((a) => a.id !== activityEditor.id) });
+                      setActivityEditor(null);
+                    }}
+                  >
+                    Remove activity
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => setActivityEditor(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveActivity}>Save activity</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!expenseEditor}
+        onOpenChange={(v) => {
+          if (!v) setExpenseEditor(null);
+        }}
+      >
+        <DialogContent className="travel-dialog">
+          <DialogHeader>
+            <DialogTitle>Expense details</DialogTitle>
+            <DialogDescription>Planning records only. No payment or bank account changes.</DialogDescription>
+          </DialogHeader>
+          {expenseEditor && (
+            <>
+              <div className="travel-form">
+                <label>
+                  Expense label
+                  <Input
+                    value={expenseEditor.label}
+                    onChange={(e) => setExpenseEditor({ ...expenseEditor, label: e.target.value })}
+                    maxLength={140}
+                  />
+                </label>
+                <label>
+                  Category
+                  <select
+                    value={expenseEditor.category}
+                    onChange={(e) => setExpenseEditor({ ...expenseEditor, category: e.target.value })}
+                  >
+                    {TRAVEL_CATEGORIES.map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="travel-form-columns">
+                  <label>
+                    Planned (USD)
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={expenseEditor.planned}
+                      onChange={(e) => setExpenseEditor({ ...expenseEditor, planned: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label>
+                    Actual (USD, optional)
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Not recorded"
+                      value={expenseEditor.actual ?? ""}
+                      onChange={(e) =>
+                        setExpenseEditor({
+                          ...expenseEditor,
+                          actual: e.target.value === "" ? null : Number(e.target.value),
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+                {errors.map((e) => (
+                  <p key={e} role="alert" className="travel-over">
+                    {e}
+                  </p>
+                ))}
+              </div>
+              <DialogFooter>
+                {activeTrip?.expenses?.some((a) => a.id === expenseEditor.id) && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      patchActive({ expenses: activeTrip.expenses?.filter((a) => a.id !== expenseEditor.id) });
+                      setExpenseEditor(null);
+                    }}
+                  >
+                    Remove expense
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => setExpenseEditor(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveExpense}>Save expense</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!deleteTripId}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTripId(null);
+        }}
+      >
+        <DialogContent className="travel-dialog">
+          <DialogHeader>
+            <DialogTitle>Delete this trip?</DialogTitle>
+            <DialogDescription>
+              This removes its itinerary, expense plan, and packing list. It does not cancel any real bookings. Existing
+              linked calendar events are also removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTripId(null)}>
+              Keep trip
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                mutate((p) => ({
+                  trips: p.trips.filter((t) => t.id !== deleteTripId),
+                  calendar: p.calendar.filter((e) => !e.id.startsWith(`trip-${deleteTripId}-`)),
+                }));
+                setDeleteTripId(null);
+                setTripId("");
+                setView("explore");
+                setNotice("Trip removed from your planner.");
+              }}
+            >
+              Delete trip
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
+  );
+}
+function TravelImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  return failed ? (
+    <div className="travel-image-fallback" role="img" aria-label={alt}>
+      <Globe2 size={42} />
+    </div>
+  ) : (
+    <img src={src} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+  );
+}
+function TravelEmpty({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="travel-empty">
+      <Compass size={25} />
+      <strong>{title}</strong>
+      <p>{text}</p>
+    </div>
+  );
+}
+const TRAVEL_STYLES = `
+.travel-os{--tblue:#36baff;--tline:rgba(54,186,255,.24);--tmuted:#8ba4ba;color:#e7f4ff;min-width:0;font-family:Rajdhani,system-ui,sans-serif;font-size:15px;display:flex;flex-direction:column;gap:20px;padding-bottom:28px}.travel-os *{box-sizing:border-box}.travel-os button,.travel-os a,.travel-os input,.travel-os select{touch-action:manipulation}.travel-os button{cursor:pointer}.travel-os button:focus-visible,.travel-os a:focus-visible,.travel-os input:focus-visible,.travel-os select:focus-visible{outline:2px solid #58ceff;outline-offset:3px}.travel-os button:disabled{opacity:.4;cursor:not-allowed}.travel-eyebrow{font-size:10px;letter-spacing:.24em;color:#7bd5ff;font-weight:600;display:block}.travel-toolbar,.travel-panel-heading,.travel-search-row,.travel-schedule-toolbar,.travel-trip-footer{display:flex;align-items:center;justify-content:space-between;gap:14px}.travel-toolbar h2{font-size:clamp(20px,2vw,29px);font-weight:500;letter-spacing:.03em;margin:5px 0 0}.travel-toolbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.travel-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 13px;border:1px solid var(--tline);background:rgba(9,32,51,.8);color:#d9f1ff;border-radius:5px;font-size:13px;min-height:38px;transition:background .2s,border-color .2s}.travel-button:hover{background:#10334c;border-color:#36baff}.travel-button.primary{background:linear-gradient(135deg,#087eec,#07509c);border-color:#37bdff;color:white;box-shadow:inset 0 0 13px #39b6ff33,0 0 14px #078cff20}.travel-button.full{width:100%;margin-top:18px}.travel-button.danger{color:#ffaaa8;border-color:#a6444455}.travel-nav{display:flex;border:1px solid var(--tline);background:#06111d;border-radius:7px;padding:5px;gap:5px;overflow-x:auto}.travel-nav button{display:flex;align-items:center;justify-content:center;gap:9px;flex:1;min-width:100px;padding:12px;color:#8caac0;border-radius:4px;font-size:13px;border:1px solid transparent}.travel-nav button.active{background:linear-gradient(180deg,#125c9d,#0a294c);border-color:#219ee8;color:#e8f7ff;box-shadow:inset 0 0 12px #2fa4ee25}.travel-panel{position:relative;min-width:0;padding:20px;border:1px solid var(--tline);border-radius:9px;background:linear-gradient(135deg,rgba(8,22,37,.96),rgba(3,11,21,.98));box-shadow:inset 0 1px 0 #8ad5ff0a}.travel-panel:before{content:"";position:absolute;top:-1px;left:18px;width:43px;height:1px;background:#4bc9ff;box-shadow:0 0 9px #31b8ff;pointer-events:none}.travel-panel-heading{margin-bottom:17px}.travel-panel-heading h3{font-size:14px;text-transform:uppercase;letter-spacing:.14em;font-weight:600;margin:0}.travel-panel-heading>span,.travel-panel-heading div>span{color:var(--tmuted);font-size:12px}.travel-panel-heading svg{color:var(--tblue);flex-shrink:0}.travel-explore-grid{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(250px,1fr);gap:18px}.travel-atlas-panel{padding:0;overflow:hidden;min-height:530px;display:flex;align-items:center;background:radial-gradient(ellipse at 52% 65%,#092746,#020710 70%)}.travel-atlas-panel>.travel-atlas{width:100%;border:0;border-radius:0}.travel-atlas-panel .travel-atlas__headline{display:none}.travel-atlas-panel .travel-atlas__top{visibility:hidden}.travel-atlas-title{position:absolute;left:24px;top:22px;z-index:2;pointer-events:none}.travel-atlas-title h3{font-family:Orbitron,sans-serif;font-weight:400;font-size:clamp(22px,2.1vw,34px);line-height:1.45;letter-spacing:.16em;margin:13px 0;color:#e5f7ff}.travel-atlas-title p{font-size:12px;letter-spacing:.12em;color:#78bddc;margin-top:7px}.travel-side{display:flex;flex-direction:column;gap:18px;min-width:0}.travel-segments{display:flex;border:1px solid #1e3d55;border-radius:5px;overflow:hidden;margin-bottom:12px}.travel-segments button{display:flex;align-items:center;justify-content:center;gap:5px;flex:1;padding:8px 10px;color:#89a7be;font-size:12px;min-height:35px;white-space:nowrap}.travel-segments button.active{background:#0f456c;color:#e9faff;box-shadow:inset 0 0 12px #168edc22}.travel-trip-list{display:flex;flex-direction:column;gap:9px;max-height:235px;overflow:auto}.travel-mini-card{display:flex;align-items:center;gap:12px;text-align:left;padding:9px 0;border-bottom:1px solid #1d3446;width:100%}.travel-mini-card>img,.travel-mini-card>.travel-image-fallback{width:56px;height:48px;object-fit:cover;border-radius:4px;flex-shrink:0}.travel-mini-card>span:nth-child(2){flex:1;min-width:0}.travel-mini-card strong{display:block;font-size:14px;overflow-wrap:anywhere}.travel-mini-card small{display:block;font-size:11px;color:#89a7be;margin-top:3px}.travel-mini-card>svg{color:#38baff}.travel-mini-icon{width:45px;height:45px;display:grid;place-items:center;background:#0c2940;border-radius:6px;color:#42c3ff}.travel-empty{padding:25px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}.travel-empty>svg{color:#2cb8f8;opacity:.8}.travel-empty strong{font-size:15px;font-weight:500}.travel-empty p{font-size:12px;line-height:1.5;color:var(--tmuted);max-width:330px;margin:0}.travel-goals{display:flex;flex-direction:column;gap:13px;margin:9px 0 18px;max-height:210px;overflow:auto}.travel-goals label{display:flex;align-items:center;gap:10px;font-size:13px}.travel-goals label>span{flex:1;overflow-wrap:anywhere}.travel-os input[type=checkbox]{accent-color:#22b9ff;width:16px;height:16px;flex-shrink:0}.complete{text-decoration:line-through;opacity:.55}.travel-inline-form{display:flex;border:1px solid #24435a;border-radius:5px;min-width:0}.travel-inline-form input{min-width:0;width:100%;padding:8px 9px;background:transparent;outline:none;font-size:12px}.travel-inline-form button{padding:7px 10px;color:#33beff}.travel-search{display:flex;align-items:center;gap:10px;border:1px solid var(--tline);background:#06111e;padding:10px 13px;border-radius:5px;flex:1;min-width:0;color:#36baff}.travel-search input{background:transparent;outline:none;width:100%;min-width:0;font-size:13px;color:#e2f3ff}.travel-os select{border:1px solid var(--tline);border-radius:5px;background:#081624;padding:10px 12px;color:#c7deef;font-size:13px;max-width:100%}.travel-destinations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.travel-destination-card{position:relative;min-width:0;border:1px solid var(--tline);border-radius:8px;overflow:hidden;background:#07131f}.travel-card-main{display:block;width:100%;text-align:left;position:relative;min-height:170px}.travel-card-main>img,.travel-card-main>.travel-image-fallback{width:100%;height:180px;object-fit:cover;filter:brightness(.67) saturate(.8);transition:transform .4s}.travel-card-main:hover>img{transform:scale(1.04)}.travel-card-main:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#020a13e8,transparent 85%);pointer-events:none}.travel-card-main>span{position:absolute;left:16px;bottom:16px;z-index:1}.travel-card-main small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#80dcff}.travel-card-main strong{display:block;font-size:24px;font-weight:500;margin:1px 0}.travel-card-main em{display:block;font-size:12px;color:#a7bed0;font-style:normal}.travel-card-main>svg{position:absolute;bottom:20px;right:17px;z-index:1;color:#6ed5ff}.travel-save{position:absolute;top:12px;right:12px;padding:7px;background:#031422b8;color:#96cbe6;border:1px solid #6195b566;border-radius:50%;z-index:2}.travel-save.saved{color:#48c8ff}.travel-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--tline);border-radius:7px;background:#06121f;padding:18px}.travel-stats>div{display:grid;grid-template-columns:28px 1fr;column-gap:14px;padding:0 18px;border-right:1px solid #214057}.travel-stats>div:last-child{border:0}.travel-stats svg{color:#28bbff;grid-row:span 2;align-self:center}.travel-stats strong{font-size:24px;font-weight:500}.travel-stats span{font-size:11px;color:#97b0c2}.travel-destination-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(260px,1fr);gap:18px}.travel-destination-hero{position:relative;min-height:400px;border:1px solid var(--tline);border-radius:9px;overflow:hidden}.travel-destination-hero>img,.travel-destination-hero>.travel-image-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.travel-hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,#020a14e6,#04132620),linear-gradient(0deg,#020a14ed,transparent 90%)}.travel-hero-content{position:relative;padding:24px;max-width:610px;height:100%;display:flex;flex-direction:column;justify-content:flex-end}.travel-back{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;margin-bottom:45px;font-size:12px;color:#b5d5eb}.travel-hero-content h3{font-size:clamp(30px,3.5vw,50px);font-weight:600;text-transform:uppercase;letter-spacing:.06em;line-height:1.1;margin:9px 0}.travel-hero-content p{font-size:14px;line-height:1.6;max-width:440px;color:#a9c7de}.travel-hero-content .travel-destination-tagline{color:#61ccff;font-size:11px;letter-spacing:.15em;text-transform:uppercase;margin:3px 0 11px}.travel-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}.travel-tags span{border:1px solid #4e8caf66;border-radius:30px;padding:4px 11px;font-size:11px;background:#03101b80}.travel-destination-aside{display:flex;flex-direction:column;gap:12px}.travel-destination-aside>.travel-toolbar-actions{justify-content:space-between}.travel-destination-aside .travel-muted{margin:0}.travel-map-link{display:flex;align-items:center;gap:7px;color:#5acaff;font-size:12px;line-height:1.4;overflow-wrap:anywhere;margin-top:6px}.travel-map-link svg{flex-shrink:0}.travel-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.travel-muted{color:var(--tmuted);font-size:12px;line-height:1.6}.travel-feature-list{display:flex;flex-direction:column;gap:12px;margin:18px 0}.travel-feature-list span{display:flex;align-items:center;gap:10px;font-size:12px;color:#c3dced}.travel-feature-list svg{width:16px;height:16px;color:#30bdff}.travel-place-row{display:flex;align-items:center;gap:11px;padding:15px 0;border-bottom:1px solid #173348;font-size:12px;color:#c0d7e7}.travel-place-row>span:not(.travel-place-number){flex:1}.travel-place-row svg{color:#48c6ff;flex-shrink:0}.travel-place-number{color:#4ebce8;font-size:11px}.travel-sample-title{font-size:25px;font-weight:500;line-height:1.3;margin:14px 0}.travel-plan-picker{display:flex;align-items:center;justify-content:space-between;gap:16px}.travel-plan-picker label{display:flex;align-items:center;gap:13px;font-size:12px;color:var(--tmuted);min-width:0}.travel-plan-picker select{min-width:0;max-width:400px}.travel-status{font-size:10px;color:#68dcff;border:1px solid #2a7898;padding:5px 9px;border-radius:4px;letter-spacing:.06em;white-space:nowrap}.travel-status.sample{color:#f4cc87;border-color:#8e743e}.travel-sample-banner{color:#debc7b;background:#30281760;border:1px solid #876d354f;padding:10px 14px;border-radius:5px;font-size:12px}.travel-trip-banner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:180px;padding:27px;border:1px solid var(--tline);border-radius:8px;overflow:hidden}.travel-trip-banner>img,.travel-trip-banner>.travel-image-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 55%}.travel-trip-banner>div:not(.travel-hero-shade):not(.travel-image-fallback){position:relative;z-index:1}.travel-trip-banner h3{font-size:34px;font-weight:500;letter-spacing:.06em;margin:8px 0}.travel-trip-banner p{font-size:12px;color:#b2ccdf}.travel-trip-actions{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:13px}.travel-trip-actions>span{font-size:10px;color:#a1c5dd}.travel-trip-actions strong{font-size:26px;display:block;color:#e4f6ff;font-weight:500}.travel-planner-grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(250px,1fr);gap:18px}.travel-week-arrows{display:flex;gap:9px}.travel-week-arrows button{border:1px solid #234e6a;padding:6px;border-radius:4px;color:#66cdff}.travel-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid #21425b;border-radius:5px;overflow:hidden;margin:18px 0}.travel-week button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 2px;border-right:1px solid #18374c;color:#91b2ca;font-size:11px}.travel-week button:last-child{border:0}.travel-week button.active{background:linear-gradient(#1167a4,#103450);color:white;box-shadow:inset 0 0 14px #3bb9ff44}.travel-week strong{font-size:17px;font-weight:500}.travel-week i{display:block;width:3px;height:3px;border-radius:50%;background:transparent}.travel-week i.has-items{background:#47cbff;box-shadow:0 0 5px #2dbfff}.travel-schedule-toolbar .travel-segments{margin:0}.travel-timeline{margin-top:23px}.travel-timeline-item{position:relative;display:grid;grid-template-columns:43px 12px minmax(0,1fr);gap:10px;margin-bottom:17px}.travel-timeline-item>time{font-size:12px;color:#a8c9df;padding-top:16px}.travel-timeline-dot{position:relative;padding-top:20px}.travel-timeline-dot:before{content:"";position:absolute;top:18px;left:2px;width:7px;height:7px;border-radius:50%;background:#5bd3ff;box-shadow:0 0 0 4px #096c9d55}.travel-timeline-dot:after{content:"";position:absolute;left:5px;top:28px;bottom:-30px;width:1px;background:#1e729b}.travel-timeline-item:last-child .travel-timeline-dot:after{display:none}.travel-activity{padding:14px;border:1px solid #1b3e56;border-radius:6px;background:#091c2b}.travel-activity-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}.travel-activity-title label{display:flex;align-items:center;gap:9px;min-width:0}.travel-activity-title strong{font-size:14px;font-weight:500;overflow-wrap:anywhere}.travel-activity-title button{color:#6da9cc;padding:3px}.travel-day-total{display:flex;flex-direction:column;gap:7px;margin:20px 0 12px}.travel-day-total span{font-size:12px;color:var(--tmuted)}.travel-day-total strong{font-size:28px;font-weight:500}.travel-summary-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #19364b;font-size:12px;color:#91aec4}.travel-summary-row strong{color:#d2ebfc;font-weight:500}.travel-budget-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.travel-budget-stats>div{border:1px solid var(--tline);background:#071624;padding:18px;border-radius:6px}.travel-budget-stats span{display:block;font-size:11px;color:#89afc7;margin-bottom:8px}.travel-budget-stats strong{display:block;font-size:23px;font-weight:500;overflow-wrap:anywhere}.travel-budget-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,1fr);gap:18px}.travel-expenses article{padding:18px 0;border-bottom:1px solid #19374b}.travel-expense-title{display:flex;align-items:center;gap:10px}.travel-expense-title>strong{flex:1;font-size:14px;font-weight:500;min-width:0;overflow-wrap:anywhere}.travel-category{font-size:10px;color:#6ed2ff;border:1px solid #205578;background:#0b2940;padding:3px 7px;border-radius:4px;white-space:nowrap}.travel-expense-title button{color:#74b3d7}.travel-expense-values{display:flex;justify-content:space-between;gap:14px;margin:12px 0;font-size:11px;color:#88a7bc}.travel-expense-values strong{color:#d9efff;font-weight:500;margin-left:7px}.travel-cost-bar{height:3px;background:#173248;border-radius:5px;overflow:hidden}.travel-cost-bar i{height:100%;display:block;background:linear-gradient(90deg,#057ece,#49d7ff);border-radius:5px}.travel-over{color:#ffa49e!important;font-size:12px}.travel-trip-footer{align-items:flex-start}.travel-trip-footer>p{flex:1;min-width:0}.travel-fineprint{font-size:10px;color:#648298;line-height:1.6;margin-top:4px}.travel-notice{display:flex;justify-content:space-between;gap:15px;padding:10px 14px;border:1px solid #29749c;background:#082235;color:#a6ddf6;font-size:12px;border-radius:5px}.travel-notice button{align-self:flex-start}.travel-no-plan{padding:35px}.travel-no-plan .travel-toolbar-actions{justify-content:center}.travel-image-fallback{display:grid;place-items:center;background:radial-gradient(circle,#124266,#071423);color:#42b9e8;min-height:120px}.travel-dialog{border-color:#234e69;background:#071421;color:#dcefff;max-height:90dvh;overflow:auto}.travel-form{display:flex;flex-direction:column;gap:15px;margin:12px 0}.travel-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#9fbcd1}.travel-form input,.travel-form textarea,.travel-form select{background:#06101c;color:#dfedfa;border:1px solid #24475f;border-radius:5px;padding:9px 11px;width:100%;min-width:0;font-size:14px}.travel-form-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}.travel-day-places{margin-top:17px}.travel-day-places .travel-muted{margin:12px 0}
+@media(min-width:1500px){.travel-atlas-panel{min-height:580px}.travel-destinations{grid-template-columns:repeat(6,minmax(0,1fr))}.travel-card-main>img{height:175px}}
+@media(max-width:1200px){.travel-explore-grid,.travel-planner-grid,.travel-budget-grid,.travel-destination-grid{grid-template-columns:minmax(0,1fr)}.travel-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.travel-atlas-panel{min-height:500px}.travel-destination-aside{display:grid;grid-template-columns:1fr 1fr}.travel-destination-aside>.travel-toolbar-actions{grid-column:1/-1}.travel-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.travel-overview-grid>div:last-child{grid-column:1/-1}.travel-destination-aside>.travel-muted{align-self:center}.travel-budget-grid>aside{max-width:none}.travel-budget-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.travel-os{gap:14px;font-size:14px}.travel-toolbar{align-items:flex-start;flex-direction:column;gap:13px}.travel-toolbar h2{font-size:22px}.travel-toolbar-actions{width:100%}.travel-toolbar-actions>.travel-button{flex:1}.travel-nav{gap:2px;padding:3px}.travel-nav button{min-width:0;font-size:10px;padding:10px 4px;gap:4px;flex-direction:column}.travel-nav svg{width:16px;height:16px}.travel-panel{padding:15px}.travel-explore-grid,.travel-planner-grid,.travel-destination-grid,.travel-budget-grid{gap:13px}.travel-atlas-panel{padding:0;min-height:370px}.travel-atlas-title{left:16px;top:15px}.travel-atlas-title h3{font-size:20px;margin:8px 0}.travel-atlas-title .travel-eyebrow{font-size:8px}.travel-atlas-title p{font-size:10px}.travel-side{display:flex;gap:13px}.travel-destinations{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.travel-card-main>img,.travel-card-main>.travel-image-fallback{height:165px}.travel-card-main strong{font-size:22px}.travel-card-main>span{left:12px;bottom:12px}.travel-save{top:9px;right:9px}.travel-search-row{flex-direction:column;gap:8px;align-items:stretch}.travel-search-row select{font-size:12px}.travel-stats{padding:12px 4px}.travel-stats>div{padding:0 9px;grid-template-columns:1fr;gap:5px;text-align:center}.travel-stats svg{display:none}.travel-stats strong{font-size:21px}.travel-stats span{font-size:9px;line-height:1.4}.travel-destination-hero{min-height:365px}.travel-hero-content{padding:20px}.travel-hero-content h3{font-size:33px}.travel-hero-content p{font-size:13px}.travel-back{margin-bottom:38px}.travel-destination-aside{display:flex}.travel-overview-grid{grid-template-columns:1fr;gap:13px}.travel-plan-picker{flex-wrap:wrap;gap:10px}.travel-plan-picker label{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:6px}.travel-plan-picker select{max-width:100%;width:100%}.travel-trip-banner{padding:19px;gap:13px;min-height:200px;align-items:flex-start;flex-direction:column}.travel-trip-banner h3{font-size:28px}.travel-trip-actions{flex-direction:row;align-items:center;justify-content:space-between;width:100%;text-align:left}.travel-trip-actions strong{font-size:21px}.travel-week button{padding:9px 1px;font-size:10px}.travel-week strong{font-size:16px}.travel-schedule-toolbar{gap:7px;flex-wrap:wrap}.travel-schedule-toolbar .travel-button{padding:7px 9px;font-size:11px}.travel-segments button{padding:8px 10px;font-size:11px}.travel-timeline-item{grid-template-columns:34px 7px minmax(0,1fr);gap:7px}.travel-timeline-item>time{font-size:10px}.travel-timeline-dot:before{left:0;width:6px;height:6px}.travel-timeline-dot:after{left:2px}.travel-activity{padding:11px 10px}.travel-activity-title strong{font-size:13px}.travel-activity-title label{gap:6px}.travel-activity .travel-muted,.travel-activity .travel-map-link{font-size:11px}.travel-budget-stats{gap:9px}.travel-budget-stats>div{padding:13px}.travel-budget-stats strong{font-size:20px}.travel-budget-stats span{font-size:10px}.travel-expense-title{flex-wrap:wrap;gap:7px}.travel-expense-title>strong{font-size:13px}.travel-expense-values{font-size:10px}.travel-expense-values strong{display:block;margin:4px 0 0;font-size:13px}.travel-trip-footer{flex-direction:column}.travel-trip-footer .travel-button{align-self:flex-end}.travel-form-columns{gap:10px}.travel-form input{font-size:16px}.travel-sample-banner{font-size:11px}.travel-no-plan{padding:18px}.travel-panel-heading h3{font-size:12px;letter-spacing:.1em}}
+@media(prefers-reduced-motion:reduce){.travel-os *{transition:none!important;animation:none!important}}
+`;
