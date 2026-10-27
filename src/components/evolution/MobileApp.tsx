@@ -1,4 +1,3 @@
-import { AppBrandBar } from "./AppBrandBar";
 import { effectiveCardStyle } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
@@ -241,9 +240,6 @@ export function MobileApp() {
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-background">
-      <div className="shrink-0 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
-        <AppBrandBar />
-      </div>
       <div className="relative min-h-0 flex-1">
         {ready ? (
           <iframe
@@ -251,6 +247,18 @@ export function MobileApp() {
             ref={frameRef}
             src={"/evolution-mobile/index.html" + (mobilePage ? "?evoPage=" + mobilePage : "")}
             title="Evolution OS"
+            onLoad={(event) => {
+              // A preview host may send the SPA shell instead of this static asset.
+              // Never keep nesting the app: retain this route in the native layout.
+              const doc = event.currentTarget.contentDocument;
+              if (!readyRef.current || doc?.URL === "about:blank") return;
+              if (!doc || doc.querySelector("x-dc, script[data-dc-script]")) return;
+              if (readyRef.current) pullMobileIntoDesktop();
+              const fallback = new URL(window.location.href);
+              fallback.searchParams.set("mobileFallback", "1");
+              fallback.searchParams.delete("mobilePage");
+              window.location.replace(fallback.pathname + fallback.search + fallback.hash);
+            }}
             className="h-full w-full border-0"
             allow="autoplay"
           />
@@ -258,27 +266,6 @@ export function MobileApp() {
           <div className="flex h-full items-center justify-center hud-label text-xs tracking-widest text-primary">
             LOADING…
           </div>
-        )}
-        {ready && (
-          <a
-            href="/?section=evo"
-            onClick={() => {
-              if (readyRef.current) pullMobileIntoDesktop();
-            }}
-            className="absolute left-2 top-2 rounded-full border border-primary/60 bg-background/95 px-3 py-1 text-[11px] tracking-widest text-primary"
-            aria-label="Open Evo Assistant"
-          >
-            EVO
-          </a>
-        )}
-        {bankOwner && (
-          <button
-            type="button"
-            onClick={() => setBankOpen(true)}
-            className="absolute right-2 top-2 rounded-full border border-primary/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-primary"
-          >
-            BANK ACCOUNTS
-          </button>
         )}
         {bankOwner && bankOpen && (
           <div
