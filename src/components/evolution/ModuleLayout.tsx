@@ -43,7 +43,7 @@ export function ModuleLayout({ number, title, subtitle, icon: Icon, children }: 
             >
               <Icon className="h-5 w-5" style={{ color: "oklch(0.78 0.28 310)" }} />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 basis-full sm:basis-0">
               <div className="flex items-center gap-3">
                 <span className="hud-label text-xs text-muted-foreground">{number}</span>
                 <h1 className="hud-label text-2xl text-primary hud-glow">{title}</h1>
@@ -66,7 +66,15 @@ export function ModuleLayout({ number, title, subtitle, icon: Icon, children }: 
   );
 }
 
-export function Panel({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
+export function Panel({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <section className={`hud-card hud-scan p-5 ${className}`}>
       <h2 className="hud-label text-xs text-muted-foreground mb-3">{title}</h2>
