@@ -2803,9 +2803,6 @@ function TravelAtlas({ destinations, selectedId, onSelect, compact = false }: Tr
                     }
                   }}
                 >
-                  <title>
-                    {d.name}, {d.country}
-                  </title>
                   <circle r="20" fill="#041828" fillOpacity=".01" />
                   <circle r={d.id === selectedId ? 15 : 8} fill="#23c7ff" opacity=".5" filter={`url(#${safeId}glow)`} />
                   <circle r={d.id === selectedId ? 12 : 7} fill="#05243b" stroke="#58dcff" strokeWidth="1.5" />
