@@ -60,8 +60,12 @@ import {
 export const Route = createFileRoute("/business")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { section?: "social-media" | "media-system" | "marketing-system" | "content-creator"; channel?: string } => ({
+  ): {
+    section?: "workspace" | "social-media" | "media-system" | "marketing-system" | "content-creator";
+    channel?: string;
+  } => ({
     section:
+      search.section === "workspace" ||
       search.section === "social-media" ||
       search.section === "media-system" ||
       search.section === "marketing-system" ||
@@ -106,7 +110,346 @@ function BusinessRoute() {
   if (section === "social-media") return <SocialMediaPage key={channel ?? "all"} />;
   if (section === "media-system" || section === "marketing-system") return <MediaSystemPage />;
   if (section === "content-creator") return <ContentCreatorPage />;
-  return <BusinessPage />;
+  if (section === "workspace") return <BusinessPage />;
+  return <BusinessOverview />;
+}
+function BusinessOverview() {
+  const { data } = useEvolutionData();
+  const [selected, setSelected] = useState(0);
+  const [notice, setNotice] = useState<"Ads" | "Automation" | null>(null);
+  const month = localISO().slice(0, 7);
+  const monthly = data.revenue.filter((r) => r.date.startsWith(month));
+  const active = data.projects.filter((p) => p.status !== "Completed");
+  const contentItems = readMediaItems(data);
+  const recent = [...data.revenue].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+  const timeline = [...active]
+    .filter((p) => p.deadline)
+    .sort((a, b) => a.deadline.localeCompare(b.deadline))
+    .slice(0, 3);
+  type HubCard = {
+    id: string;
+    name: string;
+    detail: string;
+    section: "workspace" | "social-media" | "content-creator" | "media-system";
+    icon: typeof Globe;
+    progress?: number;
+  };
+  const cards: HubCard[] = [
+    ...data.projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      detail: p.status,
+      section: "workspace" as const,
+      icon: FolderKanban,
+      progress: p.progress,
+    })),
+    { id: "social", name: "Social Media", detail: "Plan your publishing", section: "social-media", icon: Network },
+    {
+      id: "creator",
+      name: "Content Creator",
+      detail: "Ideas into content",
+      section: "content-creator",
+      icon: Clapperboard,
+    },
+    { id: "media", name: "Media System", detail: "Explore the demo", section: "media-system", icon: Globe },
+  ];
+  const index = selected % cards.length;
+  const current = cards[index];
+  const move = (step: number) => setSelected((index + step + cards.length) % cards.length);
+  const actionClass =
+    "inline-flex items-center justify-center gap-2 rounded-md border border-cyan-400/30 px-3 py-2 text-xs text-cyan-100 transition hover:border-cyan-200 hover:bg-cyan-300/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200";
+  return (
+    <ModuleLayout number="07" title="Business Overview" subtitle="Build. Create. Grow." icon={Briefcase}>
+      {" "}
+      <div className="business-overview space-y-5 text-slate-200">
+        {" "}
+        <style>{`           .business-overview .bo-panel{border:1px solid #4bbfff36;border-radius:12px;background:linear-gradient(135deg,#071a2ce8,#030914f5);box-shadow:inset 0 1px 0 #b0eaff0a,0 8px 30px #0003}           .business-overview .bo-hub{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 73%,#0965ad33,transparent 62%),linear-gradient(#061220,#020711)}           .business-overview .bo-orbit{position:absolute;left:10%;right:10%;height:100px;bottom:58px;border:1px solid #37beff70;border-radius:50%;box-shadow:0 0 16px #16acff24,inset 0 0 20px #008cff19;pointer-events:none}           .business-overview .bo-orbit:after{content:"";position:absolute;inset:18px -8%;border:1px solid #37beff35;border-radius:50%}           .business-overview .bo-card{position:relative;flex:0 0 min(58%,250px);min-width:0;min-height:210px;border:1px solid #36bcff4a;border-radius:12px;background:linear-gradient(155deg,#0a2d49ed,#040c19);padding:22px 14px;transition:transform .25s,opacity .25s;box-shadow:0 18px 35px #0008}           .business-overview .bo-card[data-active="true"]{transform:translateY(-13px);border-color:#65d6ff;box-shadow:0 0 28px #1caaff38,inset 0 0 24px #24bcff12}           .business-overview .bo-card[data-active="false"]{opacity:.64;transform:scale(.9) rotateY(12deg)}           .business-overview .bo-hub:before{content:"";position:absolute;inset:45% -20% -70%;background:linear-gradient(#20adff16 1px,transparent 1px),linear-gradient(90deg,#20adff16 1px,transparent 1px);background-size:55px 55px;transform:perspective(350px) rotateX(60deg);pointer-events:none}           @keyframes bo-arrive{from{opacity:.25;translate:18px 0}to{opacity:1;translate:0 0}}           @media(prefers-reduced-motion:no-preference){.business-overview .bo-card[data-active="true"]{animation:bo-arrive .3s ease-out}}           .business-overview .bo-emblem{height:82px;width:82px;margin:0 auto 18px;display:grid;place-items:center;color:#8de5ff;border:1px solid #48caff70;border-radius:22px;background:radial-gradient(circle,#24acff30,transparent);box-shadow:0 0 28px #159bff24;transform:rotate(-7deg)}           .business-overview .bo-emblem svg{transform:rotate(7deg);filter:drop-shadow(0 0 7px #1cafff)}           @media(max-width:600px){.business-overview .bo-card{flex-basis:72%;min-height:195px}.business-overview .bo-card[data-active="false"]{display:none}.business-overview .bo-orbit{left:2%;right:2%}}           @media(prefers-reduced-motion:reduce){.business-overview .bo-card{transition:none}}         `}</style>{" "}
+        <nav
+          aria-label="Business sections"
+          className="flex items-center gap-1 overflow-x-auto border-b border-cyan-400/20 pb-3 text-xs"
+        >
+          {" "}
+          <span aria-current="page" className="rounded-md bg-cyan-400/15 px-4 py-2 text-cyan-200">
+            {" "}
+            Overview{" "}
+          </span>{" "}
+          <Link to="/business" search={{ section: "workspace" }} hash="business-projects" className={actionClass}>
+            {" "}
+            Projects{" "}
+          </Link>{" "}
+          <Link to="/business" search={{ section: "content-creator" }} className={actionClass}>
+            {" "}
+            Content{" "}
+          </Link>{" "}
+          <Link to="/business" search={{ section: "workspace" }} hash="business-revenue" className={actionClass}>
+            {" "}
+            Sales{" "}
+          </Link>{" "}
+          <button type="button" onClick={() => setNotice("Ads")} className={actionClass}>
+            {" "}
+            Ads{" "}
+          </button>{" "}
+          <Link to="/business" search={{ section: "workspace" }} hash="business-revenue" className={actionClass}>
+            {" "}
+            Analytics{" "}
+          </Link>{" "}
+          <button type="button" onClick={() => setNotice("Automation")} className={actionClass}>
+            {" "}
+            Automation{" "}
+          </button>{" "}
+        </nav>{" "}
+        {notice && (
+          <div className="bo-panel flex items-start gap-3 p-4 text-sm" role="status">
+            {" "}
+            <div className="flex-1">
+              {" "}
+              <strong className="text-cyan-200"> {notice} — not connected </strong>{" "}
+              <p className="mt-1 text-slate-400">
+                {" "}
+                {notice === "Ads"
+                  ? "No live ad account is connected here. The Media System is a separate demo, not your campaign results."
+                  : "No live business automations are connected here. Plan work in Tasks; the Media System remains a demo."}{" "}
+              </p>{" "}
+            </div>{" "}
+            <button
+              type="button"
+              aria-label="Dismiss information"
+              onClick={() => setNotice(null)}
+              className={actionClass}
+            >
+              {" "}
+              <X size={16} />{" "}
+            </button>{" "}
+          </div>
+        )}{" "}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {" "}
+          {[
+            {
+              label: "Active projects",
+              value: String(active.length),
+              detail: `${data.projects.length} saved projects`,
+              icon: FolderKanban,
+            },
+            {
+              label: "Content pieces",
+              value: String(contentItems.length),
+              detail: "Saved planner items · all stages",
+              icon: Clapperboard,
+            },
+            { label: "Total followers", value: "—", detail: "Live accounts not connected", icon: Users },
+            { label: "Total views", value: "—", detail: "Live analytics not connected", icon: BarChart3 },
+            {
+              label: "Monthly revenue",
+              value: monthly.length ? fmt(monthly.reduce((sum, r) => sum + r.amount, 0)) : "—",
+              detail: monthly.length ? "Manually logged · this month" : "No entries this month",
+              icon: Target,
+            },
+          ].map(({ label, value, detail, icon: Icon }) => (
+            <section key={label} className="bo-panel min-w-0 p-4 last:col-span-2 lg:last:col-span-1">
+              {" "}
+              <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-slate-400">
+                {" "}
+                <span>{label}</span> <Icon size={15} className="shrink-0 text-cyan-300" />{" "}
+              </div>{" "}
+              <div className="mt-3 text-2xl font-semibold tracking-wide text-cyan-100"> {value} </div>{" "}
+              <p className="mt-2 text-[10px] text-slate-400">{detail}</p>{" "}
+            </section>
+          ))}{" "}
+        </div>{" "}
+        <section className="bo-panel bo-hub px-3 pb-5 pt-7 text-center sm:px-6" aria-label="Projects hub">
+          {" "}
+          <p className="text-[10px] uppercase tracking-[.32em] text-cyan-300"> Projects hub </p>{" "}
+          <h2 className="mt-3 text-xl font-semibold tracking-[.12em] text-cyan-50 sm:text-3xl">
+            {" "}
+            BUILD. CREATE. GROW.{" "}
+          </h2>{" "}
+          <p className="mt-2 text-[10px] uppercase tracking-[.2em] text-slate-400">
+            {" "}
+            All your projects. One system.{" "}
+          </p>{" "}
+          <div className="bo-orbit" aria-hidden="true" />{" "}
+          <div
+            className="relative my-8 flex min-h-[225px] items-center justify-center gap-2 sm:gap-5"
+            aria-roledescription="carousel"
+            aria-label="Projects and workspaces"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                e.currentTarget.focus();
+                move(-1);
+              }
+              if (e.key === "ArrowRight") {
+                e.preventDefault();
+                e.currentTarget.focus();
+                move(1);
+              }
+            }}
+          >
+            {" "}
+            {[-1, 0, 1].map((offset) => {
+              const position = (index + offset + cards.length) % cards.length;
+              const card = cards[position];
+              const Icon = card.icon;
+              return (
+                <button
+                  type="button"
+                  key={`${card.id}-${offset}-${index}`}
+                  data-active={offset === 0}
+                  className="bo-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+                  aria-label={`${card.name}${offset === 0 ? ", selected" : ", select workspace"}`}
+                  aria-pressed={offset === 0}
+                  onClick={() => setSelected(position)}
+                >
+                  {" "}
+                  <span className="bo-emblem">
+                    {" "}
+                    <Icon size={42} strokeWidth={1.1} />{" "}
+                  </span>{" "}
+                  <span className="block truncate text-sm font-semibold tracking-wide text-cyan-100">
+                    {" "}
+                    {card.name}{" "}
+                  </span>{" "}
+                  <span className="mt-2 block text-[10px] uppercase tracking-wider text-slate-400">
+                    {" "}
+                    {card.detail}{" "}
+                  </span>{" "}
+                  {card.progress !== undefined && (
+                    <span className="mt-3 block text-[10px] text-cyan-300"> {card.progress}% recorded progress </span>
+                  )}{" "}
+                </button>
+              );
+            })}{" "}
+          </div>{" "}
+          <div className="relative flex flex-wrap items-center justify-center gap-3">
+            {" "}
+            <button
+              type="button"
+              className={actionClass}
+              aria-label="Previous project or workspace"
+              onClick={() => move(-1)}
+            >
+              {" "}
+              <ArrowLeft size={16} />{" "}
+            </button>{" "}
+            <Link
+              to="/business"
+              search={{ section: current.section }}
+              hash={current.section === "workspace" ? `business-project-${current.id}` : undefined}
+              className={`${actionClass} bg-cyan-400/10`}
+            >
+              {" "}
+              Open {current.name} <ArrowRight size={14} />{" "}
+            </Link>{" "}
+            <button
+              type="button"
+              className={actionClass}
+              aria-label="Next project or workspace"
+              onClick={() => move(1)}
+            >
+              {" "}
+              <ArrowRight size={16} />{" "}
+            </button>{" "}
+          </div>{" "}
+          <p aria-live="polite" className="relative mt-3 text-[10px] text-slate-400">
+            {" "}
+            {index + 1} / {cards.length} · {current.name}{" "}
+          </p>{" "}
+          {!data.projects.length && (
+            <p className="relative mt-2 text-xs text-slate-400">
+              {" "}
+              No saved projects yet. Your existing workspaces are ready below.{" "}
+            </p>
+          )}{" "}
+        </section>{" "}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {" "}
+          <section className="bo-panel p-5">
+            {" "}
+            <h2 className="text-xs uppercase tracking-widest text-cyan-200"> Recent activity </h2>{" "}
+            <p className="mt-1 text-[10px] text-slate-500"> Latest manually logged revenue </p>{" "}
+            <div className="mt-4 space-y-4">
+              {" "}
+              {recent.length ? (
+                recent.map((r) => (
+                  <div key={r.id} className="flex justify-between gap-3 text-xs">
+                    {" "}
+                    <div className="min-w-0">
+                      {" "}
+                      <p className="truncate text-slate-200">{r.source}</p>{" "}
+                      <p className="mt-1 text-[10px] text-slate-500"> {r.date} </p>{" "}
+                    </div>{" "}
+                    <span className="shrink-0 text-cyan-200"> {fmt(r.amount)} </span>{" "}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs leading-6 text-slate-400">
+                  {" "}
+                  No revenue entries yet. Log an entry to start your activity history.{" "}
+                </p>
+              )}{" "}
+            </div>{" "}
+          </section>{" "}
+          <section className="bo-panel p-5">
+            {" "}
+            <h2 className="text-xs uppercase tracking-widest text-cyan-200"> Project timeline </h2>{" "}
+            <div className="mt-4 space-y-4">
+              {" "}
+              {timeline.length ? (
+                timeline.map((p) => (
+                  <div key={p.id} className="border-l border-cyan-400/40 pl-3">
+                    {" "}
+                    <p className="truncate text-xs">{p.name}</p>{" "}
+                    <p className="mt-1 text-[10px] text-slate-400">
+                      {" "}
+                      {p.deadline} · {p.status}{" "}
+                    </p>{" "}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs leading-6 text-slate-400">
+                  {" "}
+                  No active project deadlines recorded. Add a project to build your timeline.{" "}
+                </p>
+              )}{" "}
+            </div>{" "}
+          </section>{" "}
+          <section className="bo-panel p-5">
+            {" "}
+            <h2 className="text-xs uppercase tracking-widest text-cyan-200"> Quick actions </h2>{" "}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {" "}
+              <Link to="/business" search={{ section: "workspace" }} hash="business-projects" className={actionClass}>
+                {" "}
+                <Plus size={14} /> Projects{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "workspace" }} hash="business-tasks" className={actionClass}>
+                {" "}
+                <ListTodo size={14} /> Tasks{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "content-creator" }} className={actionClass}>
+                {" "}
+                <Clapperboard size={14} /> Create{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "social-media" }} className={actionClass}>
+                {" "}
+                <Network size={14} /> Social{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "workspace" }} hash="business-revenue" className={actionClass}>
+                {" "}
+                Log revenue{" "}
+              </Link>{" "}
+              <Link to="/business" search={{ section: "media-system" }} className={actionClass}>
+                {" "}
+                Media demo{" "}
+              </Link>{" "}
+            </div>{" "}
+          </section>{" "}
+        </div>{" "}
+      </div>{" "}
+    </ModuleLayout>
+  );
 }
 
 function BusinessPage() {
@@ -298,7 +641,15 @@ function BusinessPage() {
   const delGoal = (id: string) => mutate((prev) => ({ goals: prev.goals.filter((g) => g.id !== id) }));
 
   return (
-    <ModuleLayout number="07" title="Business" subtitle="Projects · Revenue · Execution" icon={Briefcase}>
+    <ModuleLayout number="07" title="Business Workspace" subtitle="Projects · Revenue · Execution" icon={Briefcase}>
+      {" "}
+      <Link
+        to="/business"
+        search={{}}
+        className="inline-flex items-center gap-2 text-xs text-cyan-300 hover:text-cyan-100"
+      >
+        <ArrowLeft size={14} /> Back to Business Overview
+      </Link>
       <Tabs defaultValue="overview">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -374,7 +725,7 @@ function BusinessPage() {
           </Button>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.projects.map((p) => (
-              <div key={p.id} className="hud-card p-4 group relative">
+              <div key={p.id} id={`business-project-${p.id}`} className="hud-card p-4 group relative scroll-mt-6">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="hud-label text-sm text-primary hud-glow">{p.name}</div>
@@ -621,7 +972,6 @@ function BusinessPage() {
           </Panel>
         </TabsContent>
       </Tabs>
-
       <Dialog open={projOpen} onOpenChange={setProjOpen}>
         <DialogContent className="hud-card border-primary/40 max-w-lg">
           <DialogHeader>
