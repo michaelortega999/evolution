@@ -334,7 +334,7 @@ function PlanningPage() {
             />
           </label>
         </div>
-        <div className="grid gap-3 lg:grid-cols-[1.7fr_1fr] xl:grid-cols-[1.8fr_1fr_.9fr]">
+        <div className="grid gap-3 lg:grid-cols-[1.8fr_1fr_.9fr]">
           <Box
             title="Goals overview"
             action={
@@ -391,7 +391,7 @@ function PlanningPage() {
               })}
             </div>
           </Box>
-          <Box title="Lifetime vision" className="lg:col-span-2 xl:col-span-1">
+          <Box title="Lifetime vision" className="">
             <div className="relative min-h-44 overflow-hidden rounded-lg">
               <img
                 src={photo("photo-1464822759023-fed622ff2c3b")}
