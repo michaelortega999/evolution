@@ -477,6 +477,7 @@ function LegacyFitness({ section }: { section: string }) {
                       {w.notes && <div className="text-[11px] text-foreground/70 mt-1">{w.notes}</div>}{" "}
                     </div>{" "}
                     <button
+                      aria-label={`Delete ${w.type} workout on ${w.date}`}
                       onClick={() => deleteWorkout(w.id)}
                       className="opacity-70 hover:opacity-100 text-muted-foreground hover:text-destructive"
                     >
@@ -708,13 +709,14 @@ function MuscleFigure({
     <svg
       viewBox="0 0 160 230"
       className={`w-full ${large ? "h-[260px]" : "h-[140px]"}`}
+      style={{ filter: "drop-shadow(0 0 3px #0ea5e955)" }}
       role="img"
       aria-label={`${type} muscle focus illustration${back ? ", back view" : ""}`}
     >
       {" "}
       <ellipse cx="80" cy="218" rx="63" ry="9" fill="none" stroke={color} opacity=".25" />{" "}
       <ellipse cx="80" cy="218" rx="50" ry="5" fill="none" stroke={color} opacity=".5" />{" "}
-      <g fill="#071b2e" stroke="#2b79a5" strokeWidth=".8" strokeLinejoin="round">
+      <g fill="#0d2c45" stroke="#59bbed" strokeWidth=".8" strokeLinejoin="round">
         {" "}
         <path d="M68 12 Q80 4 92 12 L96 26 92 42 86 49 87 58 101 63 112 75 119 101 126 130 129 156 123 160 116 137 108 118 101 98 99 129 97 147 100 168 95 192 91 213 99 219 83 219 80 192 77 166 73 191 71 219 56 219 64 212 60 190 57 166 62 145 60 128 60 98 52 118 45 138 38 160 31 156 35 130 41 103 48 77 59 65 73 58 74 49 68 42 64 26 Z" />{" "}
         <path d="M69 17 Q80 10 91 17 L92 33 86 44 75 44 68 33 Z" />{" "}
@@ -960,13 +962,13 @@ function FitnessPage() {
         {tab === "Plan" && (
           <>
             {" "}
-            <div className="grid xl:grid-cols-[minmax(0,1fr)_240px] gap-4">
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_200px] gap-4">
               {" "}
               <section className="rounded-xl border border-sky-400/30 bg-[#04111ddd] p-4 min-w-0">
                 {" "}
                 <h2 className="text-xl tracking-[.16em] text-white">FITNESS PLAN</h2>{" "}
                 <p className="text-[10px] tracking-[.2em] text-sky-300 mt-2"> YOUR WEEKLY TRAINING RHYTHM </p>{" "}
-                <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2 mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-4">
                   {" "}
                   {days.map((d, i) => {
                     const ss = schedule.filter((s) => s.dayOfWeek === i);
@@ -1053,7 +1055,7 @@ function FitnessPage() {
                 </section>{" "}
               </aside>{" "}
             </div>{" "}
-            <div className="grid xl:grid-cols-[1fr_1fr_.9fr] gap-4">
+            <div className="grid lg:grid-cols-[1fr_1fr_.9fr] gap-4">
               {" "}
               <Panel title={`${FDAYS[selected]} — ${type}`}>
                 {" "}
@@ -1109,7 +1111,7 @@ function FitnessPage() {
                 <p className="text-[10px] text-slate-400 mb-3">
                   {" "}
                   {exercises.length
-                    ? "Illustrative template. Adjust exercises and sets when you begin; nothing is logged automatically."
+                    ? "Illustrative template. Adjust sets and reps when you begin; nothing is logged automatically."
                     : "Your recovery day. Plan a session or choose a template from the vault."}{" "}
                 </p>{" "}
                 <div className="space-y-2">
