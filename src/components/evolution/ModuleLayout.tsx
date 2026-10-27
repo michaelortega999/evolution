@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { AppBrandBar } from "./AppBrandBar";
 import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
 
 interface ModuleLayoutProps {
@@ -23,6 +24,7 @@ export function ModuleLayout({ number, title, subtitle, icon: Icon, children }: 
         </div>
 
         <main className="order-1 lg:order-2 flex flex-col gap-6 min-w-0">
+          <AppBrandBar />
           <div className="hud-card p-5 flex items-center gap-4 flex-wrap">
             <Link
               to="/"
