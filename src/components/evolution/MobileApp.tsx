@@ -1,3 +1,4 @@
+import { AppBrandBar } from "./AppBrandBar";
 import { effectiveCardStyle } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
@@ -161,7 +162,7 @@ export function MobileApp() {
       unsub();
       f?.removeEventListener("load", post);
     };
-  }, [frameKey, ready]);
+  }, [frameKey, ready, pathname]);
 
   // Appearance has one canonical owner-scoped value. The frame receives it read-only.
   useEffect(() => {
@@ -183,78 +184,140 @@ export function MobileApp() {
       frame?.removeEventListener("load", post);
       window.removeEventListener("message", onReady);
     };
-  }, [ready, frameKey, cardStyle]);
+  }, [ready, frameKey, cardStyle, pathname]);
+
+  // Navigation-only adapter for the legacy same-origin phone surface. Never edits its store.
+  useEffect(() => {
+    if (!ready) return;
+    const frame = frameRef.current;
+    let observer: MutationObserver | undefined;
+    let detach: (() => void) | undefined;
+    const wire = () => {
+      observer?.disconnect();
+      detach?.();
+      const doc = frame?.contentDocument;
+      if (!doc) return;
+      const onClick = (event: MouseEvent) => {
+        const target = event.target as Element | null;
+        const button = target?.closest?.('button[title="sys-06"], button.st-card[aria-label^="Open business."]');
+        if (!button) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (readyRef.current) pullMobileIntoDesktop();
+        window.location.assign("/business");
+      };
+      doc.addEventListener("click", onClick, true);
+      detach = () => doc.removeEventListener("click", onClick, true);
+      const routes: Record<string, string> = {
+        "/wealth": "sys-01",
+        "/fitness": "sys-02",
+        "/nutrition": "sys-03",
+        "/focus": "sys-04",
+        "/investing": "sys-05",
+        "/journal": "sys-07",
+      };
+      const title = routes[pathname];
+      if (!title) return;
+      const open = () => {
+        const button = doc.querySelector<HTMLButtonElement>(`button[title="${title}"]`);
+        if (!button) return false;
+        observer?.disconnect();
+        button.click();
+        return true;
+      };
+      if (!open()) {
+        observer = new MutationObserver(open);
+        observer.observe(doc.documentElement, { childList: true, subtree: true });
+      }
+    };
+    frame?.addEventListener("load", wire);
+    wire();
+    return () => {
+      frame?.removeEventListener("load", wire);
+      observer?.disconnect();
+      detach?.();
+    };
+  }, [ready, frameKey, pathname]);
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-background">
-      {ready ? (
-        <iframe
-          key={frameKey}
-          ref={frameRef}
-          src={"/evolution-mobile/index.html" + (mobilePage ? "?evoPage=" + mobilePage : "")}
-          title="Evolution OS"
-          className="h-[100dvh] w-full border-0"
-          allow="autoplay"
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center hud-label text-xs tracking-widest text-primary">
-          LOADING…
-        </div>
-      )}
-      {ready && (
-        <a
-          href="/?section=evo"
-          onClick={() => {
-            if (readyRef.current) pullMobileIntoDesktop();
-          }}
-          className="absolute left-2 top-2 rounded-full border border-primary/60 bg-background/95 px-3 py-1 text-[11px] tracking-widest text-primary"
-          aria-label="Open Evo Assistant"
-        >
-          EVO
-        </a>
-      )}
-      {bankOwner && (
-        <button
-          type="button"
-          onClick={() => setBankOpen(true)}
-          className="absolute right-2 top-2 rounded-full border border-primary/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-primary"
-        >
-          BANK ACCOUNTS
-        </button>
-      )}
-      {bankOwner && bankOpen && (
-        <div className="absolute inset-0 z-10 flex flex-col bg-background/95" role="dialog" aria-label="Bank accounts">
-          <div className="flex items-center justify-between border-b border-primary/40 px-4 py-3">
-            <span className="hud-label text-xs tracking-widest text-primary">BANK ACCOUNTS</span>
-            <button
-              type="button"
-              onClick={() => setBankOpen(false)}
-              className="text-[11px] tracking-widest text-primary"
-            >
-              CLOSE
-            </button>
+    <div className="fixed inset-0 z-40 flex flex-col bg-background">
+      <div className="shrink-0 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
+        <AppBrandBar />
+      </div>
+      <div className="relative min-h-0 flex-1">
+        {ready ? (
+          <iframe
+            key={`${frameKey}:${pathname}`}
+            ref={frameRef}
+            src={"/evolution-mobile/index.html" + (mobilePage ? "?evoPage=" + mobilePage : "")}
+            title="Evolution OS"
+            className="h-full w-full border-0"
+            allow="autoplay"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center hud-label text-xs tracking-widest text-primary">
+            LOADING…
           </div>
-          <p className="px-4 pt-2 text-[10px] text-muted-foreground">
-            Numbers in the app artwork are design samples. These are your real stored bank figures.
-          </p>
-          <div className="flex-1 overflow-y-auto p-3">
-            <BankConnectionPanel />
+        )}
+        {ready && (
+          <a
+            href="/?section=evo"
+            onClick={() => {
+              if (readyRef.current) pullMobileIntoDesktop();
+            }}
+            className="absolute left-2 top-2 rounded-full border border-primary/60 bg-background/95 px-3 py-1 text-[11px] tracking-widest text-primary"
+            aria-label="Open Evo Assistant"
+          >
+            EVO
+          </a>
+        )}
+        {bankOwner && (
+          <button
+            type="button"
+            onClick={() => setBankOpen(true)}
+            className="absolute right-2 top-2 rounded-full border border-primary/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-primary"
+          >
+            BANK ACCOUNTS
+          </button>
+        )}
+        {bankOwner && bankOpen && (
+          <div
+            className="absolute inset-0 z-10 flex flex-col bg-background/95"
+            role="dialog"
+            aria-label="Bank accounts"
+          >
+            <div className="flex items-center justify-between border-b border-primary/40 px-4 py-3">
+              <span className="hud-label text-xs tracking-widest text-primary">BANK ACCOUNTS</span>
+              <button
+                type="button"
+                onClick={() => setBankOpen(false)}
+                className="text-[11px] tracking-widest text-primary"
+              >
+                CLOSE
+              </button>
+            </div>
+            <p className="px-4 pt-2 text-[10px] text-muted-foreground">
+              Numbers in the app artwork are design samples. These are your real stored bank figures.
+            </p>
+            <div className="flex-1 overflow-y-auto p-3">
+              <BankConnectionPanel />
+            </div>
           </div>
-        </div>
-      )}
-      {signedIn === false && (
-        <Link
-          to="/auth"
-          className="absolute left-1/2 top-2 -translate-x-1/2 rounded-full border border-primary/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-primary"
-        >
-          SIGN IN TO SYNC
-        </Link>
-      )}
-      {signedIn && status === "error" && (
-        <div className="absolute left-1/2 top-2 -translate-x-1/2 rounded-full border border-destructive/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-destructive">
-          OFFLINE · SAVED ON DEVICE
-        </div>
-      )}
+        )}
+        {signedIn === false && (
+          <Link
+            to="/auth"
+            className="absolute left-1/2 top-2 -translate-x-1/2 rounded-full border border-primary/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-primary"
+          >
+            SIGN IN TO SYNC
+          </Link>
+        )}
+        {signedIn && status === "error" && (
+          <div className="absolute left-1/2 top-2 -translate-x-1/2 rounded-full border border-destructive/60 bg-background/90 px-3 py-1 text-[11px] tracking-widest text-destructive">
+            OFFLINE · SAVED ON DEVICE
+          </div>
+        )}
+      </div>
     </div>
   );
 }
