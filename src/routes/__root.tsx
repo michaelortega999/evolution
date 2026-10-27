@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { useEvolutionData, useCloudStatus, uid, type GoalCategory } from "@/lib/evolution-data";
 import {
@@ -117,6 +118,81 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const section = new URLSearchParams(searchStr).get("section");
+  const [authState, setAuthState] = useState<"loading" | "signed-in" | "signed-out" | "error">("loading");
+  useEffect(() => {
+    let active = true;
+    let generation = 0;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (event === "INITIAL_SESSION") return;
+      generation++;
+      setAuthState(session ? "signed-in" : "signed-out");
+    });
+    const started = generation;
+    supabase.auth
+      .getSession()
+      .then(async ({ data, error }) => {
+        if (error) throw error;
+        if (!data.session) return false;
+        const verified = await supabase.auth.getUser();
+        if (verified.error) throw verified.error;
+        return !!verified.data.user;
+      })
+      .then((signedIn) => {
+        if (active && started === generation) setAuthState(signedIn ? "signed-in" : "signed-out");
+      })
+      .catch(() => {
+        if (active && started === generation) setAuthState("error");
+      });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+  useEffect(() => {
+    if (pathname !== "/auth" && authState === "signed-out") window.location.replace("/auth");
+  }, [pathname, authState]);
+  // Gate before all mobile and assistant branches. This UI gate supplements, never replaces, server RLS.
+  if (pathname === "/auth")
+    return (
+      <>
+        <Outlet />
+        <Toaster theme="dark" position="top-right" />
+      </>
+    );
+  if (authState !== "signed-in")
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="hud-card p-8 text-center max-w-md" role={authState === "error" ? "alert" : "status"}>
+          <h1 className="hud-label text-primary text-lg">EVOLUTION OS</h1>
+          <p className="mt-4 text-sm text-muted-foreground">
+            {authState === "error"
+              ? "We could not verify your session. Check your connection and try again."
+              : "Checking your session…"}
+          </p>
+          {authState === "error" && (
+            <div className="mt-4 flex justify-center gap-5">
+              <button onClick={() => window.location.reload()}>Retry</button>
+              <button
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.auth.signOut({ scope: "local" });
+                    if (error) throw error;
+                    window.location.assign("/auth");
+                  } catch {
+                    window.alert("Sign-out could not finish. Please retry when your connection is restored.");
+                  }
+                }}
+              >
+                Sign in again
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+    );
   if (pathname.startsWith("/evolution-mobile/"))
     return <div role="alert">Mobile asset unavailable. Open the Dashboard from the main app.</div>;
   if (section === "evo" || section === "alfred")
@@ -318,7 +394,14 @@ function EvoAssistantPage() {
     mutate((prev) => ({
       evoTasks: [
         ...prev.evoTasks,
-        { id: uid(), text: title, category: "Notes", priority: "Medium", due: taskDate, status: "Not Started" },
+        {
+          id: uid(),
+          text: title,
+          category: "Notes",
+          priority: "Medium",
+          due: taskDate,
+          status: "Not Started",
+        },
       ],
     }));
     setDraftTask("");
@@ -577,7 +660,10 @@ function EvoAssistantPage() {
                         <div>
                           {m.role === "user" ? "YOU" : "EVO"}
                           <time>
-                            {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {new Date(m.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </time>
                         </div>
                         <p>{m.text}</p>
@@ -767,7 +853,10 @@ function EvoAssistantPage() {
                         step="0.25"
                         value={spec.durationMinutes / 60}
                         onChange={(e) => {
-                          setSpec({ ...spec, durationMinutes: Math.round(Number(e.target.value) * 60) });
+                          setSpec({
+                            ...spec,
+                            durationMinutes: Math.round(Number(e.target.value) * 60),
+                          });
                           setPreview(null);
                         }}
                         required
@@ -1029,7 +1118,12 @@ function EvoAssistantPage() {
                     mutate((prev) => ({
                       customHabits: [
                         ...prev.customHabits,
-                        { id: uid(), name: habitTitle.trim().slice(0, 80), category: "Notes", emoji: "✦" },
+                        {
+                          id: uid(),
+                          name: habitTitle.trim().slice(0, 80),
+                          category: "Notes",
+                          emoji: "✦",
+                        },
                       ],
                     }));
                     setHabitTitle("");

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, setRememberMe } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRemember] = useState(false);
   const passwordRef = useRef("");
   const nameRef = useRef("");
   passwordRef.current = password;
@@ -79,6 +80,7 @@ function AuthPage() {
     if (!id) return;
     const submitted = email;
     try {
+      setRememberMe(rememberMe);
       if (mode === "signup") {
         const r = await signUpOnce(submitted);
         if (!live(id)) return;
@@ -102,6 +104,7 @@ function AuthPage() {
     const id = begin();
     if (!id) return;
     try {
+      setRememberMe(rememberMe);
       const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
       if (!live(id)) return;
       if (result.error) {
@@ -146,12 +149,30 @@ function AuthPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="hud-card p-8 w-full max-w-md flex flex-col gap-5">
         <div className="text-center">
-          <div className="hud-label text-primary hud-glow text-lg">EVOLUTION</div>
+          <div className="hud-label text-primary hud-glow text-lg">EVOLUTION OS</div>
           <div className="hud-label text-[10px] text-muted-foreground mt-1">
             {mode === "signin" ? "Access your operating system" : "Create your account"}
           </div>
         </div>
 
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+          <label className="flex items-center gap-3 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              disabled={loading}
+              onChange={(event) => setRemember(event.target.checked)}
+              className="h-4 w-4 accent-cyan-400"
+              aria-describedby="remember-help"
+            />
+            <span>Remember Me</span>
+          </label>
+          <p id="remember-help" className="mt-2 text-xs text-muted-foreground">
+            {rememberMe
+              ? "Keep me signed in on this trusted device until I sign out or my session expires."
+              : "Use a temporary session in this tab. Browser session restore may keep it open."}
+          </p>
+        </div>
         <Button type="button" variant="outline" onClick={handleGoogle} disabled={loading} className="hud-label text-xs">
           Continue with Google
         </Button>
