@@ -2,8 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useState, useMemo, useEffect } from "react";
 import {
-  Wallet, Trash2, Plus, CreditCard, Layers, AlertTriangle,
-  DollarSign, ArrowUpRight, ArrowDownRight, Lightbulb, Target as TargetIcon,
+  Wallet,
+  Trash2,
+  Plus,
+  CreditCard,
+  Layers,
+  AlertTriangle,
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight,
+  Lightbulb,
+  Target as TargetIcon,
 } from "lucide-react";
 import { ModuleLayout, Panel } from "@/components/evolution/ModuleLayout";
 import { Sparkline } from "@/components/evolution/Sparkline";
@@ -22,7 +31,16 @@ import { BankAccountsView } from "@/components/evolution/BankAccountsView";
 const fmtCentsShort = (n: number) => fmtCents(n);
 
 export const Route = createFileRoute("/wealth")({
-  head: () => ({ meta: [{ title: "Wealth — Evolution" }, { property: "og:title", content: "Wealth — Evolution" }, { property: "og:description", content: "Net worth, assets, transactions, and goals." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Net worth, assets, transactions, and goals." }] }),
+  head: () => ({
+    meta: [
+      { title: "Wealth — Evolution" },
+      { property: "og:title", content: "Wealth — Evolution" },
+      { property: "og:description", content: "Net worth, assets, transactions, and goals." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "description", content: "Net worth, assets, transactions, and goals." },
+    ],
+  }),
   component: WealthPage,
 });
 
@@ -64,12 +82,19 @@ function WealthPage() {
   // history is NOT added to bank balances, and historical expense categories are not debt.
   const manualAssetValues = summary.assetsTotal;
   const assetsTotal = imported ? manualAssetValues + (bankBal.assets ?? 0) : summary.assetsTotal;
-  const liabilitiesTotal = imported ? bankBal.knownLiabilities ?? 0 : summary.liabilities;
-  const netWorth = imported ? manualAssetValues + (bankBal.assets ?? 0) - (bankBal.knownLiabilities ?? 0) : summary.netWorth;
-  const cashBalance = imported ? bankBal.cash ?? 0 : summary.cash;
+  const liabilitiesTotal = imported ? (bankBal.knownLiabilities ?? 0) : summary.liabilities;
+  const netWorth = imported
+    ? manualAssetValues + (bankBal.assets ?? 0) - (bankBal.knownLiabilities ?? 0)
+    : summary.netWorth;
+  const cashBalance = imported ? (bankBal.cash ?? 0) : summary.cash;
   const fmtImported = (n: number | null) => (n == null ? "UNAVAILABLE" : fmtCentsShort(n));
   const disp = imported
-    ? { net: fmtCentsShort(netWorth), assets: fmtCentsShort(assetsTotal), liab: bankBal.knownLiabilities == null ? "UNAVAILABLE" : fmtCentsShort(bankBal.knownLiabilities), cash: fmtImported(bankBal.cash) }
+    ? {
+        net: fmtCentsShort(netWorth),
+        assets: fmtCentsShort(assetsTotal),
+        liab: bankBal.knownLiabilities == null ? "UNAVAILABLE" : fmtCentsShort(bankBal.knownLiabilities),
+        cash: fmtImported(bankBal.cash),
+      }
     : { net: fmt(netWorth), assets: fmt(assetsTotal), liab: fmt(liabilitiesTotal), cash: fmt(cashBalance) };
 
   const now = new Date();
@@ -85,13 +110,14 @@ function WealthPage() {
     .filter((t) => t.type === "expense" && monthKey(t.date) === thisMonth)
     .reduce((s, t) => s + t.amount, 0);
   const [bankOpen, setBankOpen] = useState(false);
-  const bankFreshness = !imported ? null
-    : bankBal.assets == null && bankBal.knownLiabilities == null ? "BANK BALANCES UNAVAILABLE"
-    : `${bankBal.allSnapshot ? "IMPORTED SNAPSHOT" : "LAST BANK REFRESH"} · ${bankBal.anyDateUnknown || !bankBal.oldestAsOf ? "BALANCE DATE UNKNOWN" : `AS OF ${bankBal.oldestAsOf.slice(0, 10)}`}`;
+  const bankFreshness = !imported
+    ? null
+    : bankBal.assets == null && bankBal.knownLiabilities == null
+      ? "BANK BALANCES UNAVAILABLE"
+      : `${bankBal.allSnapshot ? "IMPORTED SNAPSHOT" : "LAST BANK REFRESH"} · ${bankBal.anyDateUnknown || !bankBal.oldestAsOf ? "BALANCE DATE UNKNOWN" : `AS OF ${bankBal.oldestAsOf.slice(0, 10)}`}`;
 
   // Running net worth series in Quick Add chronological order
   const txSeries = summary.series.length > 1 ? summary.series : [0, 0];
-
 
   // Monthly income vs expenses — full year January through December 2026
   const monthly = useMemo(() => {
@@ -122,7 +148,6 @@ function WealthPage() {
   const netWorthSeries = txSeries;
   const netWorthLabels = summary.labels.length > 1 ? summary.labels : ["", ""];
 
-
   // Sparkline series per KPI (12-month rollup)
   const incomeSeries = monthly.map((m) => m.income);
   const expenseSeries = monthly.map((m) => m.expense);
@@ -144,7 +169,9 @@ function WealthPage() {
       map.set(t.category || "Other", (map.get(t.category || "Other") || 0) + t.amount);
     }
     const arr = Array.from(map.entries()).map(([label, value], i) => ({
-      label, value, color: SLICE_COLORS[i % SLICE_COLORS.length],
+      label,
+      value,
+      color: SLICE_COLORS[i % SLICE_COLORS.length],
     }));
     return arr.sort((a, b) => b.value - a.value);
   }, [data.transactions, thisMonth]);
@@ -154,18 +181,47 @@ function WealthPage() {
   const savingsRate = monthIncome > 0 ? Math.max(0, (monthIncome - monthExpenses) / monthIncome) : 0;
   const diversification = Math.min(1, allocByCat.length / 3);
   const positiveNetWorth = netWorth > 0 ? 1 : 0;
-  const healthScore = Math.round((savingsRate * 60 + diversification * 25 + positiveNetWorth * 15));
-  const healthLabel = healthScore >= 75 ? "EXCELLENT" : healthScore >= 50 ? "ON TRACK" : healthScore >= 25 ? "WATCH" : "AT RISK";
+  const healthScore = Math.round(savingsRate * 60 + diversification * 25 + positiveNetWorth * 15);
+  const healthLabel =
+    healthScore >= 75 ? "EXCELLENT" : healthScore >= 50 ? "ON TRACK" : healthScore >= 25 ? "WATCH" : "AT RISK";
 
   // ===== KPI cards =====
   const cashFlow = monthIncome - monthExpenses;
   const kpis = [
     { label: "Net Worth", value: fmt(netWorth), icon: CreditCard, series: txSeries, delta: 13.44, positive: true },
     { label: "Total Assets", value: fmt(assetsTotal), icon: Layers, series: assetsSeries, delta: 8.21, positive: true },
-    { label: "Total Liabilities", value: fmt(liabilitiesTotal), icon: AlertTriangle, series: liabilitiesSeries, delta: -3.18, positive: false },
-    { label: "Cash Balance", value: fmt(cashBalance), icon: DollarSign, series: cashSeries, delta: 5.32, positive: true },
-    { label: "Income (Month)", value: fmt(monthIncome), icon: ArrowUpRight, series: incomeSeries, delta: 11.02, positive: true },
-    { label: "Expenses (Month)", value: fmt(monthExpenses), icon: ArrowDownRight, series: expenseSeries, delta: -7.65, positive: false },
+    {
+      label: "Total Liabilities",
+      value: fmt(liabilitiesTotal),
+      icon: AlertTriangle,
+      series: liabilitiesSeries,
+      delta: -3.18,
+      positive: false,
+    },
+    {
+      label: "Cash Balance",
+      value: fmt(cashBalance),
+      icon: DollarSign,
+      series: cashSeries,
+      delta: 5.32,
+      positive: true,
+    },
+    {
+      label: "Income (Month)",
+      value: fmt(monthIncome),
+      icon: ArrowUpRight,
+      series: incomeSeries,
+      delta: 11.02,
+      positive: true,
+    },
+    {
+      label: "Expenses (Month)",
+      value: fmt(monthExpenses),
+      icon: ArrowDownRight,
+      series: expenseSeries,
+      delta: -7.65,
+      positive: false,
+    },
   ];
 
   // ===== Asset modal =====
@@ -175,18 +231,35 @@ function WealthPage() {
   const [aValue, setAValue] = useState("");
   const [aCat, setACat] = useState<AssetCategory>("Cash");
 
-  const openNewAsset = () => { setEditId(null); setAName(""); setAValue(""); setACat("Cash"); setAssetOpen(true); };
+  const openNewAsset = () => {
+    setEditId(null);
+    setAName("");
+    setAValue("");
+    setACat("Cash");
+    setAssetOpen(true);
+  };
   const openEditAsset = (id: string) => {
-    const a = data.assets.find((x) => x.id === id); if (!a) return;
-    setEditId(id); setAName(a.name); setAValue(String(a.value)); setACat(a.category); setAssetOpen(true);
+    const a = data.assets.find((x) => x.id === id);
+    if (!a) return;
+    setEditId(id);
+    setAName(a.name);
+    setAValue(String(a.value));
+    setACat(a.category);
+    setAssetOpen(true);
   };
   const saveAsset = () => {
     const value = Number(aValue);
-    if (!aName.trim()) { toast.error("Give the asset a name."); return; }
-    if (!Number.isFinite(value) || value < 0) { toast.error("Enter a value of 0 or more."); return; }
+    if (!aName.trim()) {
+      toast.error("Give the asset a name.");
+      return;
+    }
+    if (!Number.isFinite(value) || value < 0) {
+      toast.error("Enter a value of 0 or more.");
+      return;
+    }
     mutate((prev) => ({
       assets: editId
-        ? prev.assets.map((x) => x.id === editId ? { ...x, name: aName.trim(), value, category: aCat } : x)
+        ? prev.assets.map((x) => (x.id === editId ? { ...x, name: aName.trim(), value, category: aCat } : x))
         : [...prev.assets, { id: uid(), name: aName.trim(), value, category: aCat }],
     }));
     setAssetOpen(false);
@@ -206,33 +279,58 @@ function WealthPage() {
 
   const addTx = () => {
     const amt = Number(tAmt);
-    if (!tDesc.trim()) { toast.error("Add a description."); return; }
-    if (!Number.isFinite(amt) || amt <= 0) { toast.error("Enter an amount above 0."); return; }
+    if (!tDesc.trim()) {
+      toast.error("Add a description.");
+      return;
+    }
+    if (!Number.isFinite(amt) || amt <= 0) {
+      toast.error("Enter an amount above 0.");
+      return;
+    }
     mutate((prev) => ({
-      transactions: [...prev.transactions, { id: uid(), date: tDate, description: tDesc.trim(), amount: amt, type: tType, category: tCat || "General" }],
+      transactions: [
+        ...prev.transactions,
+        { id: uid(), date: tDate, description: tDesc.trim(), amount: amt, type: tType, category: tCat || "General" },
+      ],
     }));
-    setTDesc(""); setTAmt("");
+    setTDesc("");
+    setTAmt("");
   };
 
   const addQuick = () => {
     const amt = Number(tAmt);
-    if (!tDesc.trim()) { toast.error("Add a description."); return; }
-    if (!Number.isFinite(amt) || amt <= 0) { toast.error("Enter an amount above 0."); return; }
+    if (!tDesc.trim()) {
+      toast.error("Add a description.");
+      return;
+    }
+    if (!Number.isFinite(amt) || amt <= 0) {
+      toast.error("Enter an amount above 0.");
+      return;
+    }
     if (qaMode === "income" || qaMode === "expense") {
       mutate((prev) => ({
-        transactions: [...prev.transactions, {
-          id: uid(), date: tDate, description: tDesc.trim(), amount: amt,
-          type: qaMode, category: tCat || "General",
-        }],
+        transactions: [
+          ...prev.transactions,
+          {
+            id: uid(),
+            date: tDate,
+            description: tDesc.trim(),
+            amount: amt,
+            type: qaMode,
+            category: tCat || "General",
+          },
+        ],
       }));
     } else if (qaMode === "asset") {
       const cat = (["Cash", "Investment", "Property", "Other"] as AssetCategory[]).includes(tCat as AssetCategory)
-        ? (tCat as AssetCategory) : "Cash";
+        ? (tCat as AssetCategory)
+        : "Cash";
       mutate((prev) => ({
         assets: [...prev.assets, { id: uid(), name: tDesc.trim(), value: amt, category: cat, date: tDate }],
       }));
     }
-    setTDesc(""); setTAmt("");
+    setTDesc("");
+    setTAmt("");
   };
 
   const delTx = (id: string) => mutate((prev) => ({ transactions: prev.transactions.filter((t) => t.id !== id) }));
@@ -244,32 +342,66 @@ function WealthPage() {
   const [gDeadline, setGDeadline] = useState("");
   const wealthGoals = data.goals.filter((g) => g.category === "Wealth");
   const addGoal = () => {
-    if (!gTitle.trim()) { toast.error("Give the goal a title."); return; }
-    if (!(Number(gTarget) > 0)) { toast.error("Target must be above 0."); return; }
+    if (!gTitle.trim()) {
+      toast.error("Give the goal a title.");
+      return;
+    }
+    if (!(Number(gTarget) > 0)) {
+      toast.error("Target must be above 0.");
+      return;
+    }
     mutate((prev) => ({
-      goals: [...prev.goals, { id: uid(), title: gTitle.trim(), category: "Wealth", target: Number(gTarget), current: Number(gCurrent) || 0, deadline: gDeadline || todayDate(), completed: false }],
+      goals: [
+        ...prev.goals,
+        {
+          id: uid(),
+          title: gTitle.trim(),
+          category: "Wealth",
+          target: Number(gTarget),
+          current: Number(gCurrent) || 0,
+          deadline: gDeadline || todayDate(),
+          completed: false,
+        },
+      ],
     }));
-    setGTitle(""); setGTarget(""); setGCurrent(""); setGDeadline("");
+    setGTitle("");
+    setGTarget("");
+    setGCurrent("");
+    setGDeadline("");
   };
   const updateGoalCurrent = (id: string, v: number) =>
-    mutate((prev) => ({ goals: prev.goals.map((g) => g.id === id ? { ...g, current: v, completed: v >= g.target } : g) }));
+    mutate((prev) => ({
+      goals: prev.goals.map((g) => (g.id === id ? { ...g, current: v, completed: v >= g.target } : g)),
+    }));
   const delGoal = (id: string) => mutate((prev) => ({ goals: prev.goals.filter((g) => g.id !== id) }));
 
   const incomeMax = Math.max(1, ...monthly.flatMap((m) => [m.income, m.expense]));
 
   // Avoid SSR/CSR hydration mismatch from Date()-derived labels + freshly-seeded data
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   if (!mounted) {
     return (
-      <ModuleLayout number="01" title="Wealth" subtitle="Track your net worth and build a strong financial future." icon={Wallet}>
+      <ModuleLayout
+        number="01"
+        title="Wealth"
+        subtitle="Track your net worth and build a strong financial future."
+        icon={Wallet}
+      >
         <div className="hud-card p-10 text-center hud-label text-xs text-muted-foreground">Loading dashboard…</div>
       </ModuleLayout>
     );
   }
 
   return (
-    <ModuleLayout number="01" title="Wealth" subtitle="Track your net worth and build a strong financial future." icon={Wallet}>
+    <ModuleLayout
+      number="01"
+      title="Wealth"
+      subtitle="Track your net worth and build a strong financial future."
+      icon={Wallet}
+    >
       <div className="flex flex-col gap-3 h-[calc(100vh-180px)] min-h-0">
         {/* ===== ROW 1: NET WORTH + 3 KPI CARDS ===== */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 shrink-0">
@@ -280,11 +412,20 @@ function WealthPage() {
                 <div className="hud-label text-3xl text-primary hud-glow tabular-nums">{disp.net}</div>
                 <div className="mt-1 hud-label text-[10px]">
                   {imported ? (
-                    <button type="button" onClick={() => setBankOpen(true)} className="text-muted-foreground underline decoration-dotted hover:text-primary text-left" title="Partial: excludes debts not linked. Open bank accounts.">PARTIAL · {bankFreshness} · HISTORY UNAVAILABLE</button>
-                  ) : (<>
-                  <span className="text-primary">▲ 13.44%</span>
-                  <span className="text-muted-foreground ml-2">vs last month</span>
-                  </>)}
+                    <button
+                      type="button"
+                      onClick={() => setBankOpen(true)}
+                      className="text-muted-foreground underline decoration-dotted hover:text-primary text-left"
+                      title="Partial: excludes debts not linked. Open bank accounts."
+                    >
+                      PARTIAL · {bankFreshness} · HISTORY UNAVAILABLE
+                    </button>
+                  ) : (
+                    <>
+                      <span className="text-primary">▲ 13.44%</span>
+                      <span className="text-muted-foreground ml-2">vs last month</span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="w-[45%] h-[50px]">
@@ -333,18 +474,24 @@ function WealthPage() {
                     <div className={ringClass}>
                       <Icon className={iconClass} />
                     </div>
-                    <span className="hud-label text-[9px] text-muted-foreground uppercase tracking-wider">{k.label}</span>
+                    <span className="hud-label text-[9px] text-muted-foreground uppercase tracking-wider">
+                      {k.label}
+                    </span>
                   </div>
                   <div className={valueClass}>{k.value}</div>
                   <div className="text-[9px] hud-label">
                     {imported ? (
-                      <span className="text-muted-foreground">{isLiabilities ? "KNOWN LINKED ONLY · " : ""}HISTORY UNAVAILABLE</span>
-                    ) : (<>
-                    <span className={deltaClass}>
-                      {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
-                    </span>
-                    <span className="text-muted-foreground ml-1">vs last month</span>
-                    </>)}
+                      <span className="text-muted-foreground">
+                        {isLiabilities ? "KNOWN LINKED ONLY · " : ""}HISTORY UNAVAILABLE
+                      </span>
+                    ) : (
+                      <>
+                        <span className={deltaClass}>
+                          {k.positive ? "▲" : "▼"} {Math.abs(k.delta).toFixed(2)}%
+                        </span>
+                        <span className="text-muted-foreground ml-1">vs last month</span>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -386,11 +533,13 @@ function WealthPage() {
                   <>
                     <div className="grid grid-cols-[auto_1fr] gap-2">
                       <div className="flex flex-col gap-1.5">
-                        {([
-                          { key: "income", label: "INCOME", icon: ArrowDownRight },
-                          { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
-                          { key: "asset", label: "ASSET", icon: Layers },
-                        ] as const).map((opt) => {
+                        {(
+                          [
+                            { key: "income", label: "INCOME", icon: ArrowDownRight },
+                            { key: "expense", label: "EXPENSE", icon: ArrowUpRight },
+                            { key: "asset", label: "ASSET", icon: Layers },
+                          ] as const
+                        ).map((opt) => {
                           const Icon = opt.icon;
                           const color = QA_COLORS[opt.key];
                           const active = qaMode === opt.key;
@@ -427,20 +576,45 @@ function WealthPage() {
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="block">
-                          <span className="hud-label text-[8px] text-muted-foreground tracking-widest">DESCRIPTION</span>
-                          <Input placeholder={descPh} value={tDesc} onChange={(e) => setTDesc(e.target.value)} className="h-7 text-[11px] mt-0.5" maxLength={80} />
+                          <span className="hud-label text-[8px] text-muted-foreground tracking-widest">
+                            DESCRIPTION
+                          </span>
+                          <Input
+                            placeholder={descPh}
+                            value={tDesc}
+                            onChange={(e) => setTDesc(e.target.value)}
+                            className="h-7 text-[11px] mt-0.5"
+                            maxLength={80}
+                          />
                         </label>
                         <label className="block">
                           <span className="hud-label text-[8px] text-muted-foreground tracking-widest">AMOUNT</span>
-                          <Input type="number" placeholder="$ 0.00" value={tAmt} onChange={(e) => setTAmt(e.target.value)} className="h-7 text-[11px] mt-0.5" />
+                          <Input
+                            type="number"
+                            placeholder="$ 0.00"
+                            value={tAmt}
+                            onChange={(e) => setTAmt(e.target.value)}
+                            className="h-7 text-[11px] mt-0.5"
+                          />
                         </label>
                         <label className="block">
                           <span className="hud-label text-[8px] text-muted-foreground tracking-widest">DATE</span>
-                          <Input type="date" value={tDate} onChange={(e) => setTDate(e.target.value)} className="h-7 text-[11px] mt-0.5" />
+                          <Input
+                            type="date"
+                            value={tDate}
+                            onChange={(e) => setTDate(e.target.value)}
+                            className="h-7 text-[11px] mt-0.5"
+                          />
                         </label>
                         <label className="block">
                           <span className="hud-label text-[8px] text-muted-foreground tracking-widest">CATEGORY</span>
-                          <Input placeholder={catPh} value={tCat} onChange={(e) => setTCat(e.target.value)} className="h-7 text-[11px] mt-0.5" maxLength={40} />
+                          <Input
+                            placeholder={catPh}
+                            value={tCat}
+                            onChange={(e) => setTCat(e.target.value)}
+                            className="h-7 text-[11px] mt-0.5"
+                            maxLength={40}
+                          />
                         </label>
                       </div>
                     </div>
@@ -481,7 +655,10 @@ function WealthPage() {
                     const pct = Math.round((s.value / (summary.assetsTotal || 1)) * 100);
                     return (
                       <li key={s.label} className="flex items-center gap-2 text-[11px] hud-label">
-                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ background: s.color, boxShadow: `0 0 6px ${s.color}` }}
+                        />
                         <span className="flex-1 text-foreground/80 truncate">{s.label}</span>
                         <span className="text-muted-foreground tabular-nums w-8 text-right">{pct}%</span>
                         <span className="text-primary tabular-nums w-14 text-right">{fmt(s.value)}</span>
@@ -499,59 +676,124 @@ function WealthPage() {
           <Panel title="Recent Transactions" className="p-3">
             <ul className="divide-y divide-border">
               {(() => {
-                type Row = { id: string; date: string; kind: "income" | "expense" | "asset" | "goal"; description: string; category: string; amount: number; bank?: boolean };
+                type Row = {
+                  id: string;
+                  date: string;
+                  kind: "income" | "expense" | "asset" | "goal";
+                  description: string;
+                  category: string;
+                  amount: number;
+                  bank?: boolean;
+                };
                 const rows: Row[] = [];
-                for (const t of data.transactions) rows.push({ id: t.id, date: t.date, kind: t.type, description: t.description, category: t.category, amount: t.amount });
-                for (const a of data.assets) rows.push({ id: a.id, date: a.date ?? todayDate(), kind: "asset", description: a.name, category: a.category, amount: a.value });
-                for (const g of data.goals) rows.push({ id: g.id, date: g.deadline || todayDate(), kind: "goal", description: g.title, category: g.category, amount: g.target });
+                for (const t of data.transactions)
+                  rows.push({
+                    id: t.id,
+                    date: t.date,
+                    kind: t.type,
+                    description: t.description,
+                    category: t.category,
+                    amount: t.amount,
+                  });
+                for (const a of data.assets)
+                  rows.push({
+                    id: a.id,
+                    date: a.date ?? todayDate(),
+                    kind: "asset",
+                    description: a.name,
+                    category: a.category,
+                    amount: a.value,
+                  });
+                for (const g of data.goals)
+                  rows.push({
+                    id: g.id,
+                    date: g.deadline || todayDate(),
+                    kind: "goal",
+                    description: g.title,
+                    category: g.category,
+                    amount: g.target,
+                  });
                 // Imported bank rows are read-only (no delete); amount > 0 = money out.
-                if (imported) for (const t of bank.transactions) {
-                  if (t.environment === "sandbox") continue;
-                  const tags = ["BANK", t.pending ? "PENDING" : null, isTransfer(t) ? "TRANSFER" : null].filter(Boolean).join(" · ");
-                  rows.push({ id: t.id, date: t.posted_date ?? t.authorized_date ?? "", kind: t.amount > 0 ? "expense" : "income", description: t.merchant_name || t.name, category: tags, amount: Math.abs(t.amount), bank: true });
-                }
+                if (imported)
+                  for (const t of bank.transactions) {
+                    if (t.environment === "sandbox") continue;
+                    const tags = ["BANK", t.pending ? "PENDING" : null, isTransfer(t) ? "TRANSFER" : null]
+                      .filter(Boolean)
+                      .join(" · ");
+                    rows.push({
+                      id: t.id,
+                      date: t.posted_date ?? t.authorized_date ?? "",
+                      kind: t.amount > 0 ? "expense" : "income",
+                      description: t.merchant_name || t.name,
+                      category: tags,
+                      amount: Math.abs(t.amount),
+                      bank: true,
+                    });
+                  }
                 const styles: Record<Row["kind"], { color: string; sign: string; Icon: typeof ArrowUpRight }> = {
                   income: { color: "#00ff88", sign: "+", Icon: ArrowUpRight },
                   expense: { color: "#ff3333", sign: "−", Icon: ArrowDownRight },
                   asset: { color: "#00d4ff", sign: "+", Icon: Layers },
                   goal: { color: "#f59e0b", sign: "◎", Icon: TargetIcon },
                 };
-                return rows.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4).map((r) => {
-                  const s = styles[r.kind];
-                  const Icon = s.Icon;
-                  const onDelete = () => {
-                    if (r.kind === "income" || r.kind === "expense") delTx(r.id);
-                    else if (r.kind === "asset") delAsset(r.id);
-                    else if (r.kind === "goal") delGoal(r.id);
-                  };
-                  return (
-                    <li key={`${r.kind}-${r.id}`} className="py-2 flex items-center gap-2 group">
-                      <div className="h-7 w-7 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: `${s.color}66`, background: `${s.color}1a`, boxShadow: `0 0 6px ${s.color}55` }}>
-                        <Icon className="h-3 w-3" style={{ color: s.color }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="hud-label text-[11px] text-foreground truncate">{r.description || r.kind.toUpperCase()}</div>
-                        <div className="hud-label text-[9px] text-muted-foreground">{r.category || r.kind}</div>
-                      </div>
-                      <div className="hud-label text-[9px] text-muted-foreground tabular-nums whitespace-nowrap">{r.date.slice(5).replace("-", "/")}</div>
-                      <div className="hud-label text-[11px] tabular-nums whitespace-nowrap" style={{ color: s.color }}>
-                        {s.sign}{fmt(r.amount)}
-                      </div>
-                      {r.bank ? <span className="h-5 w-5 shrink-0" aria-hidden /> : (
-                      <button
-                        type="button"
-                        onClick={onDelete}
-                        aria-label="Delete entry"
-                        className="h-5 w-5 rounded border border-border/60 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/60 hover:bg-destructive/10 transition-colors opacity-60 group-hover:opacity-100"
-                      >
-                        <Trash2 className="h-2.5 w-2.5" />
-                      </button>
-                      )}
-                    </li>
-                  );
-                });
+                return rows
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .slice(0, 4)
+                  .map((r) => {
+                    const s = styles[r.kind];
+                    const Icon = s.Icon;
+                    const onDelete = () => {
+                      if (r.kind === "income" || r.kind === "expense") delTx(r.id);
+                      else if (r.kind === "asset") delAsset(r.id);
+                      else if (r.kind === "goal") delGoal(r.id);
+                    };
+                    return (
+                      <li key={`${r.kind}-${r.id}`} className="py-2 flex items-center gap-2 group">
+                        <div
+                          className="h-7 w-7 rounded-full border flex items-center justify-center shrink-0"
+                          style={{
+                            borderColor: `${s.color}66`,
+                            background: `${s.color}1a`,
+                            boxShadow: `0 0 6px ${s.color}55`,
+                          }}
+                        >
+                          <Icon className="h-3 w-3" style={{ color: s.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="hud-label text-[11px] text-foreground truncate">
+                            {r.description || r.kind.toUpperCase()}
+                          </div>
+                          <div className="hud-label text-[9px] text-muted-foreground">{r.category || r.kind}</div>
+                        </div>
+                        <div className="hud-label text-[9px] text-muted-foreground tabular-nums whitespace-nowrap">
+                          {r.date.slice(5).replace("-", "/")}
+                        </div>
+                        <div
+                          className="hud-label text-[11px] tabular-nums whitespace-nowrap"
+                          style={{ color: s.color }}
+                        >
+                          {s.sign}
+                          {fmt(r.amount)}
+                        </div>
+                        {r.bank ? (
+                          <span className="h-5 w-5 shrink-0" aria-hidden />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={onDelete}
+                            aria-label="Delete entry"
+                            className="h-5 w-5 rounded border border-border/60 flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/60 hover:bg-destructive/10 transition-colors opacity-60 group-hover:opacity-100"
+                          >
+                            <Trash2 className="h-2.5 w-2.5" />
+                          </button>
+                        )}
+                      </li>
+                    );
+                  });
               })()}
-              {!data.transactions.length && !data.assets.length && !data.goals.length && <li className="text-xs text-muted-foreground py-4 text-center">No entries yet.</li>}
+              {!data.transactions.length && !data.assets.length && !data.goals.length && (
+                <li className="text-xs text-muted-foreground py-4 text-center">No entries yet.</li>
+              )}
             </ul>
           </Panel>
 
@@ -559,14 +801,17 @@ function WealthPage() {
             <div className="flex items-center justify-center gap-4 h-full">
               {imported ? (
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] text-center">
-                  Score unavailable — bank data is incomplete ({flowsComplete ? "unlinked debts unknown" : "transactions not imported, unlinked debts unknown"}).
+                  Score unavailable — bank data is incomplete (
+                  {flowsComplete ? "unlinked debts unknown" : "transactions not imported, unlinked debts unknown"}).
                 </p>
-              ) : (<>
-              <Gauge value={healthScore} size={140} label={healthLabel} />
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-[140px]">
-                You're building momentum. Keep executing.
-              </p>
-              </>)}
+              ) : (
+                <>
+                  <Gauge value={healthScore} size={140} label={healthLabel} />
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-[140px]">
+                    You're building momentum. Keep executing.
+                  </p>
+                </>
+              )}
             </div>
           </Panel>
         </div>
@@ -593,28 +838,48 @@ function WealthPage() {
             </label>
             <label className="block">
               <span className="hud-label text-[10px] text-muted-foreground">Value ($)</span>
-              <Input type="number" value={aValue} onChange={(e) => setAValue(e.target.value)} className="h-9 text-xs mt-1" />
+              <Input
+                type="number"
+                value={aValue}
+                onChange={(e) => setAValue(e.target.value)}
+                className="h-9 text-xs mt-1"
+              />
             </label>
             <div>
               <span className="hud-label text-[10px] text-muted-foreground">Category</span>
               <div className="grid grid-cols-4 gap-2 mt-1">
                 {ASSET_CATS.map((c) => (
-                  <button key={c} type="button" onClick={() => setACat(c)}
-                    className={`hud-label text-[10px] py-2 rounded border ${aCat === c ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}>
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setACat(c)}
+                    className={`hud-label text-[10px] py-2 rounded border ${aCat === c ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}
+                  >
                     {c}
                   </button>
                 ))}
               </div>
             </div>
             {editId && (
-              <Button variant="ghost" onClick={() => { delAsset(editId); setAssetOpen(false); }} className="text-destructive hud-label text-[10px]">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  delAsset(editId);
+                  setAssetOpen(false);
+                }}
+                className="text-destructive hud-label text-[10px]"
+              >
                 <Trash2 className="h-3 w-3 mr-1" /> Delete
               </Button>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAssetOpen(false)} className="hud-label text-[10px]">Cancel</Button>
-            <Button onClick={saveAsset} className="hud-label text-[10px]">{editId ? "Save" : "Add"}</Button>
+            <Button variant="outline" onClick={() => setAssetOpen(false)} className="hud-label text-[10px]">
+              Cancel
+            </Button>
+            <Button onClick={saveAsset} className="hud-label text-[10px]">
+              {editId ? "Save" : "Add"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -645,12 +910,8 @@ function NetWorthMonthlyPanel({
         <NetWorthChart data={series} labels={labels} height={260} />
       ) : (
         <div className="h-[200px] flex flex-col items-center justify-center text-center gap-2 border border-dashed border-border rounded-md">
-          <div className="hud-label text-[11px] text-muted-foreground tracking-widest">
-            NO NET WORTH HISTORY
-          </div>
-          <div className="text-xs text-muted-foreground max-w-xs">
-            Log income or expenses to draw the chart.
-          </div>
+          <div className="hud-label text-[11px] text-muted-foreground tracking-widest">NO NET WORTH HISTORY</div>
+          <div className="text-xs text-muted-foreground max-w-xs">Log income or expenses to draw the chart.</div>
         </div>
       )}
       <div className="overflow-x-auto border border-border rounded-md">
@@ -670,8 +931,14 @@ function NetWorthMonthlyPanel({
                 <td className="px-2 py-1 hud-label text-[10px]">{r.label}</td>
                 <td className="px-2 py-1 text-right text-primary">{fmt(r.income)}</td>
                 <td className="px-2 py-1 text-right text-destructive">{fmt(r.expense)}</td>
-                <td className={`px-2 py-1 text-right ${r.net >= 0 ? "text-primary" : "text-destructive"}`}>{fmt(r.net)}</td>
-                <td className={`px-2 py-1 text-right font-medium ${r.cumulative >= 0 ? "text-foreground" : "text-destructive"}`}>{fmt(r.cumulative)}</td>
+                <td className={`px-2 py-1 text-right ${r.net >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {fmt(r.net)}
+                </td>
+                <td
+                  className={`px-2 py-1 text-right font-medium ${r.cumulative >= 0 ? "text-foreground" : "text-destructive"}`}
+                >
+                  {fmt(r.cumulative)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -680,6 +947,3 @@ function NetWorthMonthlyPanel({
     </div>
   );
 }
-
-
-
