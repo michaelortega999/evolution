@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   useEvolutionData,
+  loadEvolutionData,
   todayDate,
   uid,
   type TripStatus,
@@ -228,7 +229,7 @@ function HobbyPage() {
       )}
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-card border border-border max-w-full overflow-x-auto justify-start">
+        <TabsList className="bg-card border border-border max-w-full overflow-x-auto overflow-y-hidden justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="travel">Travel</TabsTrigger>
           <TabsTrigger value="photography">Photography</TabsTrigger>
@@ -2907,7 +2908,7 @@ const TRAVEL_DESTINATIONS = [
     lat: 35.6762,
     lon: 139.6503,
     region: "Asia",
-    image: travelPhoto("photo-1493976040374-85c8e12f0c0e"),
+    image: travelPhoto("photo-1749916883702-3ec86fe13f2e"),
     subtitle: "Tradition meets tomorrow",
     description:
       "Temple paths, neighborhood food stops, and luminous city nights. Build your own route through Tokyo, Kyoto, Osaka, and beyond.",
@@ -2992,6 +2993,40 @@ const travelShortDate = (date: string) =>
     : "Dates not set";
 const travelStatusList: TripStatus[] = ["Planning", "Booked", "In Progress", "Completed"];
 
+function applyTravelTripEdit(
+  trips: TravelPlanTrip[],
+  draft: TravelPlanTrip,
+  editing: boolean,
+): { next: TravelPlanTrip | null; error: string | null } {
+  const current = trips.find((trip) => trip.id === draft.id);
+  if (editing && !current)
+    return { next: null, error: "This trip was removed elsewhere. Close this editor and create a new trip if needed." };
+  if (
+    editing &&
+    (current?.itinerary ?? []).some((activity) => activity.date < draft.startDate || activity.date > draft.endDate)
+  )
+    return {
+      next: null,
+      error:
+        "These dates exclude existing activities. Reschedule or remove those activities before shortening the trip.",
+    };
+  // Only the fields exposed in this dialog are applied. Preserve fresh nested records.
+  const next =
+    editing && current
+      ? {
+          ...current,
+          destination: draft.destination.trim(),
+          startDate: draft.startDate,
+          endDate: draft.endDate,
+          budget: draft.budget,
+          travelers: draft.travelers,
+          status: draft.status,
+          notes: draft.notes,
+        }
+      : { ...draft, destination: draft.destination.trim() };
+  return { next, error: null };
+}
+
 function TravelWorkspace() {
   const { data, mutate } = useEvolutionData();
   const [view, setView] = useState<"explore" | "destination" | "plan" | "budget">("explore");
@@ -3006,6 +3041,7 @@ function TravelWorkspace() {
   const [planMode, setPlanMode] = useState<"schedule" | "map">("schedule");
   const [notice, setNotice] = useState("");
   const [tripEditor, setTripEditor] = useState<TravelPlanTrip | null>(null);
+  const [editingExistingTrip, setEditingExistingTrip] = useState(false);
   const [activityEditor, setActivityEditor] = useState<TravelActivity | null>(null);
   const [expenseEditor, setExpenseEditor] = useState<TravelExpense | null>(null);
   const [deleteTripId, setDeleteTripId] = useState<string | null>(null);
@@ -3034,6 +3070,11 @@ function TravelWorkspace() {
       setTripId("");
       setSampleMode(false);
       setTripEditor(null);
+      setEditingExistingTrip(false);
+      setGoalText("");
+      setPackText("");
+      setQuery("");
+      setSample(sampleJapanTrip(todayDate()));
       setActivityEditor(null);
       setExpenseEditor(null);
       setDeleteTripId(null);
@@ -3057,12 +3098,17 @@ function TravelWorkspace() {
     setView("plan");
     setNotice("");
   };
-  const patchActive = (patch: Partial<TravelPlanTrip>) => {
+  const patchActive = (patch: Partial<TravelPlanTrip> | ((current: TravelPlanTrip) => Partial<TravelPlanTrip>)) => {
     if (!activeTrip) return;
     if (sampleMode) {
-      setSample((p) => ({ ...p, ...patch }));
+      setSample((p) => ({ ...p, ...(typeof patch === "function" ? patch(p) : patch) }));
       setNotice("Sample changed for this preview only. Your trips were not changed.");
-    } else mutate((p) => ({ trips: p.trips.map((t) => (t.id === activeTrip.id ? { ...t, ...patch } : t)) }));
+    } else
+      mutate((p) => ({
+        trips: p.trips.map((t) =>
+          t.id === activeTrip.id ? { ...t, ...(typeof patch === "function" ? patch(t as TravelPlanTrip) : patch) } : t,
+        ),
+      }));
   };
   const toggleSave = (id: string) => {
     const d = TRAVEL_DESTINATIONS.find((item) => item.id === id)!;
@@ -3088,6 +3134,7 @@ function TravelWorkspace() {
     setNotice(`${d.country} saved to Travel goals.`);
   };
   const newTrip = () => {
+    setEditingExistingTrip(false);
     setErrors([]);
     setTripEditor({
       id: uid(),
@@ -3110,10 +3157,15 @@ function TravelWorkspace() {
       setErrors(Object.values(result.errors));
       return;
     }
-    const next = { ...tripEditor, destination: tripEditor.destination.trim() };
-    const existing = trips.some((t) => t.id === next.id);
+    const applied = applyTravelTripEdit(loadEvolutionData().trips as TravelPlanTrip[], tripEditor, editingExistingTrip);
+    if (!applied.next) {
+      setErrors([applied.error ?? "This trip could not be saved."]);
+      return;
+    }
+    const next = applied.next;
+    const existing = editingExistingTrip;
     mutate((p) => ({
-      trips: existing ? p.trips.map((t) => (t.id === next.id ? { ...t, ...next } : t)) : [...p.trips, next],
+      trips: existing ? p.trips.map((t) => (t.id === next.id ? next : t)) : [...p.trips, next],
       calendar: p.calendar.map((e) =>
         e.id === `trip-${next.id}-dep`
           ? { ...e, date: next.startDate }
@@ -3142,11 +3194,13 @@ function TravelWorkspace() {
       setErrors(["Activity date must be within this trip's dates. Edit the trip first to extend it."]);
       return;
     }
-    const items = activeTrip.itinerary ?? [];
-    patchActive({
-      itinerary: items.some((a) => a.id === activityEditor.id)
-        ? items.map((a) => (a.id === activityEditor.id ? activityEditor : a))
-        : [...items, activityEditor],
+    patchActive((current) => {
+      const items = current.itinerary ?? [];
+      return {
+        itinerary: items.some((a) => a.id === activityEditor.id)
+          ? items.map((a) => (a.id === activityEditor.id ? activityEditor : a))
+          : [...items, activityEditor],
+      };
     });
     setSelectedDay(activityEditor.date);
     setActivityEditor(null);
@@ -3162,11 +3216,13 @@ function TravelWorkspace() {
       setErrors(["Enter a label and nonnegative amounts. Leave actual blank if not recorded."]);
       return;
     }
-    const items = activeTrip.expenses ?? [];
-    patchActive({
-      expenses: items.some((a) => a.id === expenseEditor.id)
-        ? items.map((a) => (a.id === expenseEditor.id ? expenseEditor : a))
-        : [...items, expenseEditor],
+    patchActive((current) => {
+      const items = current.expenses ?? [];
+      return {
+        expenses: items.some((a) => a.id === expenseEditor.id)
+          ? items.map((a) => (a.id === expenseEditor.id ? expenseEditor : a))
+          : [...items, expenseEditor],
+      };
     });
     setExpenseEditor(null);
   };
@@ -3642,6 +3698,7 @@ function TravelWorkspace() {
                       className="travel-button"
                       onClick={() => {
                         setErrors([]);
+                        setEditingExistingTrip(true);
                         setTripEditor({ ...activeTrip });
                       }}
                     >
@@ -3715,11 +3772,11 @@ function TravelWorkspace() {
                                     type="checkbox"
                                     checked={a.done}
                                     onChange={(e) =>
-                                      patchActive({
-                                        itinerary: (activeTrip.itinerary ?? []).map((v) =>
+                                      patchActive((current) => ({
+                                        itinerary: (current.itinerary ?? []).map((v) =>
                                           v.id === a.id ? { ...v, done: e.target.checked } : v,
                                         ),
-                                      })
+                                      }))
                                     }
                                   />
                                   <strong className={a.done ? "complete" : ""}>{a.title}</strong>
@@ -3836,17 +3893,21 @@ function TravelWorkspace() {
                               type="checkbox"
                               checked={p.done}
                               onChange={(e) =>
-                                patchActive({
-                                  packing: activeTrip.packing.map((v) =>
+                                patchActive((current) => ({
+                                  packing: (current.packing ?? []).map((v) =>
                                     v.id === p.id ? { ...v, done: e.target.checked } : v,
                                   ),
-                                })
+                                }))
                               }
                             />
                             <span className={p.done ? "complete" : ""}>{p.item}</span>
                             <button
                               aria-label={`Remove packing item ${p.item}`}
-                              onClick={() => patchActive({ packing: activeTrip.packing.filter((v) => v.id !== p.id) })}
+                              onClick={() =>
+                                patchActive((current) => ({
+                                  packing: (current.packing ?? []).filter((v) => v.id !== p.id),
+                                }))
+                              }
                             >
                               <X size={12} />
                             </button>
@@ -3858,12 +3919,9 @@ function TravelWorkspace() {
                         onSubmit={(e) => {
                           e.preventDefault();
                           if (packText.trim()) {
-                            patchActive({
-                              packing: [
-                                ...(activeTrip.packing ?? []),
-                                { id: uid(), item: packText.trim(), done: false },
-                              ],
-                            });
+                            patchActive((current) => ({
+                              packing: [...(current.packing ?? []), { id: uid(), item: packText.trim(), done: false }],
+                            }));
                             setPackText("");
                           }
                         }}
@@ -4200,7 +4258,9 @@ function TravelWorkspace() {
                   <Button
                     variant="destructive"
                     onClick={() => {
-                      patchActive({ itinerary: activeTrip.itinerary?.filter((a) => a.id !== activityEditor.id) });
+                      patchActive((current) => ({
+                        itinerary: (current.itinerary ?? []).filter((a) => a.id !== activityEditor.id),
+                      }));
                       setActivityEditor(null);
                     }}
                   >
@@ -4288,7 +4348,9 @@ function TravelWorkspace() {
                   <Button
                     variant="destructive"
                     onClick={() => {
-                      patchActive({ expenses: activeTrip.expenses?.filter((a) => a.id !== expenseEditor.id) });
+                      patchActive((current) => ({
+                        expenses: (current.expenses ?? []).filter((a) => a.id !== expenseEditor.id),
+                      }));
                       setExpenseEditor(null);
                     }}
                   >
