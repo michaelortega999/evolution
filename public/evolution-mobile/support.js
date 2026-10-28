@@ -2,7 +2,10 @@
 "use strict";
 (() => {
   var __defProp = Object.defineProperty;
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __defNormalProp = (obj, key, value) =>
+    key in obj
+      ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value })
+      : (obj[key] = value);
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // src/react.ts
@@ -16,23 +19,44 @@
     if (!RD) throw new Error("dc-runtime: window.ReactDOM is not available yet");
     return RD;
   }
-  var h = ((...args) => getReact().createElement(
-    ...args
-  ));
+  var h = (...args) => getReact().createElement(...args);
+
+  // Evolution deployment adapter: omit the profile summary-card row at template
+  // compile time. This is presentation-only: profile values and storage stay intact.
+  // Applied here because the legacy HTML bundle is above the editor's size limit.
+  function removeProfileSummaryCards(html) {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    let changed = false;
+    for (const loop of template.content.querySelectorAll("sc-for[list]")) {
+      if (!/^\s*\{\{\s*p[fr]Stats\s*\}\}\s*$/.test(loop.getAttribute("list") || "")) continue;
+      const row = loop.parentElement;
+      // Only the complete four-card profile row immediately before Account Settings.
+      // Never remove an individual metric in another page or any account controls.
+      if (
+        !row ||
+        row.tagName !== "DIV" ||
+        row.children.length !== 1 ||
+        !row.nextElementSibling?.textContent.includes("ACCOUNT SETTINGS")
+      )
+        continue;
+      row.remove();
+      changed = true;
+    }
+    return changed ? template.innerHTML : html;
+  }
 
   // src/parse.ts
   function parseDcDocument(doc) {
     const dc = doc.querySelector("x-dc");
     if (!dc) return null;
     const scriptEl = doc.querySelector("script[data-dc-script]");
-    const { props, preview } = parseDataProps(
-      scriptEl?.getAttribute("data-props") ?? null
-    );
+    const { props, preview } = parseDataProps(scriptEl?.getAttribute("data-props") ?? null);
     return {
-      template: dc.innerHTML,
+      template: removeProfileSummaryCards(dc.innerHTML),
       js: scriptEl ? scriptEl.textContent || "" : "",
       props,
-      preview
+      preview,
     };
   }
   function parseDcText(src) {
@@ -43,14 +67,12 @@
     const template = src.slice(openMatch.index + openMatch[0].length, close);
     const doc = new DOMParser().parseFromString(src, "text/html");
     const scriptEl = doc.querySelector("script[data-dc-script]");
-    const { props, preview } = parseDataProps(
-      scriptEl?.getAttribute("data-props") ?? null
-    );
+    const { props, preview } = parseDataProps(scriptEl?.getAttribute("data-props") ?? null);
     return {
-      template,
+      template: removeProfileSummaryCards(template),
       js: scriptEl ? scriptEl.textContent || "" : "",
       props,
-      preview
+      preview,
     };
   }
   function parseDataProps(raw) {
@@ -76,8 +98,7 @@
     let p = pathname || "";
     try {
       p = decodeURIComponent(p);
-    } catch {
-    }
+    } catch {}
     const base = p.split("/").pop() || "Root";
     return base.replace(/\.dc\.html$/, "").replace(/\.html?$/, "") || "Root";
   }
@@ -135,8 +156,7 @@
     if (!/\.dc\.html?$/i.test(safeDecode(bootPath))) {
       try {
         bootPath = new URL(doc.baseURI || "/").pathname;
-      } catch {
-      }
+      } catch {}
     }
     return dcNameFromPath(bootPath);
   }
@@ -156,11 +176,13 @@
     runtime.setRootName(rootName);
     runtime.adoptParsed(rootName, parsed);
     if (!window.__resources) {
-      fetch(location.href).then((res) => res.ok ? res.text() : "").then((t) => {
-        const raw = t ? parseDcText(t) : null;
-        if (raw?.template) runtime.updateHtml(rootName, raw.template);
-      }).catch(() => {
-      });
+      fetch(location.href)
+        .then((res) => (res.ok ? res.text() : ""))
+        .then((t) => {
+          const raw = t ? parseDcText(t) : null;
+          if (raw?.template) runtime.updateHtml(rootName, raw.template);
+        })
+        .catch(() => {});
     }
     const dc = doc.querySelector("x-dc");
     const hostEl = doc.createElement("div");
@@ -190,11 +212,10 @@
         }
         return d;
       }, [entry.propsMeta]);
-      return h(Root, { ...defaults, ...entry.propOverrides || {} });
+      return h(Root, { ...defaults, ...(entry.propOverrides || {}) });
     }
     const ReactDOM = getReactDOM();
-    if (ReactDOM.createRoot)
-      ReactDOM.createRoot(hostEl).render(h(StandaloneRoot));
+    if (ReactDOM.createRoot) ReactDOM.createRoot(hostEl).render(h(StandaloneRoot));
     else ReactDOM.render(h(StandaloneRoot), hostEl);
     return rootName;
   }
@@ -297,8 +318,8 @@
   var CAMEL_ATTR = "sc-camel-";
   var INLINE_TEXT_TAGS = new Set(
     "a abbr b bdi bdo br cite code del dfn em i ins kbd mark q s samp small span strike strong sub sup u var wbr".split(
-      " "
-    )
+      " ",
+    ),
   );
   var RAW_WRAP = {
     select: "sc-raw-select",
@@ -309,11 +330,9 @@
     tr: "sc-raw-tr",
     td: "sc-raw-td",
     th: "sc-raw-th",
-    caption: "sc-raw-caption"
+    caption: "sc-raw-caption",
   };
-  var RAW_UNWRAP = Object.fromEntries(
-    Object.entries(RAW_WRAP).map(([k, v]) => [v, k])
-  );
+  var RAW_UNWRAP = Object.fromEntries(Object.entries(RAW_WRAP).map(([k, v]) => [v, k]));
   var EVENT_MAP = {
     onclick: "onClick",
     onchange: "onChange",
@@ -355,33 +374,24 @@
     onanimationstart: "onAnimationStart",
     onanimationend: "onAnimationEnd",
     onanimationiteration: "onAnimationIteration",
-    ontransitionend: "onTransitionEnd"
+    ontransitionend: "onTransitionEnd",
   };
   var ATTRS = `(?:[^>"']|"[^"]*"|'[^']*')*`;
-  var IMPORT_SELF_CLOSE_RE = new RegExp(
-    "<(x-import|dc-import)(" + ATTRS + ")/>",
-    "gi"
-  );
+  var IMPORT_SELF_CLOSE_RE = new RegExp("<(x-import|dc-import)(" + ATTRS + ")/>", "gi");
   var CAMEL_ATTR_RE = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
   function encodeCamelAttrs(html) {
     return html.replace(
       CAMEL_ATTR_RE,
-      (_, sp, name, eq) => sp + CAMEL_ATTR + name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + eq
+      (_, sp, name, eq) => sp + CAMEL_ATTR + name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + eq,
     );
   }
   function encodeCase(html) {
-    html = html.replace(
-      IMPORT_SELF_CLOSE_RE,
-      (_, t, a) => "<" + t + a + "></" + t + ">"
-    );
+    html = html.replace(IMPORT_SELF_CLOSE_RE, (_, t, a) => "<" + t + a + "></" + t + ">");
     html = html.replace(/<helmet(\s|>)/gi, "<sc-helmet$1");
     html = html.replace(/<\/helmet\s*>/gi, "</sc-helmet>");
     html = encodeCamelAttrs(html);
     for (const [real, alias] of Object.entries(RAW_WRAP)) {
-      html = html.replace(
-        new RegExp("(</?)" + real + "(?=[\\s>])", "gi"),
-        "$1" + alias
-      );
+      html = html.replace(new RegExp("(</?)" + real + "(?=[\\s>])", "gi"), "$1" + alias);
     }
     return html;
   }
@@ -406,7 +416,7 @@
     }
     if (raw.includes("{{")) {
       const parts = raw.split(/\{\{([\s\S]+?)\}\}/g);
-      return (vals) => parts.map((s, i) => i & 1 ? resolve(vals, s) ?? "" : s).join("");
+      return (vals) => parts.map((s, i) => (i & 1 ? (resolve(vals, s) ?? "") : s)).join("");
     }
     return () => raw;
   }
@@ -419,8 +429,7 @@
     for (const { name, value } of [...node.attributes]) {
       if (name === "sc-name" || name === "data-dc-tpl") continue;
       let key = name;
-      if (key.startsWith(CAMEL_ATTR))
-        key = kebabToCamel(key.slice(CAMEL_ATTR.length));
+      if (key.startsWith(CAMEL_ATTR)) key = kebabToCamel(key.slice(CAMEL_ATTR.length));
       if (key === "hint-size") {
         hintSize = value;
         continue;
@@ -435,8 +444,7 @@
       } else {
         if (key === "class") key = "className";
         else if (key === "for") key = "htmlFor";
-        else if (key.startsWith("on"))
-          key = EVENT_MAP[key] || "on" + key[2].toUpperCase() + key.slice(3);
+        else if (key.startsWith("on")) key = EVENT_MAP[key] || "on" + key[2].toUpperCase() + key.slice(3);
       }
       propGetters.push([key, compileAttr(value)]);
     }
@@ -452,7 +460,7 @@
     "width",
     "height",
     "z-index",
-    "transform"
+    "transform",
   ]);
   function hostPositionStyle(style) {
     const all = typeof style === "string" ? cssToObj(style) : style != null && typeof style === "object" ? style : null;
@@ -476,7 +484,7 @@
       for (const c of node.childNodes) stamp(c);
     })(tpl.content);
     const builders = walkChildren(tpl.content, host);
-    const render = ((vals, ctx) => builders.map((b, i) => b(vals || {}, ctx, i)));
+    const render = (vals, ctx) => builders.map((b, i) => b(vals || {}, ctx, i));
     render.__annotated = tpl.innerHTML;
     return render;
   }
@@ -573,40 +581,30 @@
       return () => txt;
     }
     const parts = txt.split(/\{\{([\s\S]+?)\}\}/g);
-    return (vals, ctx, key) => h(
-      getReact().Fragment,
-      { key },
-      ...parts.map((p, i) => {
-        if (!(i & 1)) return p;
-        const v = resolve(vals, p);
-        if (v === void 0) {
-          if (!ctx?.__streamingNow) {
-            if (document.body?.hasAttribute("data-dc-editor-on")) {
-              return h(
-                "span",
-                { key: i, className: "sc-interp sc-unresolved" },
-                "{{ " + p.trim() + " }}"
-              );
+    return (vals, ctx, key) =>
+      h(
+        getReact().Fragment,
+        { key },
+        ...parts.map((p, i) => {
+          if (!(i & 1)) return p;
+          const v = resolve(vals, p);
+          if (v === void 0) {
+            if (!ctx?.__streamingNow) {
+              if (document.body?.hasAttribute("data-dc-editor-on")) {
+                return h("span", { key: i, className: "sc-interp sc-unresolved" }, "{{ " + p.trim() + " }}");
+              }
+              warnUnresolved(ctx, "{{ " + p.trim() + " }} never resolved \u2014 rendered as empty");
+              return null;
             }
-            warnUnresolved(
-              ctx,
-              "{{ " + p.trim() + " }} never resolved \u2014 rendered as empty"
-            );
-            return null;
+            return h("span", { key: i, className: "sc-interp sc-missing" }, p.trim());
           }
-          return h(
-            "span",
-            { key: i, className: "sc-interp sc-missing" },
-            p.trim()
-          );
-        }
-        if (getReact().isValidElement(v) || Array.isArray(v)) {
-          return h(getReact().Fragment, { key: i }, v);
-        }
-        if (v === null || typeof v === "boolean") return null;
-        return h("span", { key: i, className: "sc-interp" }, String(v));
-      })
-    );
+          if (getReact().isValidElement(v) || Array.isArray(v)) {
+            return h(getReact().Fragment, { key: i }, v);
+          }
+          if (v === null || typeof v === "boolean") return null;
+          return h("span", { key: i, className: "sc-interp" }, String(v));
+        }),
+      );
   }
   function walkFor(el, host) {
     const listGet = compileAttr(el.getAttribute("list") || "");
@@ -619,10 +617,7 @@
       if (!Array.isArray(list)) {
         if (!ctx?.__streamingNow) {
           if (list !== void 0 && list !== null) {
-            warnUnresolved(
-              ctx,
-              'sc-for list="' + listSrc + '" is not an array (' + typeof list + ")"
-            );
+            warnUnresolved(ctx, 'sc-for list="' + listSrc + '" is not an array (' + typeof list + ")");
           }
           list = [];
         } else {
@@ -637,9 +632,9 @@
           return h(
             getReact().Fragment,
             { key: i },
-            kids.map((b, j) => b(sub, ctx, j))
+            kids.map((b, j) => b(sub, ctx, j)),
           );
-        })
+        }),
       );
     };
   }
@@ -651,11 +646,13 @@
     return (vals, ctx, key) => {
       let v = valGet(vals);
       if (v === void 0 && hintGet && ctx?.__streamingNow) v = hintGet(vals);
-      return v ? h(
-        getReact().Fragment,
-        { key },
-        kids.map((b, j) => b(vals, ctx, j))
-      ) : null;
+      return v
+        ? h(
+            getReact().Fragment,
+            { key },
+            kids.map((b, j) => b(vals, ctx, j)),
+          )
+        : null;
     };
   }
   function walkComponent(el, host) {
@@ -673,7 +670,7 @@
         key,
         __hintSize: hintSize,
         __tplId: tplId,
-        __hostStyle: styleGet ? hostPositionStyle(styleGet(vals)) : void 0
+        __hostStyle: styleGet ? hostPositionStyle(styleGet(vals)) : void 0,
       };
       for (const [k, g] of propGetters) {
         const v = g(vals);
@@ -688,16 +685,14 @@
     };
   }
   function walkXImport(el, host) {
-    const globalNameGet = compileAttr(
-      el.getAttribute("component-from-global-scope") || ""
-    );
-    const exportNameGet = compileAttr(
-      el.getAttribute("component") || el.getAttribute("name") || ""
-    );
-    const fromRaw = el.getAttribute("from") || (el.getAttribute("component-from-global-scope") ? "" : el.getAttribute("src") || el.getAttribute("import") || "");
+    const globalNameGet = compileAttr(el.getAttribute("component-from-global-scope") || "");
+    const exportNameGet = compileAttr(el.getAttribute("component") || el.getAttribute("name") || "");
+    const fromRaw =
+      el.getAttribute("from") ||
+      (el.getAttribute("component-from-global-scope") ? "" : el.getAttribute("src") || el.getAttribute("import") || "");
     const urls = fromRaw.trim() ? fromRaw.trim().split(/\s+/) : [];
     const url = urls.length ? urls[urls.length - 1] : "";
-    const kindOf = (u) => /\.(jsx|tsx)(\?|#|$)/i.test(u) ? "jsx" : "js";
+    const kindOf = (u) => (/\.(jsx|tsx)(\?|#|$)/i.test(u) ? "jsx" : "js");
     const tplId = el.getAttribute("data-dc-tpl");
     const styleRaw = el.getAttribute("style");
     el.removeAttribute("style");
@@ -721,21 +716,30 @@
     return (vals, ctx, key) => {
       const globalName = evalName(globalNameGet, vals);
       const name = globalName || evalName(exportNameGet, vals);
-      const C = !name || urlBindable ? null : globalName ? host.resolveExternalGlobal(url, globalName) : host.resolveExternal(url, name);
+      const C =
+        !name || urlBindable
+          ? null
+          : globalName
+            ? host.resolveExternalGlobal(url, globalName)
+            : host.resolveExternal(url, name);
       const hostStyle = styleGet ? hostPositionStyle(styleGet(vals)) : void 0;
-      const wrapper = wrap ? {
-        key,
-        className: "sc-host-x",
-        "data-dc-tpl": tplId,
-        style: hostStyle || { display: "contents" }
-      } : null;
+      const wrapper = wrap
+        ? {
+            key,
+            className: "sc-host-x",
+            "data-dc-tpl": tplId,
+            style: hostStyle || { display: "contents" },
+          }
+        : null;
       if (!C) {
-        const error = urlBindable ? "x-import `from` cannot contain {{ \u2026 }} \u2014 module URLs are resolved at parse time; use a literal URL" : host.resolveExternalError(url, name);
+        const error = urlBindable
+          ? "x-import `from` cannot contain {{ \u2026 }} \u2014 module URLs are resolved at parse time; use a literal URL"
+          : host.resolveExternalError(url, name);
         const ph = host.placeholder({
           key: wrapper ? void 0 : key,
           name,
           hintSize,
-          error
+          error,
         });
         return wrapper ? h("div", wrapper, ph) : ph;
       }
@@ -758,7 +762,7 @@
           key: wrapper ? void 0 : key,
           name,
           hintSize,
-          error: null
+          error: null,
         });
         return wrapper ? h("div", wrapper, ph) : ph;
       }
@@ -775,19 +779,16 @@
     }
     const s = clone.innerHTML;
     let h2 = 5381;
-    for (let i = 0; i < s.length; i++) h2 = (h2 << 5) + h2 + s.charCodeAt(i) | 0;
+    for (let i = 0; i < s.length; i++) h2 = ((h2 << 5) + h2 + s.charCodeAt(i)) | 0;
     return s.length + "." + (h2 >>> 0).toString(36);
   }
-  var NEVER_CONTENT_KEYED = new Set(
-    "script style textarea option title select canvas iframe video audio".split(
-      " "
-    )
-  );
+  var NEVER_CONTENT_KEYED = new Set("script style textarea option title select canvas iframe video audio".split(" "));
   var NOT_INLINE_SELECTOR = ":not(" + [...INLINE_TEXT_TAGS].join(",") + ")";
   function walkElement(el, host) {
     const realTag = RAW_UNWRAP[el.localName] || el.localName;
     const tplId = el.getAttribute("data-dc-tpl");
-    const inlineOnly = el.childNodes.length > 0 && !NEVER_CONTENT_KEYED.has(realTag) && el.querySelector(NOT_INLINE_SELECTOR) === null;
+    const inlineOnly =
+      el.childNodes.length > 0 && !NEVER_CONTENT_KEYED.has(realTag) && el.querySelector(NOT_INLINE_SELECTOR) === null;
     const keySuffix = inlineOnly ? "|" + contentKey(el) : "";
     const { propGetters, pseudoClasses } = collectProps(el, "dom", host);
     const deckKeyed = isDeckMountTag(el) ? walkDeckChildren(el, host) : null;
@@ -796,7 +797,7 @@
     return (vals, ctx, key) => {
       const props = {
         key: key + keySuffix,
-        "data-dc-tpl": tplId
+        "data-dc-tpl": tplId,
       };
       for (const [k, g] of propGetters) {
         let v = g(vals);
@@ -828,12 +829,9 @@
     forceUpdate() {
       this.__host && this.__host.forceUpdate();
     }
-    componentDidMount() {
-    }
-    componentDidUpdate(_prevProps) {
-    }
-    componentWillUnmount() {
-    }
+    componentDidMount() {}
+    componentDidUpdate(_prevProps) {}
+    componentWillUnmount() {}
     /** The flat object the template renders against (merged over props). */
     renderVals() {
       return {};
@@ -845,7 +843,7 @@
       "DCLogic",
       "StreamableLogic",
       "React",
-      src + '\n;return (typeof Component!=="undefined"&&Component)||undefined;'
+      src + '\n;return (typeof Component!=="undefined"&&Component)||undefined;',
     );
     return fn(StreamableLogic, StreamableLogic, getReact());
   }
@@ -859,25 +857,16 @@
     for (const k of ak) if (a[k] !== b[k]) return false;
     return true;
   }
-  function Placeholder({
-    name,
-    hintSize,
-    streaming,
-    error
-  }) {
+  function Placeholder({ name, hintSize, streaming, error }) {
     const [w, hgt] = (hintSize || "100%,60px").split(",");
     return h(
       "div",
       {
         className: "sc-placeholder" + (streaming ? " sc-streaming" : ""),
         style: { width: w.trim(), height: hgt && hgt.trim() },
-        title: name
+        title: name,
       },
-      error ? h(
-        "div",
-        { className: "sc-placeholder-error" },
-        (name ? name + ": " : "") + error
-      ) : null
+      error ? h("div", { className: "sc-placeholder-error" }, (name ? name + ": " : "") + error) : null,
     );
   }
   function hintToMin(hint) {
@@ -929,11 +918,7 @@
         return { __err: e instanceof Error && e.message ? e.message : String(e) };
       }
       componentDidCatch(e, info) {
-        console.error(
-          "[dc-runtime] render error in <" + this.__name + ">:",
-          e,
-          info?.componentStack || ""
-        );
+        console.error("[dc-runtime] render error in <" + this.__name + ">:", e, info?.componentStack || "");
       }
       /** Instantiate the logic class (or the no-op base) and adopt `prevState`
        *  over its initial state — used both at mount and on hot-swap. */
@@ -950,13 +935,10 @@
           this.__failedUserProps = this.__userProps();
           this.__failedVer = registry.get(this.__name).ver;
           this.__ctorError = this.__name + ": " + (e instanceof Error && e.message ? e.message : String(e));
-          this.logic = new StreamableLogic(
-            this.__userProps()
-          );
+          this.logic = new StreamableLogic(this.__userProps());
         }
         this.logic.__host = this;
-        if (prevState)
-          this.logic.state = { ...this.logic.state || {}, ...prevState };
+        if (prevState) this.logic.state = { ...(this.logic.state || {}), ...prevState };
       }
       /** The props the author's logic + template see — internal __-prefixed
        *  wiring stripped. */
@@ -977,7 +959,13 @@
         const r = registry.get(this.__name);
         const Next = r.Logic;
         const Cur = this.logic.constructor;
-        if (Next === Cur || !Next && Cur === StreamableLogic || Next === this.__failedLogic && r.ver === this.__failedVer && shallowEqual(this.__userProps(), this.__failedUserProps)) {
+        if (
+          Next === Cur ||
+          (!Next && Cur === StreamableLogic) ||
+          (Next === this.__failedLogic &&
+            r.ver === this.__failedVer &&
+            shallowEqual(this.__userProps(), this.__failedUserProps))
+        ) {
           return;
         }
         if (!this.__needsDidMount) {
@@ -1028,29 +1016,28 @@
       }
       render() {
         const r = registry.get(this.__name);
-        const cls = "sc-host" + (r.htmlStreaming ? " sc-streaming-html" : "") + (r.jsStreaming ? " sc-streaming-js" : "");
+        const cls =
+          "sc-host" + (r.htmlStreaming ? " sc-streaming-html" : "") + (r.jsStreaming ? " sc-streaming-js" : "");
         const hintStyle = r.htmlStreaming ? hintToMin(this.props.__hintSize) : void 0;
-        const hostStyle = this.props.__hostStyle || hintStyle ? { ...hintStyle || {}, ...this.props.__hostStyle || {} } : void 0;
+        const hostStyle =
+          this.props.__hostStyle || hintStyle ? { ...(hintStyle || {}), ...(this.props.__hostStyle || {}) } : void 0;
         const hostBase = {
           className: cls,
           style: hostStyle,
           "data-sc-name": this.__name,
-          "data-dc-tpl": this.props.__tplId
+          "data-dc-tpl": this.props.__tplId,
         };
         const chain = Array.isArray(this.context) ? this.context : [];
         if (chain.includes(this.__name)) {
-          const cycle = [
-            ...chain.slice(chain.indexOf(this.__name)),
-            this.__name
-          ].join(" \u2192 ");
+          const cycle = [...chain.slice(chain.indexOf(this.__name)), this.__name].join(" \u2192 ");
           return h(
             "div",
             { ...hostBase, className: cls + " sc-has-error" },
             h(Placeholder, {
               name: this.__name,
               hintSize: this.props.__hintSize,
-              error: "circular import: " + cycle
-            })
+              error: "circular import: " + cycle,
+            }),
           );
         }
         if (this.state.__err) {
@@ -1060,29 +1047,25 @@
             h(
               "div",
               { className: "sc-logic-error", "data-omelette-chrome": "" },
-              this.__name + ": " + this.state.__err
+              this.__name + ": " + this.state.__err,
             ),
             h(Placeholder, {
               name: this.__name,
               hintSize: this.props.__hintSize,
-              error: this.state.__err
-            })
+              error: this.state.__err,
+            }),
           );
         }
         this.__reconcileLogic();
         if (!r.tpl) {
-          return h(
-            "div",
-            hostBase,
-            h(Placeholder, { name: this.__name, hintSize: this.props.__hintSize })
-          );
+          return h("div", hostBase, h(Placeholder, { name: this.__name, hintSize: this.props.__hintSize }));
         }
         const userProps = this.__userProps();
         this.logic.props = userProps;
         let vals = userProps;
         let renderErr = r.logicError || this.__ctorError;
         try {
-          vals = { ...userProps, ...this.logic.renderVals() || {} };
+          vals = { ...userProps, ...(this.logic.renderVals() || {}) };
         } catch (e) {
           console.error(e);
           renderErr = this.__name + ".renderVals(): " + (e instanceof Error && e.message ? e.message : String(e));
@@ -1092,16 +1075,8 @@
         return h(
           "div",
           { ...hostBase, className: cls + (renderErr ? " sc-has-error" : "") },
-          renderErr && h(
-            "div",
-            { className: "sc-logic-error", "data-omelette-chrome": "" },
-            renderErr
-          ),
-          h(
-            AncestorContext.Provider,
-            { value: [...chain, this.__name] },
-            r.tpl(vals, this)
-          )
+          renderErr && h("div", { className: "sc-logic-error", "data-omelette-chrome": "" }, renderErr),
+          h(AncestorContext.Provider, { value: [...chain, this.__name] }, r.tpl(vals, this)),
         );
       }
     }
@@ -1128,7 +1103,7 @@
     }
     return {
       getDC,
-      StreamableComponent
+      StreamableComponent,
     };
   }
 
@@ -1196,61 +1171,54 @@
       if (existing) return existing;
       cache.set(url, null);
       console.info("[dc-runtime] x-import: loading", url, "(" + kind + ")");
-      const ready = Promise.all([
-        kind === "jsx" ? ensureBabel() : Promise.resolve(),
-        after ?? Promise.resolve()
-      ]);
-      const p = ready.then(() => {
-        const pre = bundledBlob(url);
-        if (pre) return pre.text();
-        return fetch(url).then((r) => {
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return r.text();
-        });
-      }).then((src) => {
-        const code = kind === "jsx" ? window.Babel.transform(src, {
-          filename: url,
-          presets: ["react", "typescript"]
-        }).code : src;
-        const module = { exports: {} };
-        const before = new Set(Object.keys(window));
-        //! nosemgrep: eval-and-function-constructor
-        new Function("React", "module", "exports", "require", code)(
-          getReact(),
-          module,
-          module.exports,
-          () => ({})
-        );
-        const globals = {};
-        for (const k of Object.keys(window)) {
-          if (!before.has(k) && typeof window[k] === "function") {
-            globals[k] = window[k];
+      const ready = Promise.all([kind === "jsx" ? ensureBabel() : Promise.resolve(), after ?? Promise.resolve()]);
+      const p = ready
+        .then(() => {
+          const pre = bundledBlob(url);
+          if (pre) return pre.text();
+          return fetch(url).then((r) => {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.text();
+          });
+        })
+        .then((src) => {
+          const code =
+            kind === "jsx"
+              ? window.Babel.transform(src, {
+                  filename: url,
+                  presets: ["react", "typescript"],
+                }).code
+              : src;
+          const module = { exports: {} };
+          const before = new Set(Object.keys(window));
+          //! nosemgrep: eval-and-function-constructor
+          new Function("React", "module", "exports", "require", code)(getReact(), module, module.exports, () => ({}));
+          const globals = {};
+          for (const k of Object.keys(window)) {
+            if (!before.has(k) && typeof window[k] === "function") {
+              globals[k] = window[k];
+            }
           }
-        }
-        cache.set(url, { mod: module.exports, globals });
-        console.info(
-          "[dc-runtime] x-import: loaded",
-          url,
-          "\u2014 exports:",
-          Object.keys(module.exports),
-          "window globals:",
-          Object.keys(globals)
-        );
-        onResolved();
-      }).catch((e) => {
-        cache.set(url, {
-          mod: {},
-          globals: {},
-          error: "failed to load: " + (e instanceof Error && e.message ? e.message : String(e))
+          cache.set(url, { mod: module.exports, globals });
+          console.info(
+            "[dc-runtime] x-import: loaded",
+            url,
+            "\u2014 exports:",
+            Object.keys(module.exports),
+            "window globals:",
+            Object.keys(globals),
+          );
+          onResolved();
+        })
+        .catch((e) => {
+          cache.set(url, {
+            mod: {},
+            globals: {},
+            error: "failed to load: " + (e instanceof Error && e.message ? e.message : String(e)),
+          });
+          console.error("[dc-runtime] x-import: FAILED to load", url, "(" + kind + ")", e);
+          onResolved();
         });
-        console.error(
-          "[dc-runtime] x-import: FAILED to load",
-          url,
-          "(" + kind + ")",
-          e
-        );
-        onResolved();
-      });
       pending.set(url, p);
       return p;
     }
@@ -1258,13 +1226,17 @@
       const entry = cache.get(url);
       if (!entry) return null;
       const { mod, globals } = entry;
-      const C = mod && mod[name] || globals && globals[name] || typeof window !== "undefined" && window[name] || mod && mod.default;
+      const C =
+        (mod && mod[name]) ||
+        (globals && globals[name]) ||
+        (typeof window !== "undefined" && window[name]) ||
+        (mod && mod.default);
       if (typeof C === "function") return C;
       const key = url + "\0" + name;
       if (!reportedMissing.has(key)) {
         reportedMissing.set(
           key,
-          entry.error || 'no export named "' + name + '" (has: ' + Object.keys(mod).join(", ") + ")"
+          entry.error || 'no export named "' + name + '" (has: ' + Object.keys(mod).join(", ") + ")",
         );
         console.error(
           "[dc-runtime] x-import: module",
@@ -1275,7 +1247,7 @@
           Object.keys(mod),
           "window globals:",
           Object.keys(globals),
-          ". The module must `module.exports = {" + name + "}` or set `window." + name + "`."
+          ". The module must `module.exports = {" + name + "}` or set `window." + name + "`.",
         );
       }
       return null;
@@ -1296,7 +1268,7 @@
           console.warn(
             "[dc-runtime] x-import: global",
             JSON.stringify(name),
-            "never appeared on window after " + GLOBAL_POLL_TIMEOUT_MS + "ms"
+            "never appeared on window after " + GLOBAL_POLL_TIMEOUT_MS + "ms",
           );
           return;
         }
@@ -1332,7 +1304,11 @@
             url,
             "loaded but no custom element",
             JSON.stringify(name),
-            "is registered and window." + name + " is not a function \u2014 rendering <" + name + "> as an unknown element."
+            "is registered and window." +
+              name +
+              " is not a function \u2014 rendering <" +
+              name +
+              "> as an unknown element.",
           );
         }
       }
@@ -1354,13 +1330,13 @@
   }
 
   // src/atomics.ts
-  var ATOMIC_CSS = (
+  var ATOMIC_CSS =
     // layout
-    ".fx{display:flex}.col{display:flex;flex-direction:column}.grid{display:grid}.ac{align-items:center}.jc{justify-content:center}.jb{justify-content:space-between}.f1{flex:1}.noshrink{flex-shrink:0}.wrap{flex-wrap:wrap}.fw5{font-weight:500}.fw6{font-weight:600}.fw7{font-weight:700}.fw8{font-weight:800}.fs11{font-size:11px}.fs12{font-size:12px}.fs13{font-size:13px}.fs14{font-size:14px}.fs15{font-size:15px}.fs16{font-size:16px}.fs20{font-size:20px}.fs22{font-size:22px}.upper{text-transform:uppercase}.tc{text-align:center}.nowrap{white-space:nowrap}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}.gap16{gap:16px}.gap24{gap:24px}.m0{margin:0}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.posrel{position:relative}.posabs{position:absolute}.round{border-radius:50%}.ohide{overflow:hidden}.bbox{box-sizing:border-box}.pointer{cursor:pointer}.w100{width:100%}.b0{border:none}"
-  );
+    ".fx{display:flex}.col{display:flex;flex-direction:column}.grid{display:grid}.ac{align-items:center}.jc{justify-content:center}.jb{justify-content:space-between}.f1{flex:1}.noshrink{flex-shrink:0}.wrap{flex-wrap:wrap}.fw5{font-weight:500}.fw6{font-weight:600}.fw7{font-weight:700}.fw8{font-weight:800}.fs11{font-size:11px}.fs12{font-size:12px}.fs13{font-size:13px}.fs14{font-size:14px}.fs15{font-size:15px}.fs16{font-size:16px}.fs20{font-size:20px}.fs22{font-size:22px}.upper{text-transform:uppercase}.tc{text-align:center}.nowrap{white-space:nowrap}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}.gap16{gap:16px}.gap24{gap:24px}.m0{margin:0}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.posrel{position:relative}.posabs{position:absolute}.round{border-radius:50%}.ohide{overflow:hidden}.bbox{box-sizing:border-box}.pointer{cursor:pointer}.w100{width:100%}.b0{border:none}";
 
   // src/helmet.ts
-  var DESIGN_DOC_MODE_RE = /<meta\b[^>]*\bname\s*=\s*["']design_doc_mode["'][^>]*\b(?:content|value)\s*=\s*["'](\w+)["']/i;
+  var DESIGN_DOC_MODE_RE =
+    /<meta\b[^>]*\bname\s*=\s*["']design_doc_mode["'][^>]*\b(?:content|value)\s*=\s*["'](\w+)["']/i;
   var CANVAS_BG_LIGHT = "#f0eee6";
   var CANVAS_BG_DARK = "#2e2c26";
   function createHelmetManager(doc, isStreaming) {
@@ -1371,11 +1347,13 @@
     let appTheme = "light";
     try {
       const ds = doc.documentElement.dataset.theme;
-      appTheme = ds === "dark" || ds === "light" ? ds : new URLSearchParams(doc.defaultView?.location.search ?? "").get(
-        "theme"
-      ) === "dark" ? "dark" : "light";
-    } catch {
-    }
+      appTheme =
+        ds === "dark" || ds === "light"
+          ? ds
+          : new URLSearchParams(doc.defaultView?.location.search ?? "").get("theme") === "dark"
+            ? "dark"
+            : "light";
+    } catch {}
     function applyCanvasBg() {
       if (!canvasStyleEl) return;
       const bg = appTheme === "dark" ? CANVAS_BG_DARK : CANVAS_BG_LIGHT;
@@ -1385,8 +1363,7 @@
       if (window.parent === window) return;
       try {
         window.parent.postMessage({ type: "__dc_design_mode", mode }, "*");
-      } catch {
-      }
+      } catch {}
     }
     function setDesignDocMode(mode) {
       if (mode === designDocMode) return;
@@ -1428,7 +1405,7 @@
         doc.head.appendChild(el);
       }
       return (_vals, ctx) => {
-        const name = ctx && ctx.__name || "";
+        const name = (ctx && ctx.__name) || "";
         const streaming = !!(name && isStreaming(name));
         for (let i = 0; i < raw.length; i++) {
           const child = raw[i];
@@ -1440,8 +1417,7 @@
             if (mounted.has(key)) continue;
             mounted.add(key);
             const el = doc.createElement("script");
-            for (const { name: an, value } of [...child.attributes])
-              el.setAttribute(an, value);
+            for (const { name: an, value } of [...child.attributes]) el.setAttribute(an, value);
             if (child.textContent) el.textContent = child.textContent;
             doc.head.appendChild(el);
           } else if (tag === "LINK" || tag === "META") {
@@ -1462,8 +1438,7 @@
                 } else if (child.getAttribute("media")) {
                   el.setAttribute("media", child.getAttribute("media"));
                 }
-                if (child.getAttribute("title"))
-                  el.setAttribute("title", child.getAttribute("title"));
+                if (child.getAttribute("title")) el.setAttribute("title", child.getAttribute("title"));
                 void blob.text().then((css) => {
                   el.textContent = css;
                 });
@@ -1484,8 +1459,7 @@
             for (const { name: an, value } of [...child.attributes]) {
               if (el.getAttribute(an) !== value) el.setAttribute(an, value);
             }
-            if (el.textContent !== child.textContent)
-              el.textContent = child.textContent;
+            if (el.textContent !== child.textContent) el.textContent = child.textContent;
           }
         }
         return null;
@@ -1496,7 +1470,11 @@
 
   // src/pseudo.ts
   function scanUnquotedUrl(css, i) {
-    if (css[i] !== "u" && css[i] !== "U" || css.slice(i, i + 4).toLowerCase() !== "url(" || /[a-z0-9_-]/i.test(css[i - 1] ?? "")) {
+    if (
+      (css[i] !== "u" && css[i] !== "U") ||
+      css.slice(i, i + 4).toLowerCase() !== "url(" ||
+      /[a-z0-9_-]/i.test(css[i - 1] ?? "")
+    ) {
       return -1;
     }
     let j = i + 4;
@@ -1562,7 +1540,11 @@
       }
     }
     decls.push(css.slice(start));
-    return decls.map((d) => d.trim()).filter(Boolean).map((d) => /!\s*important$/i.test(d) ? d : d + " !important").join(";");
+    return decls
+      .map((d) => d.trim())
+      .filter(Boolean)
+      .map((d) => (/!\s*important$/i.test(d) ? d : d + " !important"))
+      .join(";");
   }
   function createPseudoSheet(doc) {
     let el = null;
@@ -1579,10 +1561,7 @@
       const cls = "scp" + (n++).toString(36);
       const isPseudoElement = pseudo === "before" || pseudo === "after";
       const sel = isPseudoElement ? "." + cls + "::" + pseudo : "." + cls + ":" + pseudo;
-      el.sheet.insertRule(
-        sel + "{" + (isPseudoElement ? css : importantify(css)) + "}",
-        el.sheet.cssRules.length
-      );
+      el.sheet.insertRule(sel + "{" + (isPseudoElement ? css : importantify(css)) + "}", el.sheet.cssRules.length);
       cache.set(k, cls);
       return cls;
     };
@@ -1592,16 +1571,19 @@
   function createRegistry() {
     const entries = /* @__PURE__ */ Object.create(null);
     function get(name) {
-      return entries[name] || (entries[name] = {
-        html: "",
-        tpl: null,
-        Logic: null,
-        jsStreaming: false,
-        htmlStreaming: false,
-        ver: 0,
-        subs: /* @__PURE__ */ new Set(),
-        fetched: false
-      });
+      return (
+        entries[name] ||
+        (entries[name] = {
+          html: "",
+          tpl: null,
+          Logic: null,
+          jsStreaming: false,
+          htmlStreaming: false,
+          ver: 0,
+          subs: /* @__PURE__ */ new Set(),
+          fetched: false,
+        })
+      );
     }
     function bump(name) {
       const r = get(name);
@@ -1614,7 +1596,7 @@
       bump,
       bumpAll() {
         for (const n in entries) bump(n);
-      }
+      },
     };
   }
 
@@ -1623,10 +1605,7 @@
   function createRuntime(doc = document) {
     const registry = createRegistry();
     const pseudoClass = createPseudoSheet(doc);
-    const helmet = createHelmetManager(
-      doc,
-      (name) => registry.get(name).htmlStreaming
-    );
+    const helmet = createHelmetManager(doc, (name) => registry.get(name).htmlStreaming);
     const external = createExternalModules(() => registry.bumpAll());
     const factory = createComponentFactory(registry, ensureFetched);
     const host = {
@@ -1637,7 +1616,7 @@
       resolveExternal: (url, name) => external.resolve(url, name),
       resolveExternalGlobal: (url, name) => external.resolveGlobal(url, name),
       resolveExternalError: (url, name) => external.getError(url, name),
-      pseudoClass
+      pseudoClass,
     };
     function ensureFetched(name) {
       const r = registry.get(name);
@@ -1648,40 +1627,39 @@
       const pre = res ? res[url] : void 0;
       const target = typeof pre === "string" && pre ? pre : url;
       const blob = bundledBlob(target);
-      (blob ? blob.text() : fetch(target).then((res2) => {
-        if (!res2.ok) {
-          console.error(
-            '[dc-runtime] sibling fetch for "' + name + '" failed:',
-            url,
-            "returned",
-            res2.status,
-            "\u2014 the reference renders as an empty placeholder."
-          );
-          return "";
-        }
-        return res2.text();
-      })).then((t) => {
-        if (!t) return;
-        const parsed = parseDcText(t);
-        if (!parsed) {
-          console.error(
-            '[dc-runtime] sibling fetch for "' + name + '":',
-            url,
-            "has no <x-dc> block \u2014 not a Design Component."
-          );
-          return;
-        }
-        if (parsed.props) r.propsMeta = parsed.props;
-        if (parsed.preview) r.preview = parsed.preview;
-        if (parsed.template && !r.html) updateHtml(name, parsed.template);
-        if (parsed.js && !r.Logic) updateJs(name, parsed.js);
-      }).catch(
-        (e) => console.error(
-          '[dc-runtime] sibling fetch for "' + name + '" threw:',
-          url,
-          e
-        )
-      );
+      (blob
+        ? blob.text()
+        : fetch(target).then((res2) => {
+            if (!res2.ok) {
+              console.error(
+                '[dc-runtime] sibling fetch for "' + name + '" failed:',
+                url,
+                "returned",
+                res2.status,
+                "\u2014 the reference renders as an empty placeholder.",
+              );
+              return "";
+            }
+            return res2.text();
+          })
+      )
+        .then((t) => {
+          if (!t) return;
+          const parsed = parseDcText(t);
+          if (!parsed) {
+            console.error(
+              '[dc-runtime] sibling fetch for "' + name + '":',
+              url,
+              "has no <x-dc> block \u2014 not a Design Component.",
+            );
+            return;
+          }
+          if (parsed.props) r.propsMeta = parsed.props;
+          if (parsed.preview) r.preview = parsed.preview;
+          if (parsed.template && !r.html) updateHtml(name, parsed.template);
+          if (parsed.js && !r.Logic) updateJs(name, parsed.js);
+        })
+        .catch((e) => console.error('[dc-runtime] sibling fetch for "' + name + '" threw:', url, e));
     }
     let rootName = null;
     function updateHtml(name, html) {
@@ -1700,7 +1678,7 @@
     }
     function updateJs(name, src) {
       const r = registry.get(name);
-      const seq = r.jsSeq = (r.jsSeq || 0) + 1;
+      const seq = (r.jsSeq = (r.jsSeq || 0) + 1);
       try {
         const Cls = evalDcLogic(src);
         if (r.jsSeq !== seq) return;
@@ -1716,7 +1694,7 @@
           "[dc-runtime] logic class eval FAILED for",
           name,
           "\u2014 the template renders with props only.",
-          e
+          e,
         );
         r.logicError = name + ": " + (e instanceof Error && e.message ? e.message : String(e));
       }
@@ -1781,10 +1759,10 @@
       },
       annotatedTemplate: (name) => {
         const r = registry.get(name);
-        return r.tpl && r.tpl.__annotated || null;
+        return (r.tpl && r.tpl.__annotated) || null;
       },
       templateSource: (name) => registry.get(name).html || null,
-      StreamableLogic
+      StreamableLogic,
     };
   }
 
@@ -1810,7 +1788,7 @@
         if (name !== void 0) return liveOne(name);
         for (const n of [...since.keys()]) if (liveOne(n)) return true;
         return false;
-      }
+      },
     };
   }
 
@@ -1840,10 +1818,9 @@
     if (w.React && w.ReactDOM) return Promise.resolve();
     const react = cdnScriptFor(REACT_URL, REACT_SRI);
     const reactDom = cdnScriptFor(REACT_DOM_URL, REACT_DOM_SRI);
-    return Promise.all([
-      loadScript(react.src, react.integrity),
-      loadScript(reactDom.src, reactDom.integrity)
-    ]).then(() => void 0);
+    return Promise.all([loadScript(react.src, react.integrity), loadScript(reactDom.src, reactDom.integrity)]).then(
+      () => void 0,
+    );
   }
   function init() {
     const runtime = createRuntime(document);
@@ -1859,13 +1836,12 @@
           {
             type: "__dc_booted",
             rootName,
-            propsMeta: r && r.propsMeta || null,
-            preview: r && r.preview || null
+            propsMeta: (r && r.propsMeta) || null,
+            preview: (r && r.preview) || null,
           },
-          "*"
+          "*",
         );
-      } catch {
-      }
+      } catch {}
     };
     const streams = createStreamTracker();
     const api = {
@@ -1896,7 +1872,7 @@
       // `DCLogic` is the documented base class name; `StreamableLogic` is the
       // implementation alias kept for any project that already references it.
       DCLogic: runtime.StreamableLogic,
-      StreamableLogic: runtime.StreamableLogic
+      StreamableLogic: runtime.StreamableLogic,
     };
     Object.assign(window, api);
     window.__dcContentKeyed = true;
@@ -1904,8 +1880,10 @@
     else document.addEventListener("DOMContentLoaded", () => api.__dcBoot());
   }
   hideRawTemplate();
-  loadReactUmd().then(init).catch((err) => {
-    console.error("[dc] failed to load React or boot:", err);
-    throw err;
-  });
+  loadReactUmd()
+    .then(init)
+    .catch((err) => {
+      console.error("[dc] failed to load React or boot:", err);
+      throw err;
+    });
 })();
