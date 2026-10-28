@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { supabase, setRememberMe } from "@/integrations/supabase/client";
+import { supabase, setRememberMe, isVerifiedRecoverySession } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,15 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [recovery, setRecovery] = useState<"request" | "sent" | "reset" | "done" | null>(null);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [recoveryError, setRecoveryError] = useState("");
+  const [resendAt, setResendAt] = useState(0);
+  const [now, setNow] = useState(Date.now());
+  const recoveryVerified = useRef(false);
+  const recoveryActive = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -69,10 +78,205 @@ function AuthPage() {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/" });
+    let active = true;
+    // A URL flag is navigation context only, NEVER proof of recovery.
+    const params = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const returning = params.get("recovery") === "1" || hash.get("type") === "recovery";
+    if (returning) {
+      recoveryActive.current = true;
+      setRecovery("request");
+      if (hash.has("error")) setRecoveryError("This recovery link is invalid or expired. Request a new email below.");
+    }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (event === "PASSWORD_RECOVERY" && session) {
+        recoveryVerified.current = true;
+        recoveryActive.current = true;
+        setRecovery("reset");
+        setRecoveryError("");
+        setPassword("");
+        setConfirmation("");
+        // Remove tokens and callback flags from the visible URL/history.
+        window.history.replaceState(window.history.state, "", "/auth?recovery=1");
+      } else if ((event === "SIGNED_OUT" || event === "SIGNED_IN") && recoveryVerified.current) {
+        recoveryVerified.current = false;
+        setRecovery("request");
+        setRecoveryError("Your recovery session ended. Request a new recovery email.");
+      }
     });
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error && returning) setRecoveryError("Unable to verify this link. Request a new recovery email.");
+        if (isVerifiedRecoverySession(data.session)) {
+          recoveryVerified.current = true;
+          recoveryActive.current = true;
+          setRecovery("reset");
+          setRecoveryError("");
+          setPassword("");
+          setConfirmation("");
+          window.history.replaceState(window.history.state, "", "/auth?recovery=1");
+        } else if (data.session && !recoveryActive.current) navigate({ to: "/" });
+      })
+      .catch(() => {
+        if (active && returning) setRecoveryError("Unable to verify this link. Request a new recovery email.");
+      });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
+
+  useEffect(() => {
+    if (!resendAt) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [resendAt]);
+
+  const openRecovery = () => {
+    recoveryActive.current = true;
+    setRecovery("request");
+    setRecoveryEmail(email.trim());
+    setPassword("");
+    setConfirmation("");
+    setCode("");
+    setRecoveryError("");
+  };
+  const closeRecovery = async () => {
+    const id = begin();
+    if (!id) return;
+    try {
+      if (recoveryVerified.current) {
+        const { error } = await supabase.auth.signOut({ scope: "local" });
+        if (error) throw error;
+      }
+      if (!live(id)) return;
+      recoveryVerified.current = false;
+      recoveryActive.current = false;
+      setRecovery(null);
+      setRecoveryError("");
+      setPassword("");
+      setConfirmation("");
+      setCode("");
+      setMode("signin");
+      window.history.replaceState(window.history.state, "", "/auth");
+    } catch {
+      if (live(id)) setRecoveryError("Could not close the recovery session. Please try again.");
+    } finally {
+      end(id);
+    }
+  };
+  const sendRecovery = async (event?: React.FormEvent) => {
+    event?.preventDefault();
+    if (Date.now() < resendAt) return;
+    const id = begin();
+    if (!id) return;
+    const address = recoveryEmail.trim();
+    setRecoveryError("");
+    try {
+      // Recovery is temporary and uses the existing account only: no signUp/signInWithOtp.
+      setRememberMe(false);
+      const { error } = await supabase.auth.resetPasswordForEmail(address, {
+        redirectTo: `${window.location.origin}/auth?recovery=1`,
+      });
+      if (!live(id)) return;
+      if (error) throw error;
+      setRecoveryEmail(address);
+      setCode("");
+      setRecovery("sent");
+      setNow(Date.now());
+      setResendAt(Date.now() + 60000);
+    } catch {
+      if (live(id))
+        setRecoveryError(
+          "We could not process that request. Please wait a minute and try again. No account details are disclosed.",
+        );
+    } finally {
+      end(id);
+    }
+  };
+  const verifyRecovery = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const id = begin();
+    if (!id) return;
+    setRecoveryError("");
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: recoveryEmail,
+        token: code.trim(),
+        type: "recovery",
+      });
+      if (!live(id)) return;
+      if (error || !data.session) throw new Error("Invalid recovery code");
+      recoveryVerified.current = true;
+      setRecovery("reset");
+      setPassword("");
+      setConfirmation("");
+      setCode("");
+    } catch {
+      if (live(id))
+        setRecoveryError(
+          "That code is invalid or expired. Use the newest code from your recovery email, or request another email.",
+        );
+    } finally {
+      end(id);
+    }
+  };
+  const saveRecoveryPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!recoveryVerified.current) {
+      setRecovery("request");
+      return;
+    }
+    if (password !== confirmation) {
+      setRecoveryError("Passwords do not match.");
+      return;
+    }
+    const id = begin();
+    if (!id) return;
+    setRecoveryError("");
+    try {
+      const current = await supabase.auth.getSession();
+      if (!live(id)) return;
+      if (current.error || !isVerifiedRecoverySession(current.data.session)) {
+        recoveryVerified.current = false;
+        setRecovery("request");
+        setRecoveryError("Your verified recovery session ended. Request a new recovery email.");
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password });
+      if (!live(id)) return;
+      if (error) {
+        setRecoveryError(
+          "Password could not be updated. Use a different, stronger password, or request a fresh recovery email if your session expired.",
+        );
+        return;
+      }
+      setPassword("");
+      setConfirmation("");
+      // Do not retain an authenticated recovery session on a shared device.
+      const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+      if (!live(id)) return;
+      recoveryVerified.current = !!signOutError;
+      setRecovery("done");
+      setRecoveryError(
+        signOutError
+          ? "Your password was updated, but this recovery session could not be closed. Use Back to sign in to retry closing it."
+          : "",
+      );
+    } catch {
+      if (live(id))
+        setRecoveryError(
+          "Connection interrupted. Your password may have changed. Try signing in, or request a fresh recovery email.",
+        );
+    } finally {
+      end(id);
+    }
+  };
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +309,9 @@ function AuthPage() {
     if (!id) return;
     try {
       setRememberMe(rememberMe);
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
       if (!live(id)) return;
       if (result.error) {
         toast.error(result.error.message || "Google sign-in failed");
@@ -119,6 +325,166 @@ function AuthPage() {
       end(id);
     }
   };
+
+  if (recovery)
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="hud-card p-6 sm:p-8 w-full max-w-md flex flex-col gap-5">
+          <div className="text-center">
+            <div className="hud-label text-primary hud-glow text-lg">EVOLUTION OS</div>
+            <h1 className="mt-3 text-xl font-semibold">
+              {recovery === "reset"
+                ? "Choose a new password"
+                : recovery === "done"
+                  ? "Password updated"
+                  : "Reset your password"}
+            </h1>
+          </div>
+          {recoveryError && (
+            <p role="alert" className="text-sm text-destructive">
+              {recoveryError}
+            </p>
+          )}
+          {recovery === "request" && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Use the email on your Evolution account. Gmail and other email addresses are supported.
+              </p>
+              <form onSubmit={sendRecovery} className="flex flex-col gap-4">
+                <label className="text-sm">
+                  Account email
+                  <Input
+                    autoComplete="email"
+                    type="email"
+                    required
+                    value={recoveryEmail}
+                    disabled={loading}
+                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                    className="mt-2"
+                  />
+                </label>
+                <Button disabled={loading || now < resendAt} type="submit">
+                  {loading
+                    ? "Requesting…"
+                    : now < resendAt
+                      ? `Try again in ${Math.ceil((resendAt - now) / 1000)}s`
+                      : "Send recovery email"}
+                </Button>
+              </form>
+              <div className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
+                <strong className="block text-foreground mb-1">Phone verification is not available</strong>
+                SMS recovery must be enabled and linked to your existing account first. Use email recovery here.
+              </div>
+              <p className="text-xs text-muted-foreground">
+                If you joined with Google, go back and choose Continue with Google. Your Google password is managed by
+                Google.
+              </p>
+            </>
+          )}
+          {recovery === "sent" && (
+            <>
+              <p role="status" className="text-sm text-muted-foreground">
+                If an eligible account exists for <span className="break-all text-foreground">{recoveryEmail}</span>, a
+                recovery email will arrive. Check your inbox and spam folder, then open its secure reset link.
+              </p>
+              <details className="rounded-lg border border-border p-3">
+                <summary className="cursor-pointer text-sm">My email contains a verification code</summary>
+                <p className="text-xs text-muted-foreground my-3">
+                  Enter the code exactly as shown in your recovery email. Six-digit codes require provider
+                  configuration; if your email has only a link, use that link instead.
+                </p>
+                <form onSubmit={verifyRecovery} className="flex flex-col gap-3">
+                  <label className="text-sm">
+                    Recovery code
+                    <Input
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
+                      pattern="[0-9]{6,10}"
+                      minLength={6}
+                      maxLength={10}
+                      required
+                      value={code}
+                      disabled={loading}
+                      onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                      className="mt-2 tracking-[0.25em]"
+                    />
+                  </label>
+                  <Button disabled={loading} type="submit">
+                    {loading ? "Verifying…" : "Verify code"}
+                  </Button>
+                </form>
+              </details>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => sendRecovery()}
+                disabled={loading || now < resendAt}
+              >
+                {now < resendAt
+                  ? `Resend in ${Math.max(0, Math.ceil((resendAt - now) / 1000))}s`
+                  : "Resend recovery email"}
+              </Button>
+              <button
+                type="button"
+                disabled={loading}
+                className="text-sm text-primary hover:underline"
+                onClick={() => {
+                  setRecovery("request");
+                  setRecoveryError("");
+                  setCode("");
+                }}
+              >
+                Use a different email
+              </button>
+            </>
+          )}
+          {recovery === "reset" && (
+            <form onSubmit={saveRecoveryPassword} className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                Your recovery was verified. Choose a unique password with at least 8 characters.
+              </p>
+              <label className="text-sm">
+                New password
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                  value={password}
+                  disabled={loading}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-2"
+                />
+              </label>
+              <label className="text-sm">
+                Confirm new password
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                  value={confirmation}
+                  disabled={loading}
+                  onChange={(e) => setConfirmation(e.target.value)}
+                  className="mt-2"
+                />
+              </label>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Updating…" : "Update password"}
+              </Button>
+            </form>
+          )}
+          {recovery === "done" && (
+            <p role="status" className="text-sm text-muted-foreground">
+              Your password has been updated. Return to sign in with your new password.
+            </p>
+          )}
+          <Button type="button" variant="ghost" disabled={loading} onClick={closeRecovery}>
+            ← Back to sign in
+          </Button>
+        </div>
+      </div>
+    );
 
   if (checkEmail)
     return (
@@ -217,6 +583,17 @@ function AuthPage() {
             {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
+
+        {mode === "signin" && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={openRecovery}
+            className="text-sm text-primary hover:underline"
+          >
+            Forgot password?
+          </button>
+        )}
 
         <div className="text-center">
           <button
