@@ -21,6 +21,22 @@
   }
   var h = (...args) => getReact().createElement(...args);
 
+  // Narrow legacy-save correction applied before compiling the phone component.
+  // Failed storage writes must remain dirty; do not change the payload or stored data.
+  function retryFailedPhoneSave(js) {
+    const before =
+      "this._lastSave = json;\n          try { window.localStorage.setItem(EVO_STORE_KEY, json); } catch (e) {}";
+    const after = "try { window.localStorage.setItem(EVO_STORE_KEY, json); this._lastSave = json; } catch (e) {}";
+    // Exact, single-match replacement is idempotent and leaves other components alone.
+    if (
+      !js.includes('const EVO_STORE_KEY = "evolution05:userdata:v4";') ||
+      js.indexOf(before) === -1 ||
+      js.indexOf(before) !== js.lastIndexOf(before)
+    )
+      return js;
+    return js.replace(before, after);
+  }
+
   // Evolution deployment adapter: omit the profile summary-card row at template
   // compile time. This is presentation-only: profile values and storage stay intact.
   // Applied here because the legacy HTML bundle is above the editor's size limit.
@@ -54,7 +70,7 @@
     const { props, preview } = parseDataProps(scriptEl?.getAttribute("data-props") ?? null);
     return {
       template: removeProfileSummaryCards(dc.innerHTML),
-      js: scriptEl ? scriptEl.textContent || "" : "",
+      js: retryFailedPhoneSave(scriptEl ? scriptEl.textContent || "" : ""),
       props,
       preview,
     };
@@ -70,7 +86,7 @@
     const { props, preview } = parseDataProps(scriptEl?.getAttribute("data-props") ?? null);
     return {
       template: removeProfileSummaryCards(template),
-      js: scriptEl ? scriptEl.textContent || "" : "",
+      js: retryFailedPhoneSave(scriptEl ? scriptEl.textContent || "" : ""),
       props,
       preview,
     };
