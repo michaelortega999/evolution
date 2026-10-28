@@ -35,8 +35,8 @@ export function deviceAuthStorage() {
       if (typeof window === "undefined") return null;
       authKeys.add(key);
       if (remembered()) return localStorage.getItem(key);
-      // Legacy persistent/broker credentials cannot resurrect an unchecked session.
-      localStorage.removeItem(key);
+      // Ignore persistent/broker credentials in a temporary tab. Never delete
+      // another tab's remembered session just because this tab reads auth state.
       return sessionStorage.getItem(key);
     },
     setItem(key: string, value: string) {
@@ -44,13 +44,14 @@ export function deviceAuthStorage() {
       authKeys.add(key);
       const persistent = remembered();
       (persistent ? localStorage : sessionStorage).setItem(key, value);
-      (persistent ? sessionStorage : localStorage).removeItem(key);
+      if (persistent) sessionStorage.removeItem(key);
     },
     removeItem(key: string) {
       if (typeof window === "undefined") return;
       authKeys.add(key);
-      localStorage.removeItem(key);
-      sessionStorage.removeItem(key);
+      // A temporary tab can expire/sign out locally without erasing the
+      // credentials of a separate remembered tab on the same origin.
+      (remembered() ? localStorage : sessionStorage).removeItem(key);
     },
   };
 }
