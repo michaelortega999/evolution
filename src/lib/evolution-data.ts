@@ -67,7 +67,16 @@ export interface AppearanceCustomization {
   dark: boolean;
 }
 
+export interface WorkflowAppearance {
+  color: "blue" | "red" | "green" | "purple" | "pink" | "orange";
+  design: "classic" | "rings" | "neural" | "hex" | "gyro" | "dots";
+  size: number;
+  lineWeight: number;
+  motion: number;
+}
+
 export interface Settings {
+  workflowAppearance?: WorkflowAppearance;
   customization?: AppearanceCustomization | null;
   cardStyle?: "jarvis" | "glass" | "tactical" | "classic" | "minimal-clean" | "tech-hud" | "armored-edge";
   applyCardStyleGlobally?: boolean;

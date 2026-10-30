@@ -1,3 +1,866 @@
+import { useState as useWFState, useEffect as useWFEffect } from "react";
+import type { CSSProperties as WFCSSProperties } from "react";
+import {
+  Activity as WFActivity,
+  Dumbbell as WFFitness,
+  Wallet as WFWealth,
+  ChartNoAxesCombined as WFInvesting,
+  BriefcaseBusiness as WFBusiness,
+  Focus as WFFocus,
+  Apple as WFNutrition,
+  BookOpen as WFJournal,
+  NotebookPen as WFNotes,
+  CalendarDays as WFCalendar,
+  Target as WFGoals,
+  Gamepad2 as WFHobby,
+  Plane as WFTravel,
+  Search as WFSearch,
+  SlidersHorizontal as WFSliders,
+  ArrowRight as WFArrow,
+  ArrowUpRight as WFOpen,
+  RotateCcw as WFReset,
+  Network as WFNetwork,
+  Check as WFCheck,
+  Eye as WFEye,
+  Plug as WFPlug,
+} from "lucide-react";
+import {
+  useEvolutionData as useWFData,
+  useCloudStatus as useWFCloud,
+  type EvolutionData as WFData,
+} from "@/lib/evolution-data";
+
+export type WFCategory =
+  | "Fitness"
+  | "Wealth"
+  | "Investing"
+  | "Business"
+  | "Focus"
+  | "Nutrition"
+  | "Journal"
+  | "Notes"
+  | "Calendar"
+  | "Goals"
+  | "Hobby"
+  | "Travel";
+export type WFAppearance = {
+  color: "blue" | "red" | "green" | "purple" | "pink" | "orange";
+  design: "classic" | "rings" | "neural" | "hex" | "gyro" | "dots";
+  size: number;
+  lineWeight: number;
+  motion: number;
+};
+export const WF_DEFAULTS: WFAppearance = {
+  color: "blue",
+  design: "classic",
+  size: 100,
+  lineWeight: 1.5,
+  motion: 35,
+};
+export const WF_COLORS = [
+  { id: "blue", name: "Blue", hex: "#42c9ff" },
+  { id: "red", name: "Red", hex: "#ff6577" },
+  { id: "green", name: "Dark Green", hex: "#27b58c" },
+  { id: "purple", name: "Dark Purple", hex: "#a273ee" },
+  { id: "pink", name: "Dark Pink", hex: "#d04d9a" },
+  { id: "orange", name: "Dark Orange", hex: "#d78338" },
+] as const;
+export const WF_DESIGNS = [
+  { id: "classic", name: "Classic Orbit" },
+  { id: "rings", name: "Orbital Rings" },
+  { id: "neural", name: "Neural Links" },
+  { id: "hex", name: "Hex Circuit" },
+  { id: "gyro", name: "Gyroscope" },
+  { id: "dots", name: "Minimal Dots" },
+] as const;
+export function normalizeWorkflowAppearance(value: unknown): WFAppearance {
+  const v = value && typeof value === "object" ? (value as Partial<WFAppearance>) : {};
+  const bound = (n: unknown, min: number, max: number, fallback: number) =>
+    typeof n === "number" && Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  return {
+    color: WF_COLORS.some((c) => c.id === v.color) ? v.color! : WF_DEFAULTS.color,
+    design: WF_DESIGNS.some((d) => d.id === v.design) ? v.design! : WF_DEFAULTS.design,
+    size: bound(v.size, 70, 130, 100),
+    lineWeight: bound(v.lineWeight, 1, 3, 1.5),
+    motion: bound(v.motion, 0, 100, 35),
+  };
+}
+type WFDefinition = {
+  name: WFCategory;
+  icon: typeof WFBusiness;
+  route: string;
+  subtitle: string;
+  steps: string[];
+  apps: string[];
+  sources: [keyof WFData, string][];
+  tool: "chat" | "routines" | "calendar" | "goals";
+};
+export const WF_DOMAINS: WFDefinition[] = [
+  {
+    name: "Business",
+    icon: WFBusiness,
+    route: "/business",
+    subtitle: "From an idea to a reviewed next step.",
+    steps: ["Capture brief", "Plan project", "Review work", "Schedule next step"],
+    apps: ["Docs", "Content tools"],
+    sources: [
+      ["projects", "Projects"],
+      ["bizTasks", "Business tasks"],
+      ["revenue", "Revenue records"],
+    ],
+    tool: "chat",
+  },
+  {
+    name: "Investing",
+    icon: WFInvesting,
+    route: "/investing",
+    subtitle: "Research, prepare and review your own process.",
+    steps: ["Research thesis", "Review strategy", "Log decision", "Reflect"],
+    apps: ["TradingView", "Market feeds"],
+    sources: [
+      ["strategies", "Strategies"],
+      ["trades", "Trade records"],
+      ["watchlist", "Watchlist items"],
+      ["tradingAccounts", "Trading accounts"],
+      ["tradingTxns", "Ledger records"],
+      ["tradeJournal", "Trade journal records"],
+    ],
+    tool: "chat",
+  },
+  {
+    name: "Goals",
+    icon: WFGoals,
+    route: "/goals",
+    subtitle: "Turn a direction into a repeatable practice.",
+    steps: ["Define outcome", "Choose habit", "Plan time", "Review progress"],
+    apps: ["Habit services", "Reminders"],
+    sources: [
+      ["goals", "Goals"],
+      ["customHabits", "Custom habits"],
+      ["timeLogs", "Time logs"],
+    ],
+    tool: "goals",
+  },
+  {
+    name: "Fitness",
+    icon: WFFitness,
+    route: "/fitness",
+    subtitle: "Plan your training, then record what you did.",
+    steps: ["Plan session", "Train", "Log workout", "Review recovery"],
+    apps: ["Strava", "Wearables"],
+    sources: [
+      ["workouts", "Workout records"],
+      ["prHistory", "PR records"],
+      ["recovery", "Recovery entries"],
+      ["trainingSchedule", "Training slots"],
+    ],
+    tool: "routines",
+  },
+  {
+    name: "Nutrition",
+    icon: WFNutrition,
+    route: "/nutrition",
+    subtitle: "Build a deliberate daily food routine.",
+    steps: ["Plan meals", "Prepare groceries", "Log meals", "Review day"],
+    apps: ["Food services", "Nutrition apps"],
+    sources: [
+      ["mealLogs", "Meal logs"],
+      ["grocery", "Grocery items"],
+      ["water", "Water entries"],
+    ],
+    tool: "routines",
+  },
+  {
+    name: "Notes",
+    icon: WFNotes,
+    route: "/notes",
+    subtitle: "Capture a thought and give it a next step.",
+    steps: ["Capture note", "Organize", "Choose action", "Review"],
+    apps: ["Notion", "Obsidian"],
+    sources: [
+      ["richNotes", "Rich notes"],
+      ["evoTasks", "Tasks"],
+    ],
+    tool: "chat",
+  },
+  {
+    name: "Journal",
+    icon: WFJournal,
+    route: "/journal",
+    subtitle: "A space to reflect without automated interpretation.",
+    steps: ["Recall day", "Write entry", "Reflect", "Set intention"],
+    apps: ["Writing tools", "External journals"],
+    sources: [
+      ["journalEntries", "Journal entries"],
+      ["reflections", "Reflections"],
+    ],
+    tool: "chat",
+  },
+  {
+    name: "Focus",
+    icon: WFFocus,
+    route: "/focus",
+    subtitle: "Protect a block of attention for meaningful work.",
+    steps: ["Choose intention", "Start timer", "Take break", "Review session"],
+    apps: ["Focus apps", "External timers"],
+    sources: [["focusSessions", "Focus sessions"]],
+    tool: "routines",
+  },
+  {
+    name: "Hobby",
+    icon: WFHobby,
+    route: "/hobby",
+    subtitle: "Make room for practice, projects and enjoyment.",
+    steps: ["Choose project", "Plan practice", "Record session", "Explore next"],
+    apps: ["Creative tools", "Community apps"],
+    sources: [
+      ["guitarSessions", "Guitar sessions"],
+      ["customHobbies", "Custom hobbies"],
+      ["carEvents", "Saved car events"],
+      ["cars", "Cars"],
+      ["carExpenses", "Car expense records"],
+      ["guitarSongs", "Guitar songs"],
+      ["guitarSkills", "Guitar skills"],
+    ],
+    tool: "calendar",
+  },
+  {
+    name: "Calendar",
+    icon: WFCalendar,
+    route: "/calendar",
+    subtitle: "Give your plans a real place in your day.",
+    steps: ["Choose date", "Draft schedule", "Review conflicts", "Save explicitly"],
+    apps: ["Google Calendar", "Outlook"],
+    sources: [
+      ["calendar", "Calendar events"],
+      ["assistantRoutines", "Saved routines"],
+    ],
+    tool: "calendar",
+  },
+  {
+    name: "Travel",
+    icon: WFTravel,
+    route: "/hobby",
+    subtitle: "Organize a journey without booking automatically.",
+    steps: ["Choose destination", "Plan itinerary", "Prepare packing", "Review trip"],
+    apps: ["Flights", "Hotel services"],
+    sources: [["trips", "Trips"]],
+    tool: "calendar",
+  },
+  {
+    name: "Wealth",
+    icon: WFWealth,
+    route: "/wealth",
+    subtitle: "Review your manually tracked financial picture.",
+    steps: ["Gather records", "Categorize", "Review plan", "Set next action"],
+    apps: ["Spreadsheets", "Finance tools"],
+    sources: [
+      ["assets", "Asset records"],
+      ["transactions", "Transaction records"],
+      ["netWorthSnapshots", "Manual snapshots"],
+    ],
+    tool: "goals",
+  },
+];
+export type WFDomainSummary = {
+  name: WFCategory;
+  total: number;
+  metrics: { label: string; count: number }[];
+  recent: { key: string; kind: string; date: string }[];
+};
+export function workflowDomainSummaries(data: WFData): WFDomainSummary[] {
+  return WF_DOMAINS.map((domain) => {
+    const recent: WFDomainSummary["recent"] = [];
+    const metrics = domain.sources.map(([key, label]) => {
+      const raw: unknown = data[key];
+      const records = Array.isArray(raw)
+        ? (raw as unknown[]).filter((record) => {
+            if (!record || typeof record !== "object") return false;
+            const r = record as Record<string, unknown>;
+            return !(key === "carEvents" && r.seed === true) && !(key === "assistantRoutines" && r.archived === true);
+          })
+        : [];
+      records.forEach((record, index) => {
+        const r = record as Record<string, unknown>;
+        const date = [r.date, r.startDate, r.createdAt, r.due, r.deadline].find(
+          (d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}/.test(d),
+        );
+        if (date)
+          recent.push({
+            key: `${String(key)}:${typeof r.id === "string" ? r.id : index}`,
+            kind: label,
+            date: String(date).slice(0, 10),
+          });
+      });
+      return { label, count: records.length };
+    });
+    return {
+      name: domain.name,
+      total: metrics.reduce((sum, m) => sum + m.count, 0),
+      metrics,
+      recent: recent.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3),
+    };
+  });
+}
+export function WorkflowAtom({ appearance, small = false }: { appearance: WFAppearance; small?: boolean }) {
+  const d = appearance.design;
+  const pts = Array.from({ length: 6 }, (_, i) => {
+    const a = ((i * 60 - 90) * Math.PI) / 180;
+    return [50 + 36 * Math.cos(a), 50 + 36 * Math.sin(a)];
+  });
+  return (
+    <svg
+      className={`wf-atom wf-atom-${d}${small ? " wf-atom-small" : ""}`}
+      viewBox="0 0 100 100"
+      aria-hidden="true"
+      data-design={d}
+      style={
+        {
+          "--wf-weight": appearance.lineWeight,
+          "--wf-size": appearance.size / 100,
+          "--wf-speed": `${36 - appearance.motion * 0.26}s`,
+          animationPlayState: appearance.motion === 0 ? "paused" : "running",
+        } as WFCSSProperties
+      }
+    >
+      {d === "classic" && (
+        <g className="wf-orbits">
+          {[0, 60, 120].map((a) => (
+            <ellipse key={a} cx="50" cy="50" rx="39" ry="16" transform={`rotate(${a} 50 50)`} />
+          ))}
+        </g>
+      )}
+      {d === "rings" && (
+        <g className="wf-orbits">
+          <circle cx="50" cy="50" r="18" />
+          <circle cx="50" cy="50" r="29" />
+          <circle cx="50" cy="50" r="40" />
+        </g>
+      )}
+      {d === "neural" && (
+        <g className="wf-orbits">
+          {pts.map(([x, y], i) => (
+            <path key={i} d={`M50 50 Q${50 + (x - 50) * 0.2} ${y} ${x} ${y}`} />
+          ))}
+        </g>
+      )}
+      {d === "hex" && (
+        <g className="wf-orbits">
+          <polygon points={pts.map((p) => p.join(",")).join(" ")} />
+          {pts.map(([x, y], i) => (
+            <path key={i} d={`M50 50 L${x} ${y}`} />
+          ))}
+          {pts.map(([x, y], i) => (
+            <polygon
+              key={`h${i}`}
+              points={Array.from(
+                { length: 6 },
+                (_, n) => `${x + 5 * Math.cos((n * Math.PI) / 3)},${y + 5 * Math.sin((n * Math.PI) / 3)}`,
+              ).join(" ")}
+            />
+          ))}
+        </g>
+      )}
+      {d === "gyro" && (
+        <g className="wf-orbits">
+          <ellipse cx="50" cy="50" rx="40" ry="23" transform="rotate(-22 50 50)" />
+          <ellipse cx="50" cy="50" rx="40" ry="23" transform="rotate(70 50 50)" />
+          <path d="M50 8 L50 92 M8 50 L92 50" strokeDasharray="2 5" />
+        </g>
+      )}
+      {d === "dots" && (
+        <g className="wf-orbits">
+          {pts
+            .filter((_, i) => i !== 3)
+            .map(([x, y], i) => (
+              <path key={i} d={`M50 50 L${x} ${y}`} />
+            ))}
+        </g>
+      )}
+      <circle className="wf-atom-core" cx="50" cy="50" r={d === "dots" ? 10 : 13} />
+      <g className="wf-orbits wf-electrons">
+        {(d === "rings"
+          ? [
+              [50, 10],
+              [79, 50],
+              [50, 79],
+              [32, 50],
+            ]
+          : d === "dots"
+            ? pts.filter((_, i) => i !== 3)
+            : pts
+        ).map(([x, y], i) => (
+          <circle className="wf-electron" key={i} cx={x} cy={y} r={d === "dots" ? 4 : 3.5} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+export function AIWorkflowDashboard({
+  onOpenTool,
+  ready,
+}: {
+  onOpenTool: (view: "chat" | "routines" | "calendar" | "goals") => void;
+  ready: boolean;
+}) {
+  const { data, mutate } = useWFData();
+  const cloud = useWFCloud();
+  const allowed = ready && cloud !== "loading" && cloud !== "signed-out";
+  const [view, setRawView] = useWFState<"graph" | "connections" | "activity" | "customize">("graph");
+  const [selected, setRawSelected] = useWFState<WFCategory>("Business");
+  const [query, setQuery] = useWFState("");
+  const [filter, setFilter] = useWFState("All");
+  const setView = (next: "graph" | "connections" | "activity" | "customize") => {
+    if (next === view) return;
+    setRawView(next);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", next);
+      window.history.pushState({}, "", url);
+    }
+  };
+  const setSelected = (next: WFCategory) => {
+    if (next === selected) return;
+    setRawSelected(next);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("topic", next.toLowerCase());
+      window.history.pushState({}, "", url);
+    }
+  };
+  useWFEffect(() => {
+    const read = () => {
+      const params = new URLSearchParams(window.location.search);
+      const nextView = params.get("view");
+      setRawView(
+        nextView === "customize" || nextView === "connections" || nextView === "activity" ? nextView : "graph",
+      );
+      const topic = WF_DOMAINS.find((d) => d.name.toLowerCase() === params.get("topic"));
+      setRawSelected(topic?.name || "Business");
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
+  }, []);
+  const appearance = normalizeWorkflowAppearance(allowed ? data.settings.workflowAppearance : undefined);
+  const color = WF_COLORS.find((c) => c.id === appearance.color)!.hex;
+  const summaries = allowed ? workflowDomainSummaries(data) : [];
+  const domain = WF_DOMAINS.find((d) => d.name === selected)!;
+  const summary = summaries.find((d) => d.name === selected);
+  const updateAppearance = (patch: Partial<WFAppearance>) => {
+    if (!allowed) return;
+    mutate((prev) => ({
+      settings: {
+        ...prev.settings,
+        workflowAppearance: {
+          ...normalizeWorkflowAppearance(prev.settings.workflowAppearance),
+          ...patch,
+        },
+      },
+    }));
+  };
+  const visible = (name: WFCategory) =>
+    (filter === "All" || filter === name) && name.toLowerCase().includes(query.trim().toLowerCase());
+  const filtered = WF_DOMAINS.filter((d) => visible(d.name));
+  const select = (name: WFCategory) => {
+    if (allowed) setSelected(name);
+  };
+  const paletteStyle = {
+    "--wf-color": color,
+    "--wf-faint": `${color}18`,
+    "--wf-line": `${color}55`,
+  } as WFCSSProperties;
+  const graph = (preview = false) => (
+    <div
+      className={`wf-universe${preview ? " wf-mini" : ""}`}
+      aria-label={preview ? "Appearance live preview" : "Twelve category workflow map"}
+    >
+      <div className="wf-axis wf-axis-top">
+        COMPLEX <span>↑</span>
+      </div>
+      <div className="wf-axis wf-axis-bottom">
+        <span>↓</span> SIMPLE
+      </div>
+      <svg className="wf-oval" viewBox="0 0 1000 850" preserveAspectRatio="none" aria-hidden="true">
+        <ellipse cx="500" cy="425" rx="420" ry="343" />
+        {WF_DOMAINS.map((d, i) => {
+          const a = ((-105 + i * 30) * Math.PI) / 180;
+          return <circle key={d.name} cx={500 + 420 * Math.cos(a)} cy={425 + 343 * Math.sin(a)} r="3" />;
+        })}
+      </svg>
+      {WF_DOMAINS.map((d, i) => {
+        const a = ((-105 + i * 30) * Math.PI) / 180;
+        const show = preview || visible(d.name);
+        const Icon = d.icon;
+        return (
+          <button
+            type="button"
+            key={d.name}
+            className={`wf-category${selected === d.name ? " is-selected" : ""}${show ? "" : " is-filtered"}`}
+            aria-pressed={selected === d.name}
+            aria-label={`Select ${d.name} workflow`}
+            disabled={!allowed || !show}
+            onClick={() => select(d.name)}
+            style={{ left: `${50 + 42 * Math.cos(a)}%`, top: `${50 + 40 * Math.sin(a)}%` }}
+          >
+            <span className="wf-atom-wrap">
+              <WorkflowAtom appearance={appearance} />
+              <Icon className="wf-category-icon" size={21} />
+            </span>
+            <strong>{d.name}</strong>
+            {!preview && (
+              <small>{allowed ? `${summaries.find((s) => s.name === d.name)?.total ?? 0} records` : "Loading"}</small>
+            )}
+          </button>
+        );
+      })}
+      {preview ? (
+        <div className="wf-preview-center">
+          <WFNetwork size={36} />
+          <strong>{WF_DESIGNS.find((d) => d.id === appearance.design)?.name}</strong>
+          <span>12 categories · your visual style</span>
+          <small>Appearance preview · no data changes</small>
+        </div>
+      ) : (
+        <div className="wf-center">{panel()}</div>
+      )}
+      <span className="wf-map-legend">Category arrangement · not live connections</span>
+    </div>
+  );
+  const panel = () => (
+    <section className="wf-topic" aria-label={`${selected} workflow details`}>
+      <div className="wf-topic-title">
+        <h2>{selected.toUpperCase()} WORKFLOW</h2>
+        <span>MANUAL PLAN</span>
+      </div>
+      <p className="wf-subtitle">{domain.subtitle}</p>
+      <div className="wf-topic-box">
+        <h3>
+          YOUR WORKFLOW <small>Suggested steps · not automation</small>
+        </h3>
+        <div className="wf-flow">
+          {domain.steps.map((step, i) => (
+            <div className="wf-flow-part" key={step}>
+              <span>
+                <domain.icon size={15} />
+                {step}
+              </span>
+              {i < domain.steps.length - 1 && <WFArrow size={14} />}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="wf-topic-columns">
+        <div className="wf-topic-box">
+          <h3>
+            DATED RECORDS <small>Latest record dates</small>
+          </h3>
+          {summary?.recent.length ? (
+            <ul className="wf-recent">
+              {summary.recent.map((r) => (
+                <li key={r.key}>
+                  <span>
+                    <WFNotes size={13} />
+                    {r.kind}
+                  </span>
+                  <time>{r.date}</time>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="wf-empty-small">
+              {allowed ? "No dated records saved yet." : "Account data is not available yet."}
+            </p>
+          )}
+        </div>
+        <div className="wf-topic-box">
+          <h3>{selected.toUpperCase()} RECORDS</h3>
+          <div className="wf-mini-chart" aria-label="Saved record counts">
+            {summary?.metrics.map((m) => (
+              <div key={m.label}>
+                <span className="wf-bar-track">
+                  <i
+                    style={{
+                      height: `${m.count ? Math.max(7, (m.count / Math.max(...summary.metrics.map((x) => x.count), 1)) * 100) : 0}%`,
+                    }}
+                  />
+                </span>
+                <strong>{m.count}</strong>
+                <small>{m.label}</small>
+              </div>
+            ))}
+          </div>
+          {summary?.total === 0 && <p className="wf-zero">No saved records. Nothing has been seeded.</p>}
+        </div>
+      </div>
+      <div className="wf-topic-box wf-apps">
+        <h3>
+          EXTERNAL APPS <small>Not connected to this workflow</small>
+        </h3>
+        {domain.apps.map((app) => (
+          <span key={app}>
+            <WFPlug size={13} />
+            {app}
+            <small>Unavailable</small>
+          </span>
+        ))}
+      </div>
+      <div className="wf-topic-actions">
+        <a href={domain.route}>
+          Open {selected} <WFOpen size={14} />
+        </a>
+        <button disabled={!allowed} onClick={() => onOpenTool(domain.tool)}>
+          Plan next step <WFArrow size={14} />
+        </button>
+      </div>
+    </section>
+  );
+  return (
+    <section
+      className={`wf-app${view === "customize" ? " wf-customizing" : ""}`}
+      style={paletteStyle}
+      aria-label="AI Workflow"
+    >
+      <style>{WF_CSS}</style>
+      <header className="wf-head">
+        <div className="wf-head-row">
+          <div>
+            <h1>{view === "customize" ? "CUSTOMIZE AI WORKFLOW" : "AI WORKFLOW"}</h1>
+            <p>{view === "customize" ? "Colors and atom designs." : "Your Evolution data. One connected view."}</p>
+          </div>
+          <button
+            className="wf-primary"
+            disabled={!allowed}
+            onClick={() => setView(view === "customize" ? "graph" : "customize")}
+          >
+            {view === "customize" ? <WFNetwork size={16} /> : <WFSliders size={16} />}{" "}
+            {view === "customize" ? "Back to workflow" : "Customize"}
+          </button>
+        </div>
+      </header>
+      <nav className="wf-nav" aria-label="Workflow views">
+        {(["graph", "connections", "activity"] as const).map((v) => (
+          <button key={v} aria-current={view === v ? "page" : undefined} onClick={() => setView(v)}>
+            {v[0].toUpperCase() + v.slice(1)}
+          </button>
+        ))}
+        <label className="wf-search">
+          <WFSearch size={16} />
+          <input
+            aria-label="Search workflow categories"
+            placeholder="Search categories…"
+            disabled={!allowed}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+      </nav>
+      {!allowed ? (
+        <div role="status" className="wf-locked">
+          <WFNetwork size={40} />
+          <h2>{cloud === "signed-out" ? "Sign in to view your workspace" : "Loading your workspace…"}</h2>
+          <p>Your data stays hidden until the account is ready.</p>
+        </div>
+      ) : view === "customize" ? (
+        <div className="wf-custom-grid">
+          <section className="wf-custom-preview">
+            <div className="wf-panel-title">
+              <h2>LIVE PREVIEW</h2>
+              <span>Oval 12-category layout</span>
+            </div>
+            {graph(true)}
+            <p className="wf-footnote">Appearance only. Your records, plans and connected accounts are unchanged.</p>
+          </section>
+          <section className="wf-custom-controls">
+            <div className="wf-control-panel">
+              <h2>COLOR THEMES</h2>
+              <p>Choose your workflow accent.</p>
+              <div className="wf-colors">
+                {WF_COLORS.map((c) => (
+                  <button
+                    key={c.id}
+                    aria-label={`${c.name} workflow color`}
+                    aria-pressed={appearance.color === c.id}
+                    onClick={() => updateAppearance({ color: c.id })}
+                    style={{ "--swatch": c.hex } as WFCSSProperties}
+                  >
+                    <span />
+                    {appearance.color === c.id && <WFCheck size={12} />}
+                    <small>{c.name}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="wf-control-panel">
+              <h2>ATOM DESIGNS</h2>
+              <p>Six different structures. One connected workspace.</p>
+              <div className="wf-designs">
+                {WF_DESIGNS.map((d) => (
+                  <button
+                    key={d.id}
+                    aria-pressed={appearance.design === d.id}
+                    onClick={() => updateAppearance({ design: d.id })}
+                  >
+                    <WorkflowAtom small appearance={{ ...appearance, design: d.id, motion: 0 }} />
+                    <span>{d.name}</span>
+                    {appearance.design === d.id && <WFCheck size={13} />}
+                  </button>
+                ))}
+              </div>
+              <div className="wf-sliders">
+                {(
+                  [
+                    { key: "size", label: "Node size", min: 70, max: 130, step: 1 },
+                    { key: "lineWeight", label: "Line weight", min: 1, max: 3, step: 0.1 },
+                    { key: "motion", label: "Motion", min: 0, max: 100, step: 1 },
+                  ] as const
+                ).map((s) => (
+                  <label key={s.key}>
+                    {s.label}
+                    <input
+                      aria-label={s.label}
+                      type="range"
+                      min={s.min}
+                      max={s.max}
+                      step={s.step}
+                      value={appearance[s.key]}
+                      onChange={(e) => updateAppearance({ [s.key]: Number(e.target.value) })}
+                    />
+                    <output>
+                      {appearance[s.key]}
+                      {s.key === "motion" ? "%" : s.key === "size" ? "%" : "px"}
+                    </output>
+                  </label>
+                ))}
+              </div>
+              <button className="wf-reset" onClick={() => updateAppearance(WF_DEFAULTS)}>
+                <WFReset size={14} /> Reset workflow appearance
+              </button>
+              <p className="wf-save" role="status">
+                {cloud === "saving"
+                  ? "Saving appearance…"
+                  : cloud === "error"
+                    ? "Saved on this device. Account sync unavailable."
+                    : "Appearance saves automatically to your account."}
+              </p>
+              <p className="wf-footnote">Reduced-motion preferences take priority.</p>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <>
+          <div className="wf-filters" aria-label="Category filters">
+            {["All", ...WF_DOMAINS.map((d) => d.name)].map((name) => (
+              <button
+                key={name}
+                aria-pressed={filter === name}
+                onClick={() => {
+                  setFilter(name);
+                  if (name !== "All") setSelected(name as WFCategory);
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+          {query && (
+            <p className="wf-search-result" role="status">
+              {filtered.length} matching categories{" "}
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setFilter("All");
+                }}
+              >
+                Clear filters
+              </button>
+            </p>
+          )}
+          {view === "graph" ? (
+            <>
+              <div className="wf-graph-shell">{graph()}</div>
+              <div className="wf-mobile-topic">{panel()}</div>
+            </>
+          ) : view === "connections" ? (
+            <section className="wf-list-panel">
+              <h2>WORKSPACE MAP</h2>
+              <p>These are organizational categories, not external integrations or inferred semantic relationships.</p>
+              <div className="wf-domain-list">
+                {filtered.map((d) => (
+                  <button
+                    key={d.name}
+                    onClick={() => {
+                      select(d.name);
+                      setView("graph");
+                    }}
+                  >
+                    <d.icon size={22} />
+                    <strong>{d.name}</strong>
+                    <span>{summaries.find((s) => s.name === d.name)?.total ?? 0} saved records</span>
+                    <WFOpen size={14} />
+                  </button>
+                ))}
+              </div>
+              <p className="wf-footnote">
+                Counts are saved records in the named collections, not performance totals. Legacy phone snapshots, bank
+                data and built-in suggested car events are excluded.
+              </p>
+            </section>
+          ) : (
+            <section className="wf-list-panel">
+              <h2>DATED RECORDS</h2>
+              <p>
+                Scheduled or logged dates, not save times or an agent-run log. Personal titles, bodies and financial
+                amounts stay out of this overview.
+              </p>
+              <div className="wf-activity-list">
+                {summaries
+                  .filter((s) => visible(s.name))
+                  .flatMap((s) => s.recent.map((r) => ({ ...r, category: s.name })))
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .slice(0, 12)
+                  .map((r) => (
+                    <button
+                      key={`${r.category}:${r.key}`}
+                      onClick={() => {
+                        select(r.category);
+                        setView("graph");
+                      }}
+                    >
+                      <WFActivity size={17} />
+                      <strong>{r.category}</strong>
+                      <span>{r.kind}</span>
+                      <time>{r.date}</time>
+                    </button>
+                  ))}
+              </div>
+              {summaries.filter((s) => visible(s.name)).every((s) => s.recent.length === 0) && (
+                <p className="wf-empty-small">No dated records to show.</p>
+              )}
+            </section>
+          )}
+          <footer className="wf-footer">
+            <span>
+              <WFEye size={13} /> Privacy-safe overview · record contents are not shown
+            </span>
+            <span>No autonomous workers or external apps connected here</span>
+          </footer>
+        </>
+      )}
+    </section>
+  );
+}
+
+const WF_CSS = `
+.wf-app{--wf-color:#42c9ff;--wf-line:#42c9ff55;--wf-faint:#42c9ff18;color:#d9ecfa;min-width:0;background:radial-gradient(ellipse at 50% 35%,#07364a25,transparent 62%);font-family:Rajdhani,system-ui,sans-serif}.wf-app *{box-sizing:border-box}.wf-app button,.wf-app input{font:inherit}.wf-app button{cursor:pointer}.wf-app button:disabled{cursor:not-allowed;opacity:.45}.wf-app a{color:inherit;text-decoration:none}.wf-app button:focus-visible,.wf-app a:focus-visible,.wf-app input:focus-visible{outline:2px solid var(--wf-color);outline-offset:4px}.wf-brand{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-bottom:15px;border-bottom:1px solid var(--wf-line);margin-bottom:20px}.wf-brand>span{font-size:9px;letter-spacing:.2em;color:#7e9cb1}.wf-head-row{display:flex;justify-content:space-between;align-items:center;gap:14px}.wf-head h1{font-family:Orbitron,system-ui,sans-serif;font-size:clamp(21px,2.7vw,34px);font-weight:500;letter-spacing:.07em;margin:0;color:#e0efff;text-shadow:0 0 18px var(--wf-faint)}.wf-head p{font-size:14px;letter-spacing:.08em;color:#9ed5e8;margin:7px 0 0}.wf-primary{display:inline-flex;gap:8px;align-items:center;justify-content:center;padding:10px 15px;border:1px solid var(--wf-color);border-radius:4px;background:linear-gradient(145deg,var(--wf-faint),#071529);color:#d4efff;font-size:12px;box-shadow:inset 0 0 15px var(--wf-faint),0 0 12px var(--wf-faint);white-space:nowrap}.wf-nav{display:flex;align-items:center;gap:2px;margin-top:23px;border-bottom:1px solid var(--wf-line);padding-bottom:14px}.wf-nav>button{background:#041322;border:1px solid #22465d;color:#a4bed0;padding:9px 18px;font-size:12px}.wf-nav>button:first-child{border-radius:5px 0 0 5px}.wf-nav>button:nth-child(3){border-radius:0 5px 5px 0}.wf-nav>button[aria-current=page]{border-color:var(--wf-color);color:#dff6ff;box-shadow:inset 0 0 16px var(--wf-faint),0 0 10px var(--wf-faint)}.wf-search{display:flex;align-items:center;gap:9px;color:#96cce9;background:#020c15;border:1px solid var(--wf-line);padding:9px 12px;border-radius:5px;margin-left:auto;min-width:160px;width:32%;max-width:300px}.wf-search input{min-width:0;width:100%;color:#dfedf8;border:none;outline:none;background:transparent;font-size:11px}.wf-search input::placeholder{color:#83a3bc}.wf-filters{display:flex;flex-wrap:wrap;gap:5px;padding:13px 0 3px}.wf-filters button{border:1px solid #193f55;background:#030f1b;color:#94b4ca;border-radius:4px;padding:6px 9px;font-size:10px}.wf-filters button[aria-pressed=true]{border-color:var(--wf-color);color:#cff1ff;background:var(--wf-faint)}.wf-graph-shell{margin-top:4px;position:relative;border:1px solid #1d4d6544;border-radius:8px;background-image:linear-gradient(#17446011 1px,transparent 1px),linear-gradient(90deg,#17446011 1px,transparent 1px);background-size:24px 24px;overflow:hidden}.wf-universe{position:relative;width:100%;aspect-ratio:1.16;min-height:750px;isolation:isolate}.wf-oval{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}.wf-oval ellipse{fill:none;stroke:var(--wf-color);stroke-width:.8;opacity:.4}.wf-oval circle{fill:var(--wf-color);filter:drop-shadow(0 0 4px var(--wf-color));opacity:.8}.wf-axis{position:absolute;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.2em;text-align:center;color:#8bb4cb;z-index:1}.wf-axis span{font-size:20px;color:var(--wf-color);display:block;line-height:1.1}.wf-axis-top{top:9px}.wf-axis-bottom{bottom:12px}.wf-category{position:absolute;z-index:2;transform:translate(-50%,-50%);border:0;background:transparent;padding:0;color:#c5dfed;width:102px;display:flex;flex-direction:column;align-items:center;transition:opacity .2s,filter .2s}.wf-category.is-filtered{opacity:.09!important;pointer-events:none}.wf-category.is-selected{color:#fff;filter:drop-shadow(0 0 5px var(--wf-faint))}.wf-category strong{font-size:12px;font-weight:500;text-shadow:0 0 10px #000;line-height:1.4;white-space:nowrap}.wf-category small{font-size:9px;color:#7095ad;margin-top:1px;white-space:nowrap}.wf-atom-wrap{position:relative;width:83px;height:83px;display:grid;place-items:center}.wf-category-icon{position:absolute;inset:0;margin:auto;color:var(--wf-color);filter:drop-shadow(0 0 3px var(--wf-color));pointer-events:none;width:19px;height:19px}.wf-atom{color:var(--wf-color);width:100%;height:100%;overflow:visible;transform:scale(var(--wf-size,1));filter:drop-shadow(0 0 3px var(--wf-faint))}.wf-orbits{stroke:currentColor;stroke-width:var(--wf-weight,1.5);fill:none;transform-origin:50px 50px;animation:wf-orbit-spin var(--wf-speed,26s) linear infinite;animation-play-state:inherit}.wf-atom-core{fill:#051626;stroke:currentColor;stroke-width:var(--wf-weight,1.5);filter:drop-shadow(0 0 4px var(--wf-color))}.wf-electron{fill:var(--wf-color);stroke:#d7f7ff;stroke-width:.8;filter:drop-shadow(0 0 3px var(--wf-color))}.wf-category.is-selected .wf-atom-core{fill:var(--wf-faint);stroke-width:2.5}.wf-category.is-selected strong:after{content:'';display:block;height:1px;background:var(--wf-color);width:25px;margin:3px auto 0}.wf-center{position:absolute;left:19%;width:62%;top:25%;z-index:3}.wf-topic{min-width:0;position:relative;background:linear-gradient(140deg,#061929f5,#010a13f7);border:1px solid var(--wf-line);border-radius:10px;padding:14px;box-shadow:0 0 24px #0008,inset 0 0 22px var(--wf-faint)}.wf-topic:before,.wf-control-panel:before,.wf-custom-preview:before{content:'';position:absolute;top:0;left:18px;width:65px;height:1px;background:var(--wf-color);box-shadow:0 0 7px var(--wf-color)}.wf-topic-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.wf-topic h2{font-family:Orbitron,system-ui,sans-serif;font-size:clamp(11px,1.2vw,17px);letter-spacing:.04em;margin:0;color:#d9ebff;font-weight:500}.wf-topic-title>span{font-size:7px;letter-spacing:.08em;border:1px solid var(--wf-color);border-radius:8px;padding:3px 5px;color:var(--wf-color);white-space:nowrap}.wf-subtitle{font-size:10px;color:#91b2c8;margin:6px 0 11px}.wf-topic-box{border:1px solid #28557380;border-radius:5px;padding:10px;background:linear-gradient(120deg,#09253b70,#020c16);min-width:0}.wf-topic-box h3{font-size:9px;font-weight:500;letter-spacing:.06em;color:#a8daf4;margin:0 0 8px}.wf-topic-box h3 small{font-size:7px;letter-spacing:0;color:#7693a8;display:block;margin-top:3px}.wf-flow{display:flex;align-items:stretch;gap:4px;min-width:0}.wf-flow-part{display:flex;align-items:center;gap:4px;flex:1;min-width:0}.wf-flow-part>span{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--wf-line);background:linear-gradient(135deg,var(--wf-faint),#061322);border-radius:4px;padding:9px 5px;font-size:8px;color:#cce6f6;flex:1;min-height:43px;line-height:1.4;text-align:center}.wf-flow-part svg{flex:none;color:var(--wf-color);width:13px}.wf-topic-columns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.wf-recent{list-style:none;padding:0;margin:0}.wf-recent li{display:flex;justify-content:space-between;align-items:center;gap:5px;border-bottom:1px solid #22475f55;padding:8px 0;font-size:8px;color:#b7d0df}.wf-recent li:last-child{border:0}.wf-recent li>span{display:flex;align-items:center;gap:5px}.wf-recent li svg{color:var(--wf-color);flex:none}.wf-recent time{font-size:7px;white-space:nowrap;color:#7ba0bc}.wf-empty-small{font-size:10px;line-height:1.7;color:#7898af;margin:15px 0}.wf-mini-chart{display:flex;gap:9px;align-items:end;height:91px;min-width:0}.wf-mini-chart>div{flex:1;display:flex;align-items:center;flex-direction:column;min-width:0}.wf-bar-track{height:43px;width:15px;display:flex;align-items:end;border-bottom:1px solid var(--wf-line);background:#15466922}.wf-bar-track i{width:100%;display:block;background:linear-gradient(var(--wf-color),var(--wf-faint));box-shadow:0 0 5px var(--wf-faint)}.wf-mini-chart strong{font-size:13px;font-weight:500;line-height:1.3;color:var(--wf-color);padding-top:3px}.wf-mini-chart small{font-size:7px;line-height:1.3;text-align:center;min-height:19px;color:#98b7ca;margin-top:3px}.wf-zero{font-size:7px;color:#7190a5;margin:7px 0 0}.wf-apps{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.wf-apps h3{margin:0;flex:1;min-width:90px}.wf-apps>span{display:flex;gap:5px;align-items:center;padding:5px;border:1px solid #244c6577;border-radius:3px;font-size:8px;color:#9bb7cc}.wf-apps>span small{font-size:7px;color:#718d9d}.wf-apps svg{color:#729aae}.wf-topic-actions{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:9px}.wf-topic-actions>a,.wf-topic-actions>button{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--wf-color);background:transparent;border:0;padding:4px 0}.wf-map-legend{position:absolute;bottom:11px;left:13px;font-size:8px;color:#688ea5;max-width:35%;line-height:1.5}.wf-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;font-size:9px;color:#7393a9;padding:13px 1px}.wf-footer>span{display:flex;gap:6px;align-items:center}.wf-mobile-topic{display:none}.wf-search-result{font-size:11px;color:#a6c0d1;display:flex;gap:12px;align-items:center}.wf-search-result button{border:0;background:transparent;color:var(--wf-color);text-decoration:underline}.wf-list-panel{border:1px solid var(--wf-line);border-radius:8px;padding:22px;background:#04111ddd;margin-top:18px}.wf-list-panel h2{font-size:16px;letter-spacing:.08em;font-weight:500;margin:0}.wf-list-panel>p{font-size:12px;color:#8aaabe;line-height:1.7}.wf-domain-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}.wf-domain-list button{display:grid;grid-template-columns:25px 1fr 16px;gap:5px 10px;align-items:center;border:1px solid var(--wf-line);border-radius:5px;background:linear-gradient(130deg,var(--wf-faint),#030d17);color:var(--wf-color);text-align:left;padding:16px}.wf-domain-list strong{color:#cce6f5;font-size:13px;font-weight:500}.wf-domain-list span{grid-column:2;font-size:10px;color:#7f9eb4}.wf-domain-list svg:last-child{grid-column:3;grid-row:1/3}.wf-activity-list{display:flex;flex-direction:column;gap:8px;margin-top:19px}.wf-activity-list button{display:grid;grid-template-columns:20px 110px 1fr 85px;align-items:center;gap:10px;border:1px solid #234d6577;background:#041323;padding:12px;color:#9bbace;font-size:11px;text-align:left;border-radius:4px}.wf-activity-list strong{color:#d0e9f9;font-weight:500}.wf-activity-list svg{color:var(--wf-color)}.wf-activity-list time{text-align:right;font-size:10px}.wf-locked{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:440px;text-align:center;color:var(--wf-color)}.wf-locked h2{font-weight:500;font-size:21px}.wf-locked p{color:#8ba9bb;font-size:13px}.wf-custom-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:17px;margin-top:20px;align-items:start}.wf-custom-preview,.wf-control-panel{position:relative;border:1px solid var(--wf-line);border-radius:8px;background:linear-gradient(130deg,#061724,#020b14);padding:16px;min-width:0}.wf-panel-title{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--wf-line);padding-bottom:13px}.wf-panel-title h2{font-size:12px;letter-spacing:.12em;margin:0;font-weight:500;color:#bceaff}.wf-panel-title span{font-size:9px;color:#7ca3b9}.wf-custom-controls{display:flex;flex-direction:column;gap:15px}.wf-control-panel h2{font-family:Orbitron,system-ui,sans-serif;font-size:14px;font-weight:500;letter-spacing:.04em;color:#d5e8ff;margin:0}.wf-control-panel>p{font-size:11px;color:#92b0c2;line-height:1.6;margin:7px 0 15px}.wf-colors{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.wf-colors button{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;border:1px solid #2b536f;border-radius:6px;padding:9px 3px 7px;background:#030e18;color:#bcd8e7}.wf-colors button>span{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 25%,#ffffff90,var(--swatch) 35%,#000b);box-shadow:0 0 12px color-mix(in srgb,var(--swatch),transparent 60%)}.wf-colors small{font-size:8px;line-height:1.4;min-height:20px;text-align:center}.wf-colors button>svg{position:absolute;right:3px;top:3px;background:#082138;border:1px solid var(--wf-color);border-radius:50%;color:#dff6ff}.wf-colors button[aria-pressed=true],.wf-designs button[aria-pressed=true]{border-color:var(--wf-color);box-shadow:inset 0 0 12px var(--wf-faint),0 0 12px var(--wf-faint)}.wf-designs{display:grid;grid-template-columns:1fr 1fr;gap:9px}.wf-designs button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(ellipse,var(--wf-faint),#020b14 75%);border:1px solid #24506b;border-radius:6px;color:#d2e5f3;min-height:117px;padding:10px}.wf-designs .wf-atom{width:74px;height:74px;transform:none}.wf-designs button>span{font-size:10px}.wf-designs button>svg:last-child:not(.wf-atom){position:absolute;right:7px;top:7px;color:var(--wf-color)}.wf-sliders{display:grid;gap:14px;margin-top:20px}.wf-sliders label{display:grid;grid-template-columns:78px 1fr 35px;align-items:center;gap:8px;font-size:11px;color:#b2d0e2}.wf-sliders input{min-width:0;width:100%;height:4px;accent-color:var(--wf-color);cursor:pointer}.wf-sliders output{font-size:10px;text-align:right;color:var(--wf-color)}.wf-reset{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;padding:10px;border:1px solid var(--wf-line);border-radius:4px;background:var(--wf-faint);color:#bde6fc;font-size:11px;margin-top:20px}.wf-control-panel .wf-save{font-size:10px;margin:13px 0 0;color:var(--wf-color)}.wf-footnote{font-size:9px!important;line-height:1.7;color:#7191a8!important}.wf-mini{min-height:600px;aspect-ratio:.87}.wf-mini .wf-category{width:80px}.wf-mini .wf-atom-wrap{width:64px;height:64px}.wf-mini .wf-category strong{font-size:10px}.wf-mini .wf-category-icon{width:15px;height:15px}.wf-mini .wf-axis{font-size:8px}.wf-mini .wf-map-legend{font-size:7px}.wf-preview-center{position:absolute;left:23%;top:34%;width:54%;height:30%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:13px;border:1px solid var(--wf-line);border-radius:12px;background:radial-gradient(ellipse,var(--wf-faint),#030d18);text-align:center;box-shadow:0 0 25px #0008}.wf-preview-center svg{color:var(--wf-color);filter:drop-shadow(0 0 7px var(--wf-color))}.wf-preview-center strong{font-family:Orbitron,system-ui,sans-serif;font-size:14px;font-weight:500;color:#d6efff}.wf-preview-center span{font-size:10px;color:#9fc2d6}.wf-preview-center small{font-size:8px;color:#688ea7}.wf-mini-chart{overflow-x:auto;justify-content:flex-start}.wf-mini-chart>div{min-width:48px;flex:1}.wf-mini-chart small{overflow-wrap:anywhere}@keyframes wf-orbit-spin{to{transform:rotate(360deg)}}
+@media(min-width:1450px){.wf-universe{min-height:820px}.wf-center{top:26%}.wf-topic{padding:18px}.wf-topic-box{padding:13px}.wf-topic h2{font-size:17px}.wf-topic-box h3{font-size:10px}.wf-flow-part>span{font-size:10px;min-height:49px}.wf-recent li{font-size:10px}.wf-recent time{font-size:8px}.wf-mini-chart{height:110px}.wf-bar-track{height:60px}.wf-apps>span{font-size:9px}.wf-category{width:115px}.wf-atom-wrap{width:98px;height:98px}.wf-category strong{font-size:14px}.wf-topic-actions>a,.wf-topic-actions>button{font-size:11px}.wf-mini{min-height:650px}.wf-mini .wf-category{width:80px}.wf-mini .wf-atom-wrap{width:67px;height:67px}}
+@media(max-width:1100px){.wf-custom-grid{grid-template-columns:1fr}.wf-custom-preview .wf-mini{min-height:650px;aspect-ratio:1.05;max-width:800px;margin:auto}.wf-custom-controls{display:grid;grid-template-columns:1fr 1.4fr;align-items:start}.wf-colors{grid-template-columns:repeat(3,1fr)}.wf-colors small{font-size:10px}.wf-colors button>span{width:35px;height:35px}.wf-colors small{min-height:14px}.wf-universe{min-height:720px}.wf-topic-columns{grid-template-columns:1fr 1fr}.wf-center{width:63%;left:18.5%}}
+@media(max-width:850px){.wf-brand>span{display:none}.wf-head h1{font-size:23px}.wf-universe{min-height:570px;aspect-ratio:1.1}.wf-graph-shell .wf-center{display:none}.wf-mobile-topic{display:block;margin-top:15px}.wf-graph-shell .wf-universe:after{content:'Select a category to explore its workflow below';position:absolute;left:29%;top:45%;width:42%;text-align:center;line-height:1.8;font-size:12px;color:#729eb7;pointer-events:none}.wf-atom-wrap{width:74px;height:74px}.wf-category strong{font-size:12px}.wf-category small{font-size:8px}.wf-topic{padding:20px}.wf-topic h2{font-size:17px}.wf-subtitle{font-size:12px}.wf-topic-box h3{font-size:11px}.wf-topic-box h3 small{font-size:9px}.wf-topic-title>span{font-size:8px}.wf-flow-part>span{font-size:11px;min-height:55px}.wf-recent li{font-size:10px}.wf-recent time{font-size:9px}.wf-mini-chart{height:110px}.wf-bar-track{height:55px}.wf-mini-chart small{font-size:9px}.wf-zero{font-size:9px}.wf-apps>span{font-size:11px;padding:9px}.wf-apps>span small{font-size:9px}.wf-topic-actions>a,.wf-topic-actions>button{font-size:12px;padding:8px 0}.wf-domain-list{grid-template-columns:repeat(2,1fr)}.wf-footer{flex-wrap:wrap}.wf-nav>button{padding:9px 12px}.wf-custom-controls{grid-template-columns:1fr 1.4fr}}
+@media(max-width:560px){.wf-head-row{align-items:start;flex-direction:column;gap:14px}.wf-head h1{font-size:20px;line-height:1.5}.wf-head p{font-size:11px}.wf-brand{padding-bottom:12px;margin-bottom:14px}.wf-primary{font-size:11px;padding:9px 12px}.wf-nav{flex-wrap:wrap;margin-top:18px;gap:3px}.wf-nav>button{font-size:11px;flex:1}.wf-search{max-width:none;flex-basis:100%;width:100%;margin-top:8px}.wf-filters{gap:5px}.wf-filters button{font-size:10px;padding:6px 8px}.wf-universe{min-height:470px;aspect-ratio:.78}.wf-category{width:69px}.wf-atom-wrap{width:53px;height:53px}.wf-category-icon{width:14px;height:14px}.wf-category strong{font-size:10px}.wf-category small{font-size:7px}.wf-axis{font-size:8px}.wf-map-legend{font-size:7px;max-width:31%}.wf-graph-shell .wf-universe:after{font-size:10px;left:28%;width:44%}.wf-topic{padding:13px}.wf-topic h2{font-size:13px}.wf-topic-title>span{font-size:7px}.wf-subtitle{font-size:10px}.wf-flow{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wf-flow-part>span{font-size:10px;min-height:47px}.wf-flow-part svg{width:12px}.wf-topic-columns{grid-template-columns:1fr}.wf-topic-box{padding:12px}.wf-recent li{font-size:11px}.wf-mini-chart{height:100px;gap:16px}.wf-mini-chart small{font-size:10px}.wf-topic-actions{gap:8px;flex-wrap:wrap}.wf-topic-actions>a,.wf-topic-actions>button{font-size:11px}.wf-apps{gap:8px}.wf-apps h3{flex-basis:100%}.wf-apps>span{font-size:10px}.wf-domain-list{grid-template-columns:1fr}.wf-activity-list button{grid-template-columns:18px 1fr 80px;font-size:10px;gap:5px}.wf-activity-list button>span{grid-column:2;grid-row:2}.wf-activity-list time{grid-column:3;grid-row:1/3;font-size:9px}.wf-list-panel{padding:15px}.wf-list-panel h2{font-size:14px}.wf-list-panel>p{font-size:11px}.wf-custom-controls{display:flex}.wf-custom-preview{padding:10px}.wf-custom-preview .wf-mini{min-height:480px;aspect-ratio:.8}.wf-mini .wf-atom-wrap{width:48px;height:48px}.wf-mini .wf-category{width:60px}.wf-mini .wf-category strong{font-size:9px}.wf-mini .wf-category-icon{width:12px;height:12px}.wf-preview-center{left:23%;width:54%;height:29%;top:35%;padding:9px;gap:9px}.wf-preview-center strong{font-size:11px}.wf-preview-center span{font-size:8px}.wf-preview-center small{font-size:7px}.wf-preview-center svg{width:27px}.wf-panel-title h2{font-size:10px}.wf-panel-title span{font-size:8px}.wf-colors{grid-template-columns:repeat(6,1fr)}.wf-colors button>span{width:28px;height:28px}.wf-colors small{font-size:8px}.wf-locked{min-height:330px}}
+@media(prefers-reduced-motion:reduce){.wf-app *{animation:none!important;transition:none!important}}
+`;
+
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { useEvolutionData, useCloudStatus, uid, type GoalCategory } from "@/lib/evolution-data";
@@ -41,6 +904,8 @@ import { MobileBottomNav } from "@/components/evolution/MobileBottomNav";
 import { MobileApp, useIsPhone } from "@/components/evolution/MobileApp";
 import { AppBrandBar } from "@/components/evolution/AppBrandBar";
 import { Toaster } from "sonner";
+import { mainNav, secondaryNav } from "@/components/evolution/Sidebar";
+import { BrandMark } from "@/components/evolution/BrandMark";
 
 function NotFoundComponent() {
   return (
@@ -195,6 +1060,13 @@ function RootComponent() {
     );
   if (pathname.startsWith("/evolution-mobile/"))
     return <div role="alert">Mobile asset unavailable. Open the Dashboard from the main app.</div>;
+  if (section === "ai-workflow")
+    return (
+      <>
+        <AIWorkflowFeaturePage />
+        <Toaster />
+      </>
+    );
   if (section === "evo" || section === "alfred")
     return (
       <>
@@ -224,12 +1096,77 @@ function RootComponent() {
   );
 }
 
+function AIWorkflowFeaturePage() {
+  const [ready, setReady] = useState(false);
+  const [generation, setGeneration] = useState(0);
+  useEffect(() => {
+    setReady(true);
+    const changing = () => {
+      setReady(false);
+      setGeneration((value) => value + 1);
+    };
+    const changed = () => setReady(true);
+    window.addEventListener("evolution:owner-changing", changing);
+    window.addEventListener("evolution:owner-changed", changed);
+    return () => {
+      window.removeEventListener("evolution:owner-changing", changing);
+      window.removeEventListener("evolution:owner-changed", changed);
+    };
+  }, []);
+  return (
+    <div className="min-h-screen bg-background text-foreground p-3 sm:p-5">
+      <header className="flex items-center justify-between gap-4 mb-5">
+        <BrandMark />
+        <AppBrandBar />
+      </header>
+      <div className="grid grid-cols-1 lg:grid-cols-[210px_minmax(0,1fr)] gap-5">
+        <aside className="hidden lg:block rounded-xl border border-primary/30 bg-card/60 p-3">
+          <nav aria-label="Evolution navigation" className="flex flex-col gap-1">
+            <a
+              href="/?section=ai-workflow"
+              aria-current="page"
+              className="rounded-md border border-primary/50 bg-primary/15 p-3 text-primary"
+            >
+              AI Workflow
+            </a>
+            <a href="/?section=evo" className="rounded-md p-3 text-foreground/80 hover:bg-primary/10">
+              Evo Planner
+            </a>
+            {[...mainNav, ...secondaryNav].map((item) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                className="flex items-center gap-3 rounded-md p-3 text-sm text-foreground/75 hover:bg-primary/10"
+              >
+                <item.icon size={17} />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+        <main className="min-w-0">
+          <AIWorkflowDashboard
+            key={generation}
+            ready={ready}
+            onOpenTool={(tool) => {
+              window.location.assign(`/?section=evo&tool=${tool}`);
+            }}
+          />
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function EvoAssistantPage() {
   const isPhone = useIsPhone();
   const { data, mutate } = useEvolutionData();
   const cloud = useCloudStatus();
   const [ready, setReady] = useState(false);
-  const [view, setView] = useState<"chat" | "routines" | "calendar" | "goals">("chat");
+  const [view, setView] = useState<"chat" | "routines" | "calendar" | "goals">(() => {
+    const tool = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("tool");
+    return tool === "routines" || tool === "calendar" || tool === "goals" ? tool : "chat";
+  });
   const [viewportHeight, setViewportHeight] = useState<number | undefined>();
   useEffect(() => {
     const viewport = window.visualViewport;

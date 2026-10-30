@@ -6,7 +6,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { cn } from "@/lib/utils";
 import { mainNav, secondaryNav } from "./Sidebar";
 export function AppBrandBar() {
-  const { pathname } = useLocation();
+  const { pathname, searchStr } = useLocation();
+  const workflowActive = ["ai-workflow"].includes(new URLSearchParams(searchStr).get("section") || "");
   const [open, setOpen] = useState(false);
   return (
     <div className="self-end lg:hidden" data-compact-navigation>
@@ -27,14 +28,18 @@ export function AppBrandBar() {
           </SheetHeader>
           <nav className="mt-6 flex flex-col gap-1" aria-label="Main">
             <a
-              href="/?section=evo"
+              href="/?section=ai-workflow"
+              aria-current={workflowActive ? "page" : undefined}
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary"
             >
-              <Zap className="h-4 w-4" /> Evo Assistant
+              <Zap className="h-4 w-4" /> AI Workflow
             </a>
             {[...mainNav, ...secondaryNav].map((item) => {
-              const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+              const active =
+                item.to === "/"
+                  ? pathname === "/" && !new URLSearchParams(searchStr).has("section")
+                  : pathname.startsWith(item.to);
               return (
                 <Link
                   key={item.label}

@@ -47,7 +47,8 @@ export const secondaryNav = [
 ];
 
 export function Sidebar() {
-  const { pathname } = useLocation();
+  const { pathname, searchStr } = useLocation();
+  const workflowActive = ["ai-workflow"].includes(new URLSearchParams(searchStr).get("section") || "");
   const navigate = useNavigate();
   const { data, updateProfile } = useEvolutionData();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -98,13 +99,17 @@ export function Sidebar() {
 
       <nav className="flex flex-col gap-1 flex-1">
         <a
-          href="/?section=evo"
+          href="/?section=ai-workflow"
+          aria-current={workflowActive ? "page" : undefined}
           className="flex items-center gap-3 px-3 py-3 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary"
         >
-          <Zap className="h-4 w-4" /> Evo Assistant
+          <Zap className="h-4 w-4" /> AI Workflow
         </a>
         {mainNav.map((item) => {
-          const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+          const isActive =
+            item.to === "/"
+              ? pathname === "/" && !new URLSearchParams(searchStr).has("section")
+              : pathname.startsWith(item.to);
           return (
             <Link
               key={item.label}
