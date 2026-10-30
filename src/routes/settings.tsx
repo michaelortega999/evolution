@@ -88,6 +88,13 @@ function SettingsPage() {
   const [name, setName] = useState(data.profile.name);
   const nameTouched = useRef(false);
   const nameInput = useRef<HTMLInputElement>(null);
+  const focusNameAfterNavigation = useRef(false);
+  useEffect(() => {
+    if (focusNameAfterNavigation.current && nameInput.current) {
+      nameInput.current.focus();
+      focusNameAfterNavigation.current = false;
+    }
+  }, [query, view]);
   const [confirmClear, setConfirmClear] = useState(false);
   const [zone, setZone] = useState("Detecting device time zone…");
   useEffect(() => {
@@ -142,8 +149,8 @@ function SettingsPage() {
     "workspace account sync preferences theme accent focus timer",
     "quick actions billing privacy security support",
     "preferences language time zone theme accent",
-    "integrations bank connection calendar notion tradingview strava",
-    "data management export clear reset",
+    "integrations bank connection google calendar notion tradingview strava ai services",
+    "data management export clear reset backup history import",
     "notifications reminders alerts",
     "card appearance customize design",
     "focus timer short long break durations rounds",
@@ -342,26 +349,51 @@ function SettingsPage() {
               )}
             {(view === "profile" || !!query) && matches("quick actions billing privacy security support") && (
               <GlassPanel title="Quick Actions" className="es-quick">
-                <button className="es-action" onClick={() => nameInput.current?.focus()}>
+                <Link
+                  className="es-action"
+                  to="/settings"
+                  search={{ view: "profile" }}
+                  hash="es-name"
+                  onClick={() => {
+                    focusNameAfterNavigation.current = true;
+                    setQuery("");
+                    if (nameInput.current) {
+                      nameInput.current.focus();
+                      focusNameAfterNavigation.current = false;
+                    }
+                  }}
+                >
                   <User />
                   <span>Edit Profile</span>
                   <ChevronRight />
-                </button>
-                <Link className="es-action" to="/settings" search={{ view: "customize" }}>
+                </Link>
+                <Link className="es-action" to="/settings" search={{ view: "customize" }} onClick={() => setQuery("")}>
                   <Palette />
                   <span>Customize Workspace</span>
                   <ChevronRight />
                 </Link>
-                <a className="es-action" href="#es-notifications">
+                <Link
+                  className="es-action"
+                  to="/settings"
+                  search={{ view: "settings" }}
+                  hash="es-notifications"
+                  onClick={() => setQuery("")}
+                >
                   <Bell />
                   <span>Notifications</span>
                   <ChevronRight />
-                </a>
-                <a className="es-action" href="#es-data">
+                </Link>
+                <Link
+                  className="es-action"
+                  to="/settings"
+                  search={{ view: "settings" }}
+                  hash="es-data"
+                  onClick={() => setQuery("")}
+                >
                   <Cloud />
                   <span>Data & Sync</span>
                   <ChevronRight />
-                </a>
+                </Link>
                 <div className="es-unavailable">
                   <CreditCard />
                   <span>
@@ -401,7 +433,7 @@ function SettingsPage() {
                       onClick={() => setTheme(opt.key)}
                     >
                       <span style={{ background: opt.swatch }}>
-                        {settings.theme === opt.key && <Check size={16} />}
+                        {settings.theme === opt.key && <Check size={16} className="es-swatch-check" />}
                       </span>
                       <small>{opt.label}</small>
                     </button>
@@ -418,7 +450,7 @@ function SettingsPage() {
                 <p className="es-footnote">Accent and card preferences are saved automatically.</p>
               </GlassPanel>
             )}
-            {show("settings", "integrations bank connection calendar notion tradingview strava") && (
+            {show("settings", "integrations bank connection google calendar notion tradingview strava ai services") && (
               <GlassPanel title="Integrations" className="es-integrations">
                 <p className="es-footnote">External service connections are not configured in this settings page.</p>
                 {[
@@ -434,12 +466,18 @@ function SettingsPage() {
                     <small>Not configured here</small>
                   </div>
                 ))}
-                <a className="es-inline-link" href="#es-bank">
+                <Link
+                  className="es-inline-link"
+                  to="/settings"
+                  search={{ view: "settings" }}
+                  hash="es-bank"
+                  onClick={() => setQuery("")}
+                >
                   Bank connection settings <ArrowUpRight size={15} />
-                </a>
+                </Link>
               </GlassPanel>
             )}
-            {show("settings", "data management export clear reset") && (
+            {show("settings", "data management export clear reset backup history import") && (
               <GlassPanel title="Data Management" id="es-data" className="es-data">
                 <button className="es-action" disabled={loading} onClick={exportData}>
                   <Download />
@@ -685,7 +723,7 @@ const settingsCss = `
 .es-toolbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:18px 0 4px}.es-title{display:flex;align-items:center;gap:14px;flex:1}.es-title>svg{width:44px;height:44px;color:var(--es-blue);filter:drop-shadow(0 0 9px #00aaff60)}.es-title h1{font-family:Orbitron,ui-sans-serif,sans-serif;font-size:25px;letter-spacing:.1em;margin:0;font-weight:500}.es-title p{margin:3px 0 0;color:#a8d8f5;font-size:9px;letter-spacing:.2em}.es-tabs{display:flex;border:1px solid var(--es-line);border-radius:7px;background:#020c16c9;overflow:hidden}.es-tabs a{display:flex;align-items:center;justify-content:center;gap:9px;padding:13px 21px;color:#bcd6e9;border-right:1px solid #18415b70;text-decoration:none}.es-tabs a:last-child{border:0}.es-tabs svg{color:var(--es-blue)}.es-tabs a[aria-current]{background:linear-gradient(180deg,#0c659b95,#063362);box-shadow:inset 0 0 13px #1395ff75,0 0 13px #1395ff50;color:white;outline:1px solid #4bb6ff;outline-offset:-1px}
 .es-search{display:flex;align-items:center;gap:10px;background:#010d1bc4;border:1px solid var(--es-line);border-radius:6px;padding:11px 13px;width:230px;color:var(--es-blue)}.es-search input{min-width:0;width:100%;background:transparent;border:0;color:var(--es-text);outline:0;font-size:12px}.es-search button{font-size:22px;line-height:1}.es-search:focus-within{outline:2px solid var(--es-blue)}.es-status{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--es-muted);letter-spacing:.03em;margin-top:-4px}.es-status>span:last-child{margin-left:auto;letter-spacing:.16em;font-size:9px}.es-dot{width:6px;height:6px;border-radius:50%;background:#52bdf0;box-shadow:0 0 9px #239de5}.es-dot-error{background:#ffb855}.es-search-note{margin:0;color:var(--es-muted)}
 .es-grid{display:grid;grid-template-columns:1.12fr 1.12fr .94fr;gap:16px;align-items:start}.es-panel{position:relative;min-width:0;padding:20px;border:1px solid var(--es-line);border-radius:9px;background:linear-gradient(135deg,#071c2bcc,#020a13ed 65%);box-shadow:inset 0 1px 0 #6ac7f317,0 5px 25px #0005;backdrop-filter:blur(14px)}.es-panel:before{content:'';position:absolute;top:-1px;left:18px;width:70px;height:1px;background:#52c6ff;box-shadow:0 0 9px #35b9ff}.es-panel h2{font-size:16px;font-weight:550;margin:0 0 18px;display:flex;align-items:center;gap:9px;letter-spacing:-.02em}.es-panel h2 svg{color:var(--es-blue)}.es-panel h3{font-size:14px;font-weight:550;margin:0}.es-panel p{color:var(--es-muted)}.es-panel button,.es-panel a{transition:background .15s,border-color .15s,box-shadow .15s}.es-shell button:focus-visible,.es-shell a:focus-visible,.es-shell input:focus-visible{outline:2px solid #77d6ff;outline-offset:3px}.es-shell button:disabled{opacity:.5;cursor:not-allowed}.es-panel input{background:#020c18;border:1px solid var(--es-line);color:var(--es-text);min-width:0}.es-panel input:focus{border-color:var(--es-blue)}.es-profile,.es-overview,.es-quick{min-height:355px}.es-person{display:flex;align-items:center;gap:17px}.es-person h3{font-size:20px;overflow-wrap:anywhere}.es-person p{font-size:12px;margin:4px 0 8px}.es-avatar{width:82px;height:82px;flex-shrink:0;display:grid;place-items:center;border:1px solid #46bfff9a;border-radius:50%;background:radial-gradient(circle at 35% 20%,#1b658c80,#020c18 70%);color:#56beff;box-shadow:0 0 24px #008cff20;position:relative}.es-avatar span{position:absolute;bottom:0;right:0;width:26px;height:26px;border:1px solid #3489b7;background:#061b2d;border-radius:50%;display:grid;place-items:center}.es-tag{font-size:8px;color:#9dd9fc;letter-spacing:.12em;border:1px solid #2e668c;padding:3px 6px;border-radius:4px;background:#07335860}.es-profile blockquote{color:#b6cadb;font-size:12px;margin:20px 0}.es-profile label{color:var(--es-muted);font-size:11px;display:block;margin-bottom:6px}.es-name-edit{display:flex;gap:8px}.es-name-edit button{background:linear-gradient(#155884,#0a3456);color:white;border:1px solid #328ac3}.es-details{margin:14px 0 0}.es-details>div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #23415960;padding:11px 0 0;margin-top:11px}.es-details dt{color:var(--es-muted);font-size:11px}.es-details dd{text-align:right;font-size:11px;overflow-wrap:anywhere;max-width:70%}.es-details small,.es-pref-line small{display:block;font-size:10px;color:#7e9bb2;margin-top:3px}.es-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px}.es-facts>div{display:flex;align-items:center;gap:12px;border:1px solid #22567a;background:linear-gradient(115deg,#0c2d4390,#08142180);border-radius:5px;min-height:79px;padding:12px}.es-facts svg{color:var(--es-blue);width:28px;height:28px;flex-shrink:0}.es-facts span{color:var(--es-muted);font-size:10px}.es-facts strong{font-size:16px;font-weight:450;display:block;color:var(--es-text);margin-top:3px;line-height:1.2}.es-facts strong small{font-size:11px}.es-sync-box{display:flex;align-items:center;gap:13px;padding:17px 0 4px;margin-top:10px;border-top:1px solid #22567a}.es-sync-box>svg{color:#49bfff;flex-shrink:0}.es-sync-box p{font-size:11px;margin:5px 0}.es-footnote{font-size:11px;line-height:1.65;margin:0 0 13px}.es-overview>.es-footnote{font-size:10px;margin:10px 0 0}
-.es-action{display:flex;align-items:center;gap:11px;width:100%;text-align:left;min-height:44px;padding:10px 12px;margin-bottom:8px;background:linear-gradient(110deg,#0a2236a0,#06121db0);border:1px solid #245476;border-radius:5px;color:var(--es-text);text-decoration:none}.es-action:hover{background:#0e3650;border-color:#48aeeb}.es-action>svg{width:21px;height:21px;color:var(--es-blue);flex-shrink:0}.es-action>svg:last-child{width:14px;margin-left:auto}.es-action small,.es-unavailable small{display:block;font-size:10px;margin-top:2px;color:var(--es-muted)}.es-unavailable{display:flex;align-items:center;gap:11px;padding:10px 8px;color:#a7bdce;font-size:12px}.es-unavailable>svg{width:20px;height:20px;color:#659bbd;flex-shrink:0}.es-quick .es-action{margin-bottom:7px}.es-quick .es-unavailable{padding:8px}.es-pref-line{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid #1a3c5360}.es-pref-line>svg{color:var(--es-blue);width:21px;height:21px;flex-shrink:0}.es-pref-line>span{font-size:12px}.es-pref-line>strong{margin-left:auto;text-align:right;font-size:11px;font-weight:400;max-width:55%;overflow-wrap:anywhere}.es-swatches{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0 8px}.es-swatches button{flex:1;min-width:38px;display:flex;align-items:center;flex-direction:column;gap:5px;padding:4px;border-radius:5px;border:1px solid transparent}.es-swatches button[aria-pressed=true]{border-color:#2d759d;background:#163d5860}.es-swatches button>span{height:26px;width:26px;border-radius:50%;display:grid;place-items:center;color:white;box-shadow:inset 0 0 0 2px #ffffff30}.es-swatches small{font-size:8px;color:var(--es-muted)}.es-preferences>.es-footnote{margin:16px 0 0}.es-integration{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #1e435d60;font-size:12px}.es-service{width:26px;height:26px;border:1px solid #2b7196;border-radius:6px;display:grid;place-items:center;font-size:10px;font-weight:650;color:#aaddff;background:#092a3e}.es-integration>small{margin-left:auto;font-size:9px;color:#8ba7bd;text-align:right}.es-inline-link{display:flex;align-items:center;justify-content:space-between;color:#60c5fa;margin-top:18px;font-size:11px}.es-danger{margin-top:15px;padding-top:14px;border-top:1px solid #6e2836}.es-danger h3{display:flex;gap:8px;color:#ff8c99;font-size:12px}.es-danger p{font-size:10px;margin:7px 0 12px}.es-danger>button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px;border:1px solid #9c3e51;color:#ffa0ae;border-radius:5px;background:#4e101b30;font-size:11px}.es-danger>div>strong{font-size:11px;color:#ffb2bc}.es-reset-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.es-reset-buttons button{font-size:10px}
+.es-action{display:flex;align-items:center;gap:11px;width:100%;text-align:left;min-height:44px;padding:10px 12px;margin-bottom:8px;background:linear-gradient(110deg,#0a2236a0,#06121db0);border:1px solid #245476;border-radius:5px;color:var(--es-text);text-decoration:none}.es-action:hover{background:#0e3650;border-color:#48aeeb}.es-action>svg{width:21px;height:21px;color:var(--es-blue);flex-shrink:0}.es-action>svg:last-child{width:14px;margin-left:auto}.es-action small,.es-unavailable small{display:block;font-size:10px;margin-top:2px;color:var(--es-muted)}.es-unavailable{display:flex;align-items:center;gap:11px;padding:10px 8px;color:#a7bdce;font-size:12px}.es-unavailable>svg{width:20px;height:20px;color:#659bbd;flex-shrink:0}.es-quick .es-action{margin-bottom:7px}.es-quick .es-unavailable{padding:8px}.es-pref-line{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid #1a3c5360}.es-pref-line>svg{color:var(--es-blue);width:21px;height:21px;flex-shrink:0}.es-pref-line>span{font-size:12px}.es-pref-line>strong{margin-left:auto;text-align:right;font-size:11px;font-weight:400;max-width:55%;overflow-wrap:anywhere}.es-swatches{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0 8px}.es-swatches button{flex:1;min-width:38px;display:flex;align-items:center;flex-direction:column;gap:5px;padding:4px;border-radius:5px;border:1px solid transparent}.es-swatches button[aria-pressed=true]{border-color:#2d759d;background:#163d5860}.es-swatches button>span{height:26px;width:26px;border-radius:50%;display:grid;place-items:center;color:white;box-shadow:inset 0 0 0 2px #ffffff30}.es-swatch-check{color:#071525;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);stroke-width:3}.es-swatches small{font-size:8px;color:var(--es-muted)}.es-preferences>.es-footnote{margin:16px 0 0}.es-integration{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #1e435d60;font-size:12px}.es-service{width:26px;height:26px;border:1px solid #2b7196;border-radius:6px;display:grid;place-items:center;font-size:10px;font-weight:650;color:#aaddff;background:#092a3e}.es-integration>small{margin-left:auto;font-size:9px;color:#8ba7bd;text-align:right}.es-inline-link{display:flex;align-items:center;justify-content:space-between;color:#60c5fa;margin-top:18px;font-size:11px}.es-danger{margin-top:15px;padding-top:14px;border-top:1px solid #6e2836}.es-danger h3{display:flex;gap:8px;color:#ff8c99;font-size:12px}.es-danger p{font-size:10px;margin:7px 0 12px}.es-danger>button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px;border:1px solid #9c3e51;color:#ffa0ae;border-radius:5px;background:#4e101b30;font-size:11px}.es-danger>div>strong{font-size:11px;color:#ffb2bc}.es-reset-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.es-reset-buttons button{font-size:10px}
 .es-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #21405780;font-size:12px}.es-switch{width:36px;height:21px;border-radius:20px;background:#1c3347;flex-shrink:0;border:1px solid #426179;padding:2px;display:flex}.es-switch span{width:15px;height:15px;background:#93adc1;border-radius:50%;transition:transform .15s}.es-switch[aria-checked=true]{background:#0679bd;border-color:#39b9ff}.es-switch[aria-checked=true] span{transform:translateX(14px);background:#e5f8ff}.es-timer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.es-timer-grid label{color:var(--es-muted);font-size:11px}.es-timer-grid input{margin-top:6px;height:36px}.es-appearance{grid-column:1/-1;min-width:0}.es-appearance .appearance-section{background:#06111ce8;border-color:var(--es-line);color:var(--es-text)}.es-bank{grid-column:1/-1;min-width:0;scroll-margin-top:20px}.es-bank:empty{display:none}.es-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#6f94ae;font-size:10px;padding:10px 0 24px}.es-footer>span:first-child{letter-spacing:.2em;color:#6fbee7}.es-footer a{display:flex;align-items:center;color:#a7c9e0}.es-panel[id]{scroll-margin-top:20px}
 @media(min-width:1450px){.es-toolbar{flex-wrap:nowrap}.es-title{min-width:290px}.es-search{margin-left:auto}.es-panel{padding:22px}.es-profile,.es-overview,.es-quick{min-height:374px}}
 @media(max-width:1250px){.es-brandbar{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--es-line);padding:5px 0 18px}.es-brand-context{font-size:9px;letter-spacing:.2em;color:#789cb5;margin-left:auto}.es-brandbar [data-compact-navigation]{align-self:center}.es-frame{grid-template-columns:174px minmax(0,1fr);gap:18px}.es-grid{grid-template-columns:1fr 1fr}.es-quick{grid-column:1/-1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}.es-quick h2{grid-column:1/-1;margin-bottom:9px}.es-title{min-width:250px}.es-search{flex:1;min-width:180px}.es-shell{padding:18px}.es-tabs a{padding:12px 16px}}
