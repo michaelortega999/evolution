@@ -12063,7 +12063,7 @@
             mediaCancel: clear,
             mediaSave: () => {
               if (!draft.title.trim()) return this.setState({ mediaError: "Add a title to your content plan." });
-              if (draft.date && !/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return this.setState({ mediaError: "Choose a valid planned date." });
+              if (draft.date && !(m => m && +m[2] >= 1 && +m[2] <= 12 && +m[3] >= 1 && +m[3] <= new Date(Date.UTC(+m[1], +m[2], 0)).getUTCDate())(/^(\d{4})-(\d{2})-(\d{2})$/.exec(draft.date))) return this.setState({ mediaError: "Choose a real calendar date." });
               const editId = this.state.mediaEditId;
               this.setState(s => {
                 const current = Array.isArray(s.biz.mediaItems) ? s.biz.mediaItems : [];

@@ -1,5 +1,6 @@
 import { BrandMark } from "@/components/evolution/BrandMark";
 import { ContentWorkbench } from "@/components/evolution/ContentWorkbench";
+import { captureOwnerGuard } from "@/lib/owner-guard";
 import { applyContentUpdate, archiveContent, isArchived, isValidPlannedDate, restoreContent, setContentStage, STALE_MESSAGE, targetState } from "@/lib/media-content";
 function BusinessOverviewRefined() {
   const { data } = useEvolutionData();
@@ -436,7 +437,7 @@ function BusinessOverviewRefined() {
 import { localISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Briefcase,
   Trash2,
@@ -542,11 +543,25 @@ function fmt(n: number) {
 
 function BusinessRoute() {
   const { section, channel } = Route.useSearch();
-  if (section === "social-media") return <SocialMediaPage key={channel ?? "all"} />;
-  if (section === "media-system" || section === "marketing-system") return <MediaSystemPage />;
-  if (section === "content-creator") return <ContentCreatorPage />;
-  if (section === "workspace") return <BusinessPage />;
-  return <BusinessOverviewRefined />;
+  // Account swap: drop open editors, drafts, save status and pending Undo toasts by remounting.
+  const [generation, setGeneration] = useState(0);
+  useEffect(() => {
+    const reset = () => {
+      toast.dismiss();
+      setGeneration((g) => g + 1);
+    };
+    window.addEventListener("evolution:owner-changing", reset);
+    window.addEventListener("evolution:owner-changed", reset);
+    return () => {
+      window.removeEventListener("evolution:owner-changing", reset);
+      window.removeEventListener("evolution:owner-changed", reset);
+    };
+  }, []);
+  if (section === "social-media") return <SocialMediaPage key={`${generation}:${channel ?? "all"}`} />;
+  if (section === "media-system" || section === "marketing-system") return <MediaSystemPage key={generation} />;
+  if (section === "content-creator") return <ContentCreatorPage key={generation} />;
+  if (section === "workspace") return <BusinessPage key={generation} />;
+  return <BusinessOverviewRefined key={generation} />;
 }
 function BusinessOverview() {
   const { data } = useEvolutionData();
@@ -1725,10 +1740,18 @@ function SocialMediaPage() {
   const deleteItem = () => {
     if (!deleteTarget) return;
     const target = deleteTarget;
+    const owner = captureOwnerGuard(getLocalOwner);
     if (!runMediaAction(mutate, target.id, "archive")) return; // keep the confirm open on failure
     setDeleteTarget(null);
     toast(`Archived “${target.title}”. Restore it any time from Archived in the Media System workbench.`, {
-      action: { label: "Undo", onClick: () => void runMediaAction(mutate, target.id, "restore") },
+      action: {
+        label: "Undo",
+        onClick: () =>
+          void owner.run(
+            () => runMediaAction(mutate, target.id, "restore"),
+            () => toast.error("You switched accounts, so this Undo no longer applies."),
+          ),
+      },
     });
   };
 
@@ -2369,10 +2392,18 @@ function ContentCreatorPage() {
   const deleteItem = () => {
     if (!deleteTarget) return;
     const target = deleteTarget;
+    const owner = captureOwnerGuard(getLocalOwner);
     if (!runMediaAction(mutate, target.id, "archive")) return; // keep the confirm open on failure
     setDeleteTarget(null);
     toast(`Archived “${target.title}”. Restore it any time from Archived in the Media System workbench.`, {
-      action: { label: "Undo", onClick: () => void runMediaAction(mutate, target.id, "restore") },
+      action: {
+        label: "Undo",
+        onClick: () =>
+          void owner.run(
+            () => runMediaAction(mutate, target.id, "restore"),
+            () => toast.error("You switched accounts, so this Undo no longer applies."),
+          ),
+      },
     });
   };
 
