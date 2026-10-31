@@ -1418,7 +1418,7 @@ function EvoAssistantPage() {
   if (!ready)
     return (
       <div
-        className={"evo-workspace" + (view === "chat" ? " evo-chat-screen" : "")}
+        className={"evo-workspace" + (isPhone ? " evo-phone" : "") + (view === "chat" ? " evo-chat-screen" : "")}
         style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
       >
         <style>{EVO_WORKSPACE_CSS}</style>
@@ -1427,7 +1427,7 @@ function EvoAssistantPage() {
     );
   return (
     <div
-      className={"evo-workspace" + (view === "chat" ? " evo-chat-screen" : "")}
+      className={"evo-workspace" + (isPhone ? " evo-phone" : "") + (view === "chat" ? " evo-chat-screen" : "")}
       style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
     >
       <style>{EVO_WORKSPACE_CSS}</style>
@@ -1456,24 +1456,25 @@ function EvoAssistantPage() {
         </div>
       </header>
       <div className="evo-mobile-quick" aria-label="Quick planning tools">
-        <button disabled={disabled} onClick={() => runCommand("Plan my day")}>
+        <button className="hud-card" disabled={disabled} onClick={() => runCommand("Plan my day")}>
           <CalendarDays />
           Plan
           <br />
           my day
         </button>
-        <button disabled={disabled} onClick={() => runCommand("Improve my focus")}>
+        <button className="hud-card" disabled={disabled} onClick={() => runCommand("Improve my focus")}>
           <CircleCheck />
           Improve
           <br />
           my focus
         </button>
-        <button disabled={disabled} onClick={() => runCommand("Build a habit")}>
+        <button className="hud-card" disabled={disabled} onClick={() => runCommand("Build a habit")}>
           <ChartNoAxesCombined />
           Build
           <br />a habit
         </button>
         <button
+          className="hud-card"
           disabled={disabled}
           onClick={() => {
             setShowTools((s) => !s);
@@ -1487,7 +1488,7 @@ function EvoAssistantPage() {
         </button>
       </div>
       <div className="evo-body">
-        <aside className={cn("evo-side evo-frame", !isPhone && "hud-card")}>
+        <aside className={cn("evo-side evo-frame", "hud-card")}>
           <div className="evo-side-orb">
             <Orbit />
           </div>
@@ -1548,7 +1549,7 @@ function EvoAssistantPage() {
           )}
           {view === "chat" && (
             <div className={"evo-chat-layout " + (history.length || draftTask ? "has-history" : "")}>
-              <section className={cn("evo-conversation evo-frame", !isPhone && "hud-card")} aria-label="Planning conversation">
+              <section className={cn("evo-conversation evo-frame", "hud-card")} aria-label="Planning conversation">
                 <div className="evo-section-title">
                   <span>
                     <MessageCircle size={16} /> CONVERSATION
@@ -1621,7 +1622,7 @@ function EvoAssistantPage() {
                 <div className="evo-hero-line" />
                 <small>Built-in planner · AI chat not connected</small>
               </section>
-              <div className={cn("evo-composer evo-frame", !isPhone && "hud-card")}>
+              <div className={cn("evo-composer evo-frame", "hud-card")}>
                 {showTools && (
                   <div className="evo-tools">
                     <button onClick={() => setView("routines")}>Routine builder</button>
@@ -1677,7 +1678,7 @@ function EvoAssistantPage() {
           )}
           {view === "routines" && (
             <div className="evo-two-column">
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Workflow size={17} /> ROUTINE BUILDER
@@ -1799,7 +1800,7 @@ function EvoAssistantPage() {
                   </button>
                 </form>
               </section>
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <CalendarDays size={17} /> {preview ? "REVIEW BEFORE APPLYING" : "SAVED ROUTINES"}
@@ -1896,7 +1897,7 @@ function EvoAssistantPage() {
             </div>
           )}
           {view === "calendar" && (
-            <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+            <section className={cn("evo-frame evo-panel", "hud-card")}>
               <div className="evo-section-title">
                 <span>
                   <CalendarDays size={17} /> {preview ? "SCHEDULE PREVIEW" : "YOUR CALENDAR"}
@@ -1978,7 +1979,7 @@ function EvoAssistantPage() {
           )}
           {view === "goals" && (
             <div className="evo-two-column">
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Target size={17} /> SET YOUR DIRECTION
@@ -2059,7 +2060,7 @@ function EvoAssistantPage() {
                   <button disabled={disabled}>Add habit</button>
                 </form>
               </section>
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <ChartNoAxesCombined size={17} /> PROGRESS
@@ -2131,17 +2132,17 @@ function EvoAssistantPage() {
             </div>
           )}
           <div className="evo-bottom-actions">
-            <button className="evo-surface" onClick={() => setView("routines")}>
+            <button className={cn("evo-surface", isPhone && "hud-card")} onClick={() => setView("routines")}>
               <Workflow />
               <strong>OPTIMIZE MY ROUTINE</strong>
               <small>Small changes. Real structure.</small>
             </button>
-            <button className="evo-surface" onClick={() => runCommand("Review my progress")}>
+            <button className={cn("evo-surface", isPhone && "hud-card")} onClick={() => runCommand("Review my progress")}>
               <Sprout />
               <strong>EVOLVE</strong>
               <small>A higher you.</small>
             </button>
-            <button className="evo-surface" onClick={() => setView("goals")}>
+            <button className={cn("evo-surface", isPhone && "hud-card")} onClick={() => setView("goals")}>
               <Target />
               <strong>SET GOALS</strong>
               <small>Turn plans into progress.</small>
@@ -2188,7 +2189,7 @@ const EVO_WORKSPACE_CSS = `.evo-workspace{--evo-blue:#70c8ff;--evo-line:#254e77;
 .evo-chat-screen{position:relative;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0 13px calc(82px + env(safe-area-inset-bottom));}
 .evo-chat-screen .evo-mobile-nav{position:absolute;}
 .evo-chat-screen .evo-header{height:76px;min-height:76px;flex-shrink:0;}.evo-chat-screen .evo-head-status strong{font-size:16px;letter-spacing:2px}
-.evo-chat-screen .evo-mobile-quick{flex-shrink:0;margin:14px 0 6px;gap:7px}.evo-chat-screen .evo-mobile-quick button{min-height:62px;border-radius:10px;font-size:11px;}.evo-chat-screen .evo-mobile-quick svg{width:18px;height:18px;margin-bottom:5px}
+.evo-chat-screen .evo-mobile-quick{flex-shrink:0;margin:14px 0 6px;gap:7px}.evo-chat-screen .evo-mobile-quick button{min-height:62px;font-size:11px;}.evo-chat-screen .evo-mobile-quick svg{width:18px;height:18px;margin-bottom:5px}
 .evo-chat-screen .evo-body{flex:1;min-height:0;display:flex;flex-direction:column;}.evo-chat-screen .evo-main{flex:1;min-height:0;display:flex;flex-direction:column;}.evo-chat-screen .evo-view-tabs{flex-shrink:0;margin:6px 0 9px;}.evo-chat-screen .evo-view-tabs button{padding:4px 10px;min-height:30px;}
 .evo-chat-screen .evo-chat-layout{flex:1;min-height:0;display:flex;gap:9px;}.evo-chat-screen .evo-hero{flex:1;min-height:0;padding:0 0 7px;overflow:hidden;}.evo-chat-screen .evo-orb{width:min(265px,62vw);max-height:calc(100% - 86px);flex-shrink:1;}.evo-chat-screen .evo-hero h2{font-size:22px;margin:9px 0 7px;}.evo-chat-screen .evo-hero-line{margin:13px 0 7px}.evo-chat-screen .evo-hero>small{font-size:9px;}
 .evo-chat-screen .has-history .evo-hero{display:none;}.evo-chat-screen .evo-conversation{flex:1;min-height:0;max-height:none;overflow:hidden;padding:13px;}.evo-chat-screen .evo-section-title{flex-shrink:0;margin-bottom:10px;padding-bottom:9px;}.evo-chat-screen .evo-welcome{padding:10px 0;}.evo-chat-screen .evo-welcome h2{font-size:20px;margin:4px 0;}.evo-chat-screen .evo-welcome p,.evo-chat-screen .evo-welcome small{display:none;}.evo-chat-screen .evo-welcome button{margin-top:8px;}
