@@ -193,7 +193,7 @@ export const LEGACY_THEME_SEEDS: Record<ThemeKey, { primary: string; secondary: 
 export function effectiveCustomization(
   settings: { theme?: unknown; customization?: unknown } | undefined,
 ): AppearanceCustomization {
-  if (settings?.customization && typeof settings.customization === "object")
+  if (settings?.customization && typeof settings.customization === "object" && !Array.isArray(settings.customization))
     return normalizeCustomization(settings.customization);
   const key = (typeof settings?.theme === "string" && settings.theme in LEGACY_THEME_SEEDS ? settings.theme : "default") as ThemeKey;
   const seed = LEGACY_THEME_SEEDS[key];
@@ -205,7 +205,7 @@ export function resolvedAppPalette(settings: { theme?: unknown; customization?: 
 }
 /** Resolved palette for the owner's saved preference, or null when legacy theme classes apply. */
 export function resolvedCustomPalette(value: unknown): ResolvedPalette | null {
-  return value && typeof value === "object" ? resolvePalette(normalizeCustomization(value)) : null;
+  return value && typeof value === "object" && !Array.isArray(value) ? resolvePalette(normalizeCustomization(value)) : null;
 }
 export const customizationStyle = (value: unknown): CSSProperties => customizationTokens(value) as CSSProperties;
 
@@ -228,6 +228,8 @@ html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.tr
 html.evo-customized [data-goals-planner]{color:var(--evo-text)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]){color:var(--evo-text)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="bg-slate-9"],[class*="bg-sky-9"],[class*="bg-black"],[class*="bg-[#0"],[class*="bg-[var(--card-fill)]"])${SEMANTIC_EXCLUDE}{background:var(--card-fill)!important}
+html.evo-customized :is([data-planning-calendar],[data-goals-planner]) [class*="from-[#0"]:not([class*="to-transparent"])${SEMANTIC_EXCLUDE}{background:linear-gradient(135deg,var(--card-fill),var(--card-fill-2))!important;border-color:var(--card-line)!important;box-shadow:inset 0 0 20px color-mix(in srgb,var(--card-accent) 10%,transparent)!important}
+html.evo-customized :is(h1,h2,h3,h4)${SEMANTIC_EXCLUDE}{color:var(--evo-title)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="border-sky"],[class*="border-slate"],[class*="border-cyan"])${SEMANTIC_EXCLUDE}{border-color:var(--card-line)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="text-slate-1"],[class*="text-slate-2"],[class*="text-sky-1"],[class*="text-sky-2"],[class*="text-white"],[class*="text-cyan-1"])${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="text-slate-4"],[class*="text-slate-5"],[class*="text-sky-3"],[class*="text-sky-4"])${SEMANTIC_EXCLUDE}{color:var(--evo-muted)!important}

@@ -280,3 +280,28 @@ describe("phone design source is actually covered", () => {
     expect(FRAME_PALETTE_CSS).not.toMatch(/img|filter/);
   });
 });
+
+describe("final closure: gradient cards, headings, invalid customization", () => {
+  const lines = CUSTOMIZATION_CSS.split("\n");
+  it("Calendar/Goals gradient card utilities (from-[#071623], from-[#081521]) get translucent palette fill + edge", () => {
+    const rule = lines.find((l) => l.includes('[class*="from-[#0"]'))!;
+    expect(rule).toContain("[data-planning-calendar]");
+    expect(rule).toContain("[data-goals-planner]");
+    expect(rule).toContain("var(--card-fill)");
+    expect(rule).toContain("var(--card-line)");
+    expect(rule).toContain(':not([class*="to-transparent"])');
+    expect(rule).toContain(SEMANTIC_EXCLUDE);
+    for (const [file, cls] of [["src/routes/calendar.tsx", "from-[#071623]"], ["src/routes/goals.tsx", "from-[#081521]"]])
+      expect(readFileSync(file, "utf8")).toContain(cls);
+  });
+  it("ordinary headings everywhere (e.g. Business text-cyan-50 h2) follow secondary, semantic excluded", () => {
+    const rule = lines.find((l) => l.startsWith("html.evo-customized :is(h1,h2,h3,h4)"))!;
+    expect(rule).toContain("var(--evo-title)!important");
+    expect(rule).toContain(SEMANTIC_EXCLUDE);
+    expect(readFileSync("src/routes/business.tsx", "utf8")).toMatch(/<h2 className="[^"]*text-cyan-50/);
+  });
+  it("customization: [] is treated as absent, so the legacy seed is kept", () => {
+    expect(effectiveCustomization({ theme: "green", customization: [] }).primary).toBe(LEGACY_THEME_SEEDS.green.primary);
+    expect(resolvedCustomPalette([])).toBeNull();
+  });
+});
