@@ -182,6 +182,11 @@ function SettingsPage() {
             <span className="es-brand-context">PERSONAL OPERATING SYSTEM</span>
             <AppBrandBar />
           </div>
+          <div className="px-4 pt-3 text-right">
+            <a href="/?section=access" className="text-sm text-primary underline underline-offset-4">
+              Account, purchase & website access
+            </a>
+          </div>
           <header className="es-toolbar">
             <div className="es-title">
               <SettingsIcon aria-hidden="true" />
@@ -703,7 +708,11 @@ function CustomizeWorkspace() {
         <div className="ec-color-grid">
           {(
             [
-              ["primary", "Primary Color", "Tints the translucent card glass, neon edges and glow. The page behind cards stays black in every scheme."],
+              [
+                "primary",
+                "Primary Color",
+                "Tints the translucent card glass, neon edges and glow. The page behind cards stays black in every scheme.",
+              ],
               [
                 "secondary",
                 "Secondary Color",
@@ -794,7 +803,9 @@ function CustomizeWorkspace() {
         <div className="ec-black-neon">
           <div>
             <strong>Black Neon</strong>
-            <span>Original look: near-black cards, pale text, blue neon outlines, minimal background, classic frames.</span>
+            <span>
+              Original look: near-black cards, pale text, blue neon outlines, minimal background, classic frames.
+            </span>
           </div>
           <button type="button" disabled={disabled} aria-pressed={blackNeonActive} onClick={restoreBlackNeon}>
             {blackNeonActive ? "Black Neon active" : "Restore Black Neon"}
@@ -823,7 +834,8 @@ function CustomizeWorkspace() {
           ))}
         </div>
         <p className="ec-note">
-          No image upload or external image service is needed. The page is always pure black. Glass, Tech Grid and Gradient add a barely visible grey texture; Minimal and Mountain keep it plain black.
+          No image upload or external image service is needed. The page is always pure black. Glass, Tech Grid and
+          Gradient add a barely visible grey texture; Minimal and Mountain keep it plain black.
         </p>
       </GlassPanel>
       <div className="ec-right">
@@ -932,8 +944,8 @@ function CustomizeWorkspace() {
             </div>
           ))}
           <p className="ec-note">
-            System reduced-motion preferences take priority. Colours also reach the phone screens (their cards, headings and
-            black page); photos, holograms and profit/loss colours keep their own styling.
+            System reduced-motion preferences take priority. Colours also reach the phone screens (their cards, headings
+            and black page); photos, holograms and profit/loss colours keep their own styling.
           </p>
           <p className="ec-save" role="status">
             {cloud === "loading"
