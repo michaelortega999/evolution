@@ -1418,7 +1418,7 @@ function EvoAssistantPage() {
   if (!ready)
     return (
       <div
-        className={"evo-workspace" + (view === "chat" ? " evo-chat-screen" : "")}
+        className={"evo-workspace" + (isPhone ? " evo-phone" : "") + (view === "chat" ? " evo-chat-screen" : "")}
         style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
       >
         <style>{EVO_WORKSPACE_CSS}</style>
@@ -1427,7 +1427,7 @@ function EvoAssistantPage() {
     );
   return (
     <div
-      className={"evo-workspace" + (view === "chat" ? " evo-chat-screen" : "")}
+      className={"evo-workspace" + (isPhone ? " evo-phone" : "") + (view === "chat" ? " evo-chat-screen" : "")}
       style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
     >
       <style>{EVO_WORKSPACE_CSS}</style>
@@ -1487,7 +1487,7 @@ function EvoAssistantPage() {
         </button>
       </div>
       <div className="evo-body">
-        <aside className={cn("evo-side evo-frame", !isPhone && "hud-card")}>
+        <aside className={cn("evo-side evo-frame", "hud-card")}>
           <div className="evo-side-orb">
             <Orbit />
           </div>
@@ -1548,7 +1548,7 @@ function EvoAssistantPage() {
           )}
           {view === "chat" && (
             <div className={"evo-chat-layout " + (history.length || draftTask ? "has-history" : "")}>
-              <section className={cn("evo-conversation evo-frame", !isPhone && "hud-card")} aria-label="Planning conversation">
+              <section className={cn("evo-conversation evo-frame", "hud-card")} aria-label="Planning conversation">
                 <div className="evo-section-title">
                   <span>
                     <MessageCircle size={16} /> CONVERSATION
@@ -1621,7 +1621,7 @@ function EvoAssistantPage() {
                 <div className="evo-hero-line" />
                 <small>Built-in planner · AI chat not connected</small>
               </section>
-              <div className={cn("evo-composer evo-frame", !isPhone && "hud-card")}>
+              <div className={cn("evo-composer evo-frame", "hud-card")}>
                 {showTools && (
                   <div className="evo-tools">
                     <button onClick={() => setView("routines")}>Routine builder</button>
@@ -1677,7 +1677,7 @@ function EvoAssistantPage() {
           )}
           {view === "routines" && (
             <div className="evo-two-column">
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Workflow size={17} /> ROUTINE BUILDER
@@ -1799,7 +1799,7 @@ function EvoAssistantPage() {
                   </button>
                 </form>
               </section>
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <CalendarDays size={17} /> {preview ? "REVIEW BEFORE APPLYING" : "SAVED ROUTINES"}
@@ -1896,7 +1896,7 @@ function EvoAssistantPage() {
             </div>
           )}
           {view === "calendar" && (
-            <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+            <section className={cn("evo-frame evo-panel", "hud-card")}>
               <div className="evo-section-title">
                 <span>
                   <CalendarDays size={17} /> {preview ? "SCHEDULE PREVIEW" : "YOUR CALENDAR"}
@@ -1978,7 +1978,7 @@ function EvoAssistantPage() {
           )}
           {view === "goals" && (
             <div className="evo-two-column">
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Target size={17} /> SET YOUR DIRECTION
@@ -2059,7 +2059,7 @@ function EvoAssistantPage() {
                   <button disabled={disabled}>Add habit</button>
                 </form>
               </section>
-              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
+              <section className={cn("evo-frame evo-panel", "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <ChartNoAxesCombined size={17} /> PROGRESS
@@ -2131,17 +2131,17 @@ function EvoAssistantPage() {
             </div>
           )}
           <div className="evo-bottom-actions">
-            <button className="evo-surface" onClick={() => setView("routines")}>
+            <button className={cn("evo-surface", isPhone && "hud-card")} onClick={() => setView("routines")}>
               <Workflow />
               <strong>OPTIMIZE MY ROUTINE</strong>
               <small>Small changes. Real structure.</small>
             </button>
-            <button className="evo-surface" onClick={() => runCommand("Review my progress")}>
+            <button className={cn("evo-surface", isPhone && "hud-card")} onClick={() => runCommand("Review my progress")}>
               <Sprout />
               <strong>EVOLVE</strong>
               <small>A higher you.</small>
             </button>
-            <button className="evo-surface" onClick={() => setView("goals")}>
+            <button className={cn("evo-surface", isPhone && "hud-card")} onClick={() => setView("goals")}>
               <Target />
               <strong>SET GOALS</strong>
               <small>Turn plans into progress.</small>
