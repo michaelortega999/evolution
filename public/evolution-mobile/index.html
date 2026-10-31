@@ -11933,7 +11933,7 @@
 
         mediaVals() {
           const b = this.state.biz;
-          const items = Array.isArray(b.mediaItems) ? b.mediaItems : [];
+          const items = (Array.isArray(b.mediaItems) ? b.mediaItems : []).filter(x => x && !x.archivedAt); // archived rows stay stored, hidden here
           const draft = this.state.mediaDraft || { title: "", channel: "Instagram", stage: "Idea", date: "", notes: "" };
           const filter = this.state.mediaFilter || "All";
           const shown = items.filter(x => filter === "All" || x.stage === filter);
@@ -12067,7 +12067,7 @@
               const editId = this.state.mediaEditId;
               this.setState(s => {
                 const current = Array.isArray(s.biz.mediaItems) ? s.biz.mediaItems : [];
-                if (editId && !current.some(x => x.id === editId)) return { mediaError: "This plan was removed. Cancel to create a new plan." };
+                if (editId && !current.some(x => x && x.id === editId && !x.archivedAt)) return { mediaError: "This plan was removed or archived elsewhere. Restore it in Media System on desktop, or cancel." };
                 const item = { id: editId || (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : "media-" + Date.now() + "-" + Math.random().toString(36).slice(2)), title: draft.title.trim(), channel: draft.channel, stage: draft.stage, date: draft.date, notes: draft.notes || "" };
                 return { biz: Object.assign({}, s.biz, { mediaItems: editId ? current.map(x => x.id === editId ? Object.assign({}, x, item) : x) : current.concat(item) }), mediaDraft: null, mediaEditId: null, mediaError: "", mediaFilter: "All", mediaDeleteId: null };
               });
@@ -12077,11 +12077,11 @@
             mediaRows: shown.map(x => ({
               title: x.title, meta: x.channel + " · " + (x.stage === "Published" ? "Published (manual)" : x.stage) + " · " + (x.date || "No date set"), notes: x.notes || "",
               onEdit: () => this.setState({ mediaDraft: { title: x.title, channel: x.channel, stage: x.stage, date: x.date || "", notes: x.notes || "" }, mediaEditId: x.id, mediaError: "", mediaDeleteId: null }),
-              confirming: this.state.mediaDeleteId === x.id, deleteLabel: this.state.mediaDeleteId === x.id ? "CONFIRM DELETE" : "DELETE",
+              confirming: this.state.mediaDeleteId === x.id, deleteLabel: this.state.mediaDeleteId === x.id ? "CONFIRM ARCHIVE (RESTORE IN MEDIA SYSTEM)" : "ARCHIVE",
               onKeep: () => this.setState({ mediaDeleteId: null }),
               onDelete: () => {
                 if (this.state.mediaDeleteId !== x.id) return this.setState({ mediaDeleteId: x.id });
-                this.setState(s => ({ biz: Object.assign({}, s.biz, { mediaItems: (s.biz.mediaItems || []).filter(i => i.id !== x.id) }), mediaDeleteId: null, ...(s.mediaEditId === x.id ? { mediaEditId: null, mediaDraft: null, mediaError: "" } : {}) }));
+                this.setState(s => ({ biz: Object.assign({}, s.biz, { mediaItems: (s.biz.mediaItems || []).map(i => i && i.id === x.id && !i.archivedAt ? Object.assign({}, i, { archivedAt: new Date().toISOString() }) : i) }), mediaDeleteId: null, ...(s.mediaEditId === x.id ? { mediaEditId: null, mediaDraft: null, mediaError: "" } : {}) }));
               }
             }))
           };

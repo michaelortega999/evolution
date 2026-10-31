@@ -146,3 +146,20 @@ export function contentBrief(i: ContentRecord, projectName?: string): string {
 export function contentExport(items: ContentRecord[], exportedAt: string): string {
   return JSON.stringify({ format: "evolution-content/v1", exportedAt, count: items.length, items }, null, 2);
 }
+
+export type TargetState = "active" | "archived" | "missing";
+export function targetState(items: { id: string; archivedAt?: unknown }[], id: string): TargetState {
+  const t = items.find((i) => i.id === id);
+  return !t ? "missing" : isArchived(t) ? "archived" : "active";
+}
+
+/** Stage change only for active targets; returns the state found so callers never claim a stale success. */
+export function setContentStage(items: ContentRecord[], id: string, stage: ContentStage) {
+  const state = targetState(items, id);
+  return { state, items: state === "active" ? items.map((i) => (i.id === id ? { ...i, stage } : i)) : items };
+}
+
+export const STALE_MESSAGE: Record<Exclude<TargetState, "active">, string> = {
+  missing: "That content no longer exists — it was removed on another device.",
+  archived: "That content is archived. Restore it from the Archived view first.",
+};

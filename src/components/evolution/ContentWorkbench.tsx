@@ -16,6 +16,9 @@ import {
   filterContent,
   isArchived,
   isValidPlannedDate,
+  setContentStage,
+  STALE_MESSAGE,
+  targetState,
   nextUp,
   parseContent,
   restoreContent,
@@ -174,23 +177,51 @@ export function ContentWorkbench({ id = "content-workbench" }: { id?: string }) 
     setOpen(false);
   };
 
-  const setStage = (itemId: string, stage: ContentStage) => {
-    mutate((prev) => contentPatch(prev, (items) => items.map((i) => (i.id === itemId && !isArchived(i) ? { ...i, stage } : i))));
+  /** Runs one record action; returns true only when a real write happened. */
+  const act = (itemId: string, kind: "stage" | "archive" | "restore", stage?: ContentStage) => {
+    let problem = "";
+    try {
+      mutate((prev) => {
+        const state = targetState(readAllContent(prev), itemId);
+        const expected = kind === "restore" ? "archived" : "active";
+        if (state !== expected) {
+          problem = state === "missing" ? STALE_MESSAGE.missing : kind === "restore" ? "That content is already active." : STALE_MESSAGE.archived;
+          return {};
+        }
+        return contentPatch(prev, (items) =>
+          kind === "stage"
+            ? setContentStage(items, itemId, stage ?? "Idea").items
+            : kind === "archive"
+              ? archiveContent(items, itemId, new Date().toISOString())
+              : restoreContent(items, itemId),
+        );
+      });
+    } catch {
+      problem = "Couldn't save on this device (storage may be full or blocked). Nothing was changed.";
+    }
+    if (problem) {
+      toast.error(problem);
+      return false;
+    }
     save.markSaved();
+    return true;
+  };
+  const setStage = (itemId: string, stage: ContentStage) => void act(itemId, "stage", stage);
+  const restore = (item: ContentRecord) => {
+    if (act(item.id, "restore")) toast.success(`Restored “${item.title}”.`);
   };
   const archive = (item: ContentRecord) => {
-    mutate((prev) => contentPatch(prev, (items) => archiveContent(items, item.id, new Date().toISOString())));
-    save.markSaved();
-    toast(`Archived “${item.title}”.`, { action: { label: "Undo", onClick: () => restore(item) } });
-  };
-  const restore = (item: ContentRecord) => {
-    mutate((prev) => contentPatch(prev, (items) => restoreContent(items, item.id)));
-    save.markSaved();
+    if (act(item.id, "archive")) toast(`Archived “${item.title}”.`, { action: { label: "Undo", onClick: () => restore(item) } });
   };
   const exportJson = () => {
     if (!visible.length) return toast.error("Nothing to export in this view.");
-    downloadText(contentExport(visible, new Date().toISOString()), `evolution-content-${today}.json`);
+    try {
+      downloadText(contentExport(visible, new Date().toISOString()), `evolution-content-${today}.json`);
+    } catch {
+      toast.error("The export file couldn't be created in this browser.");
+    }
   };
+  const channelOptions = [...new Set([...CONTENT_CHANNELS, ...all.map((i) => i.channel).filter(Boolean)])];
 
   const orphan = (pid?: string) => !!pid && !projectName(pid);
 
@@ -249,7 +280,7 @@ export function ContentWorkbench({ id = "content-workbench" }: { id?: string }) 
         </label>
         <label className="min-w-0"><span className="sr-only">Filter by platform</span>
           <select className={field} value={filter.channel} onChange={(e) => setFilter({ ...filter, channel: e.target.value })}>
-            <option value="All">All platforms</option>{CONTENT_CHANNELS.map((c) => <option key={c}>{c}</option>)}
+            <option value="All">All platforms</option>{channelOptions.map((c) => <option key={c}>{c}</option>)}
           </select>
         </label>
         <label className="min-w-0"><span className="sr-only">Filter by project</span>
@@ -271,7 +302,9 @@ export function ContentWorkbench({ id = "content-workbench" }: { id?: string }) 
         <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           {all.length === 0
             ? <>No content saved yet. <button type="button" className="underline" onClick={() => openEditor()}>Capture your first idea</button>.</>
-            : filter.view === "archived" ? "Nothing archived." : "No content matches these filters."}
+            : filter.view === "archived"
+              ? counts.archived > 0 ? "No archived content matches these filters." : "Nothing archived."
+              : "No content matches these filters."}
         </div>
       ) : (
         <ul className="space-y-2">
@@ -316,7 +349,7 @@ export function ContentWorkbench({ id = "content-workbench" }: { id?: string }) 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-sm">Platform
                 <select className={field} value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })}>
-                  {[...new Set([...CONTENT_CHANNELS, form.channel])].map((c) => <option key={c}>{c}</option>)}
+                  {[...new Set([...channelOptions, form.channel])].map((c) => <option key={c}>{c}</option>)}
                 </select>
               </label>
               <label className="block text-sm">Stage
@@ -341,7 +374,7 @@ export function ContentWorkbench({ id = "content-workbench" }: { id?: string }) 
             </label>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <DialogFooter className="flex-wrap gap-2">
-              <Button type="button" variant="ghost" onClick={() => copyText(`${form.title}\n\n${form.notes}`.trim())}><Copy className="h-4 w-4" /> Copy caption</Button>
+              <Button type="button" variant="ghost" onClick={() => (form.notes.trim() ? copyText(form.notes) : toast.error("There's no caption to copy yet."))}><Copy className="h-4 w-4" /> Copy caption</Button>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </DialogFooter>

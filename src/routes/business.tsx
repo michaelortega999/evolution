@@ -1,6 +1,6 @@
 import { BrandMark } from "@/components/evolution/BrandMark";
 import { ContentWorkbench } from "@/components/evolution/ContentWorkbench";
-import { applyContentUpdate, archiveContent, isArchived, isValidPlannedDate } from "@/lib/media-content";
+import { applyContentUpdate, archiveContent, isArchived, isValidPlannedDate, restoreContent, setContentStage, STALE_MESSAGE, targetState } from "@/lib/media-content";
 function BusinessOverviewRefined() {
   const { data } = useEvolutionData();
   const [selected, setSelected] = useState(0);
@@ -1604,6 +1604,37 @@ function mediaPatch(data: EvolutionData, update: (items: MediaItem[]) => MediaIt
   };
 }
 
+/** Stage/archive/restore with stale-target and storage-failure handling; returns true only on a real write. */
+function runMediaAction(
+  mutate: (fn: (prev: EvolutionData) => Partial<EvolutionData>) => void,
+  id: string,
+  action: "stage" | "archive" | "restore",
+  stage?: MediaStage,
+): boolean {
+  let problem = "";
+  try {
+    mutate((prev) => {
+      const state = targetState(readMediaItems(prev), id);
+      const expected = action === "restore" ? "archived" : "active";
+      if (state !== expected) {
+        problem = state === "missing" ? STALE_MESSAGE.missing : action === "restore" ? "That content is already active." : STALE_MESSAGE.archived;
+        return {};
+      }
+      return mediaPatch(prev, (current) =>
+        action === "stage"
+          ? (setContentStage(current, id, stage ?? "Idea").items as MediaItem[])
+          : action === "archive"
+            ? (archiveContent(current, id, new Date().toISOString()) as MediaItem[])
+            : (restoreContent(current, id) as MediaItem[]),
+      );
+    });
+  } catch {
+    problem = "Couldn't save on this device (storage may be full or blocked). Nothing was changed.";
+  }
+  if (problem) toast.error(problem);
+  return !problem;
+}
+
 function SocialMediaPage() {
   const { data, mutate } = useEvolutionData();
   const items = readActiveMediaItems(data);
@@ -1689,29 +1720,15 @@ function SocialMediaPage() {
     setEditorOpen(false);
   };
   const moveItem = (id: string, nextStage: MediaStage) => {
-    mutate((prev) =>
-      mediaPatch(prev, (current) => current.map((item) => (item.id === id ? { ...item, stage: nextStage } : item))),
-    );
+    runMediaAction(mutate, id, "stage", nextStage);
   };
   const deleteItem = () => {
     if (!deleteTarget) return;
     const target = deleteTarget;
-    mutate((prev) => mediaPatch(prev, (current) => archiveContent(current, target.id, new Date().toISOString()) as MediaItem[]));
+    if (!runMediaAction(mutate, target.id, "archive")) return; // keep the confirm open on failure
     setDeleteTarget(null);
     toast(`Archived “${target.title}”. Restore it any time from Archived in the Media System workbench.`, {
-      action: {
-        label: "Undo",
-        onClick: () =>
-          mutate((prev) =>
-            mediaPatch(prev, (current) =>
-              current.map((item) => {
-                if (item.id !== target.id) return item;
-                const { archivedAt: _a, ...rest } = item;
-                return rest as MediaItem;
-              }),
-            ),
-          ),
-      },
+      action: { label: "Undo", onClick: () => void runMediaAction(mutate, target.id, "restore") },
     });
   };
 
@@ -2346,30 +2363,16 @@ function ContentCreatorPage() {
   };
 
   const moveItem = (id: string, nextStage: MediaStage) => {
-    mutate((prev) =>
-      mediaPatch(prev, (current) => current.map((item) => (item.id === id ? { ...item, stage: nextStage } : item))),
-    );
+    runMediaAction(mutate, id, "stage", nextStage);
   };
 
   const deleteItem = () => {
     if (!deleteTarget) return;
     const target = deleteTarget;
-    mutate((prev) => mediaPatch(prev, (current) => archiveContent(current, target.id, new Date().toISOString()) as MediaItem[]));
+    if (!runMediaAction(mutate, target.id, "archive")) return; // keep the confirm open on failure
     setDeleteTarget(null);
     toast(`Archived “${target.title}”. Restore it any time from Archived in the Media System workbench.`, {
-      action: {
-        label: "Undo",
-        onClick: () =>
-          mutate((prev) =>
-            mediaPatch(prev, (current) =>
-              current.map((item) => {
-                if (item.id !== target.id) return item;
-                const { archivedAt: _a, ...rest } = item;
-                return rest as MediaItem;
-              }),
-            ),
-          ),
-      },
+      action: { label: "Undo", onClick: () => void runMediaAction(mutate, target.id, "restore") },
     });
   };
 
