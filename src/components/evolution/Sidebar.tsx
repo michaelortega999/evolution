@@ -133,7 +133,7 @@ export function Sidebar() {
               key={item.label}
               to={item.to}
               activeOptions={{ exact: true, includeSearch: true }}
-              activeProps={{ "aria-current": undefined }}
+              aria-current={isActive ? "page" : "false"}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive
@@ -160,7 +160,7 @@ export function Sidebar() {
               key={item.label}
               to={item.to}
               activeOptions={{ exact: true, includeSearch: true }}
-              activeProps={{ "aria-current": undefined }}
+              aria-current={isActive ? "page" : "false"}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive

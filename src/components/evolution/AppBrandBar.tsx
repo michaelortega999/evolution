@@ -62,7 +62,6 @@ export function AppBrandBar() {
                   key={item.label}
                   to={item.to}
                   activeOptions={{ exact: true, includeSearch: true }}
-                  activeProps={{ "aria-current": undefined }}
                   onClick={() => setOpen(false)}
                   aria-current={active ? "page" : "false"}
                   className={cn(
