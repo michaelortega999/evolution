@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { todayDate, uid, useCloudStatus, useEvolutionData, type CloudStatus, type EvolutionData } from "@/lib/evolution-data";
+import { captureOwnerGuard } from "@/lib/owner-guard";
+import { getLocalOwner, todayDate, uid, useCloudStatus, useEvolutionData, type CloudStatus, type EvolutionData } from "@/lib/evolution-data";
 import {
   CONTENT_STAGES,
   applyContentUpdate,
@@ -211,7 +212,14 @@ export function ContentWorkbench({ id = "content-workbench" }: { id?: string }) 
     if (act(item.id, "restore")) toast.success(`Restored “${item.title}”.`);
   };
   const archive = (item: ContentRecord) => {
-    if (act(item.id, "archive")) toast(`Archived “${item.title}”.`, { action: { label: "Undo", onClick: () => restore(item) } });
+    const owner = captureOwnerGuard(getLocalOwner);
+    if (act(item.id, "archive"))
+      toast(`Archived “${item.title}”.`, {
+        action: {
+          label: "Undo",
+          onClick: () => void owner.run(() => restore(item), () => toast.error("You switched accounts, so this Undo no longer applies.")),
+        },
+      });
   };
   const exportJson = () => {
     if (!visible.length) return toast.error("Nothing to export in this view.");
