@@ -1456,19 +1456,19 @@ function EvoAssistantPage() {
         </div>
       </header>
       <div className="evo-mobile-quick" aria-label="Quick planning tools">
-        <button disabled={disabled} onClick={() => runCommand("Plan my day")}>
+        <button className="hud-card" disabled={disabled} onClick={() => runCommand("Plan my day")}>
           <CalendarDays />
           Plan
           <br />
           my day
         </button>
-        <button disabled={disabled} onClick={() => runCommand("Improve my focus")}>
+        <button className="hud-card" disabled={disabled} onClick={() => runCommand("Improve my focus")}>
           <CircleCheck />
           Improve
           <br />
           my focus
         </button>
-        <button disabled={disabled} onClick={() => runCommand("Build a habit")}>
+        <button className="hud-card" disabled={disabled} onClick={() => runCommand("Build a habit")}>
           <ChartNoAxesCombined />
           Build
           <br />a habit
@@ -2188,7 +2188,7 @@ const EVO_WORKSPACE_CSS = `.evo-workspace{--evo-blue:#70c8ff;--evo-line:#254e77;
 .evo-chat-screen{position:relative;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0 13px calc(82px + env(safe-area-inset-bottom));}
 .evo-chat-screen .evo-mobile-nav{position:absolute;}
 .evo-chat-screen .evo-header{height:76px;min-height:76px;flex-shrink:0;}.evo-chat-screen .evo-head-status strong{font-size:16px;letter-spacing:2px}
-.evo-chat-screen .evo-mobile-quick{flex-shrink:0;margin:14px 0 6px;gap:7px}.evo-chat-screen .evo-mobile-quick button{min-height:62px;border-radius:10px;font-size:11px;}.evo-chat-screen .evo-mobile-quick svg{width:18px;height:18px;margin-bottom:5px}
+.evo-chat-screen .evo-mobile-quick{flex-shrink:0;margin:14px 0 6px;gap:7px}.evo-chat-screen .evo-mobile-quick button{min-height:62px;font-size:11px;}.evo-chat-screen .evo-mobile-quick svg{width:18px;height:18px;margin-bottom:5px}
 .evo-chat-screen .evo-body{flex:1;min-height:0;display:flex;flex-direction:column;}.evo-chat-screen .evo-main{flex:1;min-height:0;display:flex;flex-direction:column;}.evo-chat-screen .evo-view-tabs{flex-shrink:0;margin:6px 0 9px;}.evo-chat-screen .evo-view-tabs button{padding:4px 10px;min-height:30px;}
 .evo-chat-screen .evo-chat-layout{flex:1;min-height:0;display:flex;gap:9px;}.evo-chat-screen .evo-hero{flex:1;min-height:0;padding:0 0 7px;overflow:hidden;}.evo-chat-screen .evo-orb{width:min(265px,62vw);max-height:calc(100% - 86px);flex-shrink:1;}.evo-chat-screen .evo-hero h2{font-size:22px;margin:9px 0 7px;}.evo-chat-screen .evo-hero-line{margin:13px 0 7px}.evo-chat-screen .evo-hero>small{font-size:9px;}
 .evo-chat-screen .has-history .evo-hero{display:none;}.evo-chat-screen .evo-conversation{flex:1;min-height:0;max-height:none;overflow:hidden;padding:13px;}.evo-chat-screen .evo-section-title{flex-shrink:0;margin-bottom:10px;padding-bottom:9px;}.evo-chat-screen .evo-welcome{padding:10px 0;}.evo-chat-screen .evo-welcome h2{font-size:20px;margin:4px 0;}.evo-chat-screen .evo-welcome p,.evo-chat-screen .evo-welcome small{display:none;}.evo-chat-screen .evo-welcome button{margin-top:8px;}

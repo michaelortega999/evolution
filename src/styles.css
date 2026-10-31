@@ -3207,3 +3207,22 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
   display: block;
 }
 .app-shell .evo-body { margin-top: 0; }
+
+/* Phone Evo Planner: same shared HUD frames as Home, without the desktop shell.
+   Only colours/frames change; the phone padding, heights and composer stay as-is. */
+.evo-workspace.evo-phone { background: transparent; color: var(--foreground); }
+:where(.evo-phone) :is(.evo-frame, .evo-surface, .evo-mobile-quick > button).hud-card {
+  background: revert-layer;
+  border: revert-layer;
+  border-radius: revert-layer;
+  box-shadow: revert-layer;
+  clip-path: revert-layer;
+  filter: revert-layer;
+}
+:where(.evo-phone) :is(.evo-frame, .evo-surface, .evo-mobile-quick > button).hud-card::before,
+:where(.evo-phone) :is(.evo-frame, .evo-surface, .evo-mobile-quick > button).hud-card::after {
+  all: revert-layer;
+}
+html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"]) .evo-phone .evo-frame.hud-card::before {
+  display: block;
+}
