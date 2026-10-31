@@ -1,6 +1,6 @@
 import { BrandMark } from "@/components/evolution/BrandMark";
 import { ContentWorkbench } from "@/components/evolution/ContentWorkbench";
-import { applyContentUpdate, archiveContent, isArchived } from "@/lib/media-content";
+import { applyContentUpdate, archiveContent, isArchived, isValidPlannedDate } from "@/lib/media-content";
 function BusinessOverviewRefined() {
   const { data } = useEvolutionData();
   const [selected, setSelected] = useState(0);
@@ -1648,7 +1648,7 @@ function SocialMediaPage() {
       toast.error("Give your content a title.");
       return;
     }
-    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (!isValidPlannedDate(date)) {
       toast.error("Choose a valid planned date.");
       return;
     }
@@ -2127,9 +2127,7 @@ function SocialMediaPage() {
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={deleteItem}>
-              Delete
-            </Button>
+            <Button onClick={deleteItem}>Archive</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2306,7 +2304,7 @@ function ContentCreatorPage() {
       toast.error("Give your content a title.");
       return;
     }
-    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (!isValidPlannedDate(date)) {
       toast.error("Choose a valid planned date.");
       return;
     }
@@ -2961,7 +2959,7 @@ function ContentCreatorPage() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove content?</DialogTitle>
+            <DialogTitle>Archive content?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             Archive “{deleteTarget?.title}”? It leaves your library but can be restored from Archived. Nothing changes on any social platform.
@@ -2970,9 +2968,7 @@ function ContentCreatorPage() {
             <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
               Keep it
             </Button>
-            <Button variant="destructive" onClick={deleteItem}>
-              Remove
-            </Button>
+            <Button onClick={deleteItem}>Archive</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
