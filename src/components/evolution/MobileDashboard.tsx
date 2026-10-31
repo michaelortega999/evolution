@@ -1,99 +1,156 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarDays } from "lucide-react";
+import {
+  BarChart3,
+  Briefcase,
+  CalendarDays,
+  Dumbbell,
+  Home,
+  LineChart,
+  ListChecks,
+  NotebookPen,
+  Pause,
+  Play,
+  RotateCcw,
+  Salad,
+  Target,
+  User,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import hudArtwork from "@/assets/evolution-mobile-reference.jpeg.asset.json";
+import { BrandMark } from "@/components/evolution/BrandMark";
+import { useEvolutionData } from "@/lib/evolution-data";
+import { hologramSrc } from "@/lib/holograms";
 import { formatMmSs, useFocusTimer } from "@/lib/use-focus-timer";
 
-type ModuleHotspot = {
+type ModuleNode = {
   label: string;
   to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal";
+  icon: LucideIcon;
+  /** Position on the radial layout, in % of the stage. */
   x: number;
   y: number;
-  size: number;
 };
 
-const MODULE_HOTSPOTS: ModuleHotspot[] = [
-  { label: "Focus", to: "/focus", x: 50, y: 19.8, size: 22 },
-  { label: "Nutrition", to: "/nutrition", x: 25.8, y: 23.2, size: 22 },
-  { label: "Wealth", to: "/wealth", x: 74.5, y: 23.2, size: 22 },
-  { label: "Fitness", to: "/fitness", x: 15.1, y: 33.5, size: 22 },
-  { label: "Investing", to: "/investing", x: 84.8, y: 33.5, size: 22 },
-  { label: "Journal", to: "/journal", x: 23.2, y: 44.9, size: 22 },
-  { label: "Business", to: "/business", x: 76.8, y: 44.9, size: 22 },
+// Same radial arrangement as the original phone Home artwork, now live and themeable.
+const MODULES: ModuleNode[] = [
+  { label: "Focus", to: "/focus", icon: Target, x: 50, y: 12 },
+  { label: "Nutrition", to: "/nutrition", icon: Salad, x: 22, y: 20 },
+  { label: "Wealth", to: "/wealth", icon: Wallet, x: 78, y: 20 },
+  { label: "Fitness", to: "/fitness", icon: Dumbbell, x: 12, y: 46 },
+  { label: "Investing", to: "/investing", icon: LineChart, x: 88, y: 46 },
+  { label: "Journal", to: "/journal", icon: NotebookPen, x: 22, y: 74 },
+  { label: "Business", to: "/business", icon: Briefcase, x: 78, y: 74 },
 ];
 
 const BOTTOM_LINKS = [
-  { label: "Home", to: "/" as const, x: 11.4 },
-  { label: "Stats", to: "/reports" as const, x: 29.8 },
-  { label: "Tasks", to: "/notes" as const, x: 69.8 },
-  { label: "Profile", to: "/settings" as const, x: 88 },
+  { label: "Home", to: "/" as const, icon: Home },
+  { label: "Stats", to: "/reports" as const, icon: BarChart3 },
+  { label: "Tasks", to: "/notes" as const, icon: ListChecks },
+  { label: "Profile", to: "/settings" as const, icon: User },
 ];
 
 function LiveDateTime() {
-  const [now, setNow] = useState(() => new Date());
-
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
-    const timerId = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(timerId);
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
   }, []);
-
+  if (!now) return <div className="live-hud-date" aria-hidden="true" />;
   return (
-    <div className="image-hud-date" aria-label={now.toLocaleString()}>
+    <div className="live-hud-date" aria-label={now.toLocaleString()}>
       <CalendarDays aria-hidden="true" />
       <div>
         <b>{now.toLocaleDateString(undefined, { weekday: "long" }).toUpperCase()}</b>
-        <strong>{now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</strong>
+        <strong>
+          {now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}
+        </strong>
         <span>{now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>
       </div>
     </div>
   );
 }
 
-function FocusOverlay() {
+function FocusPanel() {
   const timer = useFocusTimer();
-
   return (
-    <>
-      <Link to="/focus" className="image-hud-focus-link" aria-label="Open Focus page" />
-      <output className="image-hud-timer" aria-live="polite">{formatMmSs(timer.remainingMs)}</output>
-      <Button type="button" variant="ghost" className="image-hud-control image-hud-control--reset" onClick={timer.reset} aria-label="Restart focus timer" />
-      <Button type="button" variant="ghost" className="image-hud-control image-hud-control--start" onClick={timer.start} aria-label="Start focus timer" />
-      <Button type="button" variant="ghost" className="image-hud-control image-hud-control--pause" onClick={timer.pause} aria-label="Pause focus timer" />
-    </>
+    <section className="live-hud-focus hud-card" aria-label="Focus timer">
+      <Link to="/focus" className="live-hud-focus__title">
+        Focus session
+      </Link>
+      <output className="live-hud-focus__time" aria-live="polite">
+        {formatMmSs(timer.remainingMs)}
+      </output>
+      <div className="live-hud-focus__controls">
+        <button type="button" onClick={timer.pause} aria-label="Pause focus timer">
+          <Pause aria-hidden="true" />
+        </button>
+        <button type="button" className="is-main" onClick={timer.start} aria-label="Start focus timer">
+          <Play aria-hidden="true" />
+        </button>
+        <button type="button" onClick={timer.reset} aria-label="Restart focus timer">
+          <RotateCcw aria-hidden="true" />
+        </button>
+      </div>
+    </section>
   );
 }
 
 export function MobileDashboard() {
+  const { data } = useEvolutionData();
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <div className="image-hud-screen md:hidden">
-      <main className="image-hud-stage">
-        <img className="image-hud-artwork" src={hudArtwork.url} alt="Evolution OS mobile dashboard" draggable={false} />
-
+    <div className="live-hud-screen md:hidden">
+      <header className="live-hud-header">
+        <Link to="/" aria-label="Evolution OS home" className="live-hud-brand">
+          <BrandMark compact />
+        </Link>
         <LiveDateTime />
+      </header>
 
-        {MODULE_HOTSPOTS.map((module, index) => (
+      <main className="live-hud-stage">
+        <div className="live-hud-rings" aria-hidden="true">
+          <span />
+          <span />
+        </div>
+        <button type="button" className="live-hud-core" onClick={scrollToTop} aria-label="Return to top">
+          <img src={hologramSrc(data.settings?.hologram)} alt="" draggable={false} />
+        </button>
+        {MODULES.map((m, i) => (
           <Link
-            key={module.label}
-            to={module.to}
-            className="image-hud-module"
-            aria-label={`Open ${module.label}`}
-            style={{ left: `${module.x}%`, top: `${module.y}%`, width: `${module.size}%`, animationDelay: `${index * -1.4}s` }}
+            key={m.label}
+            to={m.to}
+            className="live-hud-node"
+            style={{ left: `${m.x}%`, top: `${m.y}%`, animationDelay: `${i * -1.4}s` }}
           >
-            <span aria-hidden="true" />
+            <span className="live-hud-node__ring" aria-hidden="true" />
+            <m.icon aria-hidden="true" />
+            <span className="live-hud-node__label">{m.label}</span>
           </Link>
         ))}
-
-        <Button type="button" variant="ghost" className="image-hud-center-bonsai" onClick={scrollToTop} aria-label="Return to top" />
-        <FocusOverlay />
-
-        {BOTTOM_LINKS.map((item) => (
-          <Link key={item.label} to={item.to} className="image-hud-bottom-link" style={{ left: `${item.x}%` }} aria-label={item.label} />
-        ))}
-        <Button type="button" variant="ghost" className="image-hud-bottom-bonsai" onClick={scrollToTop} aria-label="Return to home dashboard" />
       </main>
+
+      <FocusPanel />
+
+      <nav className="live-hud-nav" aria-label="Main">
+        {BOTTOM_LINKS.slice(0, 2).map((item) => (
+          <Link key={item.label} to={item.to}>
+            <item.icon aria-hidden="true" />
+            <span>{item.label}</span>
+          </Link>
+        ))}
+        <button type="button" className="live-hud-nav__core" onClick={scrollToTop} aria-label="Return to home dashboard">
+          <img src={hologramSrc(data.settings?.hologram)} alt="" draggable={false} />
+        </button>
+        {BOTTOM_LINKS.slice(2).map((item) => (
+          <Link key={item.label} to={item.to}>
+            <item.icon aria-hidden="true" />
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }
