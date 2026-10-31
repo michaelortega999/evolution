@@ -247,3 +247,36 @@ describe("bridge rejects incomplete palettes", () => {
     expect(html).toContain("event.source !== window.parent || event.origin !== window.location.origin");
   });
 });
+
+import { FRAME_MUTED_COLORS, FRAME_SURFACE_COLORS, FRAME_TEXT_COLORS, FRAME_TITLE_COLORS } from "./theme-palette";
+
+describe("phone design source is actually covered", () => {
+  const html = readFileSync("public/evolution-mobile/index.html", "utf8");
+  it("canvas and route wrappers are pure black (no #04080d / #02070c backings left)", () => {
+    expect(html).not.toMatch(/background: ?["']?#04080d/i);
+    expect(html).not.toMatch(/background: ?["']?#02070c/i);
+    expect(html).toMatch(/mobileCanvasStyle:\s*\{[\s\S]{0,300}background: "#000000"/);
+  });
+  it("cards get a full background (overrides card-style gradient images), shape untouched", () => {
+    const rule = FRAME_PALETTE_CSS.split("}").find((r) => r.includes(".evo-style-card,.st-card"))!;
+    expect(rule).toMatch(/\{background:linear-gradient/);
+    expect(rule).not.toMatch(/border-radius|clip-path/);
+  });
+  it("every inline title/text/muted/surface literal still used in the phone source is themed", () => {
+    for (const c of [...FRAME_TEXT_COLORS, ...FRAME_TITLE_COLORS, ...FRAME_MUTED_COLORS])
+      expect(FRAME_PALETTE_CSS).toContain(`color:${c}`);
+    for (const c of FRAME_SURFACE_COLORS) expect(FRAME_PALETTE_CSS).toContain(`background:${c}`);
+    // Real titles from the source (Focus / Investing headers) are matched.
+    for (const c of ["#eafaff", "#06d9f3"]) {
+      expect(html.toLowerCase()).toContain(c);
+      expect(FRAME_PALETTE_CSS).toContain(`[style*="color:${c}" i]`);
+    }
+  });
+  it("profit/loss/warning inline colours are never recoloured", () => {
+    for (const c of ["#ff9bad", "#ff9fb4", "#5fe08a", "#4fe0b0", "#f5c04a", "#ffb765", "#ff8fa5"])
+      expect(FRAME_PALETTE_CSS.toLowerCase()).not.toContain(c);
+  });
+  it("no global image filter is installed", () => {
+    expect(FRAME_PALETTE_CSS).not.toMatch(/img|filter/);
+  });
+});
