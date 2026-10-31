@@ -269,7 +269,7 @@ describe("phone design source is actually covered", () => {
     // Real titles from the source (Focus / Investing headers) are matched.
     for (const c of ["#eafaff", "#06d9f3"]) {
       expect(html.toLowerCase()).toContain(c);
-      expect(FRAME_PALETTE_CSS).toContain(`[style*="color:${c}" i]`);
+      expect(FRAME_PALETTE_CSS).toContain(`[style^="color:${c};" i]`);
     }
   });
   it("profit/loss/warning inline colours are never recoloured", () => {
@@ -303,5 +303,24 @@ describe("final closure: gradient cards, headings, invalid customization", () =>
   it("customization: [] is treated as absent, so the legacy seed is kept", () => {
     expect(effectiveCustomization({ theme: "green", customization: [] }).primary).toBe(LEGACY_THEME_SEEDS.green.primary);
     expect(resolvedCustomPalette([])).toBeNull();
+  });
+});
+
+describe("phone closure: exact declarations, white text, planner header", () => {
+  it("border-color alone never matches a text-colour selector", () => {
+    expect(FRAME_PALETTE_CSS).not.toMatch(/\[style\*="color:/);
+    expect(FRAME_PALETTE_CSS).toContain('[style*=";color:#4fb8ff;" i]');
+    expect(FRAME_PALETTE_CSS).toContain('[style*="; color: #4fb8ff;" i]');
+  });
+  it("ordinary white inline text follows secondary, solid buttons excluded", () => {
+    const rule = FRAME_PALETTE_CSS.split("}").find((r) => r.includes('[style^="color:#fff;" i]'))!;
+    expect(rule).toContain("rgb(255, 255, 255)");
+    expect(rule).toContain(":not(button)");
+    expect(rule).toContain(':not([style*="background" i])');
+    expect(rule).toContain(SEMANTIC_EXCLUDE);
+  });
+  it("phone Planner header pushes the menu to the right edge", () => {
+    const css = readFileSync("src/styles.css", "utf8");
+    expect(css).toMatch(/:where\(\.evo-phone-brand\) \[data-compact-navigation\] \{[^}]*margin-left: auto/);
   });
 });
