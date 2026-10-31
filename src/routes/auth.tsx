@@ -27,8 +27,9 @@ function AuthPage() {
 
 export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
+  const accessReturn = useRef(embedded);
   const accessDestination = () =>
-    embedded || new URLSearchParams(window.location.search).get("next") === "access"
+    embedded || accessReturn.current || new URLSearchParams(window.location.search).get("next") === "access"
       ? "/?section=access#access-checkout"
       : "/";
   const finishSignIn = () => window.location.assign(accessDestination());
@@ -93,6 +94,7 @@ export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
     let active = true;
     // A URL flag is navigation context only, NEVER proof of recovery.
     const params = new URLSearchParams(window.location.search);
+    accessReturn.current = embedded || params.get("next") === "access";
     if (params.get("mode") === "signup" && (embedded || params.get("next") === "access")) setMode("signup");
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const returning = params.get("recovery") === "1" || hash.get("type") === "recovery";
@@ -180,7 +182,8 @@ export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
       setConfirmation("");
       setCode("");
       setMode("signin");
-      window.history.replaceState(window.history.state, "", embedded ? "/?section=access#access-overview" : "/auth");
+      if (accessReturn.current) window.location.assign("/?section=access#access-overview");
+      else window.history.replaceState(window.history.state, "", "/auth");
     } catch {
       if (live(id)) setRecoveryError("Could not close the recovery session. Please try again.");
     } finally {
