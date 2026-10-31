@@ -185,6 +185,19 @@ const inline = (prop: string, colors: string[]) =>
   colors
     .flatMap((c) => [`[style*="${prop}:${c}" i]`, `[style*="${prop}: ${c}" i]`, `[style*="${prop}: ${rgbText(c)}"]`])
     .join(",");
+/** Exact declaration match: the property must start the style or follow ";" and the value must end at ";" or the end,
+ *  so e.g. `border-color:#4fb8ff` or `color:#fff8e0` can never repaint text. */
+const decl = (prop: string, colors: string[]) =>
+  colors
+    .flatMap((c) => [`${prop}:${c}`, `${prop}: ${c}`, `${prop}: ${rgbText(c)}`, `${prop}:${rgbText(c)}`])
+    .flatMap((d) => [
+      `[style="${d}" i]`, `[style="${d};" i]`, `[style^="${d};" i]`,
+      `[style*=";${d};" i]`, `[style*="; ${d};" i]`, `[style$=";${d}" i]`, `[style$="; ${d}" i]`, `[style$="; ${d};" i]`,
+    ])
+    .join(",");
+/** Plain white ordinary text in the legacy phone design; solid buttons / filled chips keep their white foreground. */
+export const FRAME_WHITE_COLORS = ["#fff", "#ffffff"];
+const NOT_SOLID = ':not(button):not([role=button]):not([style*="background" i])';
 const P = "html[data-evo-palette=custom]";
 
 /** Static stylesheet the phone frame installs; narrow selectors only (no [class*=card]), semantic boxes excluded. */
@@ -192,5 +205,6 @@ export const FRAME_PALETTE_CSS =
   `${P},${P} body{background:#000000!important;color:var(--evo-text)!important}` +
   `${P} :is(.evo-style-card,.st-card)${SEMANTIC_EXCLUDE}{background:linear-gradient(145deg,var(--evo-card),var(--evo-card-alt))!important;border-color:var(--evo-line)!important}` +
   `${P} :is(${inline("background", FRAME_SURFACE_COLORS)})${SEMANTIC_EXCLUDE}{background:var(--evo-card)!important}` +
-  `${P} :is(h1,h2,h3,h4,${inline("color", FRAME_TEXT_COLORS)},${inline("color", FRAME_TITLE_COLORS)})${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}` +
-  `${P} :is(${inline("color", FRAME_MUTED_COLORS)})${SEMANTIC_EXCLUDE}{color:var(--evo-muted)!important}`;
+  `${P} :is(h1,h2,h3,h4,${decl("color", FRAME_TEXT_COLORS)},${decl("color", FRAME_TITLE_COLORS)})${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}` +
+  `${P} :is(${decl("color", FRAME_WHITE_COLORS)})${NOT_SOLID}${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}` +
+  `${P} :is(${decl("color", FRAME_MUTED_COLORS)})${SEMANTIC_EXCLUDE}{color:var(--evo-muted)!important}`;

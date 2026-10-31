@@ -3290,6 +3290,7 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
 }
 /* The shared menu sits on its own in a column; here it must stay inline and keep its size. */
 :where(.evo-phone-brand) [data-compact-navigation] {
+  margin-left: auto;
   align-self: center;
   flex-shrink: 0;
 }
