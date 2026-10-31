@@ -3188,15 +3188,22 @@ html[data-card-style] .evo-surface {
 /* AI Workflow + Evo Planner inside the shared Home shell */
 .app-shell .wf-app { background: transparent; color: var(--foreground); }
 .app-shell .evo-workspace { background: transparent; padding: 0; min-height: 0; color: var(--foreground); }
-.app-shell .wf-graph-shell,
-.app-shell .wf-topic,
-.app-shell .wf-list-panel,
-.app-shell .wf-control-panel,
-.app-shell .wf-custom-preview,
-.app-shell .evo-frame {
-  border-radius: 0;
-  border-color: oklch(0.78 0.22 240 / 0.45);
-  background: linear-gradient(160deg, oklch(0.16 0.05 260 / 0.95), oklch(0.13 0.04 260 / 0.95));
-  clip-path: polygon(9px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+/* Panels inside the Home shell carry the real shared .hud-card class. The page's own
+   unlayered panel rules would beat the layered .hud-card frame, so revert them
+   (zero-specificity :where keeps owner data-card-style overrides winning). */
+:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card {
+  background: revert-layer;
+  border: revert-layer;
+  border-radius: revert-layer;
+  box-shadow: revert-layer;
+  clip-path: revert-layer;
+  filter: revert-layer;
+}
+:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::before,
+:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::after {
+  all: revert-layer;
+}
+html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"]) .app-shell .evo-frame.hud-card::before {
+  display: block;
 }
 .app-shell .evo-body { margin-top: 0; }

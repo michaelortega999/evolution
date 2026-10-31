@@ -529,7 +529,7 @@ export function AIWorkflowDashboard({
     </div>
   );
   const panel = () => (
-    <section className="wf-topic" aria-label={`${selected} workflow details`}>
+    <section className="wf-topic hud-card" aria-label={`${selected} workflow details`}>
       <div className="wf-topic-title">
         <h2>{selected.toUpperCase()} WORKFLOW</h2>
         <span>MANUAL PLAN</span>
@@ -623,7 +623,7 @@ export function AIWorkflowDashboard({
       aria-label="AI Workflow"
     >
       <style>{WF_CSS}</style>
-      <header className="wf-head">
+      <header className="wf-head hud-card p-4 md:p-5">
         <div className="wf-head-row">
           <div>
             <h1>{view === "customize" ? "CUSTOMIZE AI WORKFLOW" : "AI WORKFLOW"}</h1>
@@ -664,7 +664,7 @@ export function AIWorkflowDashboard({
         </div>
       ) : view === "customize" ? (
         <div className="wf-custom-grid">
-          <section className="wf-custom-preview">
+          <section className="wf-custom-preview hud-card">
             <div className="wf-panel-title">
               <h2>LIVE PREVIEW</h2>
               <span>Oval 12-category layout</span>
@@ -673,7 +673,7 @@ export function AIWorkflowDashboard({
             <p className="wf-footnote">Appearance only. Your records, plans and connected accounts are unchanged.</p>
           </section>
           <section className="wf-custom-controls">
-            <div className="wf-control-panel">
+            <div className="wf-control-panel hud-card">
               <h2>COLOR THEMES</h2>
               <p>Choose your workflow accent.</p>
               <div className="wf-colors">
@@ -692,7 +692,7 @@ export function AIWorkflowDashboard({
                 ))}
               </div>
             </div>
-            <div className="wf-control-panel">
+            <div className="wf-control-panel hud-card">
               <h2>ATOM DESIGNS</h2>
               <p>Six different structures. One connected workspace.</p>
               <div className="wf-designs">
@@ -779,11 +779,11 @@ export function AIWorkflowDashboard({
           )}
           {view === "graph" ? (
             <>
-              <div className="wf-graph-shell">{graph()}</div>
+              <div className="wf-graph-shell hud-card">{graph()}</div>
               <div className="wf-mobile-topic">{panel()}</div>
             </>
           ) : view === "connections" ? (
-            <section className="wf-list-panel">
+            <section className="wf-list-panel hud-card">
               <h2>WORKSPACE MAP</h2>
               <p>These are organizational categories, not external integrations or inferred semantic relationships.</p>
               <div className="wf-domain-list">
@@ -808,7 +808,7 @@ export function AIWorkflowDashboard({
               </p>
             </section>
           ) : (
-            <section className="wf-list-panel">
+            <section className="wf-list-panel hud-card">
               <h2>DATED RECORDS</h2>
               <p>
                 Scheduled or logged dates, not save times or an agent-run log. Personal titles, bodies and financial
@@ -879,6 +879,7 @@ import {
   evoEventConflicts,
   type EvoRoutineSpec,
   type EvoRoutineRecord,
+  cn,
 } from "@/lib/utils";
 import { hologramSrc } from "@/lib/holograms";
 import {
@@ -1486,7 +1487,7 @@ function EvoAssistantPage() {
         </button>
       </div>
       <div className="evo-body">
-        <aside className="evo-side evo-frame">
+        <aside className={cn("evo-side evo-frame", !isPhone && "hud-card")}>
           <div className="evo-side-orb">
             <Orbit />
           </div>
@@ -1547,7 +1548,7 @@ function EvoAssistantPage() {
           )}
           {view === "chat" && (
             <div className={"evo-chat-layout " + (history.length || draftTask ? "has-history" : "")}>
-              <section className="evo-conversation evo-frame" aria-label="Planning conversation">
+              <section className={cn("evo-conversation evo-frame", !isPhone && "hud-card")} aria-label="Planning conversation">
                 <div className="evo-section-title">
                   <span>
                     <MessageCircle size={16} /> CONVERSATION
@@ -1620,7 +1621,7 @@ function EvoAssistantPage() {
                 <div className="evo-hero-line" />
                 <small>Built-in planner · AI chat not connected</small>
               </section>
-              <div className="evo-composer evo-frame">
+              <div className={cn("evo-composer evo-frame", !isPhone && "hud-card")}>
                 {showTools && (
                   <div className="evo-tools">
                     <button onClick={() => setView("routines")}>Routine builder</button>
@@ -1676,7 +1677,7 @@ function EvoAssistantPage() {
           )}
           {view === "routines" && (
             <div className="evo-two-column">
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Workflow size={17} /> ROUTINE BUILDER
@@ -1798,7 +1799,7 @@ function EvoAssistantPage() {
                   </button>
                 </form>
               </section>
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <CalendarDays size={17} /> {preview ? "REVIEW BEFORE APPLYING" : "SAVED ROUTINES"}
@@ -1895,7 +1896,7 @@ function EvoAssistantPage() {
             </div>
           )}
           {view === "calendar" && (
-            <section className="evo-frame evo-panel">
+            <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
               <div className="evo-section-title">
                 <span>
                   <CalendarDays size={17} /> {preview ? "SCHEDULE PREVIEW" : "YOUR CALENDAR"}
@@ -1977,7 +1978,7 @@ function EvoAssistantPage() {
           )}
           {view === "goals" && (
             <div className="evo-two-column">
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Target size={17} /> SET YOUR DIRECTION
@@ -2058,7 +2059,7 @@ function EvoAssistantPage() {
                   <button disabled={disabled}>Add habit</button>
                 </form>
               </section>
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <ChartNoAxesCombined size={17} /> PROGRESS
