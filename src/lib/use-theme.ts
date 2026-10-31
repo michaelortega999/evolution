@@ -1,6 +1,5 @@
 import { effectiveCardStyle } from "./utils";
 import { useEffect, type CSSProperties } from "react";
-import mountainBackground from "@/assets/calendar-mountain.jpg";
 import { bestForeground, resolvePalette, SEMANTIC_EXCLUDE, type ResolvedPalette } from "./theme-palette";
 import { useEvolutionData, type ThemeKey, type AppearanceCustomization } from "./evolution-data";
 
