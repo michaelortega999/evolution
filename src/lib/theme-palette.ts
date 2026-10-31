@@ -81,20 +81,27 @@ export function ensureContrast(color: string, surfaces: string[], min = MIN_TEXT
   return target;
 }
 
+/** Luminous hologram version of a colour: same hue, lifted toward a bright neon. */
+export function neon(hex: string): string {
+  const c = rgb(hex);
+  const max = Math.max(...c, 1);
+  const scaled = "#" + c.map((v) => Math.round((v / max) * 255).toString(16).padStart(2, "0")).join("");
+  return mix(scaled, "#ffffff", 0.3);
+}
+
 export function resolvePalette(v: PaletteInput): ResolvedPalette {
   const primary = isHex(v.primary) ? v.primary.toLowerCase() : "#0066ff";
   const secondary = isHex(v.secondary) ? v.secondary.toLowerCase() : "#d9efff";
-  const ink = v.dark ? "#000000" : "#ffffff";
-  // Primary stays clearly visible across the whole card; the page is a deeper coordinated shade.
-  const card = mix(primary, ink, v.dark ? 0.6 : 0.78);
-  const cardAlt = mix(primary, ink, v.dark ? 0.72 : 0.86);
-  const page = mix(primary, ink, v.dark ? 0.8 : 0.9);
-  const pageAlt = mix(primary, ink, v.dark ? 0.7 : 0.84);
+  // The page is always near-pure black in every scheme. Primary tints the translucent card glass
+  // and drives the neon edge/glow; "dark: false" only means lighter glass cards, never a white page.
   const nearBlack = luminance(primary) < 0.01;
-  const accent = nearBlack ? BLACK_NEON_ACCENT : v.dark ? mix(primary, "#ffffff", 0.25) : primary;
-  const opacity = Math.max(0.55, 1 - (Number.isFinite(v.glass) ? v.glass : 70) * 0.004);
+  const accent = nearBlack ? BLACK_NEON_ACCENT : neon(primary);
+  const page = mix(primary, "#000000", 0.97);
+  const pageAlt = mix(primary, "#000000", 0.94);
+  const card = mix(nearBlack ? primary : accent, "#000000", v.dark ? 0.9 : 0.78);
+  const cardAlt = mix(nearBlack ? primary : accent, "#000000", v.dark ? 0.95 : 0.86);
+  const opacity = Math.max(0.55, 0.9 - (Number.isFinite(v.glass) ? v.glass : 70) * 0.0035);
   const alpha = (hex: string) => `rgb(${rgb(hex).join(" ")} / ${opacity.toFixed(2)})`;
-  // Glass fills can show the page through, so check text against both the card and page shades.
   const surfaces = [card, cardAlt, page];
   const text = ensureContrast(secondary, surfaces);
   const muted = ensureContrast(mix(text, card, 0.3), surfaces);
@@ -107,7 +114,7 @@ export function resolvePalette(v: PaletteInput): ResolvedPalette {
     cardFill: alpha(card),
     cardFill2: alpha(cardAlt),
     accent,
-    line: accent + (nearBlack ? "66" : "99"),
+    line: accent + (nearBlack ? "66" : "80"),
     text,
     muted,
     secondaryAdjusted: text !== secondary,

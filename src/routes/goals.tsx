@@ -538,7 +538,7 @@ const CATS: { name: PlannerCategory; icon: typeof Target; color: string; image: 
 ];
 const pic = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=700&q=80`;
 const input =
-  "w-full rounded-lg border border-sky-400/20 bg-[#07131e] px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-400/60";
+  "w-full rounded-lg border border-sky-400/20 bg-[var(--card-fill)] px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-400/60";
 const btn =
   "inline-flex items-center justify-center gap-2 rounded-lg border border-sky-400/25 bg-sky-400/5 px-3 py-2 text-xs text-sky-200 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400";
 function Box({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
@@ -759,7 +759,7 @@ function GoalsPlanner() {
                 loading="lazy"
                 className="h-28 w-full object-cover opacity-80 transition group-hover:opacity-100 sm:h-36"
               />
-              <div className="bg-[#05101a] p-3">
+              <div className="bg-[var(--card-fill)] p-3">
                 <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
                   <c.icon size={19} className="shrink-0 text-sky-300" />
                   {c.name}
@@ -849,7 +849,7 @@ function GoalsPlanner() {
             className="mx-auto flex h-36 w-36 items-center justify-center rounded-full p-3"
             style={{ background: `conic-gradient(#22b8e8 ${progress * 3.6}deg, #0c2433 0deg)` }}
           >
-            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[#030d16]">
+            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[var(--card-fill)]">
               <strong className="text-3xl font-light">{goals.length ? `${progress}%` : "—"}</strong>
               <span className="mt-1 text-[10px] text-slate-400">average progress</span>
               <span className="text-[10px] text-slate-500">
@@ -1031,7 +1031,7 @@ function GoalsPlanner() {
         }}
       >
         {draft && (
-          <DialogContent className="max-h-[90vh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-2xl border-sky-400/30 bg-[#06111c] p-5">
+          <DialogContent className="max-h-[90vh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-2xl border-sky-400/30 bg-[var(--card-fill)] p-5">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1226,7 +1226,7 @@ function ProgressChart({ history }: { history: ReturnType<typeof monthlyProgress
       </svg>
       {!hasHistory && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="rounded-lg bg-[#06111c]/95 px-4 py-3 text-center text-xs text-slate-400">
+          <span className="rounded-lg bg-[var(--card-fill)]/95 px-4 py-3 text-center text-xs text-slate-400">
             No recorded history for this year yet
           </span>
         </div>

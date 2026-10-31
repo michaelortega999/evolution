@@ -54,7 +54,7 @@ const CATS = [
 ] as const;
 const photo = (id: string, w = 500) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
 const field =
-  "mt-1 w-full rounded-lg border border-sky-400/25 bg-[#06131e] px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-400/60";
+  "mt-1 w-full rounded-lg border border-sky-400/25 bg-[var(--card-fill)] px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-400/60";
 const button =
   "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-sky-400/25 bg-sky-400/5 px-3 py-2 text-xs text-sky-200 hover:bg-sky-400/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:opacity-40";
 const active =
@@ -427,7 +427,7 @@ function PlanningPage() {
         </div>
         {tab === "Calendar" && (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_230px]">
-            <section className="min-w-0 overflow-hidden rounded-xl border border-sky-400/30 bg-[#030c15] shadow-[0_0_20px_#0ea5e908]">
+            <section className="min-w-0 overflow-hidden rounded-xl border border-sky-400/30 bg-[var(--card-fill)] shadow-[0_0_20px_#0ea5e908]">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sky-400/15 p-3">
                 <div className="flex items-center gap-2">
                   <button className={button} aria-label="Previous calendar period" onClick={() => step(-1)}>
@@ -461,7 +461,7 @@ function PlanningPage() {
               <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                 <select
                   aria-label="Filter event category"
-                  className="max-w-full rounded border border-sky-400/20 bg-[#06131e] px-2 py-1 text-[10px] text-slate-300"
+                  className="max-w-full rounded border border-sky-400/20 bg-[var(--card-fill)] px-2 py-1 text-[10px] text-slate-300"
                   value={category}
                   onChange={(e) => setCategory(e.target.value as PlanningCategory | "All")}
                 >
@@ -921,7 +921,7 @@ function PlanningPage() {
           }}
         >
           {draft && (
-            <DialogContent className="max-h-[90dvh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-xl border-sky-400/30 bg-[#06111c] p-5">
+            <DialogContent className="max-h-[90dvh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-xl border-sky-400/30 bg-[var(--card-fill)] p-5">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1063,7 +1063,7 @@ function PlanningPage() {
           )}
         </Dialog>
         <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-          <DialogContent className="w-[calc(100%_-_1.5rem)] max-w-sm border-sky-400/30 bg-[#06111c]">
+          <DialogContent className="w-[calc(100%_-_1.5rem)] max-w-sm border-sky-400/30 bg-[var(--card-fill)]">
             <DialogTitle>Delete this event?</DialogTitle>
             <DialogDescription>
               Only this calendar event will be removed. Tasks and related goals remain.
