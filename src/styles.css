@@ -2415,9 +2415,9 @@ html[data-card-style="classic"] .hud-card::before {
 .appearance-section {
   scroll-margin-top: 16px;
   padding: clamp(14px, 2.5vw, 28px);
-  border: 1px solid #1b5a79;
-  background: linear-gradient(135deg, #020a12, #061624);
-  color: #e4f3ff;
+  border: 1px solid var(--card-line);
+  background: var(--card-fill);
+  color: var(--foreground);
   min-width: 0;
 }
 .appearance-heading {

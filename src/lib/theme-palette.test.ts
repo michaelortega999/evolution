@@ -122,3 +122,50 @@ describe("phone bridge palette", () => {
     expect(bridgePalette(null)).toBeNull();
   });
 });
+
+import { readFileSync } from "node:fs";
+import { FRAME_PALETTE_CSS, SEMANTIC_EXCLUDE } from "./theme-palette";
+import { CUSTOMIZATION_CSS, LEGACY_THEME_SEEDS, effectiveCustomization, resolvedAppPalette } from "./use-theme";
+
+describe("legacy themes and empty preferences share the canonical palette", () => {
+  it("every legacy theme (incl. white and black) resolves to a black page and readable text", () => {
+    for (const theme of Object.keys(LEGACY_THEME_SEEDS)) {
+      const p = resolvedAppPalette({ theme, customization: null });
+      expect(luminance(p.page)).toBeLessThan(0.003);
+      expect(p.contrast).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+    }
+  });
+  it("theme-black without custom colours still gives the phone a palette (Black Neon look)", () => {
+    const tokens = bridgePalette(resolvedAppPalette({ theme: "black" }));
+    expect(tokens?.["--evo-accent"]).toBe(BLACK_NEON_ACCENT);
+    expect(sanitizeBridgePalette(tokens)).toEqual(tokens);
+  });
+  it("saved custom colours win over the legacy theme; nothing missing falls back to default", () => {
+    expect(effectiveCustomization({ theme: "gold", customization: { primary: "#146b49" } }).primary).toBe("#146b49");
+    expect(resolvedAppPalette(undefined).accent).toBe(resolvedAppPalette({ theme: "default" }).accent);
+  });
+});
+
+describe("semantic profit/loss/warning colours are protected", () => {
+  const frameHtml = readFileSync("public/evolution-mobile/index.html", "utf8");
+  it("phone frame installs exactly the shared stylesheet and never a broad [class*=card] override", () => {
+    expect(frameHtml).toContain(FRAME_PALETTE_CSS);
+    expect(FRAME_PALETTE_CSS).not.toMatch(/\[class\*=["']?card/);
+    expect(frameHtml).not.toMatch(/\[class\*=card\]/);
+  });
+  it("every recolouring frame rule excludes semantic markers", () => {
+    const rules = FRAME_PALETTE_CSS.split("}").filter((r) => r.includes(":is("));
+    expect(rules.length).toBeGreaterThan(0);
+    for (const r of rules) expect(r).toContain(SEMANTIC_EXCLUDE);
+  });
+  it("exclusion covers explicit marker and profit/loss/warning/error fragments", () => {
+    for (const k of ["data-semantic", "profit", "loss", "warn", "danger", "error", "success", "destructive"])
+      expect(SEMANTIC_EXCLUDE).toContain(k);
+  });
+  it("app adapters for Calendar/Goals/bespoke routes apply the exclusion to recolouring rules", () => {
+    const lines = CUSTOMIZATION_CSS.split("\n").filter((l) => /data-planning-calendar|data-goals-planner|\.cw-shell/.test(l) && /\(p,span|bg-slate|text-slate|border-sky/.test(l));
+    expect(lines.length).toBeGreaterThanOrEqual(4);
+    for (const l of lines) expect(l).toContain(SEMANTIC_EXCLUDE);
+    expect(CUSTOMIZATION_CSS).not.toContain("${");
+  });
+});
