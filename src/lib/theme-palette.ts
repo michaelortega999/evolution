@@ -175,8 +175,22 @@ export function sanitizeBridgePalette(value: unknown): BridgePalette | null {
 export const SEMANTIC_EXCLUDE =
   ":not([data-semantic]):not([class*=profit]):not([class*=loss]):not([class*=gain]):not([class*=-pos]):not([class*=-neg]):not([class*=-up]):not([class*=-down]):not([class*=success]):not([class*=warn]):not([class*=danger]):not([class*=error]):not([class*=green]):not([class*=red]):not([class*=emerald]):not([class*=rose]):not([class*=amber]):not([class*=destructive])";
 
-/** Static stylesheet the phone frame installs; narrow card selectors only (no [class*=card]). */
+/** Inline colour literals used by the phone design, grouped by role. Semantic colours are deliberately absent. */
+export const FRAME_TEXT_COLORS = ["#eafaff", "#dff4ff", "#cfeeff", "#dff8ff", "#f4fcff", "#eef9ff", "#cfe6f2", "#c0dce9", "#9fd9ef"];
+export const FRAME_TITLE_COLORS = ["#06d9f3", "#4fd2ff", "#8fe4ff", "#7fd8ff", "#4fb8ff", "#9fdcff", "#5fd3ff", "#9fe8ff", "#7fe0ff", "#35c6ff", "#3fb8ff", "#35a8ff"];
+export const FRAME_MUTED_COLORS = ["#4f7f96", "#5f8ea6", "#8ab4c8", "#6f9bb0", "#7fb8cf", "#a3b6c4", "#8bb6c8", "#7fb6cc"];
+export const FRAME_SURFACE_COLORS = ["#010a12", "#02111c", "#020a13", "#03111d", "#03101b", "#030d17", "#020c15", "#00121f"];
+const rgbText = (hex: string) => `rgb(${rgb(hex).join(", ")})`;
+const inline = (prop: string, colors: string[]) =>
+  colors
+    .flatMap((c) => [`[style*="${prop}:${c}" i]`, `[style*="${prop}: ${c}" i]`, `[style*="${prop}: ${rgbText(c)}"]`])
+    .join(",");
+const P = "html[data-evo-palette=custom]";
+
+/** Static stylesheet the phone frame installs; narrow selectors only (no [class*=card]), semantic boxes excluded. */
 export const FRAME_PALETTE_CSS =
-  "html[data-evo-palette=custom],html[data-evo-palette=custom] body{background:var(--evo-page)!important;color:var(--evo-text)!important}" +
-  `html[data-evo-palette=custom] :is(.evo-style-card,.st-card)${SEMANTIC_EXCLUDE}{background-color:var(--evo-card)!important;border-color:var(--evo-line)!important}` +
-  `html[data-evo-palette=custom] :is(h1,h2,h3,h4)${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}`;
+  `${P},${P} body{background:#000000!important;color:var(--evo-text)!important}` +
+  `${P} :is(.evo-style-card,.st-card)${SEMANTIC_EXCLUDE}{background:linear-gradient(145deg,var(--evo-card),var(--evo-card-alt))!important;border-color:var(--evo-line)!important}` +
+  `${P} :is(${inline("background", FRAME_SURFACE_COLORS)})${SEMANTIC_EXCLUDE}{background:var(--evo-card)!important}` +
+  `${P} :is(h1,h2,h3,h4,${inline("color", FRAME_TEXT_COLORS)},${inline("color", FRAME_TITLE_COLORS)})${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}` +
+  `${P} :is(${inline("color", FRAME_MUTED_COLORS)})${SEMANTIC_EXCLUDE}{color:var(--evo-muted)!important}`;
