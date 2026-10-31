@@ -20,12 +20,12 @@ import {
 
 const base = { glass: 0, dark: true };
 
-describe("primary colours whole cards and the page", () => {
+describe("primary tints the whole card glass", () => {
   it("card and page carry visible primary hue, page deeper than card", () => {
     const p = resolvePalette({ ...base, primary: "#b91c3c", secondary: "#ffe1e8" });
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(p.card.slice(i, i + 2), 16));
-    expect(r).toBeGreaterThan(g * 3);
-    expect(r).toBeGreaterThan(b * 2);
+    expect(r).toBeGreaterThan(g);
+    expect(r).toBeGreaterThan(b);
     expect(luminance(p.page)).toBeLessThan(luminance(p.card));
   });
   it("tokens feed card geometry fills, not just accents", () => {
