@@ -2282,7 +2282,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
   };
   return (
     <main className="access-page min-h-screen bg-black p-4 sm:p-8" data-customer-access>
-      <style>{`.access-page{background:#000;color:var(--foreground)}.access-page .access-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:24px}.access-page .access-button{min-height:44px;border:1px solid var(--card-line,hsl(var(--primary)));border-radius:12px;padding:12px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:var(--card-fill)}.access-page .access-button:disabled{opacity:.5;cursor:not-allowed}.access-page a,.access-page button{overflow-wrap:anywhere}.access-page :focus-visible{outline:2px solid currentColor;outline-offset:4px}.access-page .access-lead{font-size:clamp(28px,5vw,46px);line-height:1.12;letter-spacing:-.035em}.access-page .access-panel{min-width:0}.access-page .access-track{display:flex;gap:8px;flex-wrap:wrap}.access-page .access-track button{min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:12px}.access-page .access-track button[aria-current=step]{border-color:var(--card-accent);background:var(--card-fill-2);color:var(--primary)}@media(max-width:700px){.access-page .access-grid{grid-template-columns:minmax(0,1fr)}.access-page .access-track button{flex:1 1 28%;font-size:12px}}`}</style>
+      <style>{`.access-page{background:#000;color:var(--foreground)}.access-page .access-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:24px}.access-page .access-button{min-height:44px;border:1px solid var(--card-line,hsl(var(--primary)));border-radius:12px;padding:12px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:var(--card-fill)}.access-page .access-button:disabled{opacity:.5;cursor:not-allowed}.access-page a,.access-page button{overflow-wrap:anywhere}.access-page :focus-visible{outline:2px solid currentColor;outline-offset:4px}.access-page .access-panel{min-width:0}.access-page .access-track{display:flex;gap:8px;flex-wrap:wrap}.access-page .access-track button{min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:12px}.access-page .access-track button[aria-current=step]{border-color:var(--card-accent);background:var(--card-fill-2);color:var(--primary)}@media(max-width:700px){.access-page .access-grid{grid-template-columns:minmax(0,1fr)}.access-page .access-track button{flex:1 1 28%;font-size:12px}}`}</style>
       <div className="mx-auto max-w-6xl">
         <header className="flex items-center justify-between gap-4 py-4 mb-6">
           <a href="/" aria-label="Evolution Home">
@@ -2305,7 +2305,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border border-primary/30 text-primary">
               <WFNetwork size={26} />
             </div>
-            <h1 className="access-lead hud-label font-semibold mb-5" id="access-title">
+            <h1 className="hud-label text-xl text-foreground mb-5" id="access-title">
               {ACCESS_STEPS.find((item) => item.id === step)!.title}
             </h1>
             {step === "overview" && (
