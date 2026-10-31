@@ -15,7 +15,7 @@ import {
   Target,
   BarChart3,
   Settings,
-  Zap,
+  Zap, Bot,
   LogOut,
   LogIn,
 } from "lucide-react";
@@ -48,7 +48,9 @@ export const secondaryNav = [
 
 export function Sidebar() {
   const { pathname, searchStr } = useLocation();
-  const workflowActive = ["ai-workflow"].includes(new URLSearchParams(searchStr).get("section") || "");
+  const currentSection = new URLSearchParams(searchStr).get("section") || "";
+  const workflowActive = pathname === "/" && currentSection === "ai-workflow";
+  const plannerActive = pathname === "/" && (currentSection === "evo" || currentSection === "alfred");
   const navigate = useNavigate();
   const { data, updateProfile } = useEvolutionData();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -101,9 +103,26 @@ export function Sidebar() {
         <a
           href="/?section=ai-workflow"
           aria-current={workflowActive ? "page" : undefined}
-          className="flex items-center gap-3 px-3 py-3 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary"
+          className={cn(
+            "flex items-center gap-3 px-3 py-3 rounded-md hud-label text-xs border",
+            workflowActive
+              ? "bg-primary/10 border-primary/40 text-primary"
+              : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary",
+          )}
         >
           <Zap className="h-4 w-4" /> AI Workflow
+        </a>
+        <a
+          href="/?section=evo"
+          aria-current={plannerActive ? "page" : undefined}
+          className={cn(
+            "flex items-center gap-3 px-3 py-3 rounded-md hud-label text-xs border",
+            plannerActive
+              ? "bg-primary/10 border-primary/40 text-primary"
+              : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary",
+          )}
+        >
+          <Bot className="h-4 w-4" /> Evo Planner
         </a>
         {mainNav.map((item) => {
           const isActive =

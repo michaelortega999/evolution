@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Menu, Zap } from "lucide-react";
+import { Menu, Zap, Bot } from "lucide-react";
 import { BrandMark } from "./BrandMark";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { mainNav, secondaryNav } from "./Sidebar";
 export function AppBrandBar() {
   const { pathname, searchStr } = useLocation();
-  const workflowActive = ["ai-workflow"].includes(new URLSearchParams(searchStr).get("section") || "");
+  const currentSection = new URLSearchParams(searchStr).get("section") || "";
+  const workflowActive = pathname === "/" && currentSection === "ai-workflow";
+  const plannerActive = pathname === "/" && (currentSection === "evo" || currentSection === "alfred");
   const [open, setOpen] = useState(false);
   return (
     <div className="self-end lg:hidden" data-compact-navigation>
@@ -28,13 +30,29 @@ export function AppBrandBar() {
           </SheetHeader>
           <nav className="mt-6 flex flex-col gap-1" aria-label="Main">
             <a
-              href="/?section=ai-workflow"
-              aria-current={workflowActive ? "page" : undefined}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border border-primary/40 bg-primary/10 text-primary"
-            >
-              <Zap className="h-4 w-4" /> AI Workflow
-            </a>
+          href="/?section=ai-workflow"
+          aria-current={workflowActive ? "page" : undefined} onClick={() => setOpen(false)}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border",
+            workflowActive
+              ? "bg-primary/10 border-primary/40 text-primary"
+              : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary",
+          )}
+        >
+          <Zap className="h-4 w-4" /> AI Workflow
+        </a>
+        <a
+          href="/?section=evo"
+          aria-current={plannerActive ? "page" : undefined} onClick={() => setOpen(false)}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border",
+            plannerActive
+              ? "bg-primary/10 border-primary/40 text-primary"
+              : "border-transparent text-foreground/70 hover:bg-primary/5 hover:text-primary",
+          )}
+        >
+          <Bot className="h-4 w-4" /> Evo Planner
+        </a>
             {[...mainNav, ...secondaryNav].map((item) => {
               const active =
                 item.to === "/"
