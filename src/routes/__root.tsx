@@ -909,6 +909,7 @@ import { FocusNotification } from "@/components/evolution/FocusNotification";
 import { MobileBottomNav } from "@/components/evolution/MobileBottomNav";
 import { MobileApp, useIsPhone } from "@/components/evolution/MobileApp";
 import { AppBrandBar } from "@/components/evolution/AppBrandBar";
+import { BrandMark } from "@/components/evolution/BrandMark";
 import { Toaster } from "sonner";
 import { HomeShell } from "@/components/evolution/HomeShell";
 
@@ -1431,7 +1432,14 @@ function EvoAssistantPage() {
       style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
     >
       <style>{EVO_WORKSPACE_CSS}</style>
-      {isPhone && <AppBrandBar />}
+      {isPhone && (
+        <div className="evo-phone-brand">
+          <Link to="/" aria-label="Evolution OS home" className="evo-phone-brand__mark">
+            <BrandMark compact />
+          </Link>
+          <AppBrandBar />
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3 px-1 py-2 text-xs text-muted-foreground" role="status">
         <span className="tracking-widest text-primary">EVO AI</span>
         <span>{statusLabel}</span>
