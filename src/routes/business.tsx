@@ -491,6 +491,7 @@ import {
   type ProjectStatus,
   type TaskPriority,
   type EvolutionData,
+  getLocalOwner,
 } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/business")({
