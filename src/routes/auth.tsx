@@ -23,6 +23,9 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const accessDestination = () =>
+    new URLSearchParams(window.location.search).get("next") === "access" ? "/?section=access&step=checkout" : "/";
+  const finishSignIn = () => window.location.assign(accessDestination());
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [recovery, setRecovery] = useState<"request" | "sent" | "reset" | "done" | null>(null);
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -48,7 +51,10 @@ function AuthPage() {
       supabase.auth.signUp({
         email: addr,
         password: passwordRef.current,
-        options: { emailRedirectTo: `${window.location.origin}/`, data: { name: nameRef.current } },
+        options: {
+          emailRedirectTo: `${window.location.origin}${accessDestination()}`,
+          data: { name: nameRef.current },
+        },
       }),
     ),
   );
@@ -81,6 +87,7 @@ function AuthPage() {
     let active = true;
     // A URL flag is navigation context only, NEVER proof of recovery.
     const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "signup" && params.get("next") === "access") setMode("signup");
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const returning = params.get("recovery") === "1" || hash.get("type") === "recovery";
     if (returning) {
@@ -120,7 +127,7 @@ function AuthPage() {
           setPassword("");
           setConfirmation("");
           window.history.replaceState(window.history.state, "", "/auth?recovery=1");
-        } else if (data.session && !recoveryActive.current) navigate({ to: "/" });
+        } else if (data.session && !recoveryActive.current) finishSignIn();
       })
       .catch(() => {
         if (active && returning) setRecoveryError("Unable to verify this link. Request a new recovery email.");
@@ -289,13 +296,13 @@ function AuthPage() {
         const r = await signUpOnce(submitted);
         if (!live(id)) return;
         if (r.kind === "error") throw new Error(r.message);
-        if (r.kind === "signed-in") navigate({ to: "/" });
+        if (r.kind === "signed-in") finishSignIn();
         else if (r.kind === "check-email") setCheckEmail(submitted);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: submitted, password });
         if (!live(id)) return;
         if (error) throw error;
-        navigate({ to: "/" });
+        finishSignIn();
       }
     } catch (err) {
       if (live(id)) toast.error(err instanceof Error ? err.message : "Authentication failed");
@@ -310,7 +317,7 @@ function AuthPage() {
     try {
       setRememberMe(rememberMe);
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${accessDestination()}`,
       });
       if (!live(id)) return;
       if (result.error) {
@@ -318,7 +325,7 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      navigate({ to: "/" });
+      finishSignIn();
     } catch (err) {
       if (live(id)) toast.error(err instanceof Error ? err.message : "Google sign-in failed");
     } finally {
@@ -606,6 +613,9 @@ function AuthPage() {
           </button>
         </div>
 
+        <a href="/?section=access" className="text-center text-sm text-primary hover:underline">
+          Purchase & website access
+        </a>
         <Link to="/" className="text-center hud-label text-[9px] text-muted-foreground hover:text-primary">
           ← Back
         </Link>
