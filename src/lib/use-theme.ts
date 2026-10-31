@@ -93,18 +93,18 @@ export function normalizeCustomization(value: unknown): AppearanceCustomization 
     dark: typeof v.dark === "boolean" ? v.dark : CUSTOMIZATION_DEFAULTS.dark,
   };
 }
+/** Every mode is a subtle texture over a black canvas; the black backdrop always wins. */
 export function customizationBackground(value: unknown): string {
   const v = normalizeCustomization(value);
   const p = resolvePalette(v);
   const base = p.page;
-  const glow = p.accent + (v.dark ? "30" : "12");
   if (v.background === "minimal") return base;
   if (v.background === "grid")
-    return `linear-gradient(${p.accent}18 1px,transparent 1px),linear-gradient(90deg,${p.accent}18 1px,transparent 1px),${base}`;
-  if (v.background === "gradient") return `linear-gradient(135deg,${p.pageAlt},${base} 65%)`;
+    return `linear-gradient(${p.accent}0f 1px,transparent 1px),linear-gradient(90deg,${p.accent}0f 1px,transparent 1px),${base}`;
+  if (v.background === "gradient") return `radial-gradient(ellipse at 50% 0%,${p.accent}14,transparent 60%),${base}`;
   if (v.background === "landscape")
-    return `linear-gradient(${base}${v.dark ? "ac" : "cc"},${base}ee),url("${mountainBackground}"),${base}`;
-  return `radial-gradient(ellipse at 85% 10%,${glow},transparent 55%),radial-gradient(ellipse at 10% 80%,${p.accent}1c,transparent 45%),${base}`;
+    return `linear-gradient(${base}e6,${base}f2),url("${mountainBackground}"),${base}`;
+  return `radial-gradient(ellipse at 85% 10%,${p.accent}12,transparent 55%),radial-gradient(ellipse at 10% 80%,${p.accent}0c,transparent 45%),${base}`;
 }
 
 /** Both aliases are supported for the small inline preview and the app-wide theme. */
@@ -177,7 +177,7 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--glow": p.accent,
     "--grid-line": p.accent + "1f",
     "--brand-ink": text,
-    "color-scheme": v.dark ? "dark" : "light",
+    "color-scheme": "dark",
   };
 }
 function readableOn(bg: string): string {
@@ -201,10 +201,12 @@ html.evo-customized .card-surface,.evo-customized .es-panel,.evo-customized .es-
 .evo-customized .es-panel input,.evo-customized .es-avatar,.evo-customized .es-service{background:var(--evo-solid-surface)!important;color:var(--evo-text)!important;border-color:var(--evo-border)!important}
 .evo-customized .es-panel:before{background:var(--evo-primary);box-shadow:var(--evo-glow)}
 /* Scoped palette adapters for routes with bespoke literal colours. Semantic profit/loss/warning colours are left alone. */
-html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.evo-workspace,.hobby-shell,.live-hud-screen){background:var(--evo-background-image)!important;background-size:var(--evo-background-size)!important;color:var(--evo-text)!important;--blue:var(--evo-accent);--cyan:var(--evo-accent);--md-cyan:var(--evo-accent);--md-text:var(--evo-text);--evo-blue:var(--evo-accent);--evo-line:var(--evo-border);--evo-dim:var(--evo-muted)}
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.hobby-shell,.live-hud-screen){background:var(--evo-background-image)!important;background-size:var(--evo-background-size)!important;color:var(--evo-text)!important;--blue:var(--evo-accent);--cyan:var(--evo-accent);--md-cyan:var(--evo-accent);--md-text:var(--evo-text);--evo-blue:var(--evo-accent);--evo-line:var(--evo-border);--evo-dim:var(--evo-muted)}
 html.evo-customized .wf-app{color:var(--evo-text)!important;--wf-color:var(--evo-accent);--wf-line:var(--evo-border);background:transparent!important}
-html.evo-customized :is(.cw-frame,.f-panel,.md-panel){background:var(--card-fill)!important;border-color:var(--card-line)!important;color:var(--evo-text)}
-html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.evo-workspace,.wf-app,.hud-card,.card-surface) :is(h1,h2,h3,h4,.hud-label,.evo-module-title){color:var(--evo-title)}
+html.evo-customized :is(.cw-frame,.f-frame,.f-panel,.md-panel,.media-panel,.bo-panel,.bo-card,.travel-panel){background:var(--card-fill)!important;border-color:var(--card-line)!important;color:var(--evo-text)}
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,.hud-card,.card-surface,[data-goals-planner]) :is(h1,h2,h3,h4,.hud-label,.evo-module-title,.cw-title h1){color:var(--evo-title)}
+html.evo-customized [data-goals-planner]{color:var(--evo-text)!important}
+html.evo-customized [role=dialog]{background:var(--card-fill-2);border-color:var(--card-line);color:var(--evo-text)}
 html.evo-customized :is(.text-muted-foreground){color:var(--evo-muted)!important}
 .evo-customized[data-evo-animations="false"] *,.evo-customized[data-evo-animations="false"] *::before,.evo-customized[data-evo-animations="false"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 @media(prefers-reduced-motion:reduce){.evo-customized *,.evo-customized *::before,.evo-customized *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

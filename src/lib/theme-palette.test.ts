@@ -13,18 +13,19 @@ import {
   CUSTOMIZATION_DEFAULTS,
   CUSTOMIZATION_PRESETS,
   customizationTokens,
+  customizationBackground,
   normalizeCustomization,
   resolvedCustomPalette,
 } from "./use-theme";
 
 const base = { glass: 0, dark: true };
 
-describe("primary colours whole cards and the page", () => {
+describe("primary tints the whole card glass", () => {
   it("card and page carry visible primary hue, page deeper than card", () => {
     const p = resolvePalette({ ...base, primary: "#b91c3c", secondary: "#ffe1e8" });
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(p.card.slice(i, i + 2), 16));
-    expect(r).toBeGreaterThan(g * 3);
-    expect(r).toBeGreaterThan(b * 2);
+    expect(r).toBeGreaterThan(g);
+    expect(r).toBeGreaterThan(b);
     expect(luminance(p.page)).toBeLessThan(luminance(p.card));
   });
   it("tokens feed card geometry fills, not just accents", () => {
@@ -34,6 +35,30 @@ describe("primary colours whole cards and the page", () => {
     expect(t["--hud-fill-a"]).toBe(p.cardFill);
     expect(t["--background"]).toBe(p.page);
     expect(t["--card"]).toBe(p.card);
+  });
+});
+
+describe("black canvas in every scheme", () => {
+  it("page is near-pure black for all six choices, Black Neon and the lighter-glass option", () => {
+    const all = [...CUSTOMIZATION_PRESETS, BLACK_NEON_PRESET.customization];
+    for (const x of all)
+      for (const dark of [true, false]) {
+        const p = resolvePalette({ glass: 70, dark, primary: x.primary, secondary: x.secondary });
+        expect(luminance(p.page)).toBeLessThan(0.003);
+      }
+  });
+  it("cards are translucent dark glass tinted by primary, with neon edges (green example)", () => {
+    const p = resolvePalette({ glass: 70, dark: true, primary: "#146b49", secondary: "#d5ffec" });
+    expect(p.cardFill).toMatch(/\/ 0\.\d+\)$/);
+    expect(luminance(p.card)).toBeLessThan(0.02);
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(p.card.slice(i, i + 2), 16));
+    expect(g).toBeGreaterThan(r);
+    expect(g).toBeGreaterThan(b);
+    expect(luminance(p.accent)).toBeGreaterThan(0.3);
+  });
+  it("every background mode ends on the black base", () => {
+    for (const background of ["glass", "grid", "minimal", "gradient", "landscape"] as const)
+      expect(customizationBackground({ ...CUSTOMIZATION_DEFAULTS, background }).endsWith(resolvePalette({ ...CUSTOMIZATION_DEFAULTS }).page)).toBe(true);
   });
 });
 

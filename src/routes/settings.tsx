@@ -681,7 +681,7 @@ function CustomizeWorkspace() {
     ["grid", "Tech Grid", "Precision grid"],
     ["minimal", "Minimal", "A quiet, solid canvas"],
     ["gradient", "Gradient", "Soft color atmosphere"],
-    ["landscape", "Mountain", "Existing mountain artwork"],
+    ["landscape", "Mountain", "Mountain artwork, heavily dimmed: black canvas takes priority"],
   ] as const;
   return (
     <section className="ec-workspace" aria-label="Customize workspace">
@@ -694,7 +694,7 @@ function CustomizeWorkspace() {
         <div className="ec-color-grid">
           {(
             [
-              ["primary", "Primary Color", "Card layers, backgrounds, borders and main UI elements."],
+              ["primary", "Primary Color", "Tints the translucent card glass, neon edges and glow. The page behind cards stays black in every scheme."],
               [
                 "secondary",
                 "Secondary Color",
@@ -814,7 +814,7 @@ function CustomizeWorkspace() {
           ))}
         </div>
         <p className="ec-note">
-          No image upload or external image service is needed. Mountain uses existing app artwork.
+          No image upload or external image service is needed. Every background is a subtle texture on a black canvas; Mountain uses existing app artwork, dimmed so the backdrop stays black.
         </p>
       </GlassPanel>
       <div className="ec-right">
@@ -904,7 +904,7 @@ function CustomizeWorkspace() {
           {(
             [
               ["animations", "Animations"],
-              ["dark", "Dark Mode"],
+              ["dark", "Deep glass cards (off = lighter glass; page stays black)"],
             ] as const
           ).map(([key, label]) => (
             <div className="ec-toggle-row" key={key}>
