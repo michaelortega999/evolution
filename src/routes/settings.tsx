@@ -932,8 +932,8 @@ function CustomizeWorkspace() {
             </div>
           ))}
           <p className="ec-note">
-            System reduced-motion preferences take priority. Styles apply to native app surfaces; the separate legacy
-            phone screens and embedded artwork keep their own styling.
+            System reduced-motion preferences take priority. Colours also reach the phone screens (their cards, headings and
+            black page); photos, holograms and profit/loss colours keep their own styling.
           </p>
           <p className="ec-save" role="status">
             {cloud === "loading"
