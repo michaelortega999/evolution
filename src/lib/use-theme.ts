@@ -200,6 +200,12 @@ html.evo-customized .card-surface,.evo-customized .es-panel,.evo-customized .es-
 .evo-customized .text-primary,.evo-customized .es-sidebar nav svg,.evo-customized .es-title svg,.evo-customized .es-panel h2,.evo-customized .es-action svg,.evo-customized .es-tabs svg,.evo-customized .es-inline-link,.evo-customized .es-brand-context,.evo-customized .ec-sample-card svg{color:var(--evo-secondary)!important}
 .evo-customized .es-panel input,.evo-customized .es-avatar,.evo-customized .es-service{background:var(--evo-solid-surface)!important;color:var(--evo-text)!important;border-color:var(--evo-border)!important}
 .evo-customized .es-panel:before{background:var(--evo-primary);box-shadow:var(--evo-glow)}
+/* Scoped palette adapters for routes with bespoke literal colours. Semantic profit/loss/warning colours are left alone. */
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.evo-workspace,.hobby-shell,.live-hud-screen){background:var(--evo-background-image)!important;background-size:var(--evo-background-size)!important;color:var(--evo-text)!important;--blue:var(--evo-accent);--cyan:var(--evo-accent);--md-cyan:var(--evo-accent);--md-text:var(--evo-text);--evo-blue:var(--evo-accent);--evo-line:var(--evo-border);--evo-dim:var(--evo-muted)}
+html.evo-customized .wf-app{color:var(--evo-text)!important;--wf-color:var(--evo-accent);--wf-line:var(--evo-border);background:transparent!important}
+html.evo-customized :is(.cw-frame,.f-panel,.md-panel){background:var(--card-fill)!important;border-color:var(--card-line)!important;color:var(--evo-text)}
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.evo-workspace,.wf-app,.hud-card,.card-surface) :is(h1,h2,h3,h4,.hud-label,.evo-module-title){color:var(--evo-title)}
+html.evo-customized :is(.text-muted-foreground){color:var(--evo-muted)!important}
 .evo-customized[data-evo-animations="false"] *,.evo-customized[data-evo-animations="false"] *::before,.evo-customized[data-evo-animations="false"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 @media(prefers-reduced-motion:reduce){.evo-customized *,.evo-customized *::before,.evo-customized *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 `;
