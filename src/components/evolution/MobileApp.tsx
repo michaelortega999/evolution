@@ -9,7 +9,7 @@ import { bankStore } from "@/lib/finance-store";
 import { wireBankAuth, useBank } from "@/lib/use-bank";
 import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel";
 import { bridgePalette } from "@/lib/theme-palette";
-import { resolvedCustomPalette } from "@/lib/use-theme";
+import { resolvedAppPalette } from "@/lib/use-theme";
 
 /**
  * Phone-only experience: renders the user's finished Evolution OS mobile
@@ -38,7 +38,7 @@ export function MobileApp() {
   const { data } = useEvolutionData();
   const cardStyle = effectiveCardStyle(data.settings);
   // Resolved, allowlisted palette tokens (or null for legacy themes). Serialized so effects re-run only on change.
-  const paletteJson = JSON.stringify(bridgePalette(resolvedCustomPalette(data.settings.customization)));
+  const paletteJson = JSON.stringify(bridgePalette(resolvedAppPalette(data.settings)));
   const [ready, setReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);

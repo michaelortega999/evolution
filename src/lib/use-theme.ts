@@ -1,7 +1,7 @@
 import { effectiveCardStyle } from "./utils";
 import { useEffect, type CSSProperties } from "react";
 import mountainBackground from "@/assets/calendar-mountain.jpg";
-import { luminance, resolvePalette, type ResolvedPalette } from "./theme-palette";
+import { luminance, resolvePalette, SEMANTIC_EXCLUDE, type ResolvedPalette } from "./theme-palette";
 import { useEvolutionData, type ThemeKey, type AppearanceCustomization } from "./evolution-data";
 
 export const THEME_OPTIONS: { key: ThemeKey; label: string; swatch: string }[] = [
@@ -28,10 +28,11 @@ export function useTheme() {
   useEffect(() => {
     applyTheme(data.settings?.theme ?? "default");
   }, [data.settings?.theme]);
+  const effective = JSON.stringify(effectiveCustomization(data.settings));
   useEffect(() => {
-    applyCustomization(data.settings?.customization);
+    applyCustomization(JSON.parse(effective));
     return () => applyCustomization(undefined);
-  }, [data.settings?.customization]);
+  }, [effective]);
   const cardStyle = effectiveCardStyle(data.settings);
   useEffect(() => {
     document.documentElement.dataset.cardStyle = cardStyle;
@@ -183,6 +184,32 @@ export function customizationTokens(value: unknown): Record<string, string> {
 function readableOn(bg: string): string {
   return luminance(bg) > 0.18 ? "#04070c" : "#ffffff";
 }
+/** Each legacy accent theme expressed in the same palette model (black page, tinted neon glass). */
+export const LEGACY_THEME_SEEDS: Record<ThemeKey, { primary: string; secondary: string; dark: boolean }> = {
+  default: { primary: "#0066ff", secondary: "#d9efff", dark: true },
+  gold: { primary: "#c9a84c", secondary: "#fff1cf", dark: true },
+  orange: { primary: "#ff7a18", secondary: "#ffe6cf", dark: true },
+  green: { primary: "#4ade80", secondary: "#d5ffec", dark: true },
+  red: { primary: "#ef4444", secondary: "#ffe1e8", dark: true },
+  purple: { primary: "#a855f7", secondary: "#f0ddff", dark: true },
+  // "White" is a light-glass card option; the page stays black.
+  white: { primary: "#dfe8f2", secondary: "#ffffff", dark: false },
+  black: { primary: "#05080d", secondary: "#dbe9f6", dark: true },
+};
+/** Saved custom colours win; otherwise the legacy theme's seed. Read-only: nothing is written back. */
+export function effectiveCustomization(
+  settings: { theme?: unknown; customization?: unknown } | undefined,
+): AppearanceCustomization {
+  if (settings?.customization && typeof settings.customization === "object")
+    return normalizeCustomization(settings.customization);
+  const key = (typeof settings?.theme === "string" && settings.theme in LEGACY_THEME_SEEDS ? settings.theme : "default") as ThemeKey;
+  const seed = LEGACY_THEME_SEEDS[key];
+  return normalizeCustomization({ ...CUSTOMIZATION_DEFAULTS, ...seed, background: key === "black" ? "minimal" : "glass" });
+}
+/** Canonical palette for every owner state (custom, legacy theme or none). */
+export function resolvedAppPalette(settings: { theme?: unknown; customization?: unknown } | undefined): ResolvedPalette {
+  return resolvePalette(effectiveCustomization(settings));
+}
 /** Resolved palette for the owner's saved preference, or null when legacy theme classes apply. */
 export function resolvedCustomPalette(value: unknown): ResolvedPalette | null {
   return value && typeof value === "object" ? resolvePalette(normalizeCustomization(value)) : null;
@@ -206,6 +233,13 @@ html.evo-customized .wf-app{color:var(--evo-text)!important;--wf-color:var(--evo
 html.evo-customized :is(.cw-frame,.f-frame,.f-panel,.md-panel,.media-panel,.bo-panel,.bo-card,.travel-panel){background:var(--card-fill)!important;border-color:var(--card-line)!important;color:var(--evo-text)}
 html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,.hud-card,.card-surface,[data-goals-planner]) :is(h1,h2,h3,h4,.hud-label,.evo-module-title,.cw-title h1){color:var(--evo-title)}
 html.evo-customized [data-goals-planner]{color:var(--evo-text)!important}
+html.evo-customized :is([data-planning-calendar],[data-goals-planner]){color:var(--evo-text)!important}
+html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="bg-slate-9"],[class*="bg-sky-9"],[class*="bg-black"],[class*="bg-[#0"],[class*="bg-[var(--card-fill)]"])${SEMANTIC_EXCLUDE}{background:var(--card-fill)!important}
+html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="border-sky"],[class*="border-slate"],[class*="border-cyan"])${SEMANTIC_EXCLUDE}{border-color:var(--card-line)!important}
+html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="text-slate-1"],[class*="text-slate-2"],[class*="text-sky-1"],[class*="text-sky-2"],[class*="text-white"],[class*="text-cyan-1"])${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}
+html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="text-slate-4"],[class*="text-slate-5"],[class*="text-sky-3"],[class*="text-sky-4"])${SEMANTIC_EXCLUDE}{color:var(--evo-muted)!important}
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,.bo-panel,.bo-card) :is(p,span,label,small,li,td,th,dt,dd,b,strong,em,a,button)${SEMANTIC_EXCLUDE}{color:var(--evo-text)}
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,[data-planning-calendar],[data-goals-planner]) :is(input,select,textarea){background:var(--card-fill-2)!important;border-color:var(--card-line)!important;color:var(--evo-text)!important}
 html.evo-customized [role=dialog]{background:var(--card-fill-2);border-color:var(--card-line);color:var(--evo-text)}
 html.evo-customized :is(.text-muted-foreground){color:var(--evo-muted)!important}
 .evo-customized[data-evo-animations="false"] *,.evo-customized[data-evo-animations="false"] *::before,.evo-customized[data-evo-animations="false"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
