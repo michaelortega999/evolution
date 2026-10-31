@@ -1,3 +1,4 @@
+import { AuthPanel } from "./auth";
 import { useState as useWFState, useEffect as useWFEffect } from "react";
 import type { CSSProperties as WFCSSProperties } from "react";
 import {
@@ -1025,7 +1026,13 @@ function RootComponent() {
   useEffect(() => {
     if (pathname !== "/auth" && section !== "access" && authState === "signed-out") window.location.replace("/auth");
   }, [pathname, authState, section]);
-  if (section === "access" && pathname !== "/auth") return <CustomerAccessPage authState={authState} />;
+  if (section === "access" && pathname !== "/auth")
+    return (
+      <>
+        <CustomerAccessPage authState={authState} />
+        <Toaster theme="dark" position="top-right" />
+      </>
+    );
   // Gate before all mobile and assistant branches. This UI gate supplements, never replaces, server RLS.
   if (pathname === "/auth")
     return (
@@ -2225,13 +2232,16 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
   const search = useRouterState({ select: (s) => s.location.searchStr });
   const requested = new URLSearchParams(search).get("step");
   const selected = ACCESS_STEPS.find((item) => item.id === requested)?.id ?? "overview";
-  const [step, setStep] = useState<AccessStep>(selected);
   const [identity, setIdentity] = useState<string | null>(null);
   const [identityError, setIdentityError] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [copied, setCopied] = useState("");
   const [emailPreview, setEmailPreview] = useState(false);
-  useEffect(() => setStep(selected), [selected]);
+  useEffect(() => {
+    // Old step links remain navigation only; every section is always present.
+    if (requested && !window.location.hash)
+      document.getElementById(`access-${selected}`)?.scrollIntoView({ block: "start" });
+  }, [requested, selected]);
   useEffect(() => {
     let active = true;
     setIdentity(null);
@@ -2266,12 +2276,6 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
     };
   }, []);
   const signedIn = authState === "signed-in" && !!identity;
-  const go = (next: AccessStep) => {
-    setStep(next);
-    setCopied("");
-    // Navigation only. This query is never used as purchase or access evidence.
-    window.history.replaceState(window.history.state, "", `/?section=access&step=${next}`);
-  };
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText("https://evolutions.enterprises/");
@@ -2282,204 +2286,195 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
   };
   return (
     <main className="access-page min-h-screen bg-black p-4 sm:p-8" data-customer-access>
-      <style>{`.access-page{background:#000;color:var(--foreground)}.access-page .access-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:24px}.access-page .access-button{min-height:44px;border:1px solid var(--card-line,hsl(var(--primary)));border-radius:12px;padding:12px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:var(--card-fill)}.access-page .access-button:disabled{opacity:.5;cursor:not-allowed}.access-page a,.access-page button{overflow-wrap:anywhere}.access-page :focus-visible{outline:2px solid currentColor;outline-offset:4px}.access-page .access-panel{min-width:0}.access-page .access-track{display:flex;gap:8px;flex-wrap:wrap}.access-page .access-track button{min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:12px}.access-page .access-track button[aria-current=step]{border-color:var(--card-accent);background:var(--card-fill-2);color:var(--primary)}@media(max-width:700px){.access-page .access-grid{grid-template-columns:minmax(0,1fr)}.access-page .access-track button{flex:1 1 28%;font-size:12px}}`}</style>
+      <style>{`.access-page{background:#000;color:var(--foreground)}.access-page .access-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}.access-page .access-button{min-height:44px;border:1px solid var(--card-line,hsl(var(--primary)));border-radius:12px;padding:12px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:var(--card-fill)}.access-page .access-button:disabled{opacity:.5;cursor:not-allowed}.access-page a,.access-page button{overflow-wrap:anywhere}.access-page :focus-visible{outline:2px solid currentColor;outline-offset:4px}.access-page .access-panel{min-width:0;scroll-margin-top:24px}.access-page .access-account{grid-row:span 2}.access-page .access-wide{grid-column:1/-1}.access-page .access-track{display:flex;gap:8px;flex-wrap:wrap}.access-page .access-track a{min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:12px}.access-page .access-track a[aria-current=step]{border-color:var(--card-accent);background:var(--card-fill-2);color:var(--primary)}@media(max-width:700px){.access-page .access-grid{grid-template-columns:minmax(0,1fr)}.access-page .access-track a{flex:1 1 28%;font-size:12px}}`}</style>
       <div className="mx-auto max-w-6xl">
         <header className="flex items-center justify-between gap-4 py-4 mb-6">
           <a href="/" aria-label="Evolution Home">
             <BrandMark compact={compactBrand} />
           </a>
-          <a className="access-button text-sm shrink-0 whitespace-nowrap" href={signedIn ? "/" : "/auth?next=access"}>
+          <a className="access-button text-sm shrink-0 whitespace-nowrap" href={signedIn ? "/" : "#access-overview"}>
             {signedIn ? "Open Home" : "Sign in"} <WFArrow size={16} />
           </a>
         </header>
         <p className="hud-label text-primary text-xs tracking-widest mb-3">CUSTOMER ACCESS · PREVIEW</p>
+        <h1 className="hud-label text-xl text-foreground mb-3">Your Evolution, all in one place</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Sign in, review checkout and set up your Home — without switching screens.
+        </p>
         <nav className="access-track mb-7" aria-label="Customer journey">
           {ACCESS_STEPS.map((item, i) => (
-            <button key={item.id} aria-current={step === item.id ? "step" : undefined} onClick={() => go(item.id)}>
+            <a key={item.id} href={`#access-${item.id}`}>
               {String(i + 1).padStart(2, "0")} · {item.label}
-            </button>
+            </a>
           ))}
         </nav>
         <div className="access-grid">
-          <section className="access-panel hud-card hud-scan p-5" aria-labelledby="access-title">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border border-primary/30 text-primary">
-              <WFNetwork size={26} />
-            </div>
-            <h1 className="hud-label text-xl text-foreground mb-5" id="access-title">
-              {ACCESS_STEPS.find((item) => item.id === step)!.title}
-            </h1>
-            {step === "overview" && (
-              <>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  Your plans, wealth, focus and daily life — together in Evolution OS. Create one account, then return
-                  to the same Home screen on any device.
+          {ACCESS_STEPS.map((item, index) => {
+            const step = item.id;
+            return (
+              <section
+                key={step}
+                id={`access-${step}`}
+                className={`access-panel hud-card hud-scan p-5 ${step === "overview" ? "access-account" : ""}`}
+                aria-labelledby={`access-title-${step}`}
+              >
+                <p className="hud-label text-xs text-primary mb-3">
+                  {String(index + 1).padStart(2, "0")} · {item.label}
                 </p>
-                <div className="mt-7 flex gap-3 flex-wrap">
-                  {signedIn ? (
-                    <button className="access-button" onClick={() => go("checkout")}>
-                      Continue to checkout <WFArrow size={16} />
-                    </button>
-                  ) : (
-                    <a className="access-button" href="/auth?next=access&mode=signup">
-                      Create your account <WFArrow size={16} />
-                    </a>
-                  )}
-                  <a className="access-button" href={signedIn ? "/" : "/auth?next=access"}>
-                    {signedIn ? "Keep using Home" : "Already a member? Sign in"}
-                  </a>
-                </div>
-                <p className="text-sm text-muted-foreground mt-5">
-                  Creating an account is not a purchase. Checkout is not accepting payments yet.
-                </p>
-              </>
-            )}
-            {step === "checkout" && (
-              <>
-                <p className="text-muted-foreground leading-relaxed">
-                  Your purchase will belong to the account you sign in with, not just the email typed at checkout.
-                </p>
-                <dl className="mt-6 space-y-4 text-sm">
-                  <div className="flex justify-between gap-3 border-b border-primary/15 pb-3">
-                    <dt>Product</dt>
-                    <dd>Evolution OS</dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-primary/15 pb-3">
-                    <dt>Account</dt>
-                    <dd>{signedIn ? "Signed in" : "Sign in required"}</dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-primary/15 pb-3">
-                    <dt>Plan & price</dt>
-                    <dd>Not configured</dd>
-                  </div>
-                </dl>
-                <div className="my-6 hud-card p-4" role="status">
-                  <strong>Checkout not connected</strong>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Payment provider, approved pricing and server verification still need connecting. No charge can be
-                    made here.
-                  </p>
-                </div>
-                <button className="access-button w-full" disabled>
-                  Secure checkout — unavailable
-                </button>
-                {!signedIn && (
-                  <a className="access-button mt-3" href="/auth?next=access">
-                    Sign in first
-                  </a>
-                )}
-                <button className="block mt-5 text-sm underline underline-offset-4" onClick={() => go("confirmation")}>
-                  Preview the confirmation screen
-                </button>
-              </>
-            )}
-            {step === "confirmation" && (
-              <>
-                <p className="text-xs hud-label text-primary mb-4">SCREEN PREVIEW · NOT A PAYMENT RECEIPT</p>
-                <div role="status" className="hud-card p-5">
-                  <h2 className="font-semibold text-lg">Payment not verified</h2>
-                  <p className="text-muted-foreground text-sm mt-2">
-                    No purchase or subscription has been verified for this screen. A checkout redirect, a success URL or
-                    a bank notification will not unlock paid features on its own.
-                  </p>
-                </div>
-                <p className="text-sm text-muted-foreground mt-5">
-                  Once connected, the server will confirm payment and account ownership before showing your receipt and
-                  next step. If payment is pending, this screen will say so — without asking you to pay again.
-                </p>
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <button className="access-button" disabled>
-                    Verification not connected
-                  </button>
-                  <button className="access-button" onClick={() => go("setup")}>
-                    Preview welcome <WFArrow size={16} />
-                  </button>
-                </div>
-              </>
-            )}
-            {step === "setup" && (
-              <>
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  A familiar Home screen, with Evo ready to help you organize your day. Profile setup is separate from a
-                  paid subscription.
-                </p>
-                {signedIn ? (
-                  <CustomerSetupForm key={`${identity}:${generation}`} identity={identity!} />
-                ) : (
-                  <div className="hud-card p-5">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Sign in to save your name and welcome setup. This preview does not unlock paid access.
+                <h2 className="hud-label text-lg text-foreground mb-5" id={`access-title-${step}`}>
+                  {item.title}
+                </h2>
+                {step === "overview" && (
+                  <>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      Your plans, wealth, focus and daily life — together in Evolution OS. Create one account, then
+                      return to the same Home screen on any device.
                     </p>
-                    <a className="access-button" href="/auth?next=access">
-                      Sign in to set up
-                    </a>
-                  </div>
-                )}
-              </>
-            )}
-            {step === "return" && (
-              <>
-                <p className="text-muted-foreground leading-relaxed">
-                  Evolution is a website. You do not need a new download or a new link after every purchase.
-                </p>
-                <div className="hud-card p-5 mt-6">
-                  <p className="text-xs text-muted-foreground mb-2">YOUR RETURN ADDRESS</p>
-                  <p className="text-lg font-semibold break-all">evolutions.enterprises</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Bookmark it. Sign in with the same account you used at checkout.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <a className="access-button" href={signedIn ? "/" : "/auth"}>
-                    {signedIn ? "Open my Home" : "Sign in to Home"}
-                    <WFArrow size={16} />
-                  </a>
-                  <button className="access-button" onClick={copyLink}>
-                    Copy website link
-                  </button>
-                </div>
-                {copied && (
-                  <p className="text-sm mt-3" role="status">
-                    {copied}
-                  </p>
-                )}
-                <p className="text-sm text-muted-foreground mt-5">
-                  Forgot your password? Use “Forgot password?” on the sign-in screen. Purchase access, cancellations and
-                  billing management are not connected yet.
-                </p>
-              </>
-            )}
-            {(authState === "error" || identityError) && (
-              <p role="alert" className="mt-5 text-sm">
-                We could not verify your account.{" "}
-                <button
-                  className="underline"
-                  onClick={() => (authState === "error" ? window.location.reload() : setGeneration((n) => n + 1))}
-                >
-                  Retry account check
-                </button>
-              </p>
-            )}
-          </section>
-          <aside className="space-y-5">
-            <section className="access-panel hud-card hud-scan p-5">
-              <p className="hud-label text-primary text-xs mb-4">A CLEAR WAY IN</p>
-              <ol className="space-y-4 text-sm">
-                {[
-                  ["01", "Create your account", "Your account keeps your workspace together."],
-                  ["02", "Pay securely", "Checkout becomes available after billing is connected."],
-                  ["03", "Make it yours", "Set up your profile, then open Home."],
-                  ["04", "Come back anytime", "Use the website and your original sign-in."],
-                ].map(([n, t, d]) => (
-                  <li key={n} className="flex gap-3">
-                    <span className="text-primary">{n}</span>
-                    <div>
-                      <strong>{t}</strong>
-                      <p className="text-muted-foreground mt-1 leading-relaxed">{d}</p>
+                    <div className="mt-6">
+                      {signedIn ? (
+                        <div role="status" className="space-y-3">
+                          <p className="text-sm">Your account is signed in.</p>
+                          <a className="access-button" href="/">
+                            Open Home <WFArrow size={16} />
+                          </a>
+                        </div>
+                      ) : authState === "signed-out" ? (
+                        <AuthPanel embedded />
+                      ) : (
+                        <p role="status" className="text-sm">
+                          {authState === "error" ? "Account verification needs retry." : "Checking your account…"}
+                        </p>
+                      )}
                     </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
+                    <p className="text-sm text-muted-foreground mt-5">
+                      Creating an account is not a purchase. Checkout is not accepting payments yet.
+                    </p>
+                  </>
+                )}
+                {step === "checkout" && (
+                  <>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Your purchase will belong to the account you sign in with, not just the email typed at checkout.
+                    </p>
+                    <dl className="mt-6 space-y-4 text-sm">
+                      <div className="flex justify-between gap-3 border-b border-primary/15 pb-3">
+                        <dt>Product</dt>
+                        <dd>Evolution OS</dd>
+                      </div>
+                      <div className="flex justify-between gap-3 border-b border-primary/15 pb-3">
+                        <dt>Account</dt>
+                        <dd>{signedIn ? "Signed in" : "Sign in required"}</dd>
+                      </div>
+                      <div className="flex justify-between gap-3 border-b border-primary/15 pb-3">
+                        <dt>Plan & price</dt>
+                        <dd>Not configured</dd>
+                      </div>
+                    </dl>
+                    <div className="my-6 hud-card p-4" role="status">
+                      <strong>Checkout not connected</strong>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Payment provider, approved pricing and server verification still need connecting. No charge can
+                        be made here.
+                      </p>
+                    </div>
+                    <button className="access-button w-full" disabled>
+                      Secure checkout — unavailable
+                    </button>
+                    {!signedIn && (
+                      <a className="access-button mt-3" href="#access-overview">
+                        Sign in first
+                      </a>
+                    )}
+                  </>
+                )}
+                {step === "confirmation" && (
+                  <>
+                    <p className="text-xs hud-label text-primary mb-4">NOT A PAYMENT RECEIPT</p>
+                    <div role="status" className="hud-card p-5">
+                      <h2 className="font-semibold text-lg">Payment not verified</h2>
+                      <p className="text-muted-foreground text-sm mt-2">
+                        No purchase or subscription has been verified for this section. A checkout redirect, a success
+                        URL or a bank notification will not unlock paid features on its own.
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-5">
+                      Once connected, the server will confirm payment and account ownership before showing your receipt
+                      and next step. If payment is pending, this section will say so — without asking you to pay again.
+                    </p>
+                    <div className="flex flex-wrap gap-3 mt-6">
+                      <button className="access-button" disabled>
+                        Verification not connected
+                      </button>
+                    </div>
+                  </>
+                )}
+                {step === "setup" && (
+                  <>
+                    <p className="text-muted-foreground leading-relaxed mb-6">
+                      A familiar Home screen, with Evo ready to help you organize your day. Profile setup is separate
+                      from a paid subscription.
+                    </p>
+                    {signedIn ? (
+                      <CustomerSetupForm key={`${identity}:${generation}`} identity={identity!} />
+                    ) : (
+                      <div className="hud-card p-5">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Sign in to save your name and welcome setup. This preview does not unlock paid access.
+                        </p>
+                        <a className="access-button" href="#access-overview">
+                          Sign in to set up
+                        </a>
+                      </div>
+                    )}
+                  </>
+                )}
+                {step === "return" && (
+                  <>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Evolution is a website. You do not need a new download or a new link after every purchase.
+                    </p>
+                    <div className="hud-card p-5 mt-6">
+                      <p className="text-xs text-muted-foreground mb-2">YOUR RETURN ADDRESS</p>
+                      <p className="text-lg font-semibold break-all">evolutions.enterprises</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Bookmark it. Sign in with the same account you used at checkout.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-6">
+                      <a className="access-button" href={signedIn ? "/" : "#access-overview"}>
+                        {signedIn ? "Open my Home" : "Sign in to Home"}
+                        <WFArrow size={16} />
+                      </a>
+                      <button className="access-button" onClick={copyLink}>
+                        Copy website link
+                      </button>
+                    </div>
+                    {copied && (
+                      <p className="text-sm mt-3" role="status">
+                        {copied}
+                      </p>
+                    )}
+                    <p className="text-sm text-muted-foreground mt-5">
+                      Forgot your password? Use “Forgot password?” in the account section. Purchase access,
+                      cancellations and billing management are not connected yet.
+                    </p>
+                  </>
+                )}
+                {step === "overview" && (authState === "error" || identityError) && (
+                  <p role="alert" className="mt-5 text-sm">
+                    We could not verify your account.{" "}
+                    <button
+                      className="underline"
+                      onClick={() => (authState === "error" ? window.location.reload() : setGeneration((n) => n + 1))}
+                    >
+                      Retry account check
+                    </button>
+                  </p>
+                )}
+              </section>
+            );
+          })}
+          <aside className="access-wide space-y-5">
             <section className="access-panel hud-card hud-scan p-5">
               <h2 className="hud-label text-sm mb-3">What arrives by email?</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -2507,7 +2502,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             </section>
             <p className="text-xs text-muted-foreground px-1">
               Preview build. Existing account access is unchanged. No payment, cancellation or email is triggered by
-              exploring these screens.
+              exploring this page.
             </p>
           </aside>
         </div>
