@@ -100,7 +100,7 @@ function Card({
         <span className="hud-label text-xs text-muted-foreground">{number}</span>
         <h3
           className="hud-label text-sm transition-colors group-hover/header:opacity-100"
-          style={{ color: accent, textShadow: `0 0 10px ${accent}66` }}
+          style={{ color: `var(--evo-title, ${accent})`, textShadow: `0 0 10px ${accent}66` }}
         >
           {title}
         </h3>
