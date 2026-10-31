@@ -15331,6 +15331,25 @@
           if (!message || message.type !== 'evo:appearance') return;
           var styles = ['jarvis', 'glass', 'tactical', 'classic', 'minimal-clean', 'tech-hud', 'armored-edge'];
           document.documentElement.dataset.cardStyle = styles.indexOf(message.cardStyle) >= 0 ? message.cardStyle : 'jarvis';
+          // Palette tokens: allowlisted keys, hex values only (mirrors sanitizeBridgePalette). Presentation only.
+          var keys = ['--evo-page', '--evo-page-alt', '--evo-card', '--evo-card-alt', '--evo-accent', '--evo-line', '--evo-text', '--evo-muted'];
+          var root = document.documentElement;
+          var palette = message.palette && typeof message.palette === 'object' ? message.palette : null;
+          var applied = 0;
+          keys.forEach(function (key) {
+            var value = palette ? palette[key] : null;
+            if (typeof value === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)) { root.style.setProperty(key, value); applied++; }
+            else root.style.removeProperty(key);
+          });
+          if (applied) root.setAttribute('data-evo-palette', 'custom'); else root.removeAttribute('data-evo-palette');
+          if (applied && !document.getElementById('evo-parent-palette')) {
+            var st = document.createElement('style');
+            st.id = 'evo-parent-palette';
+            st.textContent = 'html[data-evo-palette=custom],html[data-evo-palette=custom] body{background:var(--evo-page)!important;color:var(--evo-text)!important}' +
+              'html[data-evo-palette=custom] :is(.card,.glass,.panel,[class*=card]):not(img){background-color:var(--evo-card)!important;border-color:var(--evo-line)!important}' +
+              'html[data-evo-palette=custom] :is(h1,h2,h3,h4){color:var(--evo-text)!important}';
+            document.head.appendChild(st);
+          }
         });
         if (window.parent !== window) window.parent.postMessage({ type: 'evo:appearance-ready' }, window.location.origin);
       })();

@@ -8,6 +8,8 @@ import { pullMobileIntoDesktop, pushDesktopIntoMobile } from "@/lib/mobile-bridg
 import { bankStore } from "@/lib/finance-store";
 import { wireBankAuth, useBank } from "@/lib/use-bank";
 import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel";
+import { bridgePalette } from "@/lib/theme-palette";
+import { resolvedCustomPalette } from "@/lib/use-theme";
 
 /**
  * Phone-only experience: renders the user's finished Evolution OS mobile
@@ -35,6 +37,8 @@ export function MobileApp() {
   const mobilePage = ["home", "stats", "profile", "tasks"].includes(requestedPage) ? requestedPage : "";
   const { data } = useEvolutionData();
   const cardStyle = effectiveCardStyle(data.settings);
+  // Resolved, allowlisted palette tokens (or null for legacy themes). Serialized so effects re-run only on change.
+  const paletteJson = JSON.stringify(bridgePalette(resolvedCustomPalette(data.settings.customization)));
   const [ready, setReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -167,7 +171,10 @@ export function MobileApp() {
   useEffect(() => {
     if (!ready) return;
     const frame = frameRef.current;
-    const post = () => frame?.contentWindow?.postMessage({ type: "evo:appearance", cardStyle }, window.location.origin);
+    const post = () => frame?.contentWindow?.postMessage(
+        { type: "evo:appearance", cardStyle, palette: JSON.parse(paletteJson) },
+        window.location.origin,
+      );
     const onReady = (event: MessageEvent) => {
       if (
         event.origin === window.location.origin &&
@@ -183,7 +190,7 @@ export function MobileApp() {
       frame?.removeEventListener("load", post);
       window.removeEventListener("message", onReady);
     };
-  }, [ready, frameKey, cardStyle, pathname]);
+  }, [ready, frameKey, cardStyle, paletteJson, pathname]);
 
   // Navigation-only adapter for the legacy same-origin phone surface. Never edits its store.
   useEffect(() => {
