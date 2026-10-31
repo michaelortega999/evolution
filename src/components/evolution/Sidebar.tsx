@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { currentNavKey } from "@/lib/nav-current";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Home,
@@ -49,8 +50,9 @@ export const secondaryNav = [
 export function Sidebar() {
   const { pathname, searchStr } = useLocation();
   const currentSection = new URLSearchParams(searchStr).get("section") || "";
-  const workflowActive = pathname === "/" && currentSection === "ai-workflow";
-  const plannerActive = pathname === "/" && (currentSection === "evo" || currentSection === "alfred");
+  const navKey = currentNavKey(pathname, searchStr, [...mainNav, ...secondaryNav].map((n) => n.to));
+  const workflowActive = navKey === "ai-workflow";
+  const plannerActive = navKey === "evo";
   const navigate = useNavigate();
   const { data, updateProfile } = useEvolutionData();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -125,14 +127,13 @@ export function Sidebar() {
           <Bot className="h-4 w-4" /> Evo Planner
         </a>
         {mainNav.map((item) => {
-          const isActive =
-            item.to === "/"
-              ? pathname === "/" && !new URLSearchParams(searchStr).has("section")
-              : pathname.startsWith(item.to);
+          const isActive = navKey === item.to;
           return (
             <Link
               key={item.label}
               to={item.to}
+              activeOptions={{ exact: true, includeSearch: true }}
+              aria-current={isActive ? "page" : "false"}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive
@@ -153,11 +154,13 @@ export function Sidebar() {
         <div className="h-px bg-border my-3" />
 
         {secondaryNav.map((item) => {
-          const isActive = pathname.startsWith(item.to);
+          const isActive = navKey === item.to;
           return (
             <Link
               key={item.label}
               to={item.to}
+              activeOptions={{ exact: true, includeSearch: true }}
+              aria-current={isActive ? "page" : "false"}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all hud-label text-xs border",
                 isActive
