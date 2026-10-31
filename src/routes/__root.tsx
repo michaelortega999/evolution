@@ -2600,7 +2600,7 @@ function CustomerSetupForm({ identity }: { identity: string }) {
             : cloud === "error"
               ? "Cloud sync needs retry; the app will retry automatically."
               : observedSave && cloud === "synced"
-                ? "Cloud sync completed."
+                ? "Account sync is up to date."
                 : "Cloud confirmation pending."}
         </p>
       )}
