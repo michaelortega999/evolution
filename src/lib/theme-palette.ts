@@ -141,8 +141,8 @@ export function bridgePalette(p: ResolvedPalette | null): BridgePalette | null {
   return {
     "--evo-page": p.page,
     "--evo-page-alt": p.pageAlt,
-    "--evo-card": p.card,
-    "--evo-card-alt": p.cardAlt,
+    "--evo-card": p.card + "d9",
+    "--evo-card-alt": p.cardAlt + "d9",
     "--evo-accent": p.accent,
     "--evo-line": p.line,
     "--evo-text": p.text,
@@ -159,3 +159,16 @@ export function sanitizeBridgePalette(value: unknown): BridgePalette | null {
   }
   return Object.keys(out).length ? out : null;
 }
+
+/**
+ * Elements carrying profit/loss/success/warning/error meaning keep their own colours.
+ * Mark explicitly with data-semantic, or rely on these class-name fragments.
+ */
+export const SEMANTIC_EXCLUDE =
+  ":not([data-semantic]):not([class*=profit]):not([class*=loss]):not([class*=gain]):not([class*=-pos]):not([class*=-neg]):not([class*=-up]):not([class*=-down]):not([class*=success]):not([class*=warn]):not([class*=danger]):not([class*=error]):not([class*=green]):not([class*=red]):not([class*=emerald]):not([class*=rose]):not([class*=amber]):not([class*=destructive])";
+
+/** Static stylesheet the phone frame installs; narrow card selectors only (no [class*=card]). */
+export const FRAME_PALETTE_CSS =
+  "html[data-evo-palette=custom],html[data-evo-palette=custom] body{background:var(--evo-page)!important;color:var(--evo-text)!important}" +
+  `html[data-evo-palette=custom] :is(.evo-style-card,.st-card)${SEMANTIC_EXCLUDE}{background-color:var(--evo-card)!important;border-color:var(--evo-line)!important}` +
+  `html[data-evo-palette=custom] :is(h1,h2,h3,h4)${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}`;

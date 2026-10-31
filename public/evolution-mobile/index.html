@@ -15345,9 +15345,8 @@
           if (applied && !document.getElementById('evo-parent-palette')) {
             var st = document.createElement('style');
             st.id = 'evo-parent-palette';
-            st.textContent = 'html[data-evo-palette=custom],html[data-evo-palette=custom] body{background:var(--evo-page)!important;color:var(--evo-text)!important}' +
-              'html[data-evo-palette=custom] :is(.card,.glass,.panel,[class*=card]):not(img){background-color:var(--evo-card)!important;border-color:var(--evo-line)!important}' +
-              'html[data-evo-palette=custom] :is(h1,h2,h3,h4){color:var(--evo-text)!important}';
+            // Must equal FRAME_PALETTE_CSS in src/lib/theme-palette.ts (tested).
+            st.textContent = 'html[data-evo-palette=custom],html[data-evo-palette=custom] body{background:var(--evo-page)!important;color:var(--evo-text)!important}html[data-evo-palette=custom] :is(.evo-style-card,.st-card):not([data-semantic]):not([class*=profit]):not([class*=loss]):not([class*=gain]):not([class*=-pos]):not([class*=-neg]):not([class*=-up]):not([class*=-down]):not([class*=success]):not([class*=warn]):not([class*=danger]):not([class*=error]):not([class*=green]):not([class*=red]):not([class*=emerald]):not([class*=rose]):not([class*=amber]):not([class*=destructive]){background-color:var(--evo-card)!important;border-color:var(--evo-line)!important}html[data-evo-palette=custom] :is(h1,h2,h3,h4):not([data-semantic]):not([class*=profit]):not([class*=loss]):not([class*=gain]):not([class*=-pos]):not([class*=-neg]):not([class*=-up]):not([class*=-down]):not([class*=success]):not([class*=warn]):not([class*=danger]):not([class*=error]):not([class*=green]):not([class*=red]):not([class*=emerald]):not([class*=rose]):not([class*=amber]):not([class*=destructive]){color:var(--evo-text)!important}';
             document.head.appendChild(st);
           }
         });
