@@ -1074,7 +1074,13 @@ function RootComponent() {
   if (section === "evo" || section === "alfred")
     return (
       <>
-        <EvoAssistantPage />
+        {isPhone ? (
+          <EvoAssistantPage />
+        ) : (
+          <HomeShell>
+            <EvoAssistantPage />
+          </HomeShell>
+        )}
         <Toaster />
       </>
     );
@@ -1424,7 +1430,7 @@ function EvoAssistantPage() {
       style={isPhone && view === "chat" ? { height: viewportHeight } : undefined}
     >
       <style>{EVO_WORKSPACE_CSS}</style>
-      <AppBrandBar />
+      {isPhone && <AppBrandBar />}
       <div className="flex items-center justify-between gap-3 px-1 py-2 text-xs text-muted-foreground" role="status">
         <span className="tracking-widest text-primary">EVO AI</span>
         <span>{statusLabel}</span>
