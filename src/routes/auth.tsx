@@ -22,9 +22,15 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  return <AuthPanel />;
+}
+
+export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const accessDestination = () =>
-    new URLSearchParams(window.location.search).get("next") === "access" ? "/?section=access&step=checkout" : "/";
+    embedded || new URLSearchParams(window.location.search).get("next") === "access"
+      ? "/?section=access#access-checkout"
+      : "/";
   const finishSignIn = () => window.location.assign(accessDestination());
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [recovery, setRecovery] = useState<"request" | "sent" | "reset" | "done" | null>(null);
@@ -87,7 +93,7 @@ function AuthPage() {
     let active = true;
     // A URL flag is navigation context only, NEVER proof of recovery.
     const params = new URLSearchParams(window.location.search);
-    if (params.get("mode") === "signup" && params.get("next") === "access") setMode("signup");
+    if (params.get("mode") === "signup" && (embedded || params.get("next") === "access")) setMode("signup");
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const returning = params.get("recovery") === "1" || hash.get("type") === "recovery";
     if (returning) {
@@ -127,7 +133,7 @@ function AuthPage() {
           setPassword("");
           setConfirmation("");
           window.history.replaceState(window.history.state, "", "/auth?recovery=1");
-        } else if (data.session && !recoveryActive.current) finishSignIn();
+        } else if (data.session && !recoveryActive.current && !embedded) finishSignIn();
       })
       .catch(() => {
         if (active && returning) setRecoveryError("Unable to verify this link. Request a new recovery email.");
@@ -136,7 +142,7 @@ function AuthPage() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, embedded]);
 
   useEffect(() => {
     if (!resendAt) return;
@@ -145,6 +151,10 @@ function AuthPage() {
   }, [resendAt]);
 
   const openRecovery = () => {
+    if (embedded) {
+      window.location.assign("/auth?recovery=1&next=access");
+      return;
+    }
     recoveryActive.current = true;
     setRecovery("request");
     setRecoveryEmail(email.trim());
@@ -170,7 +180,7 @@ function AuthPage() {
       setConfirmation("");
       setCode("");
       setMode("signin");
-      window.history.replaceState(window.history.state, "", "/auth");
+      window.history.replaceState(window.history.state, "", embedded ? "/?section=access#access-overview" : "/auth");
     } catch {
       if (live(id)) setRecoveryError("Could not close the recovery session. Please try again.");
     } finally {
@@ -335,8 +345,12 @@ function AuthPage() {
 
   if (recovery)
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5">
+      <div className={embedded ? "w-full" : "min-h-screen bg-black flex items-center justify-center p-4"}>
+        <div
+          className={
+            embedded ? "w-full flex flex-col gap-5" : "hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5"
+          }
+        >
           <div className="text-center">
             <div className="hud-label text-primary hud-glow text-lg">EVOLUTION OS</div>
             <h1 className="mt-3 text-xl font-semibold">
@@ -495,8 +509,15 @@ function AuthPage() {
 
   if (checkEmail)
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-4 text-center" role="status">
+      <div className={embedded ? "w-full" : "min-h-screen bg-black flex items-center justify-center p-4"}>
+        <div
+          className={
+            embedded
+              ? "w-full flex flex-col gap-4 text-center"
+              : "hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-4 text-center"
+          }
+          role="status"
+        >
           <div className="hud-label text-primary hud-glow text-lg">CHECK YOUR EMAIL</div>
           <p className="text-sm text-muted-foreground">
             We sent a confirmation link to <span className="text-foreground break-all">{checkEmail}</span>. Open it to
@@ -519,8 +540,12 @@ function AuthPage() {
     );
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5">
+    <div className={embedded ? "w-full" : "min-h-screen bg-black flex items-center justify-center p-4"}>
+      <div
+        className={
+          embedded ? "w-full flex flex-col gap-5" : "hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5"
+        }
+      >
         <div className="text-center">
           <div className="hud-label text-primary hud-glow text-lg">EVOLUTION OS</div>
           <div className="hud-label text-[10px] text-muted-foreground mt-1">
@@ -613,12 +638,16 @@ function AuthPage() {
           </button>
         </div>
 
-        <a href="/?section=access" className="text-center text-sm text-primary hover:underline">
-          Purchase & website access
-        </a>
-        <Link to="/" className="text-center hud-label text-[9px] text-muted-foreground hover:text-primary">
-          ← Back
-        </Link>
+        {!embedded && (
+          <>
+            <a href="/?section=access" className="text-center text-sm text-primary hover:underline">
+              Purchase & website access
+            </a>
+            <Link to="/" className="text-center hud-label text-[9px] text-muted-foreground hover:text-primary">
+              ← Back
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
