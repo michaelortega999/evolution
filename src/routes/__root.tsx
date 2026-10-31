@@ -1676,7 +1676,7 @@ function EvoAssistantPage() {
           )}
           {view === "routines" && (
             <div className="evo-two-column">
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Workflow size={17} /> ROUTINE BUILDER
@@ -1798,7 +1798,7 @@ function EvoAssistantPage() {
                   </button>
                 </form>
               </section>
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <CalendarDays size={17} /> {preview ? "REVIEW BEFORE APPLYING" : "SAVED ROUTINES"}
@@ -1895,7 +1895,7 @@ function EvoAssistantPage() {
             </div>
           )}
           {view === "calendar" && (
-            <section className="evo-frame evo-panel">
+            <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
               <div className="evo-section-title">
                 <span>
                   <CalendarDays size={17} /> {preview ? "SCHEDULE PREVIEW" : "YOUR CALENDAR"}
@@ -1977,7 +1977,7 @@ function EvoAssistantPage() {
           )}
           {view === "goals" && (
             <div className="evo-two-column">
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <Target size={17} /> SET YOUR DIRECTION
@@ -2058,7 +2058,7 @@ function EvoAssistantPage() {
                   <button disabled={disabled}>Add habit</button>
                 </form>
               </section>
-              <section className="evo-frame evo-panel">
+              <section className={cn("evo-frame evo-panel", !isPhone && "hud-card")}>
                 <div className="evo-section-title">
                   <span>
                     <ChartNoAxesCombined size={17} /> PROGRESS
