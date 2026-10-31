@@ -1,6 +1,7 @@
 import { effectiveCardStyle } from "./utils";
 import { useEffect, type CSSProperties } from "react";
 import mountainBackground from "@/assets/calendar-mountain.jpg";
+import { mix, resolvePalette, type ResolvedPalette } from "./theme-palette";
 import { useEvolutionData, type ThemeKey, type AppearanceCustomization } from "./evolution-data";
 
 export const THEME_OPTIONS: { key: ThemeKey; label: string; swatch: string }[] = [
@@ -57,6 +58,21 @@ export const CUSTOMIZATION_PRESETS = [
   { id: "pink", label: "Dark Pink", primary: "#9f245f", secondary: "#ffdaee" },
   { id: "orange", label: "Dark Orange", primary: "#a34815", secondary: "#ffe6cf" },
 ] as const;
+/** Restorable original look: near-black surfaces, cool pale text, blue neon accent, quiet canvas, classic frames. */
+export const BLACK_NEON_PRESET = {
+  id: "black-neon",
+  label: "Black Neon",
+  customization: {
+    primary: "#05080d",
+    secondary: "#dbe9f6",
+    background: "minimal",
+    glass: 0,
+    glow: 25,
+    blur: 0,
+    dark: true,
+  },
+  cardStyle: "classic",
+} as const;
 const backgrounds = ["glass", "grid", "minimal", "gradient", "landscape"] as const;
 const safeHex = (value: unknown, fallback: string) =>
   typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : fallback;
@@ -77,64 +93,30 @@ export function normalizeCustomization(value: unknown): AppearanceCustomization 
     dark: typeof v.dark === "boolean" ? v.dark : CUSTOMIZATION_DEFAULTS.dark,
   };
 }
-function rgb(hex: string): number[] {
-  return [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16));
-}
-function mix(a: string, b: string, amount: number): string {
-  const end = rgb(b);
-  return (
-    "#" +
-    rgb(a)
-      .map((v, i) =>
-        Math.round(v + (end[i] - v) * amount)
-          .toString(16)
-          .padStart(2, "0"),
-      )
-      .join("")
-  );
-}
-function luminance(hex: string): number {
-  return rgb(hex)
-    .map((v) => {
-      const n = v / 255;
-      return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
-    })
-    .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
-}
-function readable(color: string, background: string): string {
-  const bg = luminance(background);
-  const target = bg < 0.179 ? "#ffffff" : "#000000";
-  for (let i = 0; i <= 20; i++) {
-    const candidate = mix(color, target, i / 20);
-    const fg = luminance(candidate);
-    if ((Math.max(bg, fg) + 0.05) / (Math.min(bg, fg) + 0.05) >= 7) return candidate;
-  }
-  return target;
-}
-
 export function customizationBackground(value: unknown): string {
   const v = normalizeCustomization(value);
-  const base = mix(v.primary, v.dark ? "#030812" : "#f5f8ff", v.dark ? 0.92 : 0.94);
-  const glow = v.primary + (v.dark ? "35" : "12");
+  const p = resolvePalette(v);
+  const base = p.page;
+  const glow = p.accent + (v.dark ? "30" : "12");
   if (v.background === "minimal") return base;
   if (v.background === "grid")
-    return `linear-gradient(${v.primary}18 1px,transparent 1px),linear-gradient(90deg,${v.primary}18 1px,transparent 1px),${base}`;
-  if (v.background === "gradient") return `linear-gradient(135deg,${mix(v.primary, base, 0.55)},${base} 65%)`;
+    return `linear-gradient(${p.accent}18 1px,transparent 1px),linear-gradient(90deg,${p.accent}18 1px,transparent 1px),${base}`;
+  if (v.background === "gradient") return `linear-gradient(135deg,${p.pageAlt},${base} 65%)`;
   if (v.background === "landscape")
     return `linear-gradient(${base}${v.dark ? "ac" : "cc"},${base}ee),url("${mountainBackground}"),${base}`;
-  return `radial-gradient(ellipse at 85% 10%,${glow},transparent 55%),radial-gradient(ellipse at 10% 80%,${v.primary}20,transparent 45%),${base}`;
+  return `radial-gradient(ellipse at 85% 10%,${glow},transparent 55%),radial-gradient(ellipse at 10% 80%,${p.accent}1c,transparent 45%),${base}`;
 }
 
 /** Both aliases are supported for the small inline preview and the app-wide theme. */
 export function customizationTokens(value: unknown): Record<string, string> {
   const v = normalizeCustomization(value);
-  const base = mix(v.primary, v.dark ? "#030812" : "#f5f8ff", v.dark ? 0.92 : 0.94);
-  const surface = mix(v.primary, v.dark ? "#08121e" : "#ffffff", v.dark ? 0.88 : 0.94);
-  const text = readable(v.secondary, surface);
-  const muted = mix(text, surface, 0.2);
-  const opacity = (1 - v.glass * 0.003).toFixed(2);
-  const fill = `rgb(${rgb(surface).join(" ")} / ${opacity})`;
-  const glow = `0 0 ${(v.glow * 0.3).toFixed(1)}px ${v.primary}${Math.round(v.glow * 0.8)
+  const p = resolvePalette(v);
+  const base = p.page;
+  const surface = p.card;
+  const text = p.text;
+  const muted = p.muted;
+  const fill = p.cardFill;
+  const glow = `0 0 ${(v.glow * 0.3).toFixed(1)}px ${p.accent}${Math.round(v.glow * 0.8)
     .toString(16)
     .padStart(2, "0")}`;
   const blur = `${(v.blur * 0.24).toFixed(1)}px`;
@@ -150,7 +132,20 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--evo-background-size": v.background === "grid" ? "28px 28px,28px 28px,auto" : "cover",
     "--evo-glow": glow,
     "--evo-blur": blur,
-    "--evo-border": `${v.primary}80`,
+    "--evo-border": p.line,
+    "--evo-accent": p.accent,
+    "--evo-title": text,
+    "--evo-page": p.page,
+    "--evo-card": p.card,
+    "--card-fill": p.cardFill,
+    "--card-fill-2": p.cardFill2,
+    "--card-line": p.line,
+    "--card-accent": p.accent,
+    "--hud-fill-a": p.cardFill,
+    "--hud-fill-b": p.cardFill2,
+    "--hud-border": p.accent,
+    "--hud-border-mid": p.line,
+    "--hud-border-soft": p.line,
     "--custom-primary": v.primary,
     "--custom-secondary": text,
     "--custom-text": text,
@@ -159,7 +154,7 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--custom-glow": glow,
     "--custom-blur": blur,
     "--es-blue": text,
-    "--es-line": `${v.primary}80`,
+    "--es-line": p.line,
     "--es-text": text,
     "--es-muted": muted,
     "--background": base,
@@ -168,21 +163,35 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--card-foreground": text,
     "--popover": surface,
     "--popover-foreground": text,
-    "--primary": v.primary,
-    "--primary-foreground": readable("#ffffff", v.primary),
+    "--primary": p.accent,
+    "--primary-foreground": readableOn(p.accent),
     "--secondary": surface,
     "--secondary-foreground": text,
     "--muted": surface,
     "--muted-foreground": muted,
-    "--accent": v.primary,
+    "--accent": p.accent,
     "--accent-foreground": text,
-    "--border": `${v.primary}80`,
+    "--border": p.line,
     "--input": surface,
-    "--ring": v.primary,
-    "--glow": v.primary,
+    "--ring": p.accent,
+    "--glow": p.accent,
+    "--grid-line": p.accent + "1f",
     "--brand-ink": text,
     "color-scheme": v.dark ? "dark" : "light",
   };
+}
+function readableOn(bg: string): string {
+  return resolvePaletteText(bg);
+}
+function resolvePaletteText(bg: string): string {
+  // Button text on the accent: whichever of near-white / near-black reads better.
+  return mix(bg, "#000000", 1) && (luminanceOf(bg) > 0.18 ? "#04070c" : "#ffffff");
+}
+const luminanceOf = (hex: string) => resolvePalette({ primary: hex, secondary: "#ffffff", glass: 0, dark: true }) && lum(hex);
+import { luminance as lum } from "./theme-palette";
+/** Resolved palette for the owner's saved preference, or null when legacy theme classes apply. */
+export function resolvedCustomPalette(value: unknown): ResolvedPalette | null {
+  return value && typeof value === "object" ? resolvePalette(normalizeCustomization(value)) : null;
 }
 export const customizationStyle = (value: unknown): CSSProperties => customizationTokens(value) as CSSProperties;
 
