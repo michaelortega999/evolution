@@ -335,8 +335,8 @@ function AuthPage() {
 
   if (recovery)
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="hud-card p-6 sm:p-8 w-full max-w-md flex flex-col gap-5">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5">
           <div className="text-center">
             <div className="hud-label text-primary hud-glow text-lg">EVOLUTION OS</div>
             <h1 className="mt-3 text-xl font-semibold">
@@ -495,8 +495,8 @@ function AuthPage() {
 
   if (checkEmail)
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="hud-card p-8 w-full max-w-md flex flex-col gap-4 text-center" role="status">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-4 text-center" role="status">
           <div className="hud-label text-primary hud-glow text-lg">CHECK YOUR EMAIL</div>
           <p className="text-sm text-muted-foreground">
             We sent a confirmation link to <span className="text-foreground break-all">{checkEmail}</span>. Open it to
@@ -519,8 +519,8 @@ function AuthPage() {
     );
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="hud-card p-8 w-full max-w-md flex flex-col gap-5">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5">
         <div className="text-center">
           <div className="hud-label text-primary hud-glow text-lg">EVOLUTION OS</div>
           <div className="hud-label text-[10px] text-muted-foreground mt-1">
