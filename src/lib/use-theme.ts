@@ -28,10 +28,11 @@ export function useTheme() {
   useEffect(() => {
     applyTheme(data.settings?.theme ?? "default");
   }, [data.settings?.theme]);
+  const effective = JSON.stringify(effectiveCustomization(data.settings));
   useEffect(() => {
-    applyCustomization(data.settings?.customization);
+    applyCustomization(JSON.parse(effective));
     return () => applyCustomization(undefined);
-  }, [data.settings?.customization]);
+  }, [effective]);
   const cardStyle = effectiveCardStyle(data.settings);
   useEffect(() => {
     document.documentElement.dataset.cardStyle = cardStyle;
@@ -182,6 +183,32 @@ export function customizationTokens(value: unknown): Record<string, string> {
 }
 function readableOn(bg: string): string {
   return luminance(bg) > 0.18 ? "#04070c" : "#ffffff";
+}
+/** Each legacy accent theme expressed in the same palette model (black page, tinted neon glass). */
+export const LEGACY_THEME_SEEDS: Record<ThemeKey, { primary: string; secondary: string; dark: boolean }> = {
+  default: { primary: "#0066ff", secondary: "#d9efff", dark: true },
+  gold: { primary: "#c9a84c", secondary: "#fff1cf", dark: true },
+  orange: { primary: "#ff7a18", secondary: "#ffe6cf", dark: true },
+  green: { primary: "#4ade80", secondary: "#d5ffec", dark: true },
+  red: { primary: "#ef4444", secondary: "#ffe1e8", dark: true },
+  purple: { primary: "#a855f7", secondary: "#f0ddff", dark: true },
+  // "White" is a light-glass card option; the page stays black.
+  white: { primary: "#dfe8f2", secondary: "#ffffff", dark: false },
+  black: { primary: "#05080d", secondary: "#dbe9f6", dark: true },
+};
+/** Saved custom colours win; otherwise the legacy theme's seed. Read-only: nothing is written back. */
+export function effectiveCustomization(
+  settings: { theme?: unknown; customization?: unknown } | undefined,
+): AppearanceCustomization {
+  if (settings?.customization && typeof settings.customization === "object")
+    return normalizeCustomization(settings.customization);
+  const key = (typeof settings?.theme === "string" && settings.theme in LEGACY_THEME_SEEDS ? settings.theme : "default") as ThemeKey;
+  const seed = LEGACY_THEME_SEEDS[key];
+  return normalizeCustomization({ ...CUSTOMIZATION_DEFAULTS, ...seed, background: key === "black" ? "minimal" : "glass" });
+}
+/** Canonical palette for every owner state (custom, legacy theme or none). */
+export function resolvedAppPalette(settings: { theme?: unknown; customization?: unknown } | undefined): ResolvedPalette {
+  return resolvePalette(effectiveCustomization(settings));
 }
 /** Resolved palette for the owner's saved preference, or null when legacy theme classes apply. */
 export function resolvedCustomPalette(value: unknown): ResolvedPalette | null {
