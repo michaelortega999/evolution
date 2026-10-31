@@ -116,7 +116,7 @@ export function MobileDashboard() {
           <span />
         </div>
         <button type="button" className="live-hud-core" onClick={scrollToTop} aria-label="Return to top">
-          <img src={hologramSrc(data.settings?.hologram)} alt="" draggable={false} />
+          <img src={hologramSrc(data.profile?.hologram)} alt="" draggable={false} />
         </button>
         {MODULES.map((m, i) => (
           <Link
@@ -142,7 +142,7 @@ export function MobileDashboard() {
           </Link>
         ))}
         <button type="button" className="live-hud-nav__core" onClick={scrollToTop} aria-label="Return to home dashboard">
-          <img src={hologramSrc(data.settings?.hologram)} alt="" draggable={false} />
+          <img src={hologramSrc(data.profile?.hologram)} alt="" draggable={false} />
         </button>
         {BOTTOM_LINKS.slice(2).map((item) => (
           <Link key={item.label} to={item.to}>
