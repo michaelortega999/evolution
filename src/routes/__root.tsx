@@ -2221,6 +2221,7 @@ const ACCESS_STEPS: { id: AccessStep; title: string; label: string }[] = [
   { id: "return", title: "Your home, whenever you need it", label: "Access" },
 ];
 function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" | "signed-out" | "error" }) {
+  const compactBrand = useIsPhone();
   const search = useRouterState({ select: (s) => s.location.searchStr });
   const requested = new URLSearchParams(search).get("step");
   const selected = ACCESS_STEPS.find((item) => item.id === requested)?.id ?? "overview";
@@ -2285,9 +2286,9 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
       <div className="mx-auto max-w-6xl">
         <header className="flex items-center justify-between gap-4 py-4 mb-6">
           <a href="/" aria-label="Evolution Home">
-            <BrandMark />
+            <BrandMark compact={compactBrand} />
           </a>
-          <a className="access-button text-sm" href={signedIn ? "/" : "/auth?next=access"}>
+          <a className="access-button text-sm shrink-0 whitespace-nowrap" href={signedIn ? "/" : "/auth?next=access"}>
             {signedIn ? "Open Home" : "Sign in"} <WFArrow size={16} />
           </a>
         </header>
