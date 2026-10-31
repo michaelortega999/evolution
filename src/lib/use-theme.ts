@@ -1,7 +1,7 @@
 import { effectiveCardStyle } from "./utils";
 import { useEffect, type CSSProperties } from "react";
 import mountainBackground from "@/assets/calendar-mountain.jpg";
-import { mix, resolvePalette, type ResolvedPalette } from "./theme-palette";
+import { luminance, resolvePalette, type ResolvedPalette } from "./theme-palette";
 import { useEvolutionData, type ThemeKey, type AppearanceCustomization } from "./evolution-data";
 
 export const THEME_OPTIONS: { key: ThemeKey; label: string; swatch: string }[] = [
@@ -181,14 +181,8 @@ export function customizationTokens(value: unknown): Record<string, string> {
   };
 }
 function readableOn(bg: string): string {
-  return resolvePaletteText(bg);
+  return luminance(bg) > 0.18 ? "#04070c" : "#ffffff";
 }
-function resolvePaletteText(bg: string): string {
-  // Button text on the accent: whichever of near-white / near-black reads better.
-  return mix(bg, "#000000", 1) && (luminanceOf(bg) > 0.18 ? "#04070c" : "#ffffff");
-}
-const luminanceOf = (hex: string) => resolvePalette({ primary: hex, secondary: "#ffffff", glass: 0, dark: true }) && lum(hex);
-import { luminance as lum } from "./theme-palette";
 /** Resolved palette for the owner's saved preference, or null when legacy theme classes apply. */
 export function resolvedCustomPalette(value: unknown): ResolvedPalette | null {
   return value && typeof value === "object" ? resolvePalette(normalizeCustomization(value)) : null;
