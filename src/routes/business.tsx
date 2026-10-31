@@ -1,4 +1,6 @@
 import { BrandMark } from "@/components/evolution/BrandMark";
+import { ContentWorkbench } from "@/components/evolution/ContentWorkbench";
+import { applyContentUpdate, archiveContent, isArchived } from "@/lib/media-content";
 function BusinessOverviewRefined() {
   const { data } = useEvolutionData();
   const [selected, setSelected] = useState(0);
@@ -8,7 +10,7 @@ function BusinessOverviewRefined() {
   const month = localISO().slice(0, 7);
   const monthly = data.revenue.filter((r) => r.date.startsWith(month));
   const active = data.projects.filter((p) => p.status !== "Completed");
-  const contentItems = readMediaItems(data);
+  const contentItems = readActiveMediaItems(data);
   const recent = [...data.revenue].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const timeline = [...active]
     .filter((p) => p.deadline)
@@ -60,7 +62,7 @@ function BusinessOverviewRefined() {
     {
       id: "media",
       name: "Media System",
-      detail: "Explore the demo",
+      detail: "Your content workspace",
       section: "media-system",
       icon: Globe,
     },
@@ -553,7 +555,7 @@ function BusinessOverview() {
   const month = localISO().slice(0, 7);
   const monthly = data.revenue.filter((r) => r.date.startsWith(month));
   const active = data.projects.filter((p) => p.status !== "Completed");
-  const contentItems = readMediaItems(data);
+  const contentItems = readActiveMediaItems(data);
   const recent = [...data.revenue].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const timeline = [...active]
     .filter((p) => p.deadline)
@@ -584,7 +586,7 @@ function BusinessOverview() {
       section: "content-creator",
       icon: Clapperboard,
     },
-    { id: "media", name: "Media System", detail: "Explore the demo", section: "media-system", icon: Globe },
+    { id: "media", name: "Media System", detail: "Your content workspace", section: "media-system", icon: Globe },
   ];
   const index = selected % cards.length;
   const current = cards[index];
@@ -1504,6 +1506,8 @@ type MediaItem = {
   stage: MediaStage;
   date: string;
   notes?: string;
+  projectId?: string;
+  archivedAt?: string;
 };
 const MEDIA_STAGE_META = [
   {
@@ -1560,6 +1564,11 @@ function readMediaItems(data: EvolutionData): MediaItem[] {
   });
 }
 
+/** Active (non-archived) content for boards, calendars and counts. Writes still use the full list. */
+function readActiveMediaItems(data: EvolutionData): MediaItem[] {
+  return readMediaItems(data).filter((item) => !isArchived(item));
+}
+
 const MEDIA_WORKSPACE_CSS = `
         .media-workspace { --media-cyan: #22d3ee; color: #e2e8f0; }
         .media-panel { position: relative; border: 1px solid rgba(34,211,238,.24); background: linear-gradient(135deg,rgba(8,28,46,.96),rgba(3,10,22,.98)); box-shadow: inset 0 0 26px rgba(14,165,233,.035),0 0 18px rgba(14,165,233,.035); border-radius: 12px; }
@@ -1585,7 +1594,10 @@ function mediaPatch(data: EvolutionData, update: (items: MediaItem[]) => MediaIt
         ...phoneData,
         biz: {
           ...mediaRecord(phoneData.biz),
-          mediaItems: update(readMediaItems(data)),
+          // Unparsable raw entries and archived rows are always carried through.
+          mediaItems: applyContentUpdate(mediaRecord(phoneData.biz).mediaItems, (all) =>
+            update(all as MediaItem[]),
+          ),
         },
       },
     },
@@ -1594,7 +1606,7 @@ function mediaPatch(data: EvolutionData, update: (items: MediaItem[]) => MediaIt
 
 function SocialMediaPage() {
   const { data, mutate } = useEvolutionData();
-  const items = readMediaItems(data);
+  const items = readActiveMediaItems(data);
   const { channel: initialChannel } = Route.useSearch();
   const [channel, setChannel] = useState(initialChannel ?? "All");
   const [query, setQuery] = useState("");
@@ -1652,7 +1664,7 @@ function SocialMediaPage() {
     let removed = false;
     try {
       mutate((prev) => {
-        if (editingId && !readMediaItems(prev).some((record) => record.id === editingId)) {
+        if (editingId && !readActiveMediaItems(prev).some((record) => record.id === editingId)) {
           removed = true;
           return {};
         }
@@ -1671,7 +1683,7 @@ function SocialMediaPage() {
     }
     if (removed) {
       submitGuard.current = false;
-      toast.error("This content was removed elsewhere. Copy your changes before closing.");
+      toast.error("This content was removed or archived elsewhere. Copy your changes before closing.");
       return;
     }
     setEditorOpen(false);
@@ -1683,8 +1695,24 @@ function SocialMediaPage() {
   };
   const deleteItem = () => {
     if (!deleteTarget) return;
-    mutate((prev) => mediaPatch(prev, (current) => current.filter((item) => item.id !== deleteTarget.id)));
+    const target = deleteTarget;
+    mutate((prev) => mediaPatch(prev, (current) => archiveContent(current, target.id, new Date().toISOString()) as MediaItem[]));
     setDeleteTarget(null);
+    toast(`Archived “${target.title}”. Restore it any time from Archived in the Media System workbench.`, {
+      action: {
+        label: "Undo",
+        onClick: () =>
+          mutate((prev) =>
+            mediaPatch(prev, (current) =>
+              current.map((item) => {
+                if (item.id !== target.id) return item;
+                const { archivedAt: _a, ...rest } = item;
+                return rest as MediaItem;
+              }),
+            ),
+          ),
+      },
+    });
   };
 
   return (
@@ -2093,7 +2121,7 @@ function SocialMediaPage() {
             <DialogTitle>Delete content?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-slate-400 break-words">
-            Remove “{deleteTarget?.title}” from your planner? This won't remove anything from a social platform.
+            Archive “{deleteTarget?.title}”? It leaves your board but can be restored from Archived. Nothing changes on any social platform.
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
@@ -2167,7 +2195,7 @@ function ccFmtDate(y: number, m: number, d: number) {
 
 function ContentCreatorPage() {
   const { data, mutate } = useEvolutionData();
-  const items = readMediaItems(data);
+  const items = readActiveMediaItems(data);
   const goals = readContentGoals(data);
   const today = todayDate();
 
@@ -2294,7 +2322,7 @@ function ContentCreatorPage() {
     let removed = false;
     try {
       mutate((prev) => {
-        if (editingId && !readMediaItems(prev).some((record) => record.id === editingId)) {
+        if (editingId && !readActiveMediaItems(prev).some((record) => record.id === editingId)) {
           removed = true;
           return {};
         }
@@ -2313,7 +2341,7 @@ function ContentCreatorPage() {
     }
     if (removed) {
       submitGuard.current = false;
-      toast.error("This content was removed elsewhere. Copy your changes before closing.");
+      toast.error("This content was removed or archived elsewhere. Copy your changes before closing.");
       return;
     }
     setEditorOpen(false);
@@ -2327,8 +2355,24 @@ function ContentCreatorPage() {
 
   const deleteItem = () => {
     if (!deleteTarget) return;
-    mutate((prev) => mediaPatch(prev, (current) => current.filter((item) => item.id !== deleteTarget.id)));
+    const target = deleteTarget;
+    mutate((prev) => mediaPatch(prev, (current) => archiveContent(current, target.id, new Date().toISOString()) as MediaItem[]));
     setDeleteTarget(null);
+    toast(`Archived “${target.title}”. Restore it any time from Archived in the Media System workbench.`, {
+      action: {
+        label: "Undo",
+        onClick: () =>
+          mutate((prev) =>
+            mediaPatch(prev, (current) =>
+              current.map((item) => {
+                if (item.id !== target.id) return item;
+                const { archivedAt: _a, ...rest } = item;
+                return rest as MediaItem;
+              }),
+            ),
+          ),
+      },
+    });
   };
 
   const notBuiltYet = (feature: string) => {
@@ -2920,7 +2964,7 @@ function ContentCreatorPage() {
             <DialogTitle>Remove content?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Remove “{deleteTarget?.title}” from your library? This won't remove anything from a social platform.
+            Archive “{deleteTarget?.title}”? It leaves your library but can be restored from Archived. Nothing changes on any social platform.
           </p>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
@@ -3285,7 +3329,7 @@ function DatabaseNode({
 function MediaSystemPage() {
   const { data, mutate } = useEvolutionData();
   const [activeTab, setActiveTab] = useState<DashboardTab>("Overview");
-  const [mode, setMode] = useState<"demo" | "saved">("demo");
+  const [mode, setMode] = useState<"demo" | "saved">("saved");
   const [selectedSource, setSelectedSource] = useState("All");
   const [period, setPeriod] = useState("month");
   const [selectedWorkflow, setSelectedWorkflow] = useState("");
@@ -3295,7 +3339,7 @@ function MediaSystemPage() {
   const [taskSaved, setTaskSaved] = useState(false);
   const taskSubmit = useRef(false);
   const workbench = useRef<HTMLDivElement>(null);
-  const allItems = readMediaItems(data);
+  const allItems = readActiveMediaItems(data);
   const today = todayDate();
   const now = new Date(`${today}T12:00:00`);
   const monthStart = `${today.slice(0, 7)}-01`;
@@ -3517,7 +3561,7 @@ function MediaSystemPage() {
               setSelectedSource("All");
             }}
           >
-            Demo analytics
+            Demo (sample data)
           </button>
           <button
             type="button"
@@ -3537,6 +3581,7 @@ function MediaSystemPage() {
             : "YOUR SAVED DATA · Manual records from your planner and business workspace. No live social analytics."}
         </p>
       </div>
+      {mode === "saved" && <ContentWorkbench id="media-content-workbench" />}
 
       {activeTab !== "Overview" && activeTab !== "Analytics" && (
         <div ref={workbench} className="md-workbench evo-surface" role="region" aria-label={`${activeTab} workspace`}>
@@ -3579,9 +3624,23 @@ function MediaSystemPage() {
                   planned date, or record a post as published.{" "}
                   {selectedWorkflow === "Posting" && "Publishing is manual; no post will be sent from this dashboard."}
                 </p>
-                <Link className="md-action" to="/business" search={plannerSearch} hash="media-planner">
-                  Open saved content planner <ArrowRight size={14} />
-                </Link>
+                <div className="md-workbench-actions">
+                  <button
+                    type="button"
+                    className="md-action"
+                    onClick={() => {
+                      setMode("saved");
+                      requestAnimationFrame(() =>
+                        document.getElementById("media-content-workbench")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                      );
+                    }}
+                  >
+                    Open content workbench <Pencil size={14} />
+                  </button>
+                  <Link className="md-action" to="/business" search={plannerSearch} hash="media-planner">
+                    Open saved content planner <ArrowRight size={14} />
+                  </Link>
+                </div>
               </>
             )}
             {activeTab === "Campaigns" && (
