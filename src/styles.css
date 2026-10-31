@@ -3226,3 +3226,40 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
 html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"]) .evo-phone .evo-frame.hud-card::before {
   display: block;
 }
+
+/* Phone Evo Planner header: compact Evolution OS brand linked home, shared menu at the right.
+   Same footprint as the old menu-only slot (~40px, never shrinks); status row below untouched. */
+.evo-phone-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  flex-shrink: 0;
+  min-width: 0;
+  padding-top: 8px;
+  box-sizing: border-box;
+}
+.evo-phone-brand__mark {
+  display: block;
+  min-width: 0;
+  max-width: calc(100% - 52px);
+  overflow: hidden;
+}
+/* The shared menu sits on its own in a column; here it must stay inline and keep its size. */
+:where(.evo-phone-brand) [data-compact-navigation] {
+  align-self: center;
+  flex-shrink: 0;
+}
+/* The planner forces every svg to 19px; the brand accent keeps its own proportions. */
+.evo-phone-brand svg.evo-brand__glow {
+  width: 28px;
+  height: 16px;
+}
+@media (max-width: 360px) {
+  .evo-phone-brand {
+    gap: 8px;
+  }
+  .evo-phone-brand__mark {
+    max-width: calc(100% - 48px);
+  }
+}
