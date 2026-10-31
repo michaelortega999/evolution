@@ -1474,6 +1474,7 @@ function EvoAssistantPage() {
           <br />a habit
         </button>
         <button
+          className="hud-card"
           disabled={disabled}
           onClick={() => {
             setShowTools((s) => !s);
