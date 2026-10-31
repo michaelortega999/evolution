@@ -909,8 +909,7 @@ import { MobileBottomNav } from "@/components/evolution/MobileBottomNav";
 import { MobileApp, useIsPhone } from "@/components/evolution/MobileApp";
 import { AppBrandBar } from "@/components/evolution/AppBrandBar";
 import { Toaster } from "sonner";
-import { mainNav, secondaryNav } from "@/components/evolution/Sidebar";
-import { BrandMark } from "@/components/evolution/BrandMark";
+import { HomeShell } from "@/components/evolution/HomeShell";
 
 function NotFoundComponent() {
   return (

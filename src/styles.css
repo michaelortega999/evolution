@@ -3184,3 +3184,19 @@ html[data-card-style] .evo-surface {
 .evo-wheel__card { backface-visibility: hidden; transition: opacity 400ms, box-shadow 400ms; }
 .evo-wheel__floor { background: radial-gradient(ellipse at center, color-mix(in oklab, var(--primary) 35%, transparent), transparent 65%); }
 @media (prefers-reduced-motion: reduce) { .evo-wheel__ring { transition: none; } }
+
+/* AI Workflow + Evo Planner inside the shared Home shell */
+.app-shell .wf-app { background: transparent; color: var(--foreground); }
+.app-shell .evo-workspace { background: transparent; padding: 0; min-height: 0; color: var(--foreground); }
+.app-shell .wf-graph-shell,
+.app-shell .wf-topic,
+.app-shell .wf-list-panel,
+.app-shell .wf-control-panel,
+.app-shell .wf-custom-preview,
+.app-shell .evo-frame {
+  border-radius: 0;
+  border-color: oklch(0.78 0.22 240 / 0.45);
+  background: linear-gradient(160deg, oklch(0.16 0.05 260 / 0.95), oklch(0.13 0.04 260 / 0.95));
+  clip-path: polygon(9px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+}
+.app-shell .evo-body { margin-top: 0; }
