@@ -3306,3 +3306,69 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
     max-width: calc(100% - 48px);
   }
 }
+
+/* Phone Home: live, themeable DOM recreation of the original radial HUD (no flattened artwork). */
+.live-hud-screen {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 14px calc(88px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--card-accent) 14%, transparent), transparent 60%),
+    var(--background);
+  color: var(--foreground);
+}
+.live-hud-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; padding-top: 8px; }
+.live-hud-brand { min-width: 0; flex: 1; overflow: hidden; }
+.live-hud-date {
+  display: flex; align-items: center; gap: 8px; flex: none; min-height: 40px; padding: 4px 10px;
+  border: 1px solid var(--card-line); background: var(--card-fill); color: var(--foreground);
+  font-family: var(--font-mono); clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+}
+.live-hud-date > svg { width: 18px; height: 18px; color: var(--card-accent); }
+.live-hud-date > div { display: flex; flex-direction: column; line-height: 1.1; }
+.live-hud-date b, .live-hud-date span { font-size: 9px; font-weight: 600; color: var(--muted-foreground); white-space: nowrap; }
+.live-hud-date strong { font-size: 11px; font-weight: 500; white-space: nowrap; }
+.live-hud-stage { position: relative; width: min(100%, 400px); aspect-ratio: 1 / 1.05; margin-inline: auto; container-type: inline-size; }
+.live-hud-rings span { position: absolute; left: 50%; top: 46%; border-radius: 50%; transform: translate(-50%, -50%); border: 1px solid var(--card-line); }
+.live-hud-rings span:first-child { width: 72%; aspect-ratio: 1; border-style: dashed; animation: image-hud-spin 40s linear infinite; }
+.live-hud-rings span:last-child { width: 46%; aspect-ratio: 1; box-shadow: 0 0 24px color-mix(in srgb, var(--card-accent) 25%, transparent) inset; }
+.live-hud-core {
+  position: absolute; left: 50%; top: 46%; width: 36%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  border-radius: 50%; border: 0; background: transparent; padding: 0; cursor: pointer;
+}
+.live-hud-core img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-accent) 60%, transparent)); }
+.live-hud-node {
+  position: absolute; width: 21%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border-radius: 50%; border: 1px solid var(--card-line); background: var(--card-fill); color: var(--foreground);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--card-accent) 22%, transparent);
+}
+.live-hud-node > svg { width: 30%; height: 30%; color: var(--card-accent); }
+.live-hud-node__label { font-family: var(--font-display); font-size: clamp(7px, 2.4cqw, 10px); letter-spacing: 0.06em; text-transform: uppercase; }
+.live-hud-node__ring { position: absolute; inset: -6%; border-radius: 50%; border: 1px dashed var(--card-line); animation: image-hud-spin 18s linear infinite; animation-delay: inherit; pointer-events: none; }
+.live-hud-node:focus-visible, .live-hud-core:focus-visible { outline: 2px solid var(--card-accent); outline-offset: 3px; }
+.live-hud-focus { display: grid; justify-items: center; gap: 8px; padding: 14px; }
+.live-hud-focus__title { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--foreground); }
+.live-hud-focus__time { font-family: var(--font-mono); font-size: clamp(28px, 10vw, 40px); line-height: 1; color: var(--foreground); text-shadow: 0 0 8px var(--card-accent); }
+.live-hud-focus__controls { display: flex; gap: 14px; }
+.live-hud-focus__controls button {
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--card-line); background: var(--card-fill-2); color: var(--foreground);
+}
+.live-hud-focus__controls button.is-main { width: 52px; height: 52px; border-color: var(--card-accent); color: var(--card-accent); }
+.live-hud-focus__controls svg { width: 18px; height: 18px; }
+.live-hud-nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--card-line); background: var(--card-fill);
+  backdrop-filter: blur(8px);
+}
+.live-hud-nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 44px; justify-content: center; font-size: 10px; color: var(--muted-foreground); }
+.live-hud-nav a svg { width: 18px; height: 18px; color: var(--card-accent); }
+.live-hud-nav__core { justify-self: center; width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--card-accent); background: var(--background); padding: 4px; margin-top: -18px; }
+.live-hud-nav__core img { width: 100%; height: 100%; object-fit: contain; }
+@media (prefers-reduced-motion: reduce) {
+  .live-hud-rings span, .live-hud-node__ring { animation: none; }
+}
