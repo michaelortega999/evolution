@@ -1,7 +1,6 @@
 import { effectiveCardStyle } from "./utils";
 import { useEffect, type CSSProperties } from "react";
-import mountainBackground from "@/assets/calendar-mountain.jpg";
-import { luminance, resolvePalette, SEMANTIC_EXCLUDE, type ResolvedPalette } from "./theme-palette";
+import { bestForeground, resolvePalette, SEMANTIC_EXCLUDE, type ResolvedPalette } from "./theme-palette";
 import { useEvolutionData, type ThemeKey, type AppearanceCustomization } from "./evolution-data";
 
 export const THEME_OPTIONS: { key: ThemeKey; label: string; swatch: string }[] = [
@@ -94,18 +93,15 @@ export function normalizeCustomization(value: unknown): AppearanceCustomization 
     dark: typeof v.dark === "boolean" ? v.dark : CUSTOMIZATION_DEFAULTS.dark,
   };
 }
-/** Every mode is a subtle texture over a black canvas; the black backdrop always wins. */
+/** The page is pure black in every scheme. Textures are neutral grayscale and barely visible. */
 export function customizationBackground(value: unknown): string {
   const v = normalizeCustomization(value);
-  const p = resolvePalette(v);
-  const base = p.page;
-  if (v.background === "minimal") return base;
   if (v.background === "grid")
-    return `linear-gradient(${p.accent}0f 1px,transparent 1px),linear-gradient(90deg,${p.accent}0f 1px,transparent 1px),${base}`;
-  if (v.background === "gradient") return `radial-gradient(ellipse at 50% 0%,${p.accent}14,transparent 60%),${base}`;
-  if (v.background === "landscape")
-    return `linear-gradient(${base}e6,${base}f2),url("${mountainBackground}"),${base}`;
-  return `radial-gradient(ellipse at 85% 10%,${p.accent}12,transparent 55%),radial-gradient(ellipse at 10% 80%,${p.accent}0c,transparent 45%),${base}`;
+    return "linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px),#000000";
+  if (v.background === "glass") return "radial-gradient(ellipse at 85% 10%,#ffffff06,transparent 55%),#000000";
+  if (v.background === "gradient") return "linear-gradient(180deg,#ffffff05,transparent 60%),#000000";
+  // minimal and landscape: the black canvas has priority (mountain artwork is not painted on the page).
+  return "#000000";
 }
 
 /** Both aliases are supported for the small inline preview and the app-wide theme. */
@@ -123,7 +119,7 @@ export function customizationTokens(value: unknown): Record<string, string> {
   const blur = `${(v.blur * 0.24).toFixed(1)}px`;
   const image = customizationBackground(v);
   return {
-    "--evo-primary": v.primary,
+    "--evo-primary": p.accent,
     "--evo-secondary": text,
     "--evo-text": text,
     "--evo-muted": muted,
@@ -147,7 +143,7 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--hud-border": p.accent,
     "--hud-border-mid": p.line,
     "--hud-border-soft": p.line,
-    "--custom-primary": v.primary,
+    "--custom-primary": p.accent,
     "--custom-secondary": text,
     "--custom-text": text,
     "--custom-surface": fill,
@@ -165,13 +161,13 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--popover": surface,
     "--popover-foreground": text,
     "--primary": p.accent,
-    "--primary-foreground": readableOn(p.accent),
+    "--primary-foreground": bestForeground(p.accent, text),
     "--secondary": surface,
     "--secondary-foreground": text,
     "--muted": surface,
     "--muted-foreground": muted,
     "--accent": p.accent,
-    "--accent-foreground": text,
+    "--accent-foreground": bestForeground(p.accent, text),
     "--border": p.line,
     "--input": surface,
     "--ring": p.accent,
@@ -180,9 +176,6 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--brand-ink": text,
     "color-scheme": "dark",
   };
-}
-function readableOn(bg: string): string {
-  return luminance(bg) > 0.18 ? "#04070c" : "#ffffff";
 }
 /** Each legacy accent theme expressed in the same palette model (black page, tinted neon glass). */
 export const LEGACY_THEME_SEEDS: Record<ThemeKey, { primary: string; secondary: string; dark: boolean }> = {
@@ -219,14 +212,14 @@ export const customizationStyle = (value: unknown): CSSProperties => customizati
 export const CUSTOMIZATION_CSS = `
 html.evo-customized,html.evo-customized body{background:var(--evo-background-image)!important;background-size:var(--evo-background-size)!important;background-attachment:fixed;color:var(--evo-text)}
 .evo-customized .es-shell,.evo-customized.es-shell{--es-blue:var(--evo-secondary);--es-line:var(--evo-border);--es-text:var(--evo-text);--es-muted:var(--evo-muted);background:var(--evo-background-image)!important;background-size:var(--evo-background-size)!important;color:var(--evo-text)}
-html.evo-customized .hud-card{--hud-border:var(--evo-primary);--hud-border-mid:var(--evo-border);--hud-border-soft:var(--evo-border);--hud-fill-a:var(--evo-surface);--hud-fill-b:var(--evo-surface);filter:drop-shadow(var(--evo-glow));backdrop-filter:blur(var(--evo-blur))}
-html.evo-customized .hud-card::before{background:var(--evo-surface)!important}
+html.evo-customized .hud-card{filter:drop-shadow(var(--evo-glow));backdrop-filter:blur(var(--evo-blur))}
+html.evo-customized .hud-card::before{background:linear-gradient(135deg,var(--card-fill),var(--card-fill-2))!important}
 html.evo-customized .card-surface,.evo-customized .es-panel,.evo-customized .es-action,.evo-customized .es-search,.evo-customized .es-tabs,.evo-customized .es-facts>div,.evo-customized .appearance-section,.evo-customized .ec-color-box,.evo-customized .ec-color-value,.evo-customized .ec-presets button,.evo-customized .ec-backgrounds button,.evo-customized .ec-preview-intro button,.evo-customized .ec-sample-card{background:var(--evo-surface)!important;color:var(--evo-text);border-color:var(--evo-border)!important;box-shadow:var(--evo-glow);backdrop-filter:blur(var(--evo-blur))}
-.evo-customized .es-tabs a[aria-current],.evo-customized .es-name-edit button{background:var(--evo-primary)!important;color:var(--primary-foreground)!important}
+.evo-customized .es-tabs a[aria-current],.evo-customized .es-name-edit button{background:var(--primary)!important;color:var(--primary-foreground)!important}
 .evo-customized .es-title p,.evo-customized .es-person p,.evo-customized .es-panel p,.evo-customized .es-profile blockquote,.evo-customized .es-unavailable,.evo-customized .es-details small,.evo-customized .es-pref-line small,.evo-customized .es-tabs a,.evo-customized .es-footer{color:var(--evo-muted)!important}
 .evo-customized .text-primary,.evo-customized .es-sidebar nav svg,.evo-customized .es-title svg,.evo-customized .es-panel h2,.evo-customized .es-action svg,.evo-customized .es-tabs svg,.evo-customized .es-inline-link,.evo-customized .es-brand-context,.evo-customized .ec-sample-card svg{color:var(--evo-secondary)!important}
 .evo-customized .es-panel input,.evo-customized .es-avatar,.evo-customized .es-service{background:var(--evo-solid-surface)!important;color:var(--evo-text)!important;border-color:var(--evo-border)!important}
-.evo-customized .es-panel:before{background:var(--evo-primary);box-shadow:var(--evo-glow)}
+.evo-customized .es-panel:before{background:var(--card-accent);box-shadow:var(--evo-glow)}
 /* Scoped palette adapters for routes with bespoke literal colours. Semantic profit/loss/warning colours are left alone. */
 html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.hobby-shell,.live-hud-screen){background:var(--evo-background-image)!important;background-size:var(--evo-background-size)!important;color:var(--evo-text)!important;--blue:var(--evo-accent);--cyan:var(--evo-accent);--md-cyan:var(--evo-accent);--md-text:var(--evo-text);--evo-blue:var(--evo-accent);--evo-line:var(--evo-border);--evo-dim:var(--evo-muted)}
 html.evo-customized .wf-app{color:var(--evo-text)!important;--wf-color:var(--evo-accent);--wf-line:var(--evo-border);background:transparent!important}
@@ -238,7 +231,7 @@ html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([clas
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="border-sky"],[class*="border-slate"],[class*="border-cyan"])${SEMANTIC_EXCLUDE}{border-color:var(--card-line)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="text-slate-1"],[class*="text-slate-2"],[class*="text-sky-1"],[class*="text-sky-2"],[class*="text-white"],[class*="text-cyan-1"])${SEMANTIC_EXCLUDE}{color:var(--evo-text)!important}
 html.evo-customized :is([data-planning-calendar],[data-goals-planner]) :is([class*="text-slate-4"],[class*="text-slate-5"],[class*="text-sky-3"],[class*="text-sky-4"])${SEMANTIC_EXCLUDE}{color:var(--evo-muted)!important}
-html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,.bo-panel,.bo-card) :is(p,span,label,small,li,td,th,dt,dd,b,strong,em,a,button)${SEMANTIC_EXCLUDE}{color:var(--evo-text)}
+html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,.bo-panel,.bo-card) :is(p,span,label,small,li,td,th,dt,dd,b,strong,em)${SEMANTIC_EXCLUDE}:not(:is([class*="bg-primary"],[class*="bg-accent"],[aria-pressed="true"],[aria-current="page"],[data-solid]) *){color:var(--evo-text)}
 html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,[data-planning-calendar],[data-goals-planner]) :is(input,select,textarea){background:var(--card-fill-2)!important;border-color:var(--card-line)!important;color:var(--evo-text)!important}
 html.evo-customized [role=dialog]{background:var(--card-fill-2);border-color:var(--card-line);color:var(--evo-text)}
 html.evo-customized :is(.text-muted-foreground){color:var(--evo-muted)!important}

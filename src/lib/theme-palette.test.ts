@@ -117,7 +117,7 @@ describe("phone bridge palette", () => {
     expect(sanitizeBridgePalette(p)).toEqual(p);
     expect(
       sanitizeBridgePalette({ "--evo-text": "red;background:url(x)", "--evo-page": "#000000", "--other": "#ffffff" }),
-    ).toEqual({ "--evo-page": "#000000" });
+    ).toBeNull();
     expect(sanitizeBridgePalette("x")).toBeNull();
     expect(bridgePalette(null)).toBeNull();
   });
@@ -167,5 +167,83 @@ describe("semantic profit/loss/warning colours are protected", () => {
     expect(lines.length).toBeGreaterThanOrEqual(4);
     for (const l of lines) expect(l).toContain(SEMANTIC_EXCLUDE);
     expect(CUSTOMIZATION_CSS).not.toContain("${");
+  });
+});
+
+import { bestForeground } from "./theme-palette";
+
+const ALL_SEEDS = [
+  ...CUSTOMIZATION_PRESETS.map((x) => ({ primary: x.primary, secondary: x.secondary })),
+  BLACK_NEON_PRESET.customization,
+  ...Object.values(LEGACY_THEME_SEEDS),
+];
+
+describe("universal black canvas", () => {
+  const modes = ["glass", "grid", "minimal", "gradient", "landscape"] as const;
+  it("page token and every background mode are pure black with only neutral grey texture", () => {
+    for (const seed of ALL_SEEDS)
+      for (const background of modes) {
+        const v = { ...CUSTOMIZATION_DEFAULTS, ...seed, background };
+        const t = customizationTokens(v);
+        expect(t["--background"]).toBe("#000000");
+        const bg = customizationBackground(v);
+        expect(bg.endsWith("#000000")).toBe(true);
+        expect(bg).not.toMatch(/url\(/);
+        for (const hex of bg.match(/#[0-9a-f]{6,8}/gi) ?? []) {
+          const [r, g, b] = [1, 3, 5].map((i) => hex.slice(i, i + 2));
+          expect(r === g && g === b).toBe(true); // grayscale only
+        }
+      }
+  });
+});
+
+describe("solid accent foregrounds are readable (selected tabs, pressed buttons, menus)", () => {
+  it("--primary-foreground and --accent-foreground pass 4.5:1 on the resolved accent for every scheme", () => {
+    for (const seed of ALL_SEEDS) {
+      const t = customizationTokens({ ...CUSTOMIZATION_DEFAULTS, ...seed });
+      expect(contrastRatio(t["--primary-foreground"], t["--primary"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(t["--accent-foreground"], t["--accent"])).toBeGreaterThanOrEqual(4.5);
+      expect(t["--evo-primary"]).toBe(t["--primary"]);
+    }
+  });
+  it("picks the best of white/black when the preferred colour fails", () => {
+    expect(bestForeground("#767676", "#7a7a7a")).toBe("#000000");
+    expect(contrastRatio(bestForeground(BLACK_NEON_ACCENT, "#dbe9f6"), BLACK_NEON_ACCENT)).toBeGreaterThanOrEqual(4.5);
+  });
+  it("hud cards use the resolved accent and distinct fill layers, not raw primary", () => {
+    expect(CUSTOMIZATION_CSS).not.toContain("--hud-border:var(--evo-primary)");
+    expect(CUSTOMIZATION_CSS).not.toContain("--hud-fill-b:var(--evo-surface)");
+    const t = customizationTokens({ ...CUSTOMIZATION_DEFAULTS, ...BLACK_NEON_PRESET.customization });
+    expect(t["--hud-border"]).toBe(BLACK_NEON_ACCENT);
+  });
+  it("bespoke text rule never recolours text inside solid primary/accent/pressed controls", () => {
+    const line = CUSTOMIZATION_CSS.split("\n").find((l) => l.includes(":is(p,span,label"))!;
+    expect(line).not.toMatch(/,a,button\)/);
+    expect(line).toContain('[class*="bg-primary"]');
+    expect(line).toContain('[aria-pressed="true"]');
+  });
+});
+
+describe("Customize seeds from the effective (legacy) palette", () => {
+  it("legacy green/black show their colours and a slider change keeps them", () => {
+    const green = effectiveCustomization({ theme: "green", customization: null });
+    expect(green.primary).toBe(LEGACY_THEME_SEEDS.green.primary);
+    const afterSlider = { ...effectiveCustomization({ theme: "black" }), glass: 10 };
+    expect(afterSlider.primary).toBe(LEGACY_THEME_SEEDS.black.primary);
+    expect(afterSlider.secondary).toBe(LEGACY_THEME_SEEDS.black.secondary);
+  });
+});
+
+describe("bridge rejects incomplete palettes", () => {
+  it("one missing or invalid key clears the whole palette", () => {
+    const full = bridgePalette(resolvedAppPalette({ theme: "green" }))!;
+    const missing = { ...full };
+    delete missing["--evo-text"];
+    expect(sanitizeBridgePalette(missing)).toBeNull();
+    expect(sanitizeBridgePalette({ ...full, "--evo-line": "blue" })).toBeNull();
+    expect(sanitizeBridgePalette(full)).toEqual(full);
+    const html = readFileSync("public/evolution-mobile/index.html", "utf8");
+    expect(html).toContain("keys.every(");
+    expect(html).toContain("event.source !== window.parent || event.origin !== window.location.origin");
   });
 });

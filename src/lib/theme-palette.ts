@@ -68,6 +68,12 @@ export function contrastRatio(a: string, b: string): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
+/** Most readable foreground for a solid fill, preferring the user's text colour when it passes. */
+export function bestForeground(bg: string, preferred: string, min = MIN_TEXT_CONTRAST): string {
+  if (isHex(preferred) && contrastRatio(preferred, bg) >= min) return preferred;
+  return ["#ffffff", "#000000"].reduce((a, b) => (contrastRatio(a, bg) >= contrastRatio(b, bg) ? a : b));
+}
+
 /** Smallest move toward white/black that reaches the target ratio against every surface. */
 export function ensureContrast(color: string, surfaces: string[], min = MIN_TEXT_CONTRAST): string {
   const worst = (c: string) => Math.min(...surfaces.map((s) => contrastRatio(c, s)));
@@ -96,8 +102,9 @@ export function resolvePalette(v: PaletteInput): ResolvedPalette {
   // and drives the neon edge/glow; "dark: false" only means lighter glass cards, never a white page.
   const nearBlack = luminance(primary) < 0.01;
   const accent = nearBlack ? BLACK_NEON_ACCENT : neon(primary);
-  const page = mix(primary, "#000000", 0.97);
-  const pageAlt = mix(primary, "#000000", 0.94);
+  // Universal black canvas: theme colour never washes the page.
+  const page = "#000000";
+  const pageAlt = "#000000";
   const card = mix(nearBlack ? primary : accent, "#000000", v.dark ? 0.9 : 0.78);
   const cardAlt = mix(nearBlack ? primary : accent, "#000000", v.dark ? 0.95 : 0.86);
   const opacity = Math.max(0.55, 0.9 - (Number.isFinite(v.glass) ? v.glass : 70) * 0.0035);
@@ -157,7 +164,8 @@ export function sanitizeBridgePalette(value: unknown): BridgePalette | null {
     const v = (value as Record<string, unknown>)[key];
     if (typeof v === "string" && BRIDGE_VALUE.test(v)) out[key] = v;
   }
-  return Object.keys(out).length ? out : null;
+  // All-or-nothing: an incomplete palette is rejected so the frame clears instead of mixing.
+  return Object.keys(out).length === BRIDGE_TOKEN_KEYS.length ? out : null;
 }
 
 /**

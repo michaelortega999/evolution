@@ -36,6 +36,7 @@ import {
   CUSTOMIZATION_DEFAULTS,
   CUSTOMIZATION_PRESETS,
   BLACK_NEON_PRESET,
+  effectiveCustomization,
   normalizeCustomization,
   customizationStyle,
   CUSTOMIZATION_CSS,
@@ -653,7 +654,7 @@ function CustomizeWorkspace() {
   const { data, mutate } = useEvolutionData();
   const cloud = useCloudStatus();
   const disabled = cloud === "loading";
-  const appearance = normalizeCustomization(data.settings.customization);
+  const appearance = effectiveCustomization(data.settings);
   const palette = resolvePalette(appearance);
   const blackNeonActive =
     appearance.primary === BLACK_NEON_PRESET.customization.primary &&
@@ -666,7 +667,7 @@ function CustomizeWorkspace() {
         ...previous.settings,
         cardStyle: BLACK_NEON_PRESET.cardStyle,
         customization: {
-          ...normalizeCustomization(previous.settings.customization),
+          ...effectiveCustomization(previous.settings),
           ...BLACK_NEON_PRESET.customization,
         },
       },
@@ -678,8 +679,8 @@ function CustomizeWorkspace() {
       settings: {
         ...previous.settings,
         customization: {
-          ...normalizeCustomization(previous.settings.customization),
-          ...(typeof patch === "function" ? patch(normalizeCustomization(previous.settings.customization)) : patch),
+          ...effectiveCustomization(previous.settings),
+          ...(typeof patch === "function" ? patch(effectiveCustomization(previous.settings)) : patch),
         },
       },
     }));
@@ -689,7 +690,7 @@ function CustomizeWorkspace() {
     ["grid", "Tech Grid", "Precision grid"],
     ["minimal", "Minimal", "A quiet, solid canvas"],
     ["gradient", "Gradient", "Soft color atmosphere"],
-    ["landscape", "Mountain", "Mountain artwork, heavily dimmed: black canvas takes priority"],
+    ["landscape", "Mountain", "Black canvas has priority: the page stays black"],
   ] as const;
   return (
     <section className="ec-workspace" aria-label="Customize workspace">
@@ -822,7 +823,7 @@ function CustomizeWorkspace() {
           ))}
         </div>
         <p className="ec-note">
-          No image upload or external image service is needed. Every background is a subtle texture on a black canvas; Mountain uses existing app artwork, dimmed so the backdrop stays black.
+          No image upload or external image service is needed. The page is always pure black. Glass, Tech Grid and Gradient add a barely visible grey texture; Minimal and Mountain keep it plain black.
         </p>
       </GlassPanel>
       <div className="ec-right">
@@ -931,8 +932,8 @@ function CustomizeWorkspace() {
             </div>
           ))}
           <p className="ec-note">
-            System reduced-motion preferences take priority. Styles apply to native app surfaces; the separate legacy
-            phone screens and embedded artwork keep their own styling.
+            System reduced-motion preferences take priority. Colours also reach the phone screens (their cards, headings and
+            black page); photos, holograms and profit/loss colours keep their own styling.
           </p>
           <p className="ec-save" role="status">
             {cloud === "loading"

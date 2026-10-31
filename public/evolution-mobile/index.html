@@ -15335,10 +15335,13 @@
           var keys = ['--evo-page', '--evo-page-alt', '--evo-card', '--evo-card-alt', '--evo-accent', '--evo-line', '--evo-text', '--evo-muted'];
           var root = document.documentElement;
           var palette = message.palette && typeof message.palette === 'object' ? message.palette : null;
-          var applied = 0;
+          // All-or-nothing: apply only a complete, fully valid palette; otherwise clear every token.
+          var complete = !!palette && keys.every(function (key) {
+            return typeof palette[key] === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(palette[key]);
+          });
+          var applied = complete ? keys.length : 0;
           keys.forEach(function (key) {
-            var value = palette ? palette[key] : null;
-            if (typeof value === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)) { root.style.setProperty(key, value); applied++; }
+            if (complete) root.style.setProperty(key, palette[key]);
             else root.style.removeProperty(key);
           });
           if (applied) root.setAttribute('data-evo-palette', 'custom'); else root.removeAttribute('data-evo-palette');

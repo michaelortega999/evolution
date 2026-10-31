@@ -3315,9 +3315,7 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
   flex-direction: column;
   gap: 12px;
   padding: 10px 14px calc(88px + env(safe-area-inset-bottom));
-  background:
-    radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--card-accent) 14%, transparent), transparent 60%),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
 }
 .live-hud-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; padding-top: 8px; }
