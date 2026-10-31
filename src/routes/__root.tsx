@@ -2282,7 +2282,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
   };
   return (
     <main className="access-page min-h-screen bg-black p-4 sm:p-8" data-customer-access>
-      <style>{`.access-page{background:#000;color:var(--foreground)}.access-page .access-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:24px}.access-page .access-button{min-height:44px;border:1px solid var(--card-line,hsl(var(--primary)));border-radius:12px;padding:12px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:var(--card-fill)}.access-page .access-button:disabled{opacity:.5;cursor:not-allowed}.access-page a,.access-page button{overflow-wrap:anywhere}.access-page :focus-visible{outline:2px solid currentColor;outline-offset:4px}.access-page .access-lead{font-size:clamp(28px,5vw,46px);line-height:1.12;letter-spacing:-.035em}.access-page .access-panel{border:1px solid var(--card-line);background:var(--card-fill);border-radius:20px;padding:clamp(20px,4vw,36px)}.access-page .access-track{display:flex;gap:8px;flex-wrap:wrap}.access-page .access-track button{min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:12px}.access-page .access-track button[aria-current=step]{border-color:var(--card-accent);background:var(--card-fill-2);color:var(--primary)}@media(max-width:700px){.access-page .access-grid{grid-template-columns:minmax(0,1fr)}.access-page .access-track button{flex:1 1 28%;font-size:12px}}`}</style>
+      <style>{`.access-page{background:#000;color:var(--foreground)}.access-page .access-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:24px}.access-page .access-button{min-height:44px;border:1px solid var(--card-line,hsl(var(--primary)));border-radius:12px;padding:12px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:var(--card-fill)}.access-page .access-button:disabled{opacity:.5;cursor:not-allowed}.access-page a,.access-page button{overflow-wrap:anywhere}.access-page :focus-visible{outline:2px solid currentColor;outline-offset:4px}.access-page .access-lead{font-size:clamp(28px,5vw,46px);line-height:1.12;letter-spacing:-.035em}.access-page .access-panel{min-width:0}.access-page .access-track{display:flex;gap:8px;flex-wrap:wrap}.access-page .access-track button{min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:12px}.access-page .access-track button[aria-current=step]{border-color:var(--card-accent);background:var(--card-fill-2);color:var(--primary)}@media(max-width:700px){.access-page .access-grid{grid-template-columns:minmax(0,1fr)}.access-page .access-track button{flex:1 1 28%;font-size:12px}}`}</style>
       <div className="mx-auto max-w-6xl">
         <header className="flex items-center justify-between gap-4 py-4 mb-6">
           <a href="/" aria-label="Evolution Home">
@@ -2301,11 +2301,11 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
           ))}
         </nav>
         <div className="access-grid">
-          <section className="access-panel" aria-labelledby="access-title">
+          <section className="access-panel hud-card hud-scan p-5" aria-labelledby="access-title">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border border-primary/30 text-primary">
               <WFNetwork size={26} />
             </div>
-            <h1 className="access-lead font-semibold mb-5" id="access-title">
+            <h1 className="access-lead hud-label font-semibold mb-5" id="access-title">
               {ACCESS_STEPS.find((item) => item.id === step)!.title}
             </h1>
             {step === "overview" && (
@@ -2352,7 +2352,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
                     <dd>Not configured</dd>
                   </div>
                 </dl>
-                <div className="my-6 rounded-xl border border-primary/25 p-4" role="status">
+                <div className="my-6 hud-card p-4" role="status">
                   <strong>Checkout not connected</strong>
                   <p className="text-sm text-muted-foreground mt-2">
                     Payment provider, approved pricing and server verification still need connecting. No charge can be
@@ -2375,7 +2375,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             {step === "confirmation" && (
               <>
                 <p className="text-xs hud-label text-primary mb-4">SCREEN PREVIEW · NOT A PAYMENT RECEIPT</p>
-                <div role="status" className="rounded-xl border border-primary/25 p-5">
+                <div role="status" className="hud-card p-5">
                   <h2 className="font-semibold text-lg">Payment not verified</h2>
                   <p className="text-muted-foreground text-sm mt-2">
                     No purchase or subscription has been verified for this screen. A checkout redirect, a success URL or
@@ -2405,7 +2405,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
                 {signedIn ? (
                   <CustomerSetupForm key={`${identity}:${generation}`} identity={identity!} />
                 ) : (
-                  <div className="rounded-xl border border-primary/25 p-5">
+                  <div className="hud-card p-5">
                     <p className="text-sm text-muted-foreground mb-4">
                       Sign in to save your name and welcome setup. This preview does not unlock paid access.
                     </p>
@@ -2421,7 +2421,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
                 <p className="text-muted-foreground leading-relaxed">
                   Evolution is a website. You do not need a new download or a new link after every purchase.
                 </p>
-                <div className="rounded-xl border border-primary/25 p-5 mt-6">
+                <div className="hud-card p-5 mt-6">
                   <p className="text-xs text-muted-foreground mb-2">YOUR RETURN ADDRESS</p>
                   <p className="text-lg font-semibold break-all">evolutions.enterprises</p>
                   <p className="text-sm text-muted-foreground mt-2">
@@ -2461,7 +2461,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             )}
           </section>
           <aside className="space-y-5">
-            <section className="access-panel">
+            <section className="access-panel hud-card hud-scan p-5">
               <p className="hud-label text-primary text-xs mb-4">A CLEAR WAY IN</p>
               <ol className="space-y-4 text-sm">
                 {[
@@ -2480,8 +2480,8 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
                 ))}
               </ol>
             </section>
-            <section className="access-panel">
-              <h2 className="font-semibold mb-3">What arrives by email?</h2>
+            <section className="access-panel hud-card hud-scan p-5">
+              <h2 className="hud-label text-sm mb-3">What arrives by email?</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Account verification when required, and password-reset links on request. Payment receipts and the
                 welcome/access email still need a connected sender and verified payment.
