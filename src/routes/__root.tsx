@@ -879,6 +879,7 @@ import {
   evoEventConflicts,
   type EvoRoutineSpec,
   type EvoRoutineRecord,
+  cn,
 } from "@/lib/utils";
 import { hologramSrc } from "@/lib/holograms";
 import {
