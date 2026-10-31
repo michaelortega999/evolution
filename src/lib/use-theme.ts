@@ -177,7 +177,7 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--glow": p.accent,
     "--grid-line": p.accent + "1f",
     "--brand-ink": text,
-    "color-scheme": v.dark ? "dark" : "light",
+    "color-scheme": "dark",
   };
 }
 function readableOn(bg: string): string {
