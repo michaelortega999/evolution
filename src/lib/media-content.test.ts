@@ -79,3 +79,35 @@ describe("validation and ids", () => {
     expect(uniqueContentId([{ id: "a" }], () => ids[n++] ?? "a")).not.toBe("a");
   });
 });
+
+import { setContentStage, targetState } from "./media-content";
+describe("stale / blocked actions", () => {
+  const items = applyContentUpdate(raw, (i) => archiveContent(i, "b", "t")) as any[];
+  const parsed = items.slice(0, 2);
+  it("stage change on an archived target is refused and changes nothing", () => {
+    const r = setContentStage(parsed, "b", "Published");
+    expect(r.state).toBe("archived");
+    expect(r.items).toBe(parsed);
+  });
+  it("stage change on a missing target is refused", () => {
+    expect(setContentStage(parsed, "zzz", "Draft").state).toBe("missing");
+  });
+  it("active target updates and keeps unknown fields", () => {
+    const r = setContentStage(parsed, "a", "Draft");
+    expect(r.state).toBe("active");
+    expect(r.items[0]).toMatchObject({ stage: "Draft", legacyX: 7 });
+  });
+  it("targetState reflects archive/restore in the raw structure, unparsable kept", () => {
+    expect(targetState(parsed, "b")).toBe("archived");
+    const restored = applyContentUpdate(items, (i) => restoreContent(i, "b")) as any[];
+    expect(targetState(restored.slice(0, 2), "b")).toBe("active");
+    expect(restored[2]).toEqual({ weird: true });
+  });
+  it("legacy phone screen archives instead of deleting and hides archived rows", async () => {
+    const { readFileSync } = await import("node:fs");
+    const html = readFileSync("public/evolution-mobile/index.html", "utf8");
+    expect(html).not.toContain("mediaItems: (s.biz.mediaItems || []).filter(i => i.id !== x.id)");
+    expect(html).toContain("archivedAt: new Date().toISOString()");
+    expect(html).toContain(".filter(x => x && !x.archivedAt)");
+  });
+});
