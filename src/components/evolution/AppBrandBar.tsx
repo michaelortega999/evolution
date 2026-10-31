@@ -4,12 +4,14 @@ import { Menu, Zap, Bot } from "lucide-react";
 import { BrandMark } from "./BrandMark";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { currentNavKey } from "@/lib/nav-current";
 import { mainNav, secondaryNav } from "./Sidebar";
 export function AppBrandBar() {
   const { pathname, searchStr } = useLocation();
   const currentSection = new URLSearchParams(searchStr).get("section") || "";
-  const workflowActive = pathname === "/" && currentSection === "ai-workflow";
-  const plannerActive = pathname === "/" && (currentSection === "evo" || currentSection === "alfred");
+  const navKey = currentNavKey(pathname, searchStr, [...mainNav, ...secondaryNav].map((n) => n.to));
+  const workflowActive = navKey === "ai-workflow";
+  const plannerActive = navKey === "evo";
   const [open, setOpen] = useState(false);
   return (
     <div className="self-end lg:hidden" data-compact-navigation>
@@ -54,16 +56,15 @@ export function AppBrandBar() {
           <Bot className="h-4 w-4" /> Evo Planner
         </a>
             {[...mainNav, ...secondaryNav].map((item) => {
-              const active =
-                item.to === "/"
-                  ? pathname === "/" && !new URLSearchParams(searchStr).has("section")
-                  : pathname.startsWith(item.to);
+              const active = navKey === item.to;
               return (
                 <Link
                   key={item.label}
                   to={item.to}
+                  activeOptions={{ exact: true, includeSearch: true }}
+                  activeProps={{ "aria-current": undefined }}
                   onClick={() => setOpen(false)}
-                  aria-current={active ? "page" : void 0}
+                  aria-current={active ? "page" : "false"}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-md hud-label text-xs border",
                     active
