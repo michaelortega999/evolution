@@ -1119,47 +1119,15 @@ function AIWorkflowFeaturePage() {
     };
   }, []);
   return (
-    <div className="min-h-screen bg-background text-foreground p-3 sm:p-5">
-      <header className="flex items-center justify-between gap-4 mb-5">
-        <BrandMark />
-        <AppBrandBar />
-      </header>
-      <div className="grid grid-cols-1 lg:grid-cols-[210px_minmax(0,1fr)] gap-5">
-        <aside className="hidden lg:block rounded-xl border border-primary/30 bg-card/60 p-3">
-          <nav aria-label="Evolution navigation" className="flex flex-col gap-1">
-            <a
-              href="/?section=ai-workflow"
-              aria-current="page"
-              className="rounded-md border border-primary/50 bg-primary/15 p-3 text-primary"
-            >
-              AI Workflow
-            </a>
-            <a href="/?section=evo" className="rounded-md p-3 text-foreground/80 hover:bg-primary/10">
-              Evo Planner
-            </a>
-            {[...mainNav, ...secondaryNav].map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className="flex items-center gap-3 rounded-md p-3 text-sm text-foreground/75 hover:bg-primary/10"
-              >
-                <item.icon size={17} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-        <main className="min-w-0">
-          <AIWorkflowDashboard
-            key={generation}
-            ready={ready}
-            onOpenTool={(tool) => {
-              window.location.assign(`/?section=evo&tool=${tool}`);
-            }}
-          />
-        </main>
-      </div>
-    </div>
+    <HomeShell>
+      <AIWorkflowDashboard
+        key={generation}
+        ready={ready}
+        onOpenTool={(tool) => {
+          window.location.assign(`/?section=evo&tool=${tool}`);
+        }}
+      />
+    </HomeShell>
   );
 }
 
