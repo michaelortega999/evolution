@@ -3191,7 +3191,7 @@ html[data-card-style] .evo-surface {
 /* Panels inside the Home shell carry the real shared .hud-card class. The page's own
    unlayered panel rules would beat the layered .hud-card frame, so revert them
    (zero-specificity :where keeps owner data-card-style overrides winning). */
-:where(.app-shell) :is(.wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card {
+:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card {
   background: revert-layer;
   border: revert-layer;
   border-radius: revert-layer;
@@ -3199,8 +3199,8 @@ html[data-card-style] .evo-surface {
   clip-path: revert-layer;
   filter: revert-layer;
 }
-:where(.app-shell) :is(.wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::before,
-:where(.app-shell) :is(.wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::after {
+:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::before,
+:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::after {
   all: revert-layer;
 }
 html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"]) .app-shell .evo-frame.hud-card::before {

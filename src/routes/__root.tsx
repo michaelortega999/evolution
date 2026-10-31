@@ -623,7 +623,7 @@ export function AIWorkflowDashboard({
       aria-label="AI Workflow"
     >
       <style>{WF_CSS}</style>
-      <header className="wf-head">
+      <header className="wf-head hud-card p-4 md:p-5">
         <div className="wf-head-row">
           <div>
             <h1>{view === "customize" ? "CUSTOMIZE AI WORKFLOW" : "AI WORKFLOW"}</h1>
