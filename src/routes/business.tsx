@@ -1985,7 +1985,7 @@ function SocialMediaPage() {
                             <button
                               type="button"
                               onClick={() => setDeleteTarget(item)}
-                              aria-label={`Delete ${item.title}`}
+                              aria-label={`Archive ${item.title}`}
                               className={`${index === MEDIA_STAGES.length - 1 ? "ml-auto" : ""} rounded p-1 text-slate-400 hover:text-red-400`}
                             >
                               <Trash2 className="h-3 w-3" />
@@ -2118,7 +2118,7 @@ function SocialMediaPage() {
       >
         <DialogContent className="border-cyan-400/30 bg-[#071222] text-slate-100 max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete content?</DialogTitle>
+            <DialogTitle>Archive content?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-slate-400 break-words">
             Archive “{deleteTarget?.title}”? It leaves your board but can be restored from Archived. Nothing changes on any social platform.
@@ -2823,7 +2823,7 @@ function ContentCreatorPage() {
                         type="button"
                         onClick={() => setDeleteTarget(item)}
                         className="h-7 w-7 rounded border border-cyan-400/20 flex items-center justify-center text-rose-300/80 hover:bg-rose-400/10"
-                        aria-label={`Delete ${item.title}`}
+                        aria-label={`Archive ${item.title}`}
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
