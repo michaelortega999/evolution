@@ -149,7 +149,7 @@ export function WealthCard() {
         {summary.pct >= 0 ? "▲" : "▼"} {Math.abs(summary.pct).toFixed(2)}%
       </div>
       <div className="mt-3">
-        <Sparkline data={spark} height={36} />
+        <Sparkline data={spark} height={28} />
       </div>
       <details className="dashboard-actions">
         <summary>Quick add income</summary>
@@ -293,7 +293,7 @@ export function FitnessCard() {
         {fit.sessions} / {fit.target}
       </div>
       <div className="mt-2">
-        <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={36} />
+        <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={28} />
       </div>
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
         {[
@@ -504,7 +504,7 @@ export function InvestingCard() {
         {pct >= 0 ? "▲" : "▼"} {Math.abs(pct).toFixed(2)}%
       </div>
       <div className="mt-2">
-        <Sparkline data={sparkData} height={32} />
+        <Sparkline data={sparkData} height={24} />
       </div>
 
       <div className="mt-2">

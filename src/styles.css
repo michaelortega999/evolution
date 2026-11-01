@@ -3853,3 +3853,31 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
     flex-wrap: wrap;
   }
 }
+
+/* Short laptop viewports: retain all metrics while removing wasted mini-panel space. */
+@media (min-width: 1180px) and (max-height: 760px) {
+  .dashboard-card-grid > .dashboard-card {
+    padding-block: 7px;
+  }
+  .dashboard-card-grid .evo-surface {
+    padding: 3px;
+  }
+  .dashboard-card-grid .evo-surface > .hud-label:first-child {
+    white-space: nowrap;
+    letter-spacing: 0;
+  }
+  .dashboard-card-grid .dashboard-card-body > .text-2xl {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .dashboard-card-grid .dashboard-actions {
+    margin-top: 2px;
+  }
+  .dashboard-card-grid .dashboard-actions > summary {
+    min-height: 24px;
+    line-height: 24px;
+  }
+  .dashboard-card-grid .dashboard-card-body > .mt-2 > .mt-1 {
+    margin-top: 1px;
+  }
+}
