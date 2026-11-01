@@ -84,9 +84,9 @@ function Card({
 }) {
   const accent = ACCENT[variant];
   return (
-    <div className="hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors relative">
+    <div className="dashboard-card hud-card hud-scan p-5 flex flex-col hover:border-primary/50 transition-colors relative">
       <HoloIcon variant={variant} />
-      <Link to={href} className="flex items-center gap-3 mb-4 group/header">
+      <Link to={href} className="dashboard-card-heading flex items-center gap-3 mb-4 group/header">
         <div
           className="h-10 w-10 rounded-full border-2 flex items-center justify-center group-hover/header:scale-105 transition-transform"
           style={{
@@ -105,7 +105,7 @@ function Card({
           {title}
         </h3>
       </Link>
-      <div className="flex-1 flex flex-col">{children}</div>
+      <div className="dashboard-card-body flex-1 flex flex-col">{children}</div>
       <Link
         to={href}
         className="mt-3 flex items-center gap-1 text-[10px] hud-label text-primary/80 hover:text-primary w-fit"
@@ -149,24 +149,27 @@ export function WealthCard() {
         {summary.pct >= 0 ? "▲" : "▼"} {Math.abs(summary.pct).toFixed(2)}%
       </div>
       <div className="mt-3">
-        <Sparkline data={spark} height={50} />
+        <Sparkline data={spark} height={36} />
       </div>
-      <div className="flex gap-2 mt-3">
-        <Input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addIncome()}
-          placeholder="+$"
-          type="number"
-          className="h-8 text-xs"
-        />
-        <button
-          onClick={addIncome}
-          className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
-        >
-          Add
-        </button>
-      </div>
+      <details className="dashboard-actions">
+        <summary>Quick add income</summary>
+        <div className="flex gap-2 mt-3">
+          <Input
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addIncome()}
+            placeholder="+$"
+            type="number"
+            className="h-8 text-xs"
+          />
+          <button
+            onClick={addIncome}
+            className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
+          >
+            Add
+          </button>
+        </div>
+      </details>
     </Card>
   );
 }
@@ -231,7 +234,7 @@ export function NutritionCard() {
         {t.kcal.toLocaleString()} / {calTarget.toLocaleString()}
       </div>
       <div className="flex items-center gap-3 mt-2">
-        <RingProgress value={calPct} size={80} label={`${calPct}%`} sublabel={`🔥 ${streak}d`} />
+        <RingProgress value={calPct} size={64} label={`${calPct}%`} sublabel={`🔥 ${streak}d`} />
         <div className="flex-1 space-y-1">
           {(
             [
@@ -252,21 +255,24 @@ export function NutritionCard() {
           ))}
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-1.5">
-        {QUICK_FOODS.map((q) => (
-          <button
-            key={q.key}
-            onClick={(e) => {
-              e.preventDefault();
-              quickAdd(q);
-            }}
-            className="text-[10px] hud-label px-2 py-1.5 rounded border text-left border-border text-foreground/80 hover:border-primary/60 hover:bg-primary/10 hover:text-primary transition-colors"
-            title={`+${q.kcal} kcal · ${q.p}P ${q.c}C ${q.f}F`}
-          >
-            + {q.label}
-          </button>
-        ))}
-      </div>
+      <details className="dashboard-actions">
+        <summary>Quick add food</summary>
+        <div className="mt-3 grid grid-cols-2 gap-1.5">
+          {QUICK_FOODS.map((q) => (
+            <button
+              key={q.key}
+              onClick={(e) => {
+                e.preventDefault();
+                quickAdd(q);
+              }}
+              className="text-[10px] hud-label px-2 py-1.5 rounded border text-left border-border text-foreground/80 hover:border-primary/60 hover:bg-primary/10 hover:text-primary transition-colors"
+              title={`+${q.kcal} kcal · ${q.p}P ${q.c}C ${q.f}F`}
+            >
+              + {q.label}
+            </button>
+          ))}
+        </div>
+      </details>
     </Card>
   );
 }
@@ -287,7 +293,7 @@ export function FitnessCard() {
         {fit.sessions} / {fit.target}
       </div>
       <div className="mt-2">
-        <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={50} />
+        <BarChart data={fit.data.length ? fit.data : [1]} labels={fit.labels} height={36} />
       </div>
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
         {[
@@ -341,16 +347,19 @@ export function JournalCard() {
         "{latest?.text ?? "No entries yet."}"
       </p>
       <div className="hud-label text-[9px] text-muted-foreground mt-1">{latest?.date}</div>
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Write…"
-        rows={2}
-        className="mt-3 w-full bg-transparent border border-border rounded p-2 text-xs resize-none focus:outline-none focus:border-primary/50"
-      />
-      <Button onClick={save} size="sm" className="mt-2 hud-label text-[10px]">
-        Save Entry
-      </Button>
+      <details className="dashboard-actions">
+        <summary>Write entry</summary>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write…"
+          rows={2}
+          className="mt-3 w-full bg-transparent border border-border rounded p-2 text-xs resize-none focus:outline-none focus:border-primary/50"
+        />
+        <Button onClick={save} size="sm" className="mt-2 hud-label text-[10px]">
+          Save Entry
+        </Button>
+      </details>
     </Card>
   );
 }
@@ -495,7 +504,7 @@ export function InvestingCard() {
         {pct >= 0 ? "▲" : "▼"} {Math.abs(pct).toFixed(2)}%
       </div>
       <div className="mt-2">
-        <Sparkline data={sparkData} height={40} />
+        <Sparkline data={sparkData} height={32} />
       </div>
 
       <div className="mt-2">
@@ -513,22 +522,25 @@ export function InvestingCard() {
           {data.profile.goal > 0 ? `${goalPct}%` : "Set your goal"}
         </div>
       </div>
-      <div className="flex gap-2 mt-2">
-        <Input
-          value={pnl}
-          onChange={(e) => setPnl(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && logPnL()}
-          placeholder="P&L ±$"
-          type="number"
-          className="h-8 text-xs"
-        />
-        <button
-          onClick={logPnL}
-          className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
-        >
-          Log
-        </button>
-      </div>
+      <details className="dashboard-actions">
+        <summary>Log P/L</summary>
+        <div className="flex gap-2 mt-2">
+          <Input
+            value={pnl}
+            onChange={(e) => setPnl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && logPnL()}
+            placeholder="P&L ±$"
+            type="number"
+            className="h-8 text-xs"
+          />
+          <button
+            onClick={logPnL}
+            className="h-8 px-3 rounded-md border border-primary/40 text-primary hud-label text-[10px] hover:bg-primary/10"
+          >
+            Log
+          </button>
+        </div>
+      </details>
     </Card>
   );
 }
@@ -548,7 +560,7 @@ export function BusinessCard() {
       <div className="hud-label text-[10px] text-muted-foreground">Active Projects</div>
       <div className="hud-label text-3xl text-primary hud-glow my-1">{activeProjects}</div>
       <div className="flex items-center gap-4 mt-3">
-        <RingProgress value={avgProgress} size={72} label={`${avgProgress}%`} sublabel="On Track" />
+        <RingProgress value={avgProgress} size={64} label={`${avgProgress}%`} sublabel="On Track" />
         <div>
           <div className="hud-label text-[10px] text-muted-foreground">Revenue</div>
           <div className="hud-label text-sm text-primary">{fmtRev}</div>
@@ -598,23 +610,26 @@ export function HobbyCard() {
             style={{ width: `${Math.min(100, data.hobby.hours * 5)}%`, boxShadow: "0 0 8px var(--primary)" }}
           />
         </div>
-        <div className="grid grid-cols-3 gap-1.5 mt-3">
-          {hobbies.map((h) => (
-            <button
-              key={h}
-              onClick={() => mutate({ hobby: { ...data.hobby, current: h } })}
-              className={`hud-label text-[10px] py-1.5 rounded border ${data.hobby.current === h ? "border-primary/60 bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}
-            >
-              {h}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={() => mutate({ hobby: { ...data.hobby, hours: data.hobby.hours + 0.5 } })}
-          className="mt-2 h-7 text-[10px] hud-label text-primary border border-primary/40 rounded hover:bg-primary/10"
-        >
-          + 30 min
-        </button>
+        <details className="dashboard-actions">
+          <summary>Change focus / log time</summary>
+          <div className="grid grid-cols-3 gap-1.5 mt-3">
+            {hobbies.map((h) => (
+              <button
+                key={h}
+                onClick={() => mutate({ hobby: { ...data.hobby, current: h } })}
+                className={`hud-label text-[10px] py-1.5 rounded border ${data.hobby.current === h ? "border-primary/60 bg-primary/15 text-primary" : "border-border text-foreground/70 hover:border-primary/40"}`}
+              >
+                {h}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => mutate({ hobby: { ...data.hobby, hours: data.hobby.hours + 0.5 } })}
+            className="mt-2 h-7 text-[10px] hud-label text-primary border border-primary/40 rounded hover:bg-primary/10"
+          >
+            + 30 min
+          </button>
+        </details>
       </div>
     </Card>
   );

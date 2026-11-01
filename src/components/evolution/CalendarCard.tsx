@@ -6,8 +6,18 @@ import { useEvolutionData } from "@/lib/evolution-data";
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MONTHS = [
-  "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+  "JANUARY",
+  "FEBRUARY",
+  "MARCH",
+  "APRIL",
+  "MAY",
+  "JUNE",
+  "JULY",
+  "AUGUST",
+  "SEPTEMBER",
+  "OCTOBER",
+  "NOVEMBER",
+  "DECEMBER",
 ];
 
 const DOT_COLORS = [
@@ -26,9 +36,7 @@ export function CalendarCard() {
   const { data, mutate } = useEvolutionData();
   const today = new Date();
   const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() });
-  const [selected, setSelected] = useState<string>(
-    fmtDate(today.getFullYear(), today.getMonth(), today.getDate()),
-  );
+  const [selected, setSelected] = useState<string>(fmtDate(today.getFullYear(), today.getMonth(), today.getDate()));
   const [evt, setEvt] = useState("");
 
   const cells = useMemo(() => {
@@ -87,7 +95,7 @@ export function CalendarCard() {
   };
 
   return (
-    <div className="hud-card p-4 flex flex-col h-full">
+    <div className="dashboard-card dashboard-calendar hud-card p-4 flex flex-col h-full">
       <div className="flex items-center gap-2 mb-3">
         <CalIcon className="h-4 w-4 text-primary" />
         <div className="hud-label text-sm">Calendar</div>
@@ -149,49 +157,49 @@ export function CalendarCard() {
         })}
       </div>
 
-      {/* Events list */}
-      <div className="mt-3 pt-3 border-t border-border/60 flex-1 space-y-1.5 overflow-y-auto max-h-32">
-        {selectedEvents.length === 0 ? (
-          <div className="text-xs text-muted-foreground">No events</div>
-        ) : (
-          selectedEvents.map((text, i) => {
-            // try to split "10:00 AM Team Standup"
-            const m = text.match(/^(\d{1,2}:\d{2}\s*(?:AM|PM)?)\s+(.*)$/i);
-            const time = m?.[1];
-            const label = m?.[2] ?? text;
-            return (
-              <div key={i} className="text-xs text-foreground/90 flex items-center gap-2">
-                <span className={`h-1.5 w-1.5 rounded-full ${DOT_COLORS[i % DOT_COLORS.length]}`} />
-                {time && <span className="text-primary tabular-nums w-16 shrink-0">{time}</span>}
-                <span className="truncate">{label}</span>
-              </div>
-            );
-          })
-        )}
-      </div>
+      <details className="dashboard-actions">
+        <summary>Events ({selectedEvents.length}) / Add</summary>
+        {/* Events list */}
+        <div className="mt-3 pt-3 border-t border-border/60 flex-1 space-y-1.5 overflow-y-auto max-h-32">
+          {selectedEvents.length === 0 ? (
+            <div className="text-xs text-muted-foreground">No events</div>
+          ) : (
+            selectedEvents.map((text, i) => {
+              // try to split "10:00 AM Team Standup"
+              const m = text.match(/^(\d{1,2}:\d{2}\s*(?:AM|PM)?)\s+(.*)$/i);
+              const time = m?.[1];
+              const label = m?.[2] ?? text;
+              return (
+                <div key={i} className="text-xs text-foreground/90 flex items-center gap-2">
+                  <span className={`h-1.5 w-1.5 rounded-full ${DOT_COLORS[i % DOT_COLORS.length]}`} />
+                  {time && <span className="text-primary tabular-nums w-16 shrink-0">{time}</span>}
+                  <span className="truncate">{label}</span>
+                </div>
+              );
+            })
+          )}
+        </div>
 
-      {/* Add event + view details */}
-      <div className="mt-3 flex gap-2">
-        <Input
-          value={evt}
-          onChange={(e) => setEvt(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addEvent()}
-          placeholder="Add event…"
-          className="h-8 text-xs"
-        />
-        <button
-          onClick={addEvent}
-          className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10 shrink-0"
-          aria-label="Add event"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </button>
-      </div>
+        {/* Add event + view details */}
+        <div className="mt-3 flex gap-2">
+          <Input
+            value={evt}
+            onChange={(e) => setEvt(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addEvent()}
+            placeholder="Add event…"
+            className="h-8 text-xs"
+          />
+          <button
+            onClick={addEvent}
+            className="h-8 w-8 rounded-md border border-border flex items-center justify-center text-primary hover:bg-primary/10 shrink-0"
+            aria-label="Add event"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </details>
 
-      <Link
-        to="/calendar"
-        className="hud-label text-[10px] text-primary hud-glow mt-3 hover:underline"
-      >
+      <Link to="/calendar" className="hud-label text-[10px] text-primary hud-glow mt-3 hover:underline">
         VIEW DETAILS →
       </Link>
     </div>

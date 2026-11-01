@@ -7,8 +7,13 @@ import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
 import { MobileDashboard } from "@/components/evolution/MobileDashboard";
 import {
-  WealthCard, NutritionCard, FitnessCard, JournalCard,
-  InvestingCard, BusinessCard, HobbyCard,
+  WealthCard,
+  NutritionCard,
+  FitnessCard,
+  JournalCard,
+  InvestingCard,
+  BusinessCard,
+  HobbyCard,
 } from "@/components/evolution/ModuleCards";
 import { CalendarCard } from "@/components/evolution/CalendarCard";
 import { MonthSelector } from "@/components/evolution/MonthSelector";
@@ -20,9 +25,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Evolution — Life Operating System" },
-      { name: "description", content: "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD." },
+      {
+        name: "description",
+        content:
+          "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD.",
+      },
       { property: "og:title", content: "Evolution — Life Operating System" },
-      { property: "og:description", content: "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD." },
+      {
+        property: "og:description",
+        content:
+          "Discipline. Focus. Consistency. Freedom. Track wealth, fitness, nutrition, journaling, and investing in one HUD.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -41,43 +54,45 @@ function Index() {
   return (
     <>
       <MobileDashboard />
-      <div className="hidden md:block min-h-screen p-4 md:p-6">
-      <div className="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
-        <div className="lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
-          <Sidebar />
+      <div className="dashboard-desktop hidden md:block min-h-screen p-4 md:p-6">
+        <div className="dashboard-shell mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
+          <div className="dashboard-sidebar hidden lg:block lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
+            <Sidebar />
+          </div>
+
+          <main className="dashboard-main flex flex-col gap-6 min-w-0">
+            <AppBrandBar />
+            <div className="dashboard-greeting">
+              <TopBar />
+            </div>
+
+            <div className="dashboard-months">
+              <MonthSelector />
+            </div>
+
+            <section className="dashboard-card-grid" aria-label="Dashboard overview">
+              <CalendarCard />
+              <NutritionCard />
+              <WealthCard />
+              <FitnessCard />
+
+              <JournalCard />
+              <InvestingCard />
+              <BusinessCard />
+              <HobbyCard />
+            </section>
+
+            <DashboardHologram />
+
+            <WeekViewCard />
+
+            <WeeklyTasksCard />
+
+            <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
+              Evolution · Growing today, building forever
+            </footer>
+          </main>
         </div>
-
-        <main className="flex flex-col gap-6 min-w-0">
-          <AppBrandBar />
-          <TopBar />
-
-          <MonthSelector />
-
-          <DashboardHologram />
-
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <CalendarCard />
-            <NutritionCard />
-            <WealthCard />
-            <FitnessCard />
-          </section>
-
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <JournalCard />
-            <InvestingCard />
-            <BusinessCard />
-            <HobbyCard />
-          </section>
-
-          <WeekViewCard />
-
-          <WeeklyTasksCard />
-
-          <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
-            Evolution · Growing today, building forever
-          </footer>
-        </main>
-      </div>
       </div>
     </>
   );

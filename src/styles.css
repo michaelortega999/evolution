@@ -2380,7 +2380,11 @@
 html[data-card-style="glass"] .hud-card {
   --hud-clip: inset(0 round 24px);
   border-radius: 24px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 73%, transparent), color-mix(in srgb, var(--card-fill-2) 53%, transparent));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card-accent) 73%, transparent),
+    color-mix(in srgb, var(--card-fill-2) 53%, transparent)
+  );
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 19%, transparent));
 }
 html[data-card-style="glass"] .hud-card::before {
@@ -2787,7 +2791,11 @@ html[data-card-style="glass"] :is(.hud-card, .evo-frame, .evo-surface),
   border-radius: 22px !important;
   clip-path: none !important;
   outline: none !important;
-  background: linear-gradient(145deg, color-mix(in oklab, var(--card-fill) 85%, var(--card-accent)), var(--card-fill-2)) !important;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--card-fill) 85%, var(--card-accent)),
+    var(--card-fill-2)
+  ) !important;
   box-shadow:
     inset 0 2px 1px color-mix(in srgb, var(--card-accent) 27%, transparent),
     inset 0 0 22px color-mix(in srgb, var(--card-accent) 10%, transparent),
@@ -3002,7 +3010,8 @@ html[data-card-style="tech-hud"] :is(.hud-card, .evo-frame, .evo-surface, .evo-s
     0 var(--evo-cut, 16px)
   ) !important;
   background:
-    linear-gradient(color-mix(in srgb, var(--card-accent) 3%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--card-accent) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 3%, transparent) 1px, transparent 1px),
     linear-gradient(135deg, var(--card-fill), var(--card-fill-2)) !important;
   background-size:
     16px 16px,
@@ -3218,23 +3227,71 @@ html[data-card-style] .evo-surface {
 }
 
 /* Shared EVOLUTION OS brand mark */
-.evo-brand__word { letter-spacing: 0.32em; }
-.evo-brand__tag { letter-spacing: 0.18em; }
-.evo-brand__glow { filter: drop-shadow(0 0 6px color-mix(in oklab, var(--primary) 70%, transparent)); }
-@keyframes evo-spin-in { from { opacity: 0; transform: translateZ(-80px) scale(.9);} to { opacity: 1; transform: none; } }
-.evo-wheel { perspective: 1400px; }
-.evo-wheel__ring { transform-style: preserve-3d; transition: transform 700ms cubic-bezier(.2,.8,.2,1); }
-.evo-wheel__card { backface-visibility: hidden; transition: opacity 400ms, box-shadow 400ms; }
-.evo-wheel__floor { background: radial-gradient(ellipse at center, color-mix(in oklab, var(--primary) 35%, transparent), transparent 65%); }
-@media (prefers-reduced-motion: reduce) { .evo-wheel__ring { transition: none; } }
+.evo-brand__word {
+  letter-spacing: 0.32em;
+}
+.evo-brand__tag {
+  letter-spacing: 0.18em;
+}
+.evo-brand__glow {
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--primary) 70%, transparent));
+}
+@keyframes evo-spin-in {
+  from {
+    opacity: 0;
+    transform: translateZ(-80px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.evo-wheel {
+  perspective: 1400px;
+}
+.evo-wheel__ring {
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.evo-wheel__card {
+  backface-visibility: hidden;
+  transition:
+    opacity 400ms,
+    box-shadow 400ms;
+}
+.evo-wheel__floor {
+  background: radial-gradient(ellipse at center, color-mix(in oklab, var(--primary) 35%, transparent), transparent 65%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .evo-wheel__ring {
+    transition: none;
+  }
+}
 
 /* AI Workflow + Evo Planner inside the shared Home shell */
-.app-shell .wf-app { background: transparent; color: var(--foreground); }
-.app-shell .evo-workspace { background: transparent; padding: 0; min-height: 0; color: var(--foreground); }
+.app-shell .wf-app {
+  background: transparent;
+  color: var(--foreground);
+}
+.app-shell .evo-workspace {
+  background: transparent;
+  padding: 0;
+  min-height: 0;
+  color: var(--foreground);
+}
 /* Panels inside the Home shell carry the real shared .hud-card class. The page's own
    unlayered panel rules would beat the layered .hud-card frame, so revert them
    (zero-specificity :where keeps owner data-card-style overrides winning). */
-:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card {
+:where(.app-shell)
+  :is(
+    .wf-head,
+    .wf-graph-shell,
+    .wf-topic,
+    .wf-list-panel,
+    .wf-control-panel,
+    .wf-custom-preview,
+    .evo-frame
+  ).hud-card {
   background: revert-layer;
   border: revert-layer;
   border-radius: revert-layer;
@@ -3242,18 +3299,43 @@ html[data-card-style] .evo-surface {
   clip-path: revert-layer;
   filter: revert-layer;
 }
-:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::before,
-:where(.app-shell) :is(.wf-head, .wf-graph-shell, .wf-topic, .wf-list-panel, .wf-control-panel, .wf-custom-preview, .evo-frame).hud-card::after {
+:where(.app-shell)
+  :is(
+    .wf-head,
+    .wf-graph-shell,
+    .wf-topic,
+    .wf-list-panel,
+    .wf-control-panel,
+    .wf-custom-preview,
+    .evo-frame
+  ).hud-card::before,
+:where(.app-shell)
+  :is(
+    .wf-head,
+    .wf-graph-shell,
+    .wf-topic,
+    .wf-list-panel,
+    .wf-control-panel,
+    .wf-custom-preview,
+    .evo-frame
+  ).hud-card::after {
   all: revert-layer;
 }
-html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"]) .app-shell .evo-frame.hud-card::before {
+html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"])
+  .app-shell
+  .evo-frame.hud-card::before {
   display: block;
 }
-.app-shell .evo-body { margin-top: 0; }
+.app-shell .evo-body {
+  margin-top: 0;
+}
 
 /* Phone Evo Planner: same shared HUD frames as Home, without the desktop shell.
    Only colours/frames change; the phone padding, heights and composer stay as-is. */
-.evo-workspace.evo-phone { background: transparent; color: var(--foreground); }
+.evo-workspace.evo-phone {
+  background: transparent;
+  color: var(--foreground);
+}
 :where(.evo-phone) :is(.evo-frame, .evo-surface, .evo-mobile-quick > button).hud-card {
   background: revert-layer;
   border: revert-layer;
@@ -3266,7 +3348,9 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
 :where(.evo-phone) :is(.evo-frame, .evo-surface, .evo-mobile-quick > button).hud-card::after {
   all: revert-layer;
 }
-html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"]) .evo-phone .evo-frame.hud-card::before {
+html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="classic"])
+  .evo-phone
+  .evo-frame.hud-card::before {
   display: block;
 }
 
@@ -3319,55 +3403,453 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
   background: var(--background);
   color: var(--foreground);
 }
-.live-hud-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; padding-top: 8px; }
-.live-hud-brand { min-width: 0; flex: 1; overflow: hidden; }
+.live-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 8px;
+}
+.live-hud-brand {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
 .live-hud-date {
-  display: flex; align-items: center; gap: 8px; flex: none; min-height: 40px; padding: 4px 10px;
-  border: 1px solid var(--card-line); background: var(--card-fill); color: var(--foreground);
-  font-family: var(--font-mono); clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 1px solid var(--card-line);
+  background: var(--card-fill);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  clip-path: polygon(
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px),
+    0 8px
+  );
 }
-.live-hud-date > svg { width: 18px; height: 18px; color: var(--card-accent); }
-.live-hud-date > div { display: flex; flex-direction: column; line-height: 1.1; }
-.live-hud-date b, .live-hud-date span { font-size: 9px; font-weight: 600; color: var(--muted-foreground); white-space: nowrap; }
-.live-hud-date strong { font-size: 11px; font-weight: 500; white-space: nowrap; }
-.live-hud-stage { position: relative; width: min(100%, 400px); aspect-ratio: 1 / 1.05; margin-inline: auto; container-type: inline-size; }
-.live-hud-rings span { position: absolute; left: 50%; top: 46%; border-radius: 50%; transform: translate(-50%, -50%); border: 1px solid var(--card-line); }
-.live-hud-rings span:first-child { width: 72%; aspect-ratio: 1; border-style: dashed; animation: image-hud-spin 40s linear infinite; }
-.live-hud-rings span:last-child { width: 46%; aspect-ratio: 1; box-shadow: 0 0 24px color-mix(in srgb, var(--card-accent) 25%, transparent) inset; }
+.live-hud-date > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--card-accent);
+}
+.live-hud-date > div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.live-hud-date b,
+.live-hud-date span {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.live-hud-date strong {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.live-hud-stage {
+  position: relative;
+  width: min(100%, 400px);
+  aspect-ratio: 1 / 1.05;
+  margin-inline: auto;
+  container-type: inline-size;
+}
+.live-hud-rings span {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--card-line);
+}
+.live-hud-rings span:first-child {
+  width: 72%;
+  aspect-ratio: 1;
+  border-style: dashed;
+  animation: image-hud-spin 40s linear infinite;
+}
+.live-hud-rings span:last-child {
+  width: 46%;
+  aspect-ratio: 1;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--card-accent) 25%, transparent) inset;
+}
 .live-hud-core {
-  position: absolute; left: 50%; top: 46%; width: 36%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  border-radius: 50%; border: 0; background: transparent; padding: 0; cursor: pointer;
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 36%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
 }
-.live-hud-core img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-accent) 60%, transparent)); }
+.live-hud-core img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-accent) 60%, transparent));
+}
 .live-hud-node {
-  position: absolute; width: 21%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  border-radius: 50%; border: 1px solid var(--card-line); background: var(--card-fill); color: var(--foreground);
+  position: absolute;
+  width: 21%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 50%;
+  border: 1px solid var(--card-line);
+  background: var(--card-fill);
+  color: var(--foreground);
   box-shadow: 0 0 12px color-mix(in srgb, var(--card-accent) 22%, transparent);
 }
-.live-hud-node > svg { width: 30%; height: 30%; color: var(--card-accent); }
-.live-hud-node__label { font-family: var(--font-display); font-size: clamp(7px, 2.4cqw, 10px); letter-spacing: 0.06em; text-transform: uppercase; }
-.live-hud-node__ring { position: absolute; inset: -6%; border-radius: 50%; border: 1px dashed var(--card-line); animation: image-hud-spin 18s linear infinite; animation-delay: inherit; pointer-events: none; }
-.live-hud-node:focus-visible, .live-hud-core:focus-visible { outline: 2px solid var(--card-accent); outline-offset: 3px; }
-.live-hud-focus { display: grid; justify-items: center; gap: 8px; padding: 14px; }
-.live-hud-focus__title { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--foreground); }
-.live-hud-focus__time { font-family: var(--font-mono); font-size: clamp(28px, 10vw, 40px); line-height: 1; color: var(--foreground); text-shadow: 0 0 8px var(--card-accent); }
-.live-hud-focus__controls { display: flex; gap: 14px; }
-.live-hud-focus__controls button {
-  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%;
-  border: 1px solid var(--card-line); background: var(--card-fill-2); color: var(--foreground);
+.live-hud-node > svg {
+  width: 30%;
+  height: 30%;
+  color: var(--card-accent);
 }
-.live-hud-focus__controls button.is-main { width: 52px; height: 52px; border-color: var(--card-accent); color: var(--card-accent); }
-.live-hud-focus__controls svg { width: 18px; height: 18px; }
+.live-hud-node__label {
+  font-family: var(--font-display);
+  font-size: clamp(7px, 2.4cqw, 10px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.live-hud-node__ring {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  border: 1px dashed var(--card-line);
+  animation: image-hud-spin 18s linear infinite;
+  animation-delay: inherit;
+  pointer-events: none;
+}
+.live-hud-node:focus-visible,
+.live-hud-core:focus-visible {
+  outline: 2px solid var(--card-accent);
+  outline-offset: 3px;
+}
+.live-hud-focus {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+}
+.live-hud-focus__title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.live-hud-focus__time {
+  font-family: var(--font-mono);
+  font-size: clamp(28px, 10vw, 40px);
+  line-height: 1;
+  color: var(--foreground);
+  text-shadow: 0 0 8px var(--card-accent);
+}
+.live-hud-focus__controls {
+  display: flex;
+  gap: 14px;
+}
+.live-hud-focus__controls button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--card-line);
+  background: var(--card-fill-2);
+  color: var(--foreground);
+}
+.live-hud-focus__controls button.is-main {
+  width: 52px;
+  height: 52px;
+  border-color: var(--card-accent);
+  color: var(--card-accent);
+}
+.live-hud-focus__controls svg {
+  width: 18px;
+  height: 18px;
+}
 .live-hud-nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--card-line); background: var(--card-fill);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--card-line);
+  background: var(--card-fill);
   backdrop-filter: blur(8px);
 }
-.live-hud-nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 44px; justify-content: center; font-size: 10px; color: var(--muted-foreground); }
-.live-hud-nav a svg { width: 18px; height: 18px; color: var(--card-accent); }
-.live-hud-nav__core { justify-self: center; width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--card-accent); background: var(--background); padding: 4px; margin-top: -18px; }
-.live-hud-nav__core img { width: 100%; height: 100%; object-fit: contain; }
+.live-hud-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+.live-hud-nav a svg {
+  width: 18px;
+  height: 18px;
+  color: var(--card-accent);
+}
+.live-hud-nav__core {
+  justify-self: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid var(--card-accent);
+  background: var(--background);
+  padding: 4px;
+  margin-top: -18px;
+}
+.live-hud-nav__core img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 @media (prefers-reduced-motion: reduce) {
-  .live-hud-rings span, .live-hud-node__ring { animation: none; }
+  .live-hud-rings span,
+  .live-hud-node__ring {
+    animation: none;
+  }
+}
+
+/* Display is deliberately in the same (unlayered) cascade as live-hud-screen.
+   Tailwind's layered md:hidden cannot override an unlayered display:flex. */
+@media (min-width: 768px) {
+  .live-hud-screen {
+    display: none;
+  }
+}
+
+/* Home overview at normal desktop zoom. Supporting tools remain below the eight
+   cards; disclosures expand naturally rather than clipping content or scaling text. */
+.dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.dashboard-card {
+  min-width: 0;
+}
+.dashboard-actions {
+  margin-top: 6px;
+}
+.dashboard-actions > summary {
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 12px;
+  min-height: 28px;
+  line-height: 28px;
+}
+.dashboard-actions[open] {
+  margin-bottom: 4px;
+}
+@media (min-width: 1024px) {
+  .dashboard-desktop,
+  .balanced-shell {
+    padding: 12px;
+  }
+  .balanced-shell main {
+    gap: 14px;
+  }
+  .dashboard-shell {
+    max-width: 1760px;
+    grid-template-columns: 184px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .dashboard-main {
+    gap: 8px;
+  }
+  .dashboard-card-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
+  }
+  .dashboard-card-grid > .dashboard-card {
+    padding: 12px;
+  }
+  .dashboard-card-heading {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dashboard-card-heading > div {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+  .dashboard-card-heading h3 {
+    font-size: 12px;
+  }
+  .dashboard-card-body {
+    min-width: 0;
+  }
+  .dashboard-card-body > .mt-3 {
+    margin-top: 6px;
+  }
+  .dashboard-card-body > .mt-2 {
+    margin-top: 4px;
+  }
+  .dashboard-card-body > .text-3xl {
+    font-size: 24px;
+    line-height: 28px;
+  }
+  .dashboard-card > a:last-child {
+    margin-top: 6px;
+  }
+  .dashboard-greeting > div {
+    padding: 4px 10px;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .dashboard-greeting h1 {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .dashboard-greeting p {
+    font-size: 12px;
+    margin-top: 0;
+  }
+  .dashboard-greeting > div > div:first-child {
+    min-width: 0;
+  }
+  .dashboard-greeting > div > div:last-child {
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .dashboard-greeting > div > div:last-child > div {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .dashboard-months > div {
+    padding: 3px 10px;
+  }
+  .dashboard-months button {
+    min-height: 30px;
+  }
+  .dashboard-months button > div {
+    height: 6px;
+    margin: 0;
+  }
+  .dashboard-months button > span {
+    font-size: 12px;
+  }
+  .dashboard-calendar > div:first-child {
+    margin-bottom: 4px;
+  }
+  .dashboard-calendar > div:nth-child(2) {
+    margin-bottom: 2px;
+  }
+  .dashboard-calendar > .grid {
+    gap: 2px;
+  }
+  .dashboard-calendar > .grid > button {
+    aspect-ratio: auto;
+    height: 20px;
+    font-size: 10px;
+  }
+  .dashboard-calendar > .dashboard-actions {
+    margin-top: 2px;
+  }
+  .dashboard-sidebar {
+    top: 12px;
+    height: calc(100dvh - 24px);
+  }
+  .dashboard-sidebar > aside {
+    padding: 10px;
+    gap: 0;
+  }
+  .dashboard-sidebar > aside > div:first-child {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+  .dashboard-sidebar button[aria-label="Change hologram"] {
+    width: 58px !important;
+    height: 58px !important;
+  }
+  .dashboard-sidebar button[aria-label="Change hologram"] > * {
+    max-width: 50px;
+    max-height: 50px;
+  }
+  .dashboard-sidebar nav {
+    min-height: 0;
+    overflow-y: auto;
+    gap: 1px;
+  }
+  .dashboard-sidebar nav > a {
+    padding: 5px 8px;
+    gap: 7px;
+    min-height: 30px;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .dashboard-sidebar nav > div {
+    margin-block: 5px;
+    flex-shrink: 0;
+  }
+  .dashboard-sidebar > aside > div:last-child {
+    margin-top: 6px;
+    padding-top: 6px;
+    gap: 6px;
+  }
+}
+@media (min-width: 1024px) and (max-height: 760px) {
+  .dashboard-card-grid > .dashboard-card {
+    padding: 9px 10px;
+  }
+  .dashboard-card-heading {
+    margin-bottom: 5px;
+  }
+  .dashboard-card-heading > div {
+    width: 28px;
+    height: 28px;
+  }
+  .dashboard-card-grid .dashboard-card-body > .my-1 {
+    margin-block: 2px;
+  }
+  .dashboard-card-grid .dashboard-card-body > .mt-3 {
+    margin-top: 4px;
+  }
+  .dashboard-card-grid .dashboard-card-body > .mt-2 {
+    margin-top: 3px;
+  }
+  .dashboard-calendar > .grid > button {
+    height: 18px;
+  }
+}
+/* Landscape tablets retain two readable columns; the laptop overview starts at 1180px. */
+@media (min-width: 1024px) and (max-width: 1179px) {
+  .dashboard-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-greeting > div {
+    flex-wrap: wrap;
+  }
 }
