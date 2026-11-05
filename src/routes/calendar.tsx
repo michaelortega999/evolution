@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ModuleLayout } from "@/components/evolution/ModuleLayout";
+import { CalendarCard } from "@/components/evolution/CalendarCard";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   useEvolutionData,
@@ -430,11 +431,13 @@ function PlanningPage() {
             <section className="min-w-0 overflow-hidden rounded-xl border border-sky-400/30 bg-[var(--card-fill)] shadow-[0_0_20px_#0ea5e908]">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sky-400/15 p-3">
                 <div className="flex items-center gap-2">
-                  <button className={button} aria-label="Previous calendar period" onClick={() => step(-1)}>
+                  <button className={`${button} h-auto flex-col gap-0 py-1`} aria-label="Previous calendar period" onClick={() => step(-1)}>
                     <ChevronLeft size={15} />
+                    <span className="text-[9px] uppercase">Prev</span>
                   </button>
-                  <button className={button} aria-label="Next calendar period" onClick={() => step(1)}>
+                  <button className={`${button} h-auto flex-col gap-0 py-1`} aria-label="Next calendar period" onClick={() => step(1)}>
                     <ChevronRight size={15} />
+                    <span className="text-[9px] uppercase">Next</span>
                   </button>
                   <h2 className="text-lg font-medium">{monthLabel}</h2>
                 </div>
@@ -591,6 +594,15 @@ function PlanningPage() {
                         e.date >= selected &&
                         e.date < localDateKey(addCalendarDays(parseDateKey(selected) ?? cursor, 30)),
                     ) && <p className="py-16 text-center text-sm text-slate-500">No events in the next 30 days.</p>}
+                </div>
+              )}
+              {view === "week" && (
+                <div className="grid gap-3 border-t border-sky-400/15 p-3 md:grid-cols-3" aria-label="Week planning cards">
+                  {[3, 1, 2].map((panel) => (
+                    <div key={panel} className="hud-card flex min-h-[340px] min-w-0 flex-col p-3">
+                      <CalendarCard initialPanel={panel} />
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
