@@ -49,10 +49,10 @@ function fmtDate(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-export function CalendarCard() {
+export function CalendarCard({ initialPanel = 0 }: { initialPanel?: number } = {}) {
   const { data, mutate } = useEvolutionData();
   const timer = useFocusTimer();
-  const [panel, setPanel] = useState(0);
+  const [panel, setPanel] = useState(initialPanel);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const suppressClick = useRef(false);
   const changePanel = (delta: number) => setPanel((current) => (current + delta + PANELS.length) % PANELS.length);
