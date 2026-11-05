@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Files, Trash2 } from "lucide-react";
 import { Panel } from "@/components/evolution/ModuleLayout";
 import { useEvolutionData, type CalendarEvent, type ReminderOffset } from "@/lib/evolution-data";
+import { FocusModeCard } from "@/components/evolution/FocusModeCard";
+import { TodayTasksCard } from "@/components/evolution/TodayTasksCard";
+import { WeeklyTasksCard } from "@/components/evolution/WeeklyTasksCard";
 import { cn } from "@/lib/utils";
 
 const HOUR_PX = 48;
@@ -190,9 +193,13 @@ export function WeekViewCard() {
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => setWeekCursor(addDays(weekCursor, -7))}
-            className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
+            aria-label="Previous week"
+            className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary flex flex-col items-center leading-none gap-1"
           >
-            ‹ Prev
+            <span aria-hidden="true" className="text-base">
+              ‹
+            </span>
+            Prev
           </button>
           <button
             onClick={() => setWeekCursor(startOfWeek(new Date()))}
@@ -202,9 +209,13 @@ export function WeekViewCard() {
           </button>
           <button
             onClick={() => setWeekCursor(addDays(weekCursor, 7))}
-            className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary"
+            aria-label="Next week"
+            className="px-3 py-1 border border-border rounded hud-label text-[10px] hover:bg-primary/10 text-primary flex flex-col items-center leading-none gap-1"
           >
-            Next ›
+            <span aria-hidden="true" className="text-base">
+              ›
+            </span>
+            Next
           </button>
         </div>
 
