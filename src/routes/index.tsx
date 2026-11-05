@@ -70,6 +70,8 @@ function Index() {
               <MonthSelector />
             </div>
 
+            <DashboardHologram />
+
             <section className="dashboard-card-grid" aria-label="Dashboard overview">
               <CalendarCard />
               <NutritionCard />
@@ -81,8 +83,6 @@ function Index() {
               <BusinessCard />
               <HobbyCard />
             </section>
-
-            <DashboardHologram />
 
             <WeekViewCard />
 
