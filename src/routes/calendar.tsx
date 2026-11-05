@@ -596,15 +596,6 @@ function PlanningPage() {
                     ) && <p className="py-16 text-center text-sm text-slate-500">No events in the next 30 days.</p>}
                 </div>
               )}
-              {view === "week" && (
-                <div className="grid gap-3 border-t border-sky-400/15 p-3 md:grid-cols-3" aria-label="Week planning cards">
-                  {[3, 1, 2].map((panel) => (
-                    <div key={panel} className="min-h-[340px] min-w-0">
-                      <CalendarCard initialPanel={panel} />
-                    </div>
-                  ))}
-                </div>
-              )}
             </section>
             <aside className="space-y-3 min-w-0">
               <Box
