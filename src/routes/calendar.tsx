@@ -599,7 +599,7 @@ function PlanningPage() {
               {view === "week" && (
                 <div className="grid gap-3 border-t border-sky-400/15 p-3 md:grid-cols-3" aria-label="Week planning cards">
                   {[3, 1, 2].map((panel) => (
-                    <div key={panel} className="hud-card flex min-h-[340px] min-w-0 flex-col p-3">
+                    <div key={panel} className="min-h-[340px] min-w-0">
                       <CalendarCard initialPanel={panel} />
                     </div>
                   ))}
