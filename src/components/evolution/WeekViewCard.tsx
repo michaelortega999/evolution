@@ -325,6 +325,12 @@ export function WeekViewCard() {
         </div>
       </Panel>
 
+      <div className="grid gap-3 lg:grid-cols-3 items-start" aria-label="Week planning cards">
+        <WeeklyTasksCard />
+        <TodayTasksCard />
+        <FocusModeCard />
+      </div>
+
       {formDate && (
         <Panel title={`${editId ? "EDIT EVENT" : "ADD EVENT"} · ${formDate}`}>
           <div className="flex flex-wrap gap-2 items-end">
