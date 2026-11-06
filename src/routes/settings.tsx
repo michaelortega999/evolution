@@ -779,7 +779,7 @@ function CustomizeWorkspace() {
       </GlassPanel>
       )}
       {showSection("cards") && (
-      <GlassPanel title="CARD CUSTOMIZATION" icon={<SlidersHorizontal size={18} />} className="ec-controls ec-color-panel
+      <GlassPanel title="CARD CUSTOMIZATION" icon={<SlidersHorizontal size={18} />} className="ec-controls ec-color-panel">
         <p className="ec-subtitle">Card glass tint and text color.</p>
         <div className="ec-color-grid">
           {(
