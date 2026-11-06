@@ -30,6 +30,7 @@ const MODULES: EvoCategory[] = ["Wealth", "Nutrition", "Fitness", "Journal", "No
 
 
 export const Route = createFileRoute("/focus")({
+  validateSearch: (search: Record<string, unknown>): { layout: "classic" | "command" } => ({ layout: search.layout === "command" ? "command" : "classic" }),
   head: () => ({
     meta: [
       { title: "Focus Mode — Evolution" }, { property: "og:title", content: "Focus Mode — Evolution" }, { property: "og:description", content: "Pomodoro-style focus timer with session tracking, weekly stats, and streaks." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/focus")({
 });
 
 function FocusPage() {
+  const { layout } = Route.useSearch();
   const { data } = useEvolutionData();
   const timer = useFocusTimer();
   const [editing, setEditing] = useState<null | FocusMode>(null);
@@ -96,15 +98,16 @@ function FocusPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className={`min-h-screen p-4 md:p-6 ${layout === "command" ? "focus-command" : "focus-classic"}`}>
+      <style>{focusLayoutCss}</style>
       <div className="mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
         <div className="order-2 lg:order-1 lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
           <Sidebar />
         </div>
 
-        <main className="order-1 lg:order-2 flex flex-col gap-6 min-w-0">
+        <main className="order-1 lg:order-2 flex flex-col gap-6 min-w-0 focus-workspace">
           {/* Header */}
-          <div className="hud-card p-5 flex items-center justify-between">
+          <div className="hud-card p-5 flex items-center justify-between focus-page-header">
             <div className="flex items-center gap-3">
               <Target className="h-5 w-5 text-primary" />
               <div>
@@ -112,11 +115,17 @@ function FocusPage() {
                 <div className="hud-label text-[10px] text-muted-foreground">Deep work, measured.</div>
               </div>
             </div>
-            <Link to="/" className="hud-label text-[10px] text-primary hover:underline">← Dashboard</Link>
+            <div className="focus-screen-nav">
+              <nav aria-label="Focus screens">
+                <Link to="/focus" search={{ layout: "classic" }} aria-current={layout === "classic" ? "page" : undefined}>Classic</Link>
+                <Link to="/focus" search={{ layout: "command" }} aria-current={layout === "command" ? "page" : undefined}>Command</Link>
+              </nav>
+              <Link to="/" className="hud-label text-[10px] text-primary hover:underline">← Dashboard</Link>
+            </div>
           </div>
 
           {/* Top: timer */}
-          <section className="hud-card p-6 md:p-8 flex flex-col items-center gap-5">
+          <section className="hud-card p-6 md:p-8 flex flex-col items-center gap-5 focus-timer-panel">
             {/* mode tabs */}
             <div className="flex gap-2">
               {(["focus", "short", "long"] as const).map((m) => (
@@ -143,7 +152,7 @@ function FocusPage() {
             )}
 
             {/* Holographic ring */}
-            <div className="relative" style={{ width: 320, height: 320 }}>
+            <div className="relative focus-ring-container" style={{ width: 320, height: 320 }}>
               {/* orbital backdrop */}
               <div className="absolute inset-0 holo-jarvis" style={{ width: "100%", height: "100%", top: 0, right: 0 }}>
                 <div className="holo-j-base" />
@@ -234,7 +243,7 @@ function FocusPage() {
           </section>
 
           {/* Middle: current session */}
-          <section className="hud-card p-5 flex flex-col gap-4">
+          <section className="hud-card p-5 flex flex-col gap-4 focus-current-panel">
             <div className="hud-label text-xs text-muted-foreground">Current Session</div>
             <Input
               value={timer.task}
@@ -273,7 +282,7 @@ function FocusPage() {
           </section>
 
           {/* Bottom: stats grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 focus-stats-panel">
             <StatCard label="Total Today" value={formatHrs(stats.totalSec)} />
             <StatCard label="Sessions" value={String(stats.count)} />
             <StatCard label="Longest Today" value={stats.longest ? formatHrs(stats.longest) : "—"} />
@@ -281,7 +290,7 @@ function FocusPage() {
           </section>
 
           {/* Weekly chart */}
-          <section className="hud-card p-5">
+          <section className="hud-card p-5 focus-weekly-panel">
             <div className="hud-label text-xs text-muted-foreground mb-3">Past 7 days · focus minutes</div>
             <div className="flex items-end justify-between gap-2 h-40">
               {weekly.map((w, i) => (
@@ -303,7 +312,7 @@ function FocusPage() {
           </section>
 
           {/* Time Invested This Week */}
-          <section className="hud-card p-5 flex flex-col gap-5">
+          <section className="hud-card p-5 flex flex-col gap-5 focus-invested-panel">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
@@ -399,7 +408,7 @@ function FocusPage() {
 
 
           {/* Session log */}
-          <section className="hud-card p-5">
+          <section className="hud-card p-5 focus-log-panel">
             <div className="hud-label text-xs text-muted-foreground mb-3">Today's Sessions</div>
             {stats.todays.length === 0 ? (
               <div className="text-sm text-muted-foreground py-6 text-center">No sessions yet — hit Start to begin.</div>
@@ -420,6 +429,16 @@ function FocusPage() {
               </ul>
             )}
           </section>
+          {layout === "command" && <section className="hud-card p-5 focus-tools-panel">
+            <h2 className="hud-label text-xs text-primary">Quick Tools</h2>
+            <div className="focus-tools">
+              <Link to="/notes"><FileText size={21} />Notes</Link>
+              <Link to="/calendar"><Clock size={21} />Calendar</Link>
+              <Link to="/goals"><Target size={21} />Goals</Link>
+              <Link to="/journal"><FileText size={21} />Journal</Link>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">Your full session history and time breakdown remain on the Classic screen.</p>
+          </section>}
         </main>
       </div>
 
@@ -468,3 +487,28 @@ function formatHrs(sec: number) {
   return `${h}h ${m}m`;
 }
 
+
+const focusLayoutCss = `
+.focus-screen-nav{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.focus-screen-nav nav{display:flex;gap:4px;padding:4px;border:1px solid #1c536e;border-radius:8px;background:#03101c}
+.focus-screen-nav nav a{padding:8px 16px;font-size:11px;color:#9fc4d9;border:1px solid transparent;border-radius:5px}
+.focus-screen-nav nav a[aria-current=page]{background:#06334d;border-color:#36caff;color:#cff7ff;box-shadow:inset 0 0 12px #00adff33,0 0 10px #009dff33}
+.focus-command .focus-workspace{display:grid;grid-template-columns:minmax(190px,.8fr) minmax(350px,1.6fr) minmax(215px,.9fr);gap:14px;align-items:start}
+.focus-command .focus-page-header{grid-column:1/-1}
+.focus-command .focus-current-panel{grid-column:1;grid-row:2/4;min-height:400px}
+.focus-command .focus-timer-panel{grid-column:2;grid-row:2/4;min-width:0;padding:20px 12px;gap:14px;background:radial-gradient(circle at 50% 48%,#00416a44,transparent 65%),#020a12}
+.focus-command .focus-timer-panel>div:last-child{flex-wrap:wrap;justify-content:center}
+.focus-command .focus-timer-panel>div:last-child button{padding-left:12px;padding-right:12px;font-size:10px}
+.focus-command .focus-stats-panel{grid-column:3;grid-row:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.focus-command .focus-stats-panel>div{padding:15px 10px;min-height:91px}
+.focus-command .focus-stats-panel>div>div:last-child{font-size:21px}
+.focus-command .focus-weekly-panel{grid-column:3;grid-row:3;padding:14px}
+.focus-command .focus-weekly-panel>div:last-child{height:100px}
+.focus-command .focus-invested-panel,.focus-command .focus-log-panel{display:none}
+.focus-command .focus-tools-panel{grid-column:1/-1}
+.focus-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.focus-tools a{display:flex;align-items:center;justify-content:center;gap:10px;padding:15px;border:1px solid #1c5876;border-radius:7px;background:#071c2b;color:#9ddfff;font-size:11px}
+.focus-command .hud-card{border-color:#256281;box-shadow:inset 0 1px 0 #60cfff33,0 0 14px #0075b51a}
+@media(max-width:1250px){.focus-command .focus-workspace{grid-template-columns:minmax(180px,.85fr) minmax(320px,1.4fr)}.focus-command .focus-current-panel{grid-row:2}.focus-command .focus-timer-panel{grid-row:2}.focus-command .focus-stats-panel{grid-column:1;grid-row:3}.focus-command .focus-weekly-panel{grid-column:2;grid-row:3}.focus-command .focus-tools-panel{grid-row:4}}
+@media(max-width:700px){.focus-command .focus-workspace{display:flex;flex-direction:column}.focus-command .focus-workspace>section,.focus-command .focus-page-header{width:100%}.focus-command .focus-timer-panel{order:1}.focus-command .focus-current-panel{order:2;min-height:0}.focus-command .focus-stats-panel{order:3;display:grid}.focus-command .focus-weekly-panel{order:4}.focus-command .focus-tools-panel{order:5}.focus-page-header{gap:12px;flex-wrap:wrap}.focus-screen-nav{gap:10px}.focus-command .focus-ring-container{transform:scale(.9);margin:-16px}.focus-tools{grid-template-columns:repeat(2,minmax(0,1fr))}}
+`;
