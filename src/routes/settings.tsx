@@ -170,7 +170,7 @@ function SettingsPage() {
     "customize theme colors primary secondary preset background glass grid minimal gradient mountain glow blur animations dark live preview",
   ].some(matches);
   return (
-    <div className="es-shell">
+    <div className={`es-shell ${view === "customize" ? "es-customize-view" : ""}`}>
       <style>{settingsCss}</style>
       <div className="es-frame">
         <aside className="es-sidebar">
@@ -244,7 +244,7 @@ function SettingsPage() {
               </Button>
             </GlassPanel>
           )}
-          <div className="es-grid">
+          <div className="es-grid" style={view === "customize" && !query ? { display: "block", width: "100%" } : undefined}>
             {(view === "customize" || !!query) &&
               matches(
                 "customize theme colors primary secondary preset background glass grid minimal gradient mountain glow blur animations dark live preview",
@@ -782,6 +782,16 @@ function CustomizeWorkspace() {
   );
 }
 const referenceCustomizeCss = `
+.es-customize-view .es-brandbar,.es-customize-view .es-toolbar,.es-customize-view .es-status,.es-customize-view .es-main>div.px-4,.es-customize-view .es-footer{display:none}
+.es-customize-view .es-main{gap:0}
+.es-customize-view .es-grid{display:block!important;width:100%!important}
+.es-customize-view .eo-customizer{display:block!important;width:100%!important;max-width:none!important}
+.es-customize-view .eo-columns{display:grid!important;grid-template-columns:minmax(0,1.16fr) minmax(0,1fr)!important;gap:14px!important}
+.es-customize-view .eo-column{display:flex!important;flex-direction:column!important;gap:12px!important;min-width:0!important}
+.es-customize-view .eo-background-panel{width:100%!important}
+@media(min-width:1000px) and (min-height:650px){.es-customize-view{padding:14px}.es-customize-view .eo-panel{padding:10px 12px}.es-customize-view .eo-heading{padding-bottom:10px}.es-customize-view .eo-status{margin:5px 0}.es-customize-view .eo-bg-art{height:110px}}
+@media(max-width:820px){.es-customize-view .eo-columns{grid-template-columns:minmax(0,1fr)!important}}
+
 .eo-customizer{grid-column:1/-1;min-width:0;width:100%;color:#e9f7ff;font-family:Inter,ui-sans-serif,system-ui,sans-serif;--eo-cyan:#2cdcff}
 .eo-customizer *{box-sizing:border-box}
 .eo-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 0 16px;border-bottom:1px solid #145675}
