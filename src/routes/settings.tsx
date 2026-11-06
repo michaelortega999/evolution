@@ -626,11 +626,6 @@ function SettingsPage() {
                 </div>
               </GlassPanel>
             )}
-            {(view !== "profile" || !!query) && show("customize", "card appearance customize design") && (
-              <div className="es-appearance">
-                <CardAppearance />
-              </div>
-            )}
             {(view === "settings" || !!query) && matches("bank connection integrations") && (
               <div className="es-bank" id="es-bank">
                 <BankConnectionPanel />
@@ -654,6 +649,15 @@ function SettingsPage() {
     </div>
   );
 }
+
+type CustomizeTab = "appearance" | "layout" | "cards" | "themes" | "advanced";
+const CUSTOMIZE_TABS: [CustomizeTab, string][] = [
+  ["appearance", "Appearance"],
+  ["layout", "Layout"],
+  ["cards", "Cards"],
+  ["themes", "Themes"],
+  ["advanced", "Advanced"],
+];
 
 function CustomizeWorkspace() {
   const { data, mutate } = useEvolutionData();
@@ -697,14 +701,86 @@ function CustomizeWorkspace() {
     ["gradient", "Gradient", "Soft color atmosphere"],
     ["landscape", "Mountain", "Black canvas has priority: the page stays black"],
   ] as const;
+  const [tab, setTab] = useState<CustomizeTab>("appearance");
+  const showSection = (...tabs: CustomizeTab[]) => tab === "appearance" || tabs.includes(tab);
+  const saveStatus =
+    cloud === "loading"
+      ? "Loading your saved appearance…"
+      : cloud === "saving"
+        ? "Saving appearance…"
+        : cloud === "error"
+          ? "Saved on this device. Account sync is unavailable — changes will retry."
+          : cloud === "signed-out"
+            ? "Saved on this device only."
+            : "Autosave on · saved to your account.";
   return (
     <section className="ec-workspace" aria-label="Customize workspace">
       <style>
         {customizeCss}
         {CUSTOMIZATION_CSS}
       </style>
-      <GlassPanel title="THEME & COLORS" icon={<Palette size={20} />} className="ec-controls">
-        <p className="ec-subtitle">Choose your visual identity.</p>
+      <div className="ec-topbar">
+        <nav className="ec-tabs" aria-label="Customize sections" role="tablist">
+          {CUSTOMIZE_TABS.map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
+              {label}
+            </button>
+          ))}
+        </nav>
+        <p className={`ec-autosave ${cloud === "error" ? "is-error" : ""}`} role="status">
+          <span aria-hidden="true" />
+          {saveStatus}
+        </p>
+      </div>
+      <div className="ec-left">
+      {disabled && (
+        <p className="ec-state" role="status">Loading your saved customization… controls unlock when it arrives.</p>
+      )}
+      {tab === "layout" && (
+        <GlassPanel title="LAYOUT" icon={<Layers size={18} />}>
+          <p className="ec-state">
+            No layout options exist yet. Page layouts are fixed; use Cards, Themes and Advanced for available controls.
+          </p>
+        </GlassPanel>
+      )}
+      {showSection("themes") && (
+      <GlassPanel title="THEME LIBRARY" icon={<Palette size={20} />}>
+        <p className="ec-subtitle">Apply a coordinated pair of colors.</p>
+        <div className="ec-presets" role="group" aria-label="Preset themes">
+          {CUSTOMIZATION_PRESETS.map((preset) => (
+            <button
+              type="button"
+              key={preset.id}
+              disabled={disabled}
+              aria-pressed={appearance.primary === preset.primary && appearance.secondary === preset.secondary}
+              onClick={() => update({ primary: preset.primary, secondary: preset.secondary })}
+              style={{ "--ec-preset": preset.primary } as React.CSSProperties}
+            >
+              <span className="ec-preset-art">
+                <i />
+                <i />
+                <i />
+              </span>
+              <span>{preset.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="ec-black-neon">
+          <div>
+            <strong>Black Neon</strong>
+            <span>
+              Original look: near-black cards, pale text, blue neon outlines, minimal background, classic frames.
+            </span>
+          </div>
+          <button type="button" disabled={disabled} aria-pressed={blackNeonActive} onClick={restoreBlackNeon}>
+            {blackNeonActive ? "Black Neon active" : "Restore Black Neon"}
+          </button>
+        </div>
+      </GlassPanel>
+      )}
+      {showSection("cards") && (
+      <GlassPanel title="CARD CUSTOMIZATION" icon={<SlidersHorizontal size={18} />} className="ec-controls">
+        <p className="ec-subtitle">Card glass tint and text color.</p>
         <div className="ec-color-grid">
           {(
             [
@@ -777,44 +853,16 @@ function CustomizeWorkspace() {
             </div>
           ))}
         </div>
-        <div className="ec-section-heading">
-          <h3>PRESET THEMES</h3>
-          <p>Apply a coordinated pair of colors.</p>
-        </div>
-        <div className="ec-presets" role="group" aria-label="Preset themes">
-          {CUSTOMIZATION_PRESETS.map((preset) => (
-            <button
-              type="button"
-              key={preset.id}
-              disabled={disabled}
-              aria-pressed={appearance.primary === preset.primary && appearance.secondary === preset.secondary}
-              onClick={() => update({ primary: preset.primary, secondary: preset.secondary })}
-              style={{ "--ec-preset": preset.primary } as React.CSSProperties}
-            >
-              <span className="ec-preset-art">
-                <i />
-                <i />
-                <i />
-              </span>
-              <span>{preset.label}</span>
-            </button>
-          ))}
-        </div>
-        <div className="ec-black-neon">
-          <div>
-            <strong>Black Neon</strong>
-            <span>
-              Original look: near-black cards, pale text, blue neon outlines, minimal background, classic frames.
-            </span>
-          </div>
-          <button type="button" disabled={disabled} aria-pressed={blackNeonActive} onClick={restoreBlackNeon}>
-            {blackNeonActive ? "Black Neon active" : "Restore Black Neon"}
-          </button>
-        </div>
-        <div className="ec-section-heading">
-          <h3>BACKGROUND STYLE</h3>
-          <p>Set the canvas behind your workspace.</p>
-        </div>
+      </GlassPanel>
+      )}
+      {showSection("cards") && (
+        <GlassPanel title="CARD CORNER DESIGN" icon={<Layers size={18} />}>
+          <CardAppearance embedded />
+        </GlassPanel>
+      )}
+      {showSection("themes") && (
+      <GlassPanel title="BACKGROUND STYLE" className="ec-bg-panel">
+        <p className="ec-subtitle">Set the canvas behind your workspace.</p>
         <div className="ec-backgrounds" role="group" aria-label="Background style">
           {backgrounds.map(([id, label, description]) => (
             <button
@@ -838,6 +886,8 @@ function CustomizeWorkspace() {
           Gradient add a barely visible grey texture; Minimal and Mountain keep it plain black.
         </p>
       </GlassPanel>
+      )}
+      </div>
       <div className="ec-right">
         <GlassPanel title="LIVE PREVIEW" className="ec-preview-panel">
           <div className="ec-preview-intro">
@@ -899,7 +949,8 @@ function CustomizeWorkspace() {
             The sample shows appearance only. No activity, progress or financial figures are simulated.
           </p>
         </GlassPanel>
-        <GlassPanel title="ADVANCED OPTIONS" icon={<SlidersHorizontal size={18} />} className="ec-advanced">
+        {showSection("advanced", "cards") && (
+        <GlassPanel title="GLOBAL STYLE" icon={<SlidersHorizontal size={18} />} className="ec-advanced">
           {(
             [
               ["glass", "Glass Effect Intensity"],
@@ -947,38 +998,29 @@ function CustomizeWorkspace() {
             System reduced-motion preferences take priority. Colours also reach the phone screens (their cards, headings
             and black page); photos, holograms and profit/loss colours keep their own styling.
           </p>
-          <p className="ec-save" role="status">
-            {cloud === "loading"
-              ? "Loading your saved appearance…"
-              : cloud === "saving"
-                ? "Saving appearance…"
-                : cloud === "error"
-                  ? "Saved on this device. Account sync is unavailable."
-                  : cloud === "signed-out"
-                    ? "Saved on this device only."
-                    : "Appearance saves automatically to your account."}
-          </p>
+          <p className="ec-save">{saveStatus}</p>
         </GlassPanel>
+        )}
       </div>
     </section>
   );
 }
 
 const customizeCss = `
-.ec-workspace{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:16px;align-items:start}.ec-workspace .es-panel h2{font-size:16px;letter-spacing:.05em;margin-bottom:5px;color:var(--es-text)}.ec-subtitle{margin:0 0 18px;font-size:12px}.ec-color-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ec-color-box{padding:14px;border:1px solid var(--es-line);border-radius:7px;background:#04132280}.ec-color-box h3{font-size:13px}.ec-color-box p{font-size:11px;min-height:52px;margin:8px 0 12px;line-height:1.6}.ec-color-picker{display:flex;height:39px;position:relative;border:1px solid #6ec3ff50;border-radius:5px;overflow:hidden;box-shadow:0 0 13px #008cff25}.ec-color-picker input{opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;z-index:1}.ec-color-picker:focus-within{outline:2px solid #a6dfff;outline-offset:3px}.ec-color-picker>span:last-child{width:19px;height:19px;border:2px solid #ffffff80;border-radius:50%;margin:auto 11px auto auto;box-shadow:0 0 0 8px #0004}.ec-color-swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:12px 0}.ec-color-swatches button{height:26px;border-radius:4px;border:1px solid #ffffff25;display:grid;place-items:center}.ec-color-swatches button[aria-pressed=true]{outline:2px solid #afe5ff;outline-offset:2px}.ec-color-value{display:flex;align-items:center;gap:8px;border:1px solid var(--es-line);border-radius:4px;padding:7px 9px;background:#020b1480}.ec-color-value>span{width:15px;height:15px;border-radius:50%;border:1px solid #ffffff50}.ec-color-value code{font-size:11px;color:var(--es-text)}.ec-color-value svg{margin-left:auto;color:var(--es-blue)}.ec-section-heading{padding-top:21px;margin-top:18px;border-top:1px solid var(--es-line)}.ec-section-heading h3{font-size:12px;letter-spacing:.04em}.ec-section-heading p{font-size:11px;margin:5px 0 12px}.ec-presets{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.ec-presets button,.ec-backgrounds button{padding:5px;border:1px solid var(--es-line);border-radius:5px;background:#030e1990;min-width:0;color:var(--es-text)}.ec-presets button[aria-pressed=true],.ec-backgrounds button[aria-pressed=true]{border-color:#65c5ff;box-shadow:0 0 12px #009eff55,inset 0 0 10px #009eff25}.ec-presets button>span:last-child{font-size:9px;display:block;line-height:1.4;padding:7px 0 3px}.ec-preset-art{height:54px;display:flex;align-items:end;gap:4px;padding:8px;background:radial-gradient(ellipse at 50% 20%,var(--ec-preset),#030811 80%);border:1px solid color-mix(in srgb,var(--ec-preset),transparent 40%);overflow:hidden;position:relative}.ec-preset-art:before{content:'';position:absolute;width:55px;height:45px;border:1px solid var(--ec-preset);transform:rotate(45deg);left:25%;top:30px;box-shadow:0 0 12px var(--ec-preset)}.ec-preset-art i{display:block;height:9px;flex:1;border:1px solid var(--ec-preset);z-index:1}.ec-backgrounds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.ec-backgrounds button>span:last-child{display:block;font-size:10px;padding:8px 0 3px}.ec-background-thumb{display:block;height:76px;border-radius:2px;background:#050d17;background-size:cover;background-position:center;border:1px solid #ffffff15}.ec-bg-glass{background:linear-gradient(70deg,transparent 25%,#4bb5ff25 26%,transparent 28%,transparent 65%,#64c9ff30 66%,transparent 68%),linear-gradient(140deg,#020b15,#13507880,#050c18)}.ec-bg-grid{background-image:linear-gradient(#21628d55 1px,transparent 1px),linear-gradient(90deg,#21628d55 1px,transparent 1px);background-size:12px 12px}.ec-bg-gradient{background:linear-gradient(145deg,#02143e,#096fc5)}.ec-adjusted{font-size:10px!important;line-height:1.5;margin:8px 0 0!important;color:var(--es-text)!important}.ec-adjusted code{font-size:10px}.ec-black-neon{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:10px 12px;border:1px solid var(--card-line);border-radius:5px;background:var(--card-fill)}.ec-black-neon strong{display:block;font-size:12px;color:var(--evo-title)}.ec-black-neon span{display:block;font-size:10px;color:var(--evo-muted);line-height:1.5}.ec-black-neon button{flex:none;font-size:10px;padding:7px 10px;border:1px solid var(--card-accent);border-radius:4px;color:var(--evo-text);background:var(--card-fill-2)}.ec-black-neon button[aria-pressed=true]{background:var(--card-accent);color:var(--primary-foreground)}.ec-note{font-size:10px!important;color:var(--es-muted);line-height:1.6;margin:14px 0 0}.ec-right{display:flex;flex-direction:column;gap:16px;min-width:0}.ec-preview-intro{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}.ec-preview-intro p{font-size:11px;margin:0}.ec-preview-intro button{display:flex;gap:6px;align-items:center;border:1px solid var(--es-line);padding:6px 8px;border-radius:5px;font-size:10px;color:var(--es-text);background:#08213980}.ec-live{padding:14px;border:1px solid var(--evo-primary);border-radius:8px;background:var(--evo-background-image);background-size:var(--evo-background-size);color:var(--evo-secondary);box-shadow:var(--evo-glow);overflow:hidden;position:relative}.ec-live-header{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid color-mix(in srgb,var(--evo-primary),transparent 60%);padding-bottom:10px}.ec-live-header>span{display:flex;gap:12px}.ec-live .evo-brand__word,.ec-live .evo-brand__tag{color:var(--evo-secondary)!important}.ec-sample-label{font-size:8px!important;letter-spacing:.1em;color:var(--evo-secondary)!important;opacity:.75;margin:10px 0!important}.ec-hero{height:180px;border:1px solid color-mix(in srgb,var(--evo-primary),transparent 45%);border-radius:5px;background-size:cover;background-position:center;position:relative;overflow:hidden;color:white}.ec-hero>div{position:absolute;bottom:18px;left:18px}.ec-hero span{font-size:8px;letter-spacing:.18em;color:#d3edff}.ec-hero strong{display:block;font-size:22px;font-weight:500;line-height:1.5}.ec-workspace .ec-live .ec-hero p{color:#cfdeec!important;font-size:10px;margin:2px 0}.ec-sample-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}.ec-sample-card{display:flex;flex-direction:column;gap:12px;align-items:center;padding:17px 6px;border:1px solid var(--evo-primary);border-radius:5px;background:var(--evo-surface);backdrop-filter:blur(var(--evo-blur));box-shadow:var(--evo-glow);color:var(--evo-secondary);font-size:10px}.ec-preview-line{font-size:9px;opacity:.8;display:flex;align-items:center;gap:8px;margin-top:14px}.ec-preview-line>span{height:4px;width:4px;background:var(--evo-primary);border-radius:50%;box-shadow:0 0 6px var(--evo-primary)}.ec-slider-row{display:grid;grid-template-columns:1fr 1fr 34px;gap:12px;align-items:center;border-bottom:1px solid var(--es-line);padding:13px 0;font-size:11px}.ec-slider-row input{width:100%;height:5px;accent-color:var(--es-blue);cursor:pointer}.ec-slider-row output{text-align:right;font-size:11px;color:var(--es-blue)}.ec-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--es-line);font-size:11px}.ec-save{font-size:10px!important;color:var(--es-blue)!important;border:1px solid var(--es-line);border-radius:5px;padding:9px 10px;margin:14px 0 0}.ec-live[data-evo-animations=true] .ec-preview-line>span{animation:ec-pulse 3s ease-in-out infinite}@keyframes ec-pulse{50%{opacity:.35;box-shadow:0 0 12px var(--evo-primary)}}
+.ec-topbar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;min-width:0}.ec-tabs{display:flex;gap:6px;overflow-x:auto;max-width:100%;scrollbar-width:none;padding:2px}.ec-tabs button{flex:none;min-height:40px;padding:8px 16px;border:1px solid var(--es-line);border-radius:6px;font-size:12px;letter-spacing:.06em;color:var(--es-muted);background:#030e1990}.ec-tabs button[aria-selected=true]{color:var(--es-text);border-color:var(--es-blue);box-shadow:0 0 12px #009eff55,inset 0 0 10px #009eff25}.ec-autosave{display:flex;align-items:center;gap:8px;font-size:11px;margin:0;color:var(--es-blue)}.ec-autosave span{width:7px;height:7px;border-radius:50%;background:var(--es-blue);box-shadow:0 0 8px var(--es-blue)}.ec-autosave.is-error,.ec-autosave.is-error span{color:var(--destructive);background:transparent}.ec-autosave.is-error span{background:var(--destructive)}.ec-left{display:flex;flex-direction:column;gap:16px;min-width:0}.ec-state{font-size:12px;color:var(--es-muted);border:1px dashed var(--es-line);border-radius:6px;padding:12px;margin:0}.ec-bg-panel .ec-backgrounds{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}.ec-bg-panel .ec-background-thumb{height:110px}.appearance-section.is-embedded{padding:0;border:0;background:none;box-shadow:none}.ec-right{position:sticky;top:16px}@media(max-width:1200px){.ec-right{position:static}}@media(max-width:700px){.ec-presets{grid-template-columns:repeat(3,minmax(0,1fr))}.ec-color-grid{grid-template-columns:1fr}.ec-sample-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.ec-bg-panel .ec-backgrounds{grid-template-columns:repeat(2,minmax(0,1fr))}.ec-topbar{flex-direction:column;align-items:stretch}}.ec-workspace{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:16px;align-items:start}.ec-workspace .es-panel h2{font-size:16px;letter-spacing:.05em;margin-bottom:5px;color:var(--es-text)}.ec-subtitle{margin:0 0 18px;font-size:12px}.ec-color-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ec-color-box{padding:14px;border:1px solid var(--es-line);border-radius:7px;background:#04132280}.ec-color-box h3{font-size:13px}.ec-color-box p{font-size:11px;min-height:52px;margin:8px 0 12px;line-height:1.6}.ec-color-picker{display:flex;height:39px;position:relative;border:1px solid #6ec3ff50;border-radius:5px;overflow:hidden;box-shadow:0 0 13px #008cff25}.ec-color-picker input{opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;z-index:1}.ec-color-picker:focus-within{outline:2px solid #a6dfff;outline-offset:3px}.ec-color-picker>span:last-child{width:19px;height:19px;border:2px solid #ffffff80;border-radius:50%;margin:auto 11px auto auto;box-shadow:0 0 0 8px #0004}.ec-color-swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:12px 0}.ec-color-swatches button{height:26px;border-radius:4px;border:1px solid #ffffff25;display:grid;place-items:center}.ec-color-swatches button[aria-pressed=true]{outline:2px solid #afe5ff;outline-offset:2px}.ec-color-value{display:flex;align-items:center;gap:8px;border:1px solid var(--es-line);border-radius:4px;padding:7px 9px;background:#020b1480}.ec-color-value>span{width:15px;height:15px;border-radius:50%;border:1px solid #ffffff50}.ec-color-value code{font-size:11px;color:var(--es-text)}.ec-color-value svg{margin-left:auto;color:var(--es-blue)}.ec-section-heading{padding-top:21px;margin-top:18px;border-top:1px solid var(--es-line)}.ec-section-heading h3{font-size:12px;letter-spacing:.04em}.ec-section-heading p{font-size:11px;margin:5px 0 12px}.ec-presets{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.ec-presets button,.ec-backgrounds button{padding:5px;border:1px solid var(--es-line);border-radius:5px;background:#030e1990;min-width:0;color:var(--es-text)}.ec-presets button[aria-pressed=true],.ec-backgrounds button[aria-pressed=true]{border-color:#65c5ff;box-shadow:0 0 12px #009eff55,inset 0 0 10px #009eff25}.ec-presets button>span:last-child{font-size:9px;display:block;line-height:1.4;padding:7px 0 3px}.ec-preset-art{height:54px;display:flex;align-items:end;gap:4px;padding:8px;background:radial-gradient(ellipse at 50% 20%,var(--ec-preset),#030811 80%);border:1px solid color-mix(in srgb,var(--ec-preset),transparent 40%);overflow:hidden;position:relative}.ec-preset-art:before{content:'';position:absolute;width:55px;height:45px;border:1px solid var(--ec-preset);transform:rotate(45deg);left:25%;top:30px;box-shadow:0 0 12px var(--ec-preset)}.ec-preset-art i{display:block;height:9px;flex:1;border:1px solid var(--ec-preset);z-index:1}.ec-backgrounds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.ec-backgrounds button>span:last-child{display:block;font-size:10px;padding:8px 0 3px}.ec-background-thumb{display:block;height:76px;border-radius:2px;background:#050d17;background-size:cover;background-position:center;border:1px solid #ffffff15}.ec-bg-glass{background:linear-gradient(70deg,transparent 25%,#4bb5ff25 26%,transparent 28%,transparent 65%,#64c9ff30 66%,transparent 68%),linear-gradient(140deg,#020b15,#13507880,#050c18)}.ec-bg-grid{background-image:linear-gradient(#21628d55 1px,transparent 1px),linear-gradient(90deg,#21628d55 1px,transparent 1px);background-size:12px 12px}.ec-bg-gradient{background:linear-gradient(145deg,#02143e,#096fc5)}.ec-adjusted{font-size:10px!important;line-height:1.5;margin:8px 0 0!important;color:var(--es-text)!important}.ec-adjusted code{font-size:10px}.ec-black-neon{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:10px 12px;border:1px solid var(--card-line);border-radius:5px;background:var(--card-fill)}.ec-black-neon strong{display:block;font-size:12px;color:var(--evo-title)}.ec-black-neon span{display:block;font-size:10px;color:var(--evo-muted);line-height:1.5}.ec-black-neon button{flex:none;font-size:10px;padding:7px 10px;border:1px solid var(--card-accent);border-radius:4px;color:var(--evo-text);background:var(--card-fill-2)}.ec-black-neon button[aria-pressed=true]{background:var(--card-accent);color:var(--primary-foreground)}.ec-note{font-size:10px!important;color:var(--es-muted);line-height:1.6;margin:14px 0 0}.ec-right{display:flex;flex-direction:column;gap:16px;min-width:0}.ec-preview-intro{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}.ec-preview-intro p{font-size:11px;margin:0}.ec-preview-intro button{display:flex;gap:6px;align-items:center;border:1px solid var(--es-line);padding:6px 8px;border-radius:5px;font-size:10px;color:var(--es-text);background:#08213980}.ec-live{padding:14px;border:1px solid var(--evo-primary);border-radius:8px;background:var(--evo-background-image);background-size:var(--evo-background-size);color:var(--evo-secondary);box-shadow:var(--evo-glow);overflow:hidden;position:relative}.ec-live-header{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid color-mix(in srgb,var(--evo-primary),transparent 60%);padding-bottom:10px}.ec-live-header>span{display:flex;gap:12px}.ec-live .evo-brand__word,.ec-live .evo-brand__tag{color:var(--evo-secondary)!important}.ec-sample-label{font-size:8px!important;letter-spacing:.1em;color:var(--evo-secondary)!important;opacity:.75;margin:10px 0!important}.ec-hero{height:180px;border:1px solid color-mix(in srgb,var(--evo-primary),transparent 45%);border-radius:5px;background-size:cover;background-position:center;position:relative;overflow:hidden;color:white}.ec-hero>div{position:absolute;bottom:18px;left:18px}.ec-hero span{font-size:8px;letter-spacing:.18em;color:#d3edff}.ec-hero strong{display:block;font-size:22px;font-weight:500;line-height:1.5}.ec-workspace .ec-live .ec-hero p{color:#cfdeec!important;font-size:10px;margin:2px 0}.ec-sample-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}.ec-sample-card{display:flex;flex-direction:column;gap:12px;align-items:center;padding:17px 6px;border:1px solid var(--evo-primary);border-radius:5px;background:var(--evo-surface);backdrop-filter:blur(var(--evo-blur));box-shadow:var(--evo-glow);color:var(--evo-secondary);font-size:10px}.ec-preview-line{font-size:9px;opacity:.8;display:flex;align-items:center;gap:8px;margin-top:14px}.ec-preview-line>span{height:4px;width:4px;background:var(--evo-primary);border-radius:50%;box-shadow:0 0 6px var(--evo-primary)}.ec-slider-row{display:grid;grid-template-columns:1fr 1fr 34px;gap:12px;align-items:center;border-bottom:1px solid var(--es-line);padding:13px 0;font-size:11px}.ec-slider-row input{width:100%;height:5px;accent-color:var(--es-blue);cursor:pointer}.ec-slider-row output{text-align:right;font-size:11px;color:var(--es-blue)}.ec-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--es-line);font-size:11px}.ec-save{font-size:10px!important;color:var(--es-blue)!important;border:1px solid var(--es-line);border-radius:5px;padding:9px 10px;margin:14px 0 0}.ec-live[data-evo-animations=true] .ec-preview-line>span{animation:ec-pulse 3s ease-in-out infinite}@keyframes ec-pulse{50%{opacity:.35;box-shadow:0 0 12px var(--evo-primary)}}
 @media(max-width:1200px){.ec-workspace{grid-template-columns:1fr}.ec-right{display:grid;grid-template-columns:1.15fr .85fr;align-items:start}.ec-presets button>span:last-child{font-size:10px}.ec-color-box p{min-height:34px}}
 @media(max-width:700px){.ec-right{display:flex}.ec-color-grid{gap:10px}.ec-color-box{padding:11px}.ec-color-box p{font-size:10px;min-height:64px}.ec-presets{grid-template-columns:repeat(3,1fr)}.ec-backgrounds{gap:5px}.ec-background-thumb{height:57px}.ec-backgrounds button>span:last-child{font-size:9px}.ec-color-swatches{grid-template-columns:repeat(3,1fr);gap:7px}.ec-live{padding:10px}.ec-sample-card{padding:15px 4px;gap:9px}.ec-sample-cards{gap:6px}.ec-hero{height:170px}.ec-slider-row{grid-template-columns:1.1fr 1fr 30px;gap:8px}.ec-preview-intro{align-items:start}.ec-preview-intro button{font-size:9px;white-space:nowrap}.ec-live-header .evo-brand__word{font-size:10px}.ec-live-header .evo-brand__tag{font-size:6px}.ec-live-header>span{gap:8px}}
 @media(prefers-reduced-motion:reduce){.ec-workspace *{animation:none!important;transition:none!important}}
 `;
 
-function CardAppearance() {
+function CardAppearance({ embedded = false }: { embedded?: boolean } = {}) {
   const { data, mutate } = useEvolutionData();
   const cloud = useCloudStatus();
   const selected = normalizeCardStyle(data.settings.cardStyle);
   const all = data.settings.applyCardStyleGlobally !== false;
   return (
-    <section id="appearance" className="appearance-section" aria-labelledby="appearance-heading">
-      <div className="appearance-heading">
+    <section id="appearance" className={`appearance-section ${embedded ? "is-embedded" : ""}`} aria-labelledby="appearance-heading">
+      <div className="appearance-heading" hidden={embedded}>
         <div>
           <p className="hud-label text-xs text-primary">SETTINGS / APPEARANCE</p>
           <h2 id="appearance-heading">Design Cards</h2>
