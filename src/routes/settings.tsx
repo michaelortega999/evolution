@@ -746,7 +746,6 @@ function CustomizeWorkspace() {
       {showSection("themes") && (
       <GlassPanel title="THEME LIBRARY" icon={<Palette size={20} />}>
         <p className="ec-subtitle">Apply a coordinated pair of colors.</p>
-        {CUSTOMIZATION_PRESETS.length === 0 && <p className="ec-state">No theme presets are available.</p>}
         <div className="ec-presets" role="group" aria-label="Preset themes">
           {CUSTOMIZATION_PRESETS.map((preset) => (
             <button
