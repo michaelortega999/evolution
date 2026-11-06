@@ -670,16 +670,8 @@ function CustomizeWorkspace() {
     if (disabled) return;
     mutate(p => ({ settings: { ...p.settings, customization: { ...effectiveCustomization(p.settings), ...patch } } }));
   };
-  const surfaces = [
-    { label: "Default", glass: 70, glow: 60, blur: 40 },
-    { label: "Glass", glass: 35, glow: 30, blur: 70 },
-    { label: "Frosted", glass: 80, glow: 20, blur: 100 },
-    { label: "Neon Edge", glass: 20, glow: 100, blur: 10 },
-    { label: "Holographic", glass: 45, glow: 80, blur: 50 },
-    { label: "Solid", glass: 100, glow: 0, blur: 0 },
-  ];
   const backgrounds = [
-    ["landscape", "Mountain"], ["grid", "Grid"], ["gradient", "Wave"], ["glass", "Glass"], ["minimal", "Minimal"],
+    ["landscape", "Mountain"], ["grid", "Tech Grid"], ["gradient", "Gradient"], ["glass", "Glass"], ["minimal", "Minimal"],
   ] as const;
   const status = disabled ? "Loading preferences…" : cloud === "saving" ? "Saving…" : cloud === "error"
     ? "Saved on device · sync unavailable" : cloud === "signed-out" ? "Saved on device" : "All changes saved";
@@ -698,38 +690,23 @@ function CustomizeWorkspace() {
           {show("themes") && <section className="eo-panel">
             <h3><Layers size={21} />Theme Library</h3>
             <div className="eo-choices eo-themes">
-              {CUSTOMIZATION_PRESETS.map((preset, i) => <button type="button" key={preset.id} disabled={disabled}
+              {CUSTOMIZATION_PRESETS.map((preset) => <button type="button" key={preset.id} disabled={disabled}
                 aria-pressed={appearance.primary === preset.primary}
                 onClick={() => update({ primary: preset.primary, secondary: preset.secondary })}
                 style={{ "--tile-color": preset.primary } as React.CSSProperties}>
-                <span className="eo-theme-art" style={{ backgroundImage: `url(${customizeMountain})`, filter: `hue-rotate(${[0,145,260,40,100,180][i]}deg)` }} />
-                <span>{["Evolution Blue", "Extremis Red", "Midnight Green", "Royal Purple", "Obsidian Pink", "Apex Orange"][i]}</span>
+                <span className="eo-original-theme-art" style={{ "--ec-preset": preset.primary } as React.CSSProperties}><i /><i /><i /></span>
+                <span>{preset.label}</span>
                 {appearance.primary === preset.primary && <Check className="eo-check" size={15} />}
               </button>)}
             </div>
+            <button type="button" className="eo-restore-original" disabled={disabled} onClick={() => mutate(p => ({
+              settings: { ...p.settings, cardStyle: BLACK_NEON_PRESET.cardStyle,
+                customization: { ...effectiveCustomization(p.settings), ...BLACK_NEON_PRESET.customization } }
+            }))}>Restore Black Neon</button>
           </section>}
-          {show("cards") && <section className="eo-panel">
-            <h3><SlidersHorizontal size={21} />Card Customization</h3>
-            <div className="eo-choices eo-surfaces">
-              {surfaces.map((surface, i) => <button type="button" key={surface.label} disabled={disabled}
-                aria-pressed={appearance.glass === surface.glass && appearance.glow === surface.glow && appearance.blur === surface.blur}
-                onClick={() => update({ glass: surface.glass, glow: surface.glow, blur: surface.blur })}>
-                <span className={`eo-surface-sample eo-surface-${i}`} /><span>{surface.label}</span>
-                {appearance.glass === surface.glass && appearance.glow === surface.glow && appearance.blur === surface.blur && <Check className="eo-check" size={15} />}
-              </button>)}
-            </div>
-          </section>}
-          {show("cards") && <section className="eo-panel">
-            <h3><Layers size={21} />Card Corner Design</h3>
-            <div className="eo-choices eo-corners">
-              {CARD_STYLES.map((style, i) => <button type="button" key={style.id} disabled={disabled}
-                title={style.description} aria-pressed={normalizeCardStyle(data.settings.cardStyle) === style.id}
-                onClick={() => mutate(p => ({ settings: { ...p.settings, cardStyle: style.id, applyCardStyleGlobally: true } }))}>
-                <span className={`eo-corner-sample eo-corner-${i}`} />
-                <span>{["2C (Default)", "Rounded", "Cut", "Classic", "Chamfered", "Bracket", "Armored"][i]}</span>
-                {normalizeCardStyle(data.settings.cardStyle) === style.id && <Check className="eo-check" size={15} />}
-              </button>)}
-            </div>
+          {show("cards") && <section className="eo-panel eo-original-cards">
+            <h3><Layers size={21} />Card Customization</h3>
+            <CardAppearance embedded />
           </section>}
           {tab === "layout" && <section className="eo-panel"><h3>Layout</h3><p>The responsive workspace adapts automatically to your screen.</p></section>}
         </div>
@@ -763,6 +740,8 @@ function CustomizeWorkspace() {
                 {CUSTOMIZATION_PRESETS.map(preset => <button type="button" key={preset.id} disabled={disabled}
                   aria-label={`${key} ${preset.label}`} aria-pressed={appearance[key] === preset.primary}
                   style={{ background: preset.primary }} onClick={() => update({ [key]: preset.primary })} />)}
+                {key === "secondary" && <button type="button" disabled={disabled} aria-label="Secondary color: readable neutral"
+                  style={{ background: CUSTOMIZATION_DEFAULTS.secondary }} onClick={() => update({ secondary: CUSTOMIZATION_DEFAULTS.secondary })} />}
               </div>
             </div>)}
           </section>}
@@ -782,6 +761,20 @@ function CustomizeWorkspace() {
   );
 }
 const referenceCustomizeCss = `
+.eo-original-cards .appearance-section{margin:0;padding:0;border:0;background:transparent;box-shadow:none}
+.eo-original-cards .appearance-options{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.eo-original-cards .appearance-choice{padding:7px;min-width:0}
+.eo-original-cards .appearance-preview{min-height:90px;height:90px;padding:7px 4px;gap:5px;margin:0 0 8px}
+.eo-original-cards .appearance-preview-title{font-size:7px;gap:3px}.eo-original-cards .appearance-preview-title svg{width:12px}.eo-original-cards .appearance-preview-title small{font-size:6px}
+.eo-original-cards .appearance-ring{height:32px;width:32px;border-width:2px}.eo-original-cards .appearance-ring span{font-size:5px}
+.eo-original-cards .appearance-preview-footer{font-size:4px}
+.eo-original-cards .appearance-choice-title{font-size:9px;display:block;margin:0}.eo-original-cards .appearance-choice-title>span{display:none}
+.eo-original-cards .appearance-description{display:none}.eo-original-cards .appearance-select{font-size:8px;min-height:25px;margin-top:6px}
+.eo-original-cards .appearance-apply{padding:8px;margin-top:10px;gap:8px}.eo-original-cards .appearance-apply strong{font-size:10px}.eo-original-cards .appearance-apply small,.eo-original-cards .appearance-save-note{font-size:9px}.eo-original-cards .appearance-apply input{width:18px;height:18px}
+.eo-original-theme-art{height:84px;width:100%;display:flex;align-items:end;gap:4px;padding:8px;background:radial-gradient(ellipse at 50% 20%,var(--ec-preset),#030811 80%);position:relative;overflow:hidden}.eo-original-theme-art:before{content:'';position:absolute;width:55px;height:45px;border:1px solid var(--ec-preset);transform:rotate(45deg);left:25%;top:35px;box-shadow:0 0 12px var(--ec-preset)}.eo-original-theme-art i{height:9px;flex:1;border:1px solid var(--ec-preset);z-index:1}
+.eo-restore-original{margin-top:10px;border:1px solid #397b9b;border-radius:5px;padding:6px 10px;font-size:10px;color:#d9efff;background:#061727}
+@media(max-width:640px){.eo-original-cards .appearance-options{grid-template-columns:repeat(3,minmax(0,1fr))}.eo-original-cards .appearance-choice{display:flex;flex-direction:column}.eo-original-cards .appearance-preview{width:100%}}
+
 .es-customize-view .es-brandbar,.es-customize-view .es-toolbar,.es-customize-view .es-status,.es-customize-view .es-main>div.px-4,.es-customize-view .es-footer{display:none}
 .es-customize-view .es-main{gap:0}
 .es-customize-view .es-grid{display:block!important;width:100%!important}
