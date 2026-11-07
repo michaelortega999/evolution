@@ -1,3 +1,4 @@
+import { HomeLayouts } from "@/components/evolution/HomeLayouts";
 import { resolvePalette } from "@/lib/theme-palette";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -47,7 +48,8 @@ import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel"
 
 type SettingsView = "profile" | "customize" | "settings";
 export const Route = createFileRoute("/settings")({
-  validateSearch: (search: Record<string, unknown>): { view?: SettingsView } => ({
+  validateSearch: (search: Record<string, unknown>): { view?: SettingsView; tab?: CustomizeTab } => ({
+    tab: CUSTOMIZE_TABS.find(([id]) => id === search.tab)?.[0],
     view: search.view === "customize" || search.view === "settings" ? search.view : "profile",
   }),
   head: () => ({
@@ -664,7 +666,8 @@ function CustomizeWorkspace() {
   const cloud = useCloudStatus();
   const disabled = cloud === "loading";
   const appearance = effectiveCustomization(data.settings);
-  const [tab, setTab] = useState<CustomizeTab>("appearance");
+  const { tab = "appearance" } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const show = (...tabs: CustomizeTab[]) => tab === "appearance" || tabs.includes(tab);
   const update = (patch: Partial<typeof appearance>) => {
     if (disabled) return;
@@ -681,11 +684,11 @@ function CustomizeWorkspace() {
       <div className="eo-heading">
         <div><h2>Customization</h2><p>Personalize your Evolution OS experience.</p></div>
         <nav className="eo-tabs" aria-label="Customization sections">
-          {CUSTOMIZE_TABS.map(([id, label]) => <button type="button" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}
+          {CUSTOMIZE_TABS.map(([id, label]) => <button type="button" key={id} aria-pressed={tab === id} onClick={() => navigate({ search: { view: "customize", tab: id } })}>{label}</button>)}
         </nav>
       </div>
       <p className="eo-status" role="status">{status}</p>
-      <div className="eo-columns">
+      {tab === "layout" ? <HomeLayouts /> : <div className="eo-columns">
         <div className="eo-column">
           {show("themes") && <section className="eo-panel">
             <h3><Layers size={21} />Theme Library</h3>
@@ -708,7 +711,6 @@ function CustomizeWorkspace() {
             <h3><Layers size={21} />Card Customization</h3>
             <CardAppearance embedded />
           </section>}
-          {tab === "layout" && <section className="eo-panel"><h3>Layout</h3><p>The responsive workspace adapts automatically to your screen.</p></section>}
         </div>
         <div className="eo-column">
           <section className="eo-panel eo-preview">
@@ -746,7 +748,7 @@ function CustomizeWorkspace() {
             </div>)}
           </section>}
         </div>
-      </div>
+      </div>}
       {show("themes") && <section className="eo-panel eo-background-panel">
         <h3><Globe size={21} />Background Style</h3>
         <div className="eo-choices eo-backgrounds">

@@ -4,7 +4,8 @@ import { AppBrandBar } from "@/components/evolution/AppBrandBar";
 import { TopBar } from "@/components/evolution/TopBar";
 import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
-import { MobileDashboard } from "@/components/evolution/MobileDashboard";
+import { getHomeLayout } from "@/lib/home-layouts";
+import { FocusPanel, MobileDashboard } from "@/components/evolution/MobileDashboard";
 import {
   WealthCard,
   NutritionCard,
@@ -45,6 +46,13 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { data } = useEvolutionData();
   useKeyboardShortcuts();
+  const layout = getHomeLayout(data.settings.homeLayout);
+  const cards = [
+    ["Calendar", CalendarCard], ["Nutrition", NutritionCard], ["Wealth", WealthCard], ["Fitness", FitnessCard],
+    ["Journal", JournalCard], ["Investing", InvestingCard], ["Business", BusinessCard], ["Hobby", HobbyCard],
+  ] as const;
+  const ordered = [...layout.first.flatMap(name => cards.filter(([key]) => key === name)),
+    ...cards.filter(([name]) => !layout.first.includes(name))];
 
   if (!data.profile.onboarded) {
     return <Onboarding />;
@@ -69,21 +77,15 @@ function Index() {
               <MonthSelector />
             </div>
 
-            <DashboardHologram />
-
+            {layout.lead === "hologram" && <DashboardHologram />}
+            {layout.lead === "timer" && <FocusPanel />}
+            {layout.lead === "week" && <WeekViewCard />}
+            {layout.id !== "command" && <style>{`@media(min-width:1100px){.dashboard-main .dashboard-card-grid{grid-template-columns:repeat(${layout.columns},minmax(0,1fr))}}`}</style>}
             <section className="dashboard-card-grid" aria-label="Dashboard overview">
-              <CalendarCard />
-              <NutritionCard />
-              <WealthCard />
-              <FitnessCard />
-
-              <JournalCard />
-              <InvestingCard />
-              <BusinessCard />
-              <HobbyCard />
+              {ordered.map(([name, Card]) => <Card key={name} />)}
             </section>
-
-            <WeekViewCard />
+            {layout.lead !== "week" && <WeekViewCard />}
+            {layout.lead !== "hologram" && <DashboardHologram />}
 
             <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
               Evolution · Growing today, building forever

@@ -76,6 +76,7 @@ export interface WorkflowAppearance {
 }
 
 export interface Settings {
+  homeLayout?: string;
   workflowAppearance?: WorkflowAppearance;
   customization?: AppearanceCustomization | null;
   cardStyle?: "jarvis" | "glass" | "tactical" | "classic" | "minimal-clean" | "tech-hud" | "armored-edge";

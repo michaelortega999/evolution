@@ -23,6 +23,8 @@ import { useEvolutionData } from "@/lib/evolution-data";
 import { hologramSrc } from "@/lib/holograms";
 import { formatMmSs, useFocusTimer } from "@/lib/use-focus-timer";
 
+import { getHomeLayout } from "@/lib/home-layouts";
+
 type ModuleNode = {
   label: string;
   to: "/wealth" | "/fitness" | "/nutrition" | "/focus" | "/investing" | "/business" | "/journal";
@@ -72,7 +74,7 @@ function LiveDateTime() {
   );
 }
 
-function FocusPanel() {
+export function FocusPanel() {
   const timer = useFocusTimer();
   return (
     <section className="live-hud-focus hud-card" aria-label="Focus timer">
@@ -99,6 +101,12 @@ function FocusPanel() {
 
 export function MobileDashboard() {
   const { data } = useEvolutionData();
+  const layout = getHomeLayout(data.settings.homeLayout);
+  const priority = layout.lead === "timer" ? ["Focus", ...layout.first] : layout.first;
+  const nodes = layout.id === "command" ? MODULES : [
+    ...priority.flatMap(label => MODULES.filter(node => node.label === label)),
+    ...MODULES.filter(node => !priority.includes(node.label)),
+  ];
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
@@ -118,12 +126,12 @@ export function MobileDashboard() {
         <button type="button" className="live-hud-core" onClick={scrollToTop} aria-label="Return to top">
           <img src={hologramSrc(data.profile?.hologram)} alt="" draggable={false} />
         </button>
-        {MODULES.map((m, i) => (
+        {nodes.map((m, i) => (
           <Link
             key={m.label}
             to={m.to}
             className="live-hud-node"
-            style={{ left: `${m.x}%`, top: `${m.y}%`, animationDelay: `${i * -1.4}s` }}
+            style={{ left: `${MODULES[i].x}%`, top: `${MODULES[i].y}%`, animationDelay: `${i * -1.4}s` }}
           >
             <span className="live-hud-node__ring" aria-hidden="true" />
             <m.icon aria-hidden="true" />
