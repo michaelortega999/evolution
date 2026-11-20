@@ -34,9 +34,8 @@ import {
 } from "@/lib/evolution-data";
 
 export const Route = createFileRoute("/goals")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    section: s.section === "planner" ? ("planner" as const) : ("goals" as const),
-  }),
+  validateSearch: (s: Record<string, unknown>): { section?: "planner" | "goals" } =>
+    s.section === "planner" ? { section: "planner" } : {},
   head: () => ({
     meta: [
       { title: "Goals — Evolution" },
