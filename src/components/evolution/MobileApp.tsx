@@ -247,6 +247,11 @@ export function MobileApp() {
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-background">
+      <nav aria-label="Product website" className="flex justify-end border-b border-primary/30 px-3">
+        <a href="/?section=access" className="inline-flex min-h-11 items-center text-sm text-primary">
+          Evolution OS website
+        </a>
+      </nav>
       <div className="relative min-h-0 flex-1">
         {ready ? (
           <iframe

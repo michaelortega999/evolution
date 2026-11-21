@@ -1,3 +1,4 @@
+import { ProductLanding } from "@/components/evolution/ProductLanding";
 import { AuthPanel } from "./auth";
 import { useState as useWFState, useEffect as useWFEffect } from "react";
 import type { CSSProperties as WFCSSProperties } from "react";
@@ -989,7 +990,9 @@ function RootComponent() {
   const isPhone = useIsPhone();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
-  const section = new URLSearchParams(searchStr).get("section");
+  const requestedSection = new URLSearchParams(searchStr).get("section");
+  const hash = useRouterState({ select: (s) => s.location.hash });
+  const section = requestedSection === "access" && /^#?access-/.test(hash) ? "account" : requestedSection;
   const [authState, setAuthState] = useState<"loading" | "signed-in" | "signed-out" | "error">("loading");
   useEffect(() => {
     let active = true;
@@ -1024,9 +1027,10 @@ function RootComponent() {
     };
   }, []);
   useEffect(() => {
-    if (pathname !== "/auth" && section !== "access" && authState === "signed-out") window.location.replace("/auth");
+    if (pathname !== "/auth" && section !== "access" && section !== "account" && authState === "signed-out") window.location.replace("/auth");
   }, [pathname, authState, section]);
-  if (section === "access" && pathname !== "/auth")
+  if (section === "access" && pathname !== "/auth") return <ProductLanding />;
+  if (section === "account" && pathname !== "/auth")
     return (
       <>
         <CustomerAccessPage authState={authState} />
@@ -2296,6 +2300,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             {signedIn ? "Open Home" : "Sign in"} <WFArrow size={16} />
           </a>
         </header>
+        <a href="/?section=access" className="access-button mb-6">Evolution OS website</a>
         <p className="hud-label text-primary text-xs tracking-widest mb-3">CUSTOMER ACCESS · PREVIEW</p>
         <h1 className="hud-label text-xl text-foreground mb-3">Your Evolution, all in one place</h1>
         <p className="text-sm text-muted-foreground mb-6">

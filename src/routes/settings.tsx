@@ -186,7 +186,7 @@ function SettingsPage() {
           </div>
           <div className="px-4 pt-3 text-right">
             <a href="/?section=access" className="text-sm text-primary underline underline-offset-4">
-              Account, purchase & website access
+              Evolution OS website
             </a>
           </div>
           <header className="es-toolbar">

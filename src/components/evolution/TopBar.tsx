@@ -23,6 +23,7 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
+        <a href="/?section=access" className="px-3 py-2 border border-border rounded-md text-primary hover:bg-primary/10 text-sm">Evolution OS website</a>
         <button
           onClick={() => { if (confirm("Reset all data and onboarding?")) reset(); }}
           className="flex items-center gap-2 px-3 py-2 border border-border rounded-md hover:bg-primary/10 text-primary hud-label text-[10px]"

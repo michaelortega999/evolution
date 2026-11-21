@@ -30,7 +30,7 @@ export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
   const accessReturn = useRef(embedded);
   const accessDestination = () =>
     embedded || accessReturn.current || new URLSearchParams(window.location.search).get("next") === "access"
-      ? "/?section=access#access-checkout"
+      ? "/?section=account#access-checkout"
       : "/";
   const finishSignIn = () => window.location.assign(accessDestination());
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -182,7 +182,7 @@ export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
       setConfirmation("");
       setCode("");
       setMode("signin");
-      if (accessReturn.current) window.location.assign("/?section=access#access-overview");
+      if (accessReturn.current) window.location.assign("/?section=account#access-overview");
       else window.history.replaceState(window.history.state, "", "/auth");
     } catch {
       if (live(id)) setRecoveryError("Could not close the recovery session. Please try again.");
