@@ -14,6 +14,7 @@ import {
   CUSTOMIZATION_PRESETS,
   customizationTokens,
   customizationBackground,
+  customizationCardTexture,
   normalizeCustomization,
   resolvedCustomPalette,
 } from "./use-theme";
@@ -59,6 +60,14 @@ describe("black canvas in every scheme", () => {
   it("every background mode ends on the black base", () => {
     for (const background of ["glass", "grid", "minimal", "gradient", "landscape"] as const)
       expect(customizationBackground({ ...CUSTOMIZATION_DEFAULTS, background }).endsWith(resolvePalette({ ...CUSTOMIZATION_DEFAULTS }).page)).toBe(true);
+  });
+  it("every background mode produces a visible card treatment", () => {
+    const textures = ["glass", "grid", "minimal", "gradient", "landscape"].map((background) =>
+      customizationCardTexture({ ...CUSTOMIZATION_DEFAULTS, background }).image,
+    );
+    expect(new Set(textures).size).toBe(5);
+    expect(textures[1]).toContain("var(--grid-line)");
+    expect(customizationTokens({ ...CUSTOMIZATION_DEFAULTS, background: "grid" })["--evo-card-texture-size"]).toContain("18px");
   });
 });
 

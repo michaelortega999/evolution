@@ -97,11 +97,40 @@ export function normalizeCustomization(value: unknown): AppearanceCustomization 
 export function customizationBackground(value: unknown): string {
   const v = normalizeCustomization(value);
   if (v.background === "grid")
-    return "linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px),#000000";
-  if (v.background === "glass") return "radial-gradient(ellipse at 85% 10%,#ffffff06,transparent 55%),#000000";
-  if (v.background === "gradient") return "linear-gradient(180deg,#ffffff05,transparent 60%),#000000";
-  // minimal and landscape: the black canvas has priority (mountain artwork is not painted on the page).
-  return "#000000";
+    return "linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--evo-accent) 10%,transparent),transparent 55%),#000000";
+  if (v.background === "glass")
+    return "radial-gradient(ellipse at 85% 10%,color-mix(in srgb,var(--evo-accent) 13%,transparent),transparent 50%),linear-gradient(125deg,#ffffff07,transparent 38%),#000000";
+  if (v.background === "gradient")
+    return "radial-gradient(ellipse at 90% 95%,color-mix(in srgb,var(--evo-accent) 22%,transparent),transparent 45%),linear-gradient(145deg,#000000 35%,color-mix(in srgb,var(--evo-accent) 10%,#000000) 52%,#000000 72%),#000000";
+  if (v.background === "landscape")
+    return "linear-gradient(145deg,transparent 0 52%,color-mix(in srgb,var(--evo-accent) 13%,#000000) 52.2% 63%,transparent 63.2%),linear-gradient(35deg,transparent 0 58%,color-mix(in srgb,var(--evo-accent) 9%,#000000) 58.2% 70%,transparent 70.2%),radial-gradient(ellipse at 50% 100%,color-mix(in srgb,var(--evo-accent) 10%,transparent),transparent 55%),#000000";
+  return "radial-gradient(ellipse at 50% 100%,#ffffff05,transparent 62%),#000000";
+}
+
+/** The selected background language is repeated inside cards without changing their geometry. */
+export function customizationCardTexture(value: unknown): { image: string; size: string } {
+  const v = normalizeCustomization(value);
+  if (v.background === "grid")
+    return {
+      image: "linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px),linear-gradient(135deg,var(--card-fill),var(--card-fill-2))",
+      size: "18px 18px,18px 18px,100% 100%",
+    };
+  if (v.background === "gradient")
+    return {
+      image: "radial-gradient(circle at 92% 100%,color-mix(in srgb,var(--card-accent) 24%,transparent),transparent 48%),linear-gradient(135deg,var(--card-fill),var(--card-fill-2))",
+      size: "100% 100%",
+    };
+  if (v.background === "glass")
+    return {
+      image: "linear-gradient(120deg,#ffffff10,transparent 30% 68%,#ffffff06),linear-gradient(135deg,var(--card-fill),var(--card-fill-2))",
+      size: "100% 100%",
+    };
+  if (v.background === "landscape")
+    return {
+      image: "linear-gradient(145deg,transparent 0 55%,color-mix(in srgb,var(--card-accent) 13%,transparent) 55.5% 68%,transparent 68.5%),linear-gradient(135deg,var(--card-fill),var(--card-fill-2))",
+      size: "100% 100%",
+    };
+  return { image: "linear-gradient(135deg,var(--card-fill),var(--card-fill-2))", size: "100% 100%" };
 }
 
 /** Both aliases are supported for the small inline preview and the app-wide theme. */
@@ -118,6 +147,7 @@ export function customizationTokens(value: unknown): Record<string, string> {
     .padStart(2, "0")}`;
   const blur = `${(v.blur * 0.24).toFixed(1)}px`;
   const image = customizationBackground(v);
+  const cardTexture = customizationCardTexture(v);
   return {
     "--evo-primary": p.accent,
     "--evo-secondary": text,
@@ -127,6 +157,8 @@ export function customizationTokens(value: unknown): Record<string, string> {
     "--evo-solid-surface": surface,
     "--evo-background-image": image,
     "--evo-background-size": v.background === "grid" ? "28px 28px,28px 28px,auto" : "cover",
+    "--evo-card-texture": cardTexture.image,
+    "--evo-card-texture-size": cardTexture.size,
     "--evo-glow": glow,
     "--evo-blur": blur,
     "--evo-border": p.line,
@@ -237,6 +269,8 @@ html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.tr
 html.evo-customized :is(.cw-shell,.f-shell,.media-dashboard,.media-workspace,.travel-os,.evo-workspace,.wf-app,[data-planning-calendar],[data-goals-planner]) :is(input,select,textarea){background:var(--card-fill-2)!important;border-color:var(--card-line)!important;color:var(--evo-text)!important}
 html.evo-customized [role=dialog]{background:var(--card-fill-2);border-color:var(--card-line);color:var(--evo-text)}
 html.evo-customized :is(.text-muted-foreground){color:var(--evo-muted)!important}
+/* Background Style is a real system-wide surface treatment, not only a page backdrop. */
+html.evo-customized[data-evo-background] :is(.hud-card,.evo-frame,.evo-surface,.evo-style-card,.st-card,.card-surface,.es-panel,.f-frame,.f-panel,.md-panel,.media-panel,.bo-panel,.bo-card,.travel-panel){background-color:var(--evo-card)!important;background-image:var(--evo-card-texture)!important;background-size:var(--evo-card-texture-size)!important;background-repeat:repeat!important}
 .evo-customized[data-evo-animations="false"] *,.evo-customized[data-evo-animations="false"] *::before,.evo-customized[data-evo-animations="false"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 @media(prefers-reduced-motion:reduce){.evo-customized *,.evo-customized *::before,.evo-customized *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 `;
