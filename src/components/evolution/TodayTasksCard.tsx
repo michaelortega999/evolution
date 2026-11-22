@@ -33,8 +33,8 @@ export function TodayTasksCard() {
           <ListChecks className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0">
-          <h3 className="hud-label text-sm text-primary hud-glow">Today&apos;s Tasks</h3>
-          <div className="hud-label text-[10px] text-muted-foreground">
+          <h3 className="hud-label text-base text-primary hud-glow">Today&apos;s Tasks</h3>
+          <div className="hud-label text-xs text-muted-foreground">
             {done}/{todayTasks.length} tasks completed · {todayEvents.length} scheduled
           </div>
         </div>
@@ -45,13 +45,13 @@ export function TodayTasksCard() {
           <p className="text-sm text-muted-foreground py-6">Nothing scheduled for today.</p>
         )}
         {todayEvents.map((event) => (
-          <div key={event.id} className="flex gap-2 text-xs border-b border-border/40 pb-2">
+          <div key={event.id} className="flex gap-2 text-sm border-b border-border/40 pb-2">
             <span className="text-primary tabular-nums shrink-0">{event.time || "All day"}</span>
             <span className="break-words min-w-0">{event.title}</span>
           </div>
         ))}
         {todayTasks.map((task) => (
-          <div key={task.id} className="flex gap-2 text-xs border-b border-border/40 pb-2">
+          <div key={task.id} className="flex gap-2 text-sm border-b border-border/40 pb-2">
             <span className="text-primary shrink-0">{task.status === "Done" ? "✓" : "○"}</span>
             <div className="min-w-0">
               <div
@@ -61,7 +61,7 @@ export function TodayTasksCard() {
               >
                 {task.text}
               </div>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {task.status} · {task.priority}
               </span>
             </div>

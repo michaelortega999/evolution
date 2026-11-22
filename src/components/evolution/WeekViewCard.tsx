@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Files, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Files } from "lucide-react";
 import { Panel } from "@/components/evolution/ModuleLayout";
 import { useEvolutionData, type CalendarEvent, type ReminderOffset } from "@/lib/evolution-data";
 import { FocusModeCard } from "@/components/evolution/FocusModeCard";
@@ -99,6 +99,8 @@ export function WeekViewCard() {
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("12:00");
   const [endTime, setEndTime] = useState("13:00");
+  const [slotDrag, setSlotDrag] = useState<{ date: string; start: number; current: number } | null>(null);
+  const draggedSlot = useRef(false);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekCursor, i)),
@@ -117,11 +119,11 @@ export function WeekViewCard() {
 
   const rangeLabel = `${days[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${days[6].toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 
-  function openForm(ds: string, startHM: string) {
+  function openForm(ds: string, startHM: string, endHM?: string) {
     setEditId(null);
     setFormDate(ds);
     setTime(startHM);
-    setEndTime(fmtHM(Math.min(23 * 60 + 59, parseHM(startHM) + 60)));
+    setEndTime(endHM ?? fmtHM(Math.min(23 * 60 + 59, parseHM(startHM) + 60)));
     setTitle("");
   }
 
@@ -186,10 +188,58 @@ export function WeekViewCard() {
     closeForm();
   }
 
+  function minutesAtPointer(event: ReactPointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const raw = ((event.clientY - rect.top) / rect.height) * 24 * 60;
+    return Math.max(0, Math.min(23 * 60 + 45, Math.round(raw / 15) * 15));
+  }
+
+  function startSlotDrag(event: ReactPointerEvent<HTMLDivElement>, date: string) {
+    if (event.button !== 0) return;
+    const minute = minutesAtPointer(event);
+    draggedSlot.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSlotDrag({ date, start: minute, current: minute });
+  }
+
+  function moveSlotDrag(event: ReactPointerEvent<HTMLDivElement>, date: string) {
+    if (!slotDrag || slotDrag.date !== date) return;
+    const minute = minutesAtPointer(event);
+    if (minute !== slotDrag.start) draggedSlot.current = true;
+    setSlotDrag((active) => active && active.date === date ? { ...active, current: minute } : active);
+  }
+
+  function endSlotDrag(event: ReactPointerEvent<HTMLDivElement>, date: string) {
+    if (!slotDrag || slotDrag.date !== date) return;
+    const endMinute = minutesAtPointer(event);
+    const start = Math.min(slotDrag.start, endMinute);
+    const finish = Math.max(slotDrag.start, endMinute) + (draggedSlot.current ? 15 : 60);
+    setSlotDrag(null);
+    openForm(date, fmtHM(start), fmtHM(Math.min(24 * 60 - 1, finish)));
+  }
+
 
   return (
     <div className="flex flex-col gap-3">
       <Panel title={`WEEK · ${rangeLabel.toUpperCase()}`}>
+        <div className={cn("grid gap-3", formDate && "lg:grid-cols-[230px_minmax(0,1fr)]")}>
+          {formDate && (
+            <aside className="self-start rounded-lg border border-primary/40 bg-primary/5 p-3 shadow-[inset_0_0_18px_color-mix(in_srgb,var(--primary)_10%,transparent)]">
+              <div className="hud-label text-[10px] text-primary">{editId ? "EDIT EVENT" : "NEW EVENT"}</div>
+              <p className="mt-1 text-sm text-foreground">{new Date(`${formDate}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</p>
+              <div className="mt-3 space-y-2">
+                <input aria-label="Event title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} autoFocus placeholder="Event title" className="w-full rounded border border-border bg-input px-3 py-2 text-sm text-foreground" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input aria-label="Start time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="min-w-0 rounded border border-border bg-input px-2 py-2 text-sm text-foreground" />
+                  <input aria-label="End time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="min-w-0 rounded border border-border bg-input px-2 py-2 text-sm text-foreground" />
+                </div>
+                <button onClick={saveEvent} className="w-full rounded border border-primary px-3 py-2 hud-label text-[10px] text-primary hover:bg-primary/10">{editId ? "Save changes" : "Add event"}</button>
+                {editId && <button onClick={deleteEvent} className="w-full rounded border border-destructive px-3 py-2 hud-label text-[10px] text-destructive hover:bg-destructive/10">Delete event</button>}
+                <button onClick={closeForm} className="w-full rounded border border-border px-3 py-2 hud-label text-[10px] text-muted-foreground hover:bg-muted/20">Cancel</button>
+              </div>
+            </aside>
+          )}
+          <div className="min-w-0">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => setWeekCursor(addDays(weekCursor, -7))}
@@ -279,17 +329,29 @@ export function WeekViewCard() {
               return (
                 <div
                   key={ds}
-                  className={cn("relative border-l border-border", isToday && "bg-primary/[0.03]")}
+                  className={cn("relative border-l border-border select-none", isToday && "bg-primary/[0.03]")}
+                  role="gridcell"
+                  aria-label={`Create event on ${ds}. Click for one hour or drag to set a duration.`}
+                  onPointerDown={(event) => startSlotDrag(event, ds)}
+                  onPointerMove={(event) => moveSlotDrag(event, ds)}
+                  onPointerUp={(event) => endSlotDrag(event, ds)}
                 >
                   {Array.from({ length: 24 }).map((_, h) => (
-                    <button
+                    <div
                       key={h}
-                      onClick={() => openForm(ds, `${String(h).padStart(2, "0")}:00`)}
-                      className="block w-full border-b border-border/40 hover:bg-primary/10 transition-colors"
+                      className="w-full border-b border-border/40 pointer-events-none"
                       style={{ height: HOUR_PX }}
-                      aria-label={`Add event ${ds} ${h}:00`}
                     />
                   ))}
+                  {slotDrag?.date === ds && (
+                    <div
+                      className="pointer-events-none absolute left-1 right-1 rounded border border-primary bg-primary/20"
+                      style={{
+                        top: (Math.min(slotDrag.start, slotDrag.current) / 60) * HOUR_PX,
+                        height: Math.max(24, ((Math.abs(slotDrag.current - slotDrag.start) + 15) / 60) * HOUR_PX),
+                      }}
+                    />
+                  )}
                   {dayEvents.map((e) => (
                     <EventBlock key={e.id} event={e} onSelect={() => openEdit(e)} onDuplicate={() => duplicateEvent(e)} />
                   ))}
@@ -323,6 +385,8 @@ export function WeekViewCard() {
             )}
           </div>
         </div>
+          </div>
+        </div>
       </Panel>
 
       <div className="grid gap-3 lg:grid-cols-3 items-start" aria-label="Week planning cards">
@@ -331,61 +395,6 @@ export function WeekViewCard() {
         <FocusModeCard />
       </div>
 
-      {formDate && (
-        <Panel title={`${editId ? "EDIT EVENT" : "ADD EVENT"} · ${formDate}`}>
-          <div className="flex flex-wrap gap-2 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <label className="hud-label text-[10px] text-muted-foreground">Title</label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-                autoFocus
-                className="w-full mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-            <div>
-              <label className="hud-label text-[10px] text-muted-foreground">Start</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-            <div>
-              <label className="hud-label text-[10px] text-muted-foreground">End</label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="mt-1 bg-input border border-border rounded px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-            <button
-              onClick={saveEvent}
-              className="px-4 py-2 border border-primary rounded hud-label text-[10px] text-primary hover:bg-primary/10"
-            >
-              {editId ? "Save" : "Add"}
-            </button>
-            {editId && (
-              <button
-                onClick={deleteEvent}
-                className="px-4 py-2 border border-destructive rounded hud-label text-[10px] text-destructive hover:bg-destructive/10 flex items-center gap-1.5"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete
-              </button>
-            )}
-            <button
-              onClick={closeForm}
-              className="px-4 py-2 border border-border rounded hud-label text-[10px] text-muted-foreground hover:bg-muted/20"
-            >
-              Cancel
-            </button>
-          </div>
-        </Panel>
-      )}
     </div>
   );
 }
