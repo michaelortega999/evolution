@@ -3659,6 +3659,18 @@ html[data-card-style]:not([data-card-style="glass"]):not([data-card-style="class
 .dashboard-card {
   min-width: 0;
 }
+.ring-home{position:relative;isolation:isolate;min-height:calc(100dvh - 48px);padding:18px;overflow:hidden;border:1px solid color-mix(in oklab,var(--primary) 40%,transparent);background:#02070d;box-shadow:inset 0 0 80px #008dcc18,0 0 28px #006fc322}
+.ring-home-reference{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.34;mix-blend-mode:screen;filter:saturate(1.15) contrast(1.12);pointer-events:none;z-index:-2}
+.ring-home:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 50% 52%,transparent 0 17%,#02070d22 38%,#02070dee 100%),linear-gradient(90deg,#02070dcc,transparent 18% 82%,#02070dcc)}
+.ring-home-grid{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"fitness wealth business" "nutrition core hobby" "investing journal calendar";gap:clamp(8px,1.2vw,20px);min-height:min(810px,calc(100dvh - 86px));align-items:center}
+.ring-home-slot{min-width:0;filter:drop-shadow(0 0 10px #009dff22)}
+.ring-home-slot .dashboard-card{height:100%;background:linear-gradient(145deg,#061624df,#02070ded);border-color:#2aaee080;backdrop-filter:blur(13px);box-shadow:inset 0 0 22px #0c96cf1a,0 0 13px #009dff20}
+.ring-home-slot .dashboard-card:hover{border-color:#7cdfff;box-shadow:inset 0 0 26px #1abbf033,0 0 20px #11bfff5e}
+.ring-fitness{grid-area:fitness}.ring-wealth{grid-area:wealth}.ring-business{grid-area:business}.ring-nutrition{grid-area:nutrition}.ring-hobby{grid-area:hobby}.ring-investing{grid-area:investing}.ring-journal{grid-area:journal}.ring-calendar{grid-area:calendar}
+.ring-home-core{grid-area:core;align-self:stretch;min-height:190px;position:relative;display:grid;place-content:center;text-align:center;color:#d8f5ff;text-decoration:none;overflow:hidden;border-radius:50%;border:1px solid #4bd8ff88;background:radial-gradient(circle,#0d4b7833 0 24%,#02101d88 47%,transparent 68%);box-shadow:inset 0 0 40px #00b7f433,0 0 28px #00a9ff5c}
+.ring-home-core:before,.ring-home-core:after{content:"";position:absolute;inset:10%;border:1px solid #31d9ff65;border-radius:50%;box-shadow:0 0 16px #00bbff55;animation:ringOrbit 12s linear infinite}.ring-home-core:after{inset:22%;animation-direction:reverse;animation-duration:7s}
+.ring-home-core img{position:relative;z-index:1;width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 18px #00c8ff);margin:auto}.ring-home-core strong{position:relative;z-index:1;text-transform:uppercase;font-family:Orbitron,sans-serif;letter-spacing:.22em;font-size:10px;margin-top:5px}.ring-home-core small{position:relative;z-index:1;color:#83c9df;font-size:8px;letter-spacing:.12em;margin-top:5px}.ring-home-core-orbit{position:absolute;inset:3%;width:auto;height:auto;color:#65dcff55;animation:ringOrbit 16s linear infinite}.ring-home-core-orbit svg{width:100%;height:100%}.ring-home-core-orbit--inner{inset:17%;color:#8eeaff88;animation-direction:reverse;animation-duration:8s}
+@keyframes ringOrbit{to{transform:rotate(360deg)}}
 .dashboard-actions {
   margin-top: 6px;
 }

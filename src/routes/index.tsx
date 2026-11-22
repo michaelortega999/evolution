@@ -4,6 +4,7 @@ import { AppBrandBar } from "@/components/evolution/AppBrandBar";
 import { TopBar } from "@/components/evolution/TopBar";
 import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
+import { HolographicRingDashboard } from "@/components/evolution/HolographicRingDashboard";
 import { getHomeLayout } from "@/lib/home-layouts";
 import { FocusPanel, MobileDashboard } from "@/components/evolution/MobileDashboard";
 import {
@@ -53,6 +54,11 @@ function Index() {
   ] as const;
   const ordered = [...layout.first.flatMap(name => cards.filter(([key]) => key === name)),
     ...cards.filter(([name]) => !layout.first.includes(name))];
+  const card = (name: (typeof cards)[number][0]) => {
+    const found = cards.find(([key]) => key === name);
+    const Card = found?.[1];
+    return Card ? <Card /> : null;
+  };
 
   if (!data.profile.onboarded) {
     return <Onboarding />;
@@ -68,24 +74,23 @@ function Index() {
           </div>
 
           <main className="dashboard-main flex flex-col gap-6 min-w-0">
-            <AppBrandBar />
-            <div className="dashboard-greeting">
-              <TopBar />
-            </div>
-
-            <div className="dashboard-months">
-              <MonthSelector />
-            </div>
-
-            {layout.lead === "hologram" && <DashboardHologram />}
-            {layout.lead === "timer" && <FocusPanel />}
-            {layout.lead === "week" && <WeekViewCard />}
-            {layout.id !== "command" && <style>{`@media(min-width:1100px){.dashboard-main .dashboard-card-grid{grid-template-columns:repeat(${layout.columns},minmax(0,1fr))}}`}</style>}
-            <section className="dashboard-card-grid" aria-label="Dashboard overview">
-              {ordered.map(([name, Card]) => <Card key={name} />)}
-            </section>
-            {layout.lead !== "week" && <WeekViewCard />}
-            {layout.lead !== "hologram" && <DashboardHologram />}
+            {layout.id === "ring" ? <HolographicRingDashboard cards={{
+              fitness: card("Fitness"), wealth: card("Wealth"), business: card("Business"), nutrition: card("Nutrition"),
+              investing: card("Investing"), journal: card("Journal"), calendar: card("Calendar"), hobby: card("Hobby"),
+            }} /> : <>
+              <AppBrandBar />
+              <div className="dashboard-greeting"><TopBar /></div>
+              <div className="dashboard-months"><MonthSelector /></div>
+              {layout.lead === "hologram" && <DashboardHologram />}
+              {layout.lead === "timer" && <FocusPanel />}
+              {layout.lead === "week" && <WeekViewCard />}
+              {layout.id !== "command" && <style>{`@media(min-width:1100px){.dashboard-main .dashboard-card-grid{grid-template-columns:repeat(${layout.columns},minmax(0,1fr))}}`}</style>}
+              <section className="dashboard-card-grid" aria-label="Dashboard overview">
+                {ordered.map(([name, Card]) => <Card key={name} />)}
+              </section>
+              {layout.lead !== "week" && <WeekViewCard />}
+              {layout.lead !== "hologram" && <DashboardHologram />}
+            </>}
 
             <footer className="text-center hud-label text-[10px] text-muted-foreground py-4">
               Evolution · Growing today, building forever

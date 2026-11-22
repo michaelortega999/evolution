@@ -4,6 +4,7 @@ import { getHomeLayout, homeLayouts, layoutFilters } from "@/lib/home-layouts";
 import { useCloudStatus, useEvolutionData } from "@/lib/evolution-data";
 import previews from "@/assets/layout-previews.webp";
 import commandCenterPreview from "@/assets/command-center-layout.jpeg";
+import holographicRingPreview from "@/assets/holographic-ring-layout.jpeg";
 
 export function HomeLayouts() {
   const { data, mutate } = useEvolutionData();
@@ -28,6 +29,8 @@ export function HomeLayouts() {
           <i>{selected.id === layout.id && <Check size={14}/>}</i></span>
         <span aria-hidden="true" className="layout-picture" style={layout.id === "command"
           ? { backgroundImage: `url(${commandCenterPreview})`, backgroundSize: "cover", backgroundPosition: "center" }
+          : layout.id === "ring"
+            ? { backgroundImage: `url(${holographicRingPreview})`, backgroundSize: "cover", backgroundPosition: "center" }
           : { backgroundImage: `url(${previews})`, backgroundPosition: `${(index % 4) * 100 / 3}% ${Math.floor(index / 4) * 100 / 3}%` }}/>
         <span className="layout-tags">{layout.tags}</span>
       </button>)}</div>
