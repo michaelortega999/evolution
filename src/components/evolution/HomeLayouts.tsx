@@ -3,6 +3,7 @@ import { Check, Layers } from "lucide-react";
 import { getHomeLayout, homeLayouts, layoutFilters } from "@/lib/home-layouts";
 import { useCloudStatus, useEvolutionData } from "@/lib/evolution-data";
 import previews from "@/assets/layout-previews.webp";
+import commandCenterPreview from "@/assets/command-center-layout.jpeg";
 
 export function HomeLayouts() {
   const { data, mutate } = useEvolutionData();
@@ -25,8 +26,9 @@ export function HomeLayouts() {
         onClick={() => mutate(current => ({settings: {...current.settings, homeLayout: layout.id}}))}>
         <span className="layout-name"><small>{String(index + 1).padStart(2, "0")}</small>{layout.name}
           <i>{selected.id === layout.id && <Check size={14}/>}</i></span>
-        <span aria-hidden="true" className="layout-picture" style={{backgroundImage: `url(${previews})`,
-          backgroundPosition: `${(index % 4) * 100 / 3}% ${Math.floor(index / 4) * 100 / 3}%`}}/>
+        <span aria-hidden="true" className="layout-picture" style={layout.id === "command"
+          ? { backgroundImage: `url(${commandCenterPreview})`, backgroundSize: "cover", backgroundPosition: "center" }
+          : { backgroundImage: `url(${previews})`, backgroundPosition: `${(index % 4) * 100 / 3}% ${Math.floor(index / 4) * 100 / 3}%` }}/>
         <span className="layout-tags">{layout.tags}</span>
       </button>)}</div>
   </section>;
