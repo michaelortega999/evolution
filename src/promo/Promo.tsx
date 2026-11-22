@@ -2369,12 +2369,9 @@ const EvolutionPage = (() => {
                                     ? jsx(Fragment, {
                                         children: jsx("span", {
                                           style: {
-                                            background: resolveAssets(
-                                              "linear-gradient(120deg, oklch(0.82 0.14 205), oklch(0.78 0.14 172))",
-                                            ),
-                                             WebkitBackgroundClip: resolveAssets("text"),
-                                            backgroundClip: resolveAssets("text"),
-                                            color: resolveAssets("transparent"),
+                                            color: resolveAssets("#ffffff"),
+                                            fontSize: resolveAssets("0.44em"),
+                                            verticalAlign: resolveAssets("middle"),
                                           },
                                           children: "v1.0",
                                         }),
@@ -2382,11 +2379,11 @@ const EvolutionPage = (() => {
                                     : solidHeadline
                                       ? jsx(Fragment, {
                                           children: jsx("span", {
-                                            style: { color: resolveAssets("oklch(0.82 0.14 205)") },
+                                            style: { color: resolveAssets("#ffffff"), fontSize: resolveAssets("0.44em"), verticalAlign: resolveAssets("middle") },
                                             children: "v1.0",
                                           }),
                                         })
-                                      : "v1.0",
+                                      : jsx("span", { style: { color: resolveAssets("#ffffff"), fontSize: resolveAssets("0.44em"), verticalAlign: resolveAssets("middle") }, children: "v1.0" }),
                                 ],
                               }),
                               jsx("p", {
@@ -2422,18 +2419,6 @@ const EvolutionPage = (() => {
                                         children: "The system for your best self.",
                                       }),
                               }),
-                              jsx("p", {
-                                style: {
-                                  marginTop: resolveAssets("25px"),
-                                  maxWidth: resolveAssets("400px"),
-                                  fontSize: resolveAssets("15px"),
-                                  lineHeight: resolveAssets("1.85"),
-                                  color: resolveAssets("oklch(0.72 0.018 225)"),
-                                  textWrap: resolveAssets("pretty"),
-                                },
-                                children:
-                                  "One system for the life you\u2019re building. Capture your ideas, focus on the work, and keep what matters in view.",
-                              }),
                               jsx("div", {
                                 style: {
                                   display: resolveAssets("grid"),
@@ -2453,14 +2438,14 @@ const EvolutionPage = (() => {
                                             style: {
                                               display: resolveAssets("block"),
                                               color: resolveAssets("oklch(0.82 0.14 205)"),
-                                              height: resolveAssets("21px"),
+                                              height: resolveAssets("30px"),
                                             },
                                             children: p2.icon,
                                           }),
                                           jsx("h2", {
                                             style: {
                                               fontFamily: resolveAssets("'JetBrains Mono',monospace"),
-                                              fontSize: resolveAssets("12px"),
+                                              fontSize: resolveAssets("16px"),
                                               fontWeight: resolveAssets("500"),
                                               textTransform: resolveAssets("uppercase"),
                                               marginTop: resolveAssets("12px"),
@@ -2470,7 +2455,7 @@ const EvolutionPage = (() => {
                                           }),
                                           jsx("p", {
                                             style: {
-                                              fontSize: resolveAssets("12px"),
+                                              fontSize: resolveAssets("14px"),
                                               lineHeight: resolveAssets("1.7"),
                                               color: resolveAssets("oklch(0.72 0.018 225)"),
                                               marginTop: resolveAssets("7px"),
@@ -2493,7 +2478,7 @@ const EvolutionPage = (() => {
                                 },
                                 children: [
                                   jsxs("a", {
-                                    href: resolveAssets("#walkthrough"),
+                                    href: resolveAssets("/?section=account#access-checkout"),
                                     style: {
                                       display: resolveAssets("inline-flex"),
                                       alignItems: resolveAssets("center"),
@@ -2512,22 +2497,11 @@ const EvolutionPage = (() => {
                                     },
                                     className: "ported-hover-17",
                                     children: [
-                                      "Explore Evolution OS ",
-                                      jsxs("svg", {
-                                        width: "16",
-                                        height: "16",
-                                        viewBox: "0 0 24 24",
-                                        fill: "none",
-                                        stroke: "currentColor",
-                                        strokeWidth: "2",
-                                        strokeLinecap: "round",
-                                        strokeLinejoin: "round",
-                                        children: [jsx("path", { d: "M5 12h14" }), jsx("path", { d: "m12 5 7 7-7 7" })],
-                                      }),
+                                      "Sign Up",
                                     ],
                                   }),
                                   jsx("a", {
-                                    href: resolveAssets("#system"),
+                                    href: resolveAssets("#walkthrough"),
                                     style: {
                                       display: resolveAssets("inline-flex"),
                                       alignItems: resolveAssets("center"),
@@ -2546,7 +2520,7 @@ const EvolutionPage = (() => {
                                       ),
                                     },
                                     className: "ported-hover-18",
-                                    children: "Discover the modules",
+                                    children: ["Explore Evolution OS ", jsx("span", { "aria-hidden": "true", children: "→" })],
                                   }),
                                 ],
                               }),
