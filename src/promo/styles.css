@@ -675,3 +675,41 @@ button {
 
 
 .product-return{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:12px;padding:12px 24px;background:#050a10;border-bottom:1px solid #254351;font:14px system-ui,sans-serif}.product-return a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;color:#a8e4f0;border:1px solid #357b91;border-radius:6px;text-decoration:none}.product-return a:focus-visible{outline:2px solid #a8e4f0;outline-offset:3px}
+
+/* Promo readability pass: the exported screens used 8–13px labels too often.
+   Keep display type intact while bringing supporting copy up to legible sizes. */
+#root [style*="font-size: 8px"],
+#root [style*="font-size: 9px"],
+#root [style*="font-size: 10px"],
+#root [style*="font-size: 11px"] { font-size: 13px !important; }
+#root [style*="font-size: 12px"] { font-size: 14px !important; }
+#root [style*="font-size: 13px"] { font-size: 15px !important; }
+#root [style*="font-size: clamp(8px"] { font-size: clamp(11px, .9vw, 15px) !important; }
+
+/* The product tour is stylesheet-led rather than inline. */
+.evo-tour-kicker,
+.evo-tour-evidence,
+.evo-tour-nav a span,
+.evo-tour-shot-bar > span,
+.evo-tour-enlarge,
+.evo-tour-shot figcaption p,
+.evo-tour-diagram-card ol,
+.evo-tour-diagram-note,
+.evo-tour-status,
+.evo-ai-disclaimer,
+.evo-ai-persona span,
+.evo-ai-typing,
+.evo-ai-review-pill,
+.evo-ai-card-top span,
+.evo-ai-card small,
+.af-label,
+.af-kicker,
+.af-flow li,
+.af-body h5,
+.af-table th,
+.af-timeline b,
+.af-tags span,
+.af-notes span,
+.af-caption,
+.promo-footer-columns h2,
+.promo-footer-bottom p { font-size: 13px; }
