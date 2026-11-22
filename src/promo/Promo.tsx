@@ -2349,10 +2349,7 @@ const EvolutionPage = (() => {
                                   textWrap: resolveAssets("balance"),
                                 },
                                 children: [
-                                  "The system",
-                                  jsx("br", {}),
-                                  " for your",
-                                  jsx("br", {}),
+                                  "Evolution OS ",
                                   gradientHeadline
                                     ? jsx(Fragment, {
                                         children: jsx("span", {
@@ -2364,19 +2361,51 @@ const EvolutionPage = (() => {
                                             backgroundClip: resolveAssets("text"),
                                             color: resolveAssets("transparent"),
                                           },
-                                          children: "best self.",
+                                          children: "v1.0",
                                         }),
                                       })
-                                    : null,
-                                  solidHeadline
-                                    ? jsx(Fragment, {
-                                        children: jsx("span", {
-                                          style: { color: resolveAssets("oklch(0.82 0.14 205)") },
-                                          children: "best self.",
-                                        }),
-                                      })
-                                    : null,
+                                    : solidHeadline
+                                      ? jsx(Fragment, {
+                                          children: jsx("span", {
+                                            style: { color: resolveAssets("oklch(0.82 0.14 205)") },
+                                            children: "v1.0",
+                                          }),
+                                        })
+                                      : "v1.0",
                                 ],
+                              }),
+                              jsx("p", {
+                                style: {
+                                  fontFamily: resolveAssets("'Space Grotesk',sans-serif"),
+                                  fontSize: resolveAssets("clamp(19px,2.3vw,32px)"),
+                                  fontWeight: resolveAssets("600"),
+                                  lineHeight: resolveAssets("1.3"),
+                                  marginTop: resolveAssets("12px"),
+                                  textWrap: resolveAssets("balance"),
+                                },
+                                children: gradientHeadline
+                                  ? jsx("span", {
+                                      style: {
+                                        background: resolveAssets(
+                                          "linear-gradient(120deg, oklch(0.82 0.14 205), oklch(0.78 0.14 172))",
+                                        ),
+                                        WebkitBackgroundClip: resolveAssets("text"),
+                                        backgroundClip: resolveAssets("text"),
+                                        color: resolveAssets("transparent"),
+                                      },
+                                      children: "The system for your best self.",
+                                    })
+                                  : solidHeadline
+                                    ? jsx("span", {
+                                        style: { color: resolveAssets("oklch(0.82 0.14 205)") },
+                                        children: "The system for your best self.",
+                                      })
+                                    : jsx("span", {
+                                        style: {
+                                          color: resolveAssets("oklch(0.88 0.02 210)"),
+                                        },
+                                        children: "The system for your best self.",
+                                      }),
                               }),
                               jsx("p", {
                                 style: {
