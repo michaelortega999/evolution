@@ -2349,7 +2349,22 @@ const EvolutionPage = (() => {
                                   textWrap: resolveAssets("balance"),
                                 },
                                 children: [
-                                  "Evolution OS ",
+                                  gradientHeadline
+                                    ? jsx("span", {
+                                        style: {
+                                          background: resolveAssets(
+                                            "linear-gradient(120deg, oklch(0.82 0.14 205), oklch(0.78 0.14 172))",
+                                          ),
+                                          WebkitBackgroundClip: resolveAssets("text"),
+                                          backgroundClip: resolveAssets("text"),
+                                          color: resolveAssets("transparent"),
+                                        },
+                                        children: "Evolution OS ",
+                                      })
+                                    : jsx("span", {
+                                        style: { color: resolveAssets("oklch(0.82 0.14 205)") },
+                                        children: "Evolution OS ",
+                                      }),
                                   gradientHeadline
                                     ? jsx(Fragment, {
                                         children: jsx("span", {
@@ -2357,7 +2372,7 @@ const EvolutionPage = (() => {
                                             background: resolveAssets(
                                               "linear-gradient(120deg, oklch(0.82 0.14 205), oklch(0.78 0.14 172))",
                                             ),
-                                            WebkitBackgroundClip: resolveAssets("text"),
+                                             WebkitBackgroundClip: resolveAssets("text"),
                                             backgroundClip: resolveAssets("text"),
                                             color: resolveAssets("transparent"),
                                           },
