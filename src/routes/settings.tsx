@@ -42,7 +42,6 @@ import {
   customizationStyle,
   CUSTOMIZATION_CSS,
 } from "@/lib/use-theme";
-import customizeMountain from "@/assets/calendar-mountain.jpg";
 import { cn, localISO, CARD_STYLES, normalizeCardStyle } from "@/lib/utils";
 import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel";
 
@@ -169,7 +168,7 @@ function SettingsPage() {
     "notifications reminders alerts",
     "card appearance customize design",
     "focus timer short long break durations rounds",
-    "customize theme colors primary secondary preset background glass grid minimal gradient mountain glow blur animations dark live preview",
+    "customize theme colors primary secondary preset background glass grid minimal gradient glow blur animations dark live preview",
   ].some(matches);
   return (
     <div className={`es-shell ${view === "customize" ? "es-customize-view" : ""}`}>
@@ -249,7 +248,7 @@ function SettingsPage() {
           <div className="es-grid" style={view === "customize" && !query ? { display: "block", width: "100%" } : undefined}>
             {(view === "customize" || !!query) &&
               matches(
-                "customize theme colors primary secondary preset background glass grid minimal gradient mountain glow blur animations dark live preview",
+                "customize theme colors primary secondary preset background glass grid minimal gradient glow blur animations dark live preview",
               ) && <CustomizeWorkspace />}
             {(view === "profile" || !!query) && matches("profile overview name edit member") && (
               <GlassPanel title="Profile Overview" className="es-profile">
@@ -674,7 +673,7 @@ function CustomizeWorkspace() {
     mutate(p => ({ settings: { ...p.settings, customization: { ...effectiveCustomization(p.settings), ...patch } } }));
   };
   const backgrounds = [
-    ["landscape", "Mountain"], ["grid", "Tech Grid"], ["gradient", "Gradient"], ["glass", "Glass"], ["minimal", "Minimal"],
+    ["grid", "Tech Grid"], ["gradient", "Gradient"], ["glass", "Glass"], ["minimal", "Minimal"],
   ] as const;
   const status = disabled ? "Loading preferences…" : cloud === "saving" ? "Saving…" : cloud === "error"
     ? "Saved on device · sync unavailable" : cloud === "signed-out" ? "Saved on device" : "All changes saved";
@@ -716,7 +715,7 @@ function CustomizeWorkspace() {
           <section className="eo-panel eo-preview">
             <h3><Globe size={21} />Live Preview</h3>
             <div className="eo-preview-content" data-evo-background={appearance.background} style={customizationStyle(appearance)}>
-              <div className="eo-preview-hero" style={{ backgroundImage: `linear-gradient(90deg,#00101eec,transparent),url(${customizeMountain})` }}>
+              <div className="eo-preview-hero" style={{ backgroundImage: `linear-gradient(90deg,#00101eec,transparent),radial-gradient(ellipse at 84% 12%,color-mix(in srgb,var(--evo-primary) 30%,transparent),transparent 62%)` }}>
                 <div><span>Welcome Back,</span><strong>{data.profile.name || "Your workspace"}</strong><small>Discipline Drives Growth.</small></div>
                 <BrandMark compact />
               </div>
@@ -754,7 +753,7 @@ function CustomizeWorkspace() {
         <div className="eo-choices eo-backgrounds">
           {backgrounds.map(([id, label]) => <button type="button" key={id} disabled={disabled}
             aria-pressed={appearance.background === id} onClick={() => update({ background: id })}>
-            <span className={`eo-bg-art eo-bg-${id}`} style={id === "landscape" ? { backgroundImage: `url(${customizeMountain})` } : undefined} />
+            <span className={`eo-bg-art eo-bg-${id}`} />
             <span>{label}</span>{appearance.background === id && <Check size={17} className="eo-check" />}
           </button>)}
         </div>
@@ -811,9 +810,9 @@ const referenceCustomizeCss = `
 .eo-preview-content{padding:9px;border-radius:12px;background:var(--evo-background-image);background-size:var(--evo-background-size);border:1px solid color-mix(in srgb,var(--evo-primary) 32%,transparent)}
 .eo-preview-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:9px}.eo-preview-card{--evo-corner-size:24px;--evo-cut:8px;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 8px;border:1px solid var(--card-line);background-color:var(--evo-card)!important;background-image:var(--evo-card-texture)!important;background-size:var(--evo-card-texture-size)!important;background-repeat:repeat!important;box-shadow:var(--evo-glow);backdrop-filter:blur(var(--evo-blur));color:var(--evo-secondary);font-size:10px;min-height:68px}.eo-preview-card svg{color:var(--evo-primary);width:16px}.eo-preview-card> :not(.eo-preview-meter){position:relative;z-index:3}.eo-preview-meter{position:relative;z-index:3;width:100%;height:5px;border-radius:3px;background:#153d54;margin-top:5px;overflow:hidden}.eo-preview-meter i{display:block;width:70%;height:100%;background:var(--evo-primary)}.eo-preview-caption{display:block;margin-top:8px;color:#81aabd;font-size:9px}
 .eo-color-row{display:grid;grid-template-columns:115px minmax(0,1fr);gap:12px;align-items:center;margin-top:10px;font-size:12px}.eo-color-bar{display:flex;height:32px;border:1px solid #63b8d8;border-radius:8px;overflow:hidden}.eo-color-bar button{flex:1;min-width:0;border:0;box-shadow:inset 0 0 10px #0005}.eo-color-bar button[aria-pressed=true]{outline:2px solid white;outline-offset:-3px}.eo-custom-color{position:relative;width:42px;flex:none;border:2px solid #a6eeff;border-radius:6px;box-shadow:0 0 8px #00bfff;overflow:hidden}.eo-custom-color input{position:absolute;inset:0;width:100%;height:100%;opacity:.01;cursor:pointer}
-.eo-background-panel{margin-top:14px}.eo-backgrounds{grid-template-columns:repeat(5,minmax(0,1fr))}.eo-backgrounds button{padding:0 0 11px;font-size:13px}.eo-bg-art{width:100%;height:128px;display:block;background:#02101e;background-size:cover;background-position:center}.eo-bg-grid{background-image:linear-gradient(#18adff55 1px,transparent 1px),linear-gradient(90deg,#18adff55 1px,transparent 1px);background-size:22px 22px}.eo-bg-gradient{background:radial-gradient(ellipse at 90% 90%,#00c4ff,transparent 40%),linear-gradient(150deg,#010811 40%,#054e84 50%,#010811 65%)}.eo-bg-glass{background:linear-gradient(135deg,#08314c88,#05111f 60%),repeating-linear-gradient(45deg,#0c6a9e 0 1px,#010a14 2px 16px)}.eo-bg-minimal{background:radial-gradient(ellipse at 50% 100%,#12344c,#01060c 70%)}
+.eo-background-panel{margin-top:14px}.eo-backgrounds{grid-template-columns:repeat(4,minmax(0,1fr))}.eo-backgrounds button{padding:0 0 11px;font-size:13px}.eo-bg-art{width:100%;height:128px;display:block;background:#02101e;background-size:cover;background-position:center}.eo-bg-grid{background-image:linear-gradient(#18adff55 1px,transparent 1px),linear-gradient(90deg,#18adff55 1px,transparent 1px);background-size:22px 22px}.eo-bg-gradient{background:radial-gradient(ellipse at 90% 90%,#00c4ff,transparent 40%),linear-gradient(150deg,#010811 40%,#054e84 50%,#010811 65%)}.eo-bg-glass{background:linear-gradient(135deg,#08314c88,#05111f 60%),repeating-linear-gradient(45deg,#0c6a9e 0 1px,#010a14 2px 16px)}.eo-bg-minimal{background:radial-gradient(ellipse at 50% 100%,#12344c,#01060c 70%)}
 @media(max-width:1100px){.eo-heading{align-items:flex-start;flex-direction:column}.eo-tabs{width:100%}.eo-preview-cards{gap:6px}.eo-preview-card{padding:10px 5px;font-size:9px}.eo-themes button>span:last-of-type{font-size:8px}.eo-color-row{grid-template-columns:95px minmax(0,1fr);font-size:11px}}
-@media(max-width:820px){.eo-columns{grid-template-columns:1fr}.eo-heading h2{font-size:26px}.eo-panel{padding:14px}.eo-themes button{min-height:105px}.eo-backgrounds{grid-template-columns:repeat(3,minmax(0,1fr))}.eo-bg-art{height:105px}}
+@media(max-width:820px){.eo-columns{grid-template-columns:1fr}.eo-heading h2{font-size:26px}.eo-panel{padding:14px}.eo-themes button{min-height:105px}.eo-backgrounds{grid-template-columns:repeat(2,minmax(0,1fr))}.eo-bg-art{height:105px}}
 @media(max-width:480px){.eo-themes,.eo-surfaces{grid-template-columns:repeat(3,minmax(0,1fr))}.eo-corners{grid-template-columns:repeat(4,minmax(0,1fr))}.eo-backgrounds{grid-template-columns:repeat(2,minmax(0,1fr))}.eo-tabs button{padding:10px 14px}.eo-color-row{grid-template-columns:90px minmax(0,1fr);gap:5px}.eo-preview-hero strong{font-size:17px}.eo-preview-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 `;
 

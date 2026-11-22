@@ -58,16 +58,22 @@ describe("black canvas in every scheme", () => {
     expect(luminance(p.accent)).toBeGreaterThan(0.3);
   });
   it("every background mode ends on the black base", () => {
-    for (const background of ["glass", "grid", "minimal", "gradient", "landscape"] as const)
+    for (const background of ["glass", "grid", "minimal", "gradient"] as const)
       expect(customizationBackground({ ...CUSTOMIZATION_DEFAULTS, background }).endsWith(resolvePalette({ ...CUSTOMIZATION_DEFAULTS }).page)).toBe(true);
   });
   it("every background mode produces a visible card treatment", () => {
-    const textures = ["glass", "grid", "minimal", "gradient", "landscape"].map((background) =>
+    const textures = ["glass", "grid", "minimal", "gradient"].map((background) =>
       customizationCardTexture({ ...CUSTOMIZATION_DEFAULTS, background }).image,
     );
-    expect(new Set(textures).size).toBe(5);
+    expect(new Set(textures).size).toBe(4);
     expect(textures[1]).toContain("var(--grid-line)");
     expect(customizationTokens({ ...CUSTOMIZATION_DEFAULTS, background: "grid" })["--evo-card-texture-size"]).toContain("18px");
+  });
+  it("the removed Mountain background falls back to the default surface", () => {
+    const stored = { ...CUSTOMIZATION_DEFAULTS, background: "landscape" };
+    expect(normalizeCustomization(stored).background).toBe(CUSTOMIZATION_DEFAULTS.background);
+    expect(customizationBackground(stored)).toBe(customizationBackground(CUSTOMIZATION_DEFAULTS));
+    expect(customizationCardTexture(stored).image).toBe(customizationCardTexture(CUSTOMIZATION_DEFAULTS).image);
   });
 });
 
@@ -188,7 +194,7 @@ const ALL_SEEDS = [
 ];
 
 describe("universal black canvas", () => {
-  const modes = ["glass", "grid", "minimal", "gradient", "landscape"] as const;
+  const modes = ["glass", "grid", "minimal", "gradient"] as const;
   it("page token and every background mode are pure black with only neutral grey texture", () => {
     for (const seed of ALL_SEEDS)
       for (const background of modes) {

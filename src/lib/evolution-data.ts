@@ -59,7 +59,7 @@ export type ThemeKey = "default" | "gold" | "orange" | "green" | "red" | "purple
 export interface AppearanceCustomization {
   primary: string;
   secondary: string;
-  background: "glass" | "grid" | "minimal" | "gradient" | "landscape";
+  background: "glass" | "grid" | "minimal" | "gradient";
   glass: number;
   glow: number;
   blur: number;

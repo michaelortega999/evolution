@@ -73,7 +73,7 @@ export const BLACK_NEON_PRESET = {
   },
   cardStyle: "classic",
 } as const;
-const backgrounds = ["glass", "grid", "minimal", "gradient", "landscape"] as const;
+const backgrounds = ["glass", "grid", "minimal", "gradient"] as const;
 const safeHex = (value: unknown, fallback: string) =>
   typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : fallback;
 const percent = (value: unknown, fallback: number) =>
@@ -102,8 +102,6 @@ export function customizationBackground(value: unknown): string {
     return "radial-gradient(ellipse at 85% 10%,color-mix(in srgb,var(--evo-accent) 13%,transparent),transparent 50%),linear-gradient(125deg,#ffffff07,transparent 38%),#000000";
   if (v.background === "gradient")
     return "radial-gradient(ellipse at 90% 95%,color-mix(in srgb,var(--evo-accent) 22%,transparent),transparent 45%),linear-gradient(145deg,#000000 35%,color-mix(in srgb,var(--evo-accent) 10%,#000000) 52%,#000000 72%),#000000";
-  if (v.background === "landscape")
-    return "linear-gradient(145deg,transparent 0 52%,color-mix(in srgb,var(--evo-accent) 13%,#000000) 52.2% 63%,transparent 63.2%),linear-gradient(35deg,transparent 0 58%,color-mix(in srgb,var(--evo-accent) 9%,#000000) 58.2% 70%,transparent 70.2%),radial-gradient(ellipse at 50% 100%,color-mix(in srgb,var(--evo-accent) 10%,transparent),transparent 55%),#000000";
   return "radial-gradient(ellipse at 50% 100%,#ffffff05,transparent 62%),#000000";
 }
 
@@ -123,11 +121,6 @@ export function customizationCardTexture(value: unknown): { image: string; size:
   if (v.background === "glass")
     return {
       image: "linear-gradient(120deg,#ffffff10,transparent 30% 68%,#ffffff06),linear-gradient(135deg,var(--card-fill),var(--card-fill-2))",
-      size: "100% 100%",
-    };
-  if (v.background === "landscape")
-    return {
-      image: "linear-gradient(145deg,transparent 0 55%,color-mix(in srgb,var(--card-accent) 13%,transparent) 55.5% 68%,transparent 68.5%),linear-gradient(135deg,var(--card-fill),var(--card-fill-2))",
       size: "100% 100%",
     };
   return { image: "linear-gradient(135deg,var(--card-fill),var(--card-fill-2))", size: "100% 100%" };
