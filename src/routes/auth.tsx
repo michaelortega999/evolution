@@ -25,15 +25,15 @@ function AuthPage() {
   return <AuthPanel />;
 }
 
-export function AuthPanel({ embedded = false }: { embedded?: boolean }) {
+export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedded?: boolean; initialMode?: "signin" | "signup" }) {
   const navigate = useNavigate();
   const accessReturn = useRef(embedded);
   const accessDestination = () =>
     embedded || accessReturn.current || new URLSearchParams(window.location.search).get("next") === "access"
-      ? "/?section=account#access-checkout"
+      ? "/?section=account"
       : "/";
   const finishSignIn = () => window.location.assign(accessDestination());
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [recovery, setRecovery] = useState<"request" | "sent" | "reset" | "done" | null>(null);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [code, setCode] = useState("");

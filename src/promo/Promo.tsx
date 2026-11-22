@@ -2478,7 +2478,7 @@ const EvolutionPage = (() => {
                                 },
                                 children: [
                                   jsxs("a", {
-                                    href: resolveAssets("/?section=account#access-checkout"),
+                                    href: resolveAssets("/?section=account"),
                                     style: {
                                       display: resolveAssets("inline-flex"),
                                       alignItems: resolveAssets("center"),
