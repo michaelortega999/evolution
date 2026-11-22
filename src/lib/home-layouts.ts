@@ -8,10 +8,9 @@ function preset(id: string, name: string, category: Category, tags: string, lead
 
 export const homeLayouts = [
   preset("command", "Command Center", "Productivity", "Immersive · Modular · Control Hub", "hologram", ["Calendar", "Nutrition"], 4),
-  preset("focus", "Focus Dashboard", "Focused", "Productivity · Timer · Minimal", "timer", ["Calendar", "Journal"], 3),
+  preset("ring", "Holographic Ring", "Cinematic", "Orbital · Dynamic · Visual", "hologram", ["Fitness", "Wealth", "Business"], 3),
   preset("core", "Evolution Core", "Cinematic", "Centered · Balanced · Insight", "hologram", ["Fitness", "Wealth"], 3),
   preset("executive", "Executive Layout", "Data", "Business · Strategy · High-Level", "modules", ["Business", "Wealth", "Investing"], 3),
-  preset("ring", "Holographic Ring", "Cinematic", "Orbital · Dynamic · Visual", "hologram", ["Investing", "Business"], 4),
   preset("minimal", "Minimal Focus", "Minimal", "Clean · Distraction-Free · Efficient", "timer", ["Journal", "Calendar"], 2),
   preset("growth", "Growth Dashboard", "Productivity", "Goals · Progress · All-in-One", "week", ["Fitness", "Nutrition", "Wealth"], 3),
   preset("grid", "Grid Overview", "Data", "Structured · Data-Focused · Organized", "modules", ["Wealth", "Investing", "Business"], 4),
