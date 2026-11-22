@@ -666,6 +666,7 @@ function CustomizeWorkspace() {
   const cloud = useCloudStatus();
   const disabled = cloud === "loading";
   const appearance = effectiveCustomization(data.settings);
+  const previewCardStyle = normalizeCardStyle(data.settings.cardStyle);
   const { tab = "appearance" } = Route.useSearch();
   const navigate = Route.useNavigate();
   const show = (...tabs: CustomizeTab[]) => tab === "appearance" || tabs.includes(tab);
@@ -722,7 +723,11 @@ function CustomizeWorkspace() {
               </div>
               <div className="eo-preview-cards">
                 {["Fitness", "Nutrition", "Wealth", "Investing", "Plan", "Journal", "Goals", "Reports"].map((label, i) =>
-                  <div className={`eo-preview-card card-surface card-style-${normalizeCardStyle(data.settings.cardStyle)}`} key={label}>
+                  <div
+                    className={`eo-preview-card eo-card-design-frame card-surface card-style-${previewCardStyle}`}
+                    data-preview-card-style={previewCardStyle}
+                    key={`${previewCardStyle}-${label}`}
+                  >
                     {i % 3 === 0 ? <Layers size={20} /> : i % 3 === 1 ? <Timer size={20} /> : <Sparkles size={20} />}
                     <span>{label}</span><div className="eo-preview-meter"><i /></div>
                   </div>)}
@@ -809,7 +814,8 @@ const referenceCustomizeCss = `
 .eo-corner-sample{width:75%;height:32px;display:block;border:1px solid #99dfff;background:#092335}.eo-corner-0{clip-path:polygon(15% 0,100% 0,100% 85%,85% 100%,0 100%,0 15%)}.eo-corner-1{border-radius:15px}.eo-corner-2{clip-path:polygon(18% 0,100% 0,100% 82%,82% 100%,0 100%,0 18%)}.eo-corner-3{border-radius:2px}.eo-corner-4{clip-path:polygon(10% 0,90% 0,100% 15%,100% 85%,90% 100%,10% 100%,0 85%,0 15%)}.eo-corner-5{border-style:dashed}.eo-corner-6{border-width:3px;border-radius:4px}
 .eo-preview-hero{height:103px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--evo-primary);border-radius:11px;padding:14px;overflow:hidden;gap:10px}.eo-preview-hero>div:first-child{min-width:0}.eo-preview-hero span{font-size:12px}.eo-preview-hero strong{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}.eo-preview-hero small{display:block;font-size:9px;color:#a9d5e8}.eo-preview-hero> :last-child{max-width:42%}
 .eo-preview-content{padding:9px;border-radius:12px;background:var(--evo-background-image);background-size:var(--evo-background-size);border:1px solid color-mix(in srgb,var(--evo-primary) 32%,transparent)}
-.eo-preview-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:9px}.eo-preview-card{--evo-corner-size:24px;--evo-cut:8px;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 8px;border:1px solid var(--card-line);background-color:var(--evo-card)!important;background-image:var(--evo-card-texture)!important;background-size:var(--evo-card-texture-size)!important;background-repeat:repeat!important;box-shadow:var(--evo-glow);backdrop-filter:blur(var(--evo-blur));color:var(--evo-secondary);font-size:10px;min-height:68px}.eo-preview-card svg{color:var(--evo-primary);width:16px}.eo-preview-card> :not(.eo-preview-meter){position:relative;z-index:3}.eo-preview-meter{position:relative;z-index:3;width:100%;height:5px;border-radius:3px;background:#153d54;margin-top:5px;overflow:hidden}.eo-preview-meter i{display:block;width:70%;height:100%;background:var(--evo-primary)}.eo-preview-caption{display:block;margin-top:8px;color:#81aabd;font-size:9px}
+.eo-card-design-frame,.eo-original-cards .appearance-preview{--evo-corner-size:24px;--evo-cut:8px;--evo-rail-width:8px}
+.eo-preview-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:9px}.eo-preview-card{min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 8px;border:1px solid var(--card-line);background-color:var(--evo-card)!important;background-image:var(--evo-card-texture)!important;background-size:var(--evo-card-texture-size)!important;background-repeat:repeat!important;box-shadow:var(--evo-glow);backdrop-filter:blur(var(--evo-blur));color:var(--evo-secondary);font-size:10px;min-height:68px}.eo-preview-card svg{color:var(--evo-primary);width:16px}.eo-preview-card> :not(.eo-preview-meter){position:relative;z-index:3}.eo-preview-meter{position:relative;z-index:3;width:100%;height:5px;border-radius:3px;background:#153d54;margin-top:5px;overflow:hidden}.eo-preview-meter i{display:block;width:70%;height:100%;background:var(--evo-primary)}.eo-preview-caption{display:block;margin-top:8px;color:#81aabd;font-size:9px}
 .eo-color-row{display:grid;grid-template-columns:115px minmax(0,1fr);gap:12px;align-items:center;margin-top:10px;font-size:12px}.eo-color-bar{display:flex;height:32px;border:1px solid #63b8d8;border-radius:8px;overflow:hidden}.eo-color-bar button{flex:1;min-width:0;border:0;box-shadow:inset 0 0 10px #0005}.eo-color-bar button[aria-pressed=true]{outline:2px solid white;outline-offset:-3px}.eo-custom-color{position:relative;width:42px;flex:none;border:2px solid #a6eeff;border-radius:6px;box-shadow:0 0 8px #00bfff;overflow:hidden}.eo-custom-color input{position:absolute;inset:0;width:100%;height:100%;opacity:.01;cursor:pointer}
 .eo-background-panel{margin-top:14px}.eo-backgrounds{grid-template-columns:repeat(5,minmax(0,1fr))}.eo-backgrounds button{padding:0 0 11px;font-size:13px}.eo-bg-art{width:100%;height:128px;display:block;background:#02101e;background-size:cover;background-position:center}.eo-bg-grid{background-image:linear-gradient(#18adff55 1px,transparent 1px),linear-gradient(90deg,#18adff55 1px,transparent 1px);background-size:22px 22px}.eo-bg-gradient{background:radial-gradient(ellipse at 90% 90%,#00c4ff,transparent 40%),linear-gradient(150deg,#010811 40%,#054e84 50%,#010811 65%)}.eo-bg-glass{background:linear-gradient(135deg,#08314c88,#05111f 60%),repeating-linear-gradient(45deg,#0c6a9e 0 1px,#010a14 2px 16px)}.eo-bg-minimal{background:radial-gradient(ellipse at 50% 100%,#12344c,#01060c 70%)}
 @media(max-width:1100px){.eo-heading{align-items:flex-start;flex-direction:column}.eo-tabs{width:100%}.eo-preview-cards{gap:6px}.eo-preview-card{padding:10px 5px;font-size:9px}.eo-themes button>span:last-of-type{font-size:8px}.eo-color-row{grid-template-columns:95px minmax(0,1fr);font-size:11px}}
@@ -852,7 +858,7 @@ function CardAppearance({ embedded = false }: { embedded?: boolean } = {}) {
             className={`appearance-choice ${selected === style.id ? "is-selected" : ""}`}
             onClick={() => mutate((p) => ({ settings: { ...p.settings, cardStyle: style.id } }))}
           >
-            <div className={`appearance-preview card-surface card-style-${style.id}`} aria-hidden="true">
+            <div className={`appearance-preview eo-card-design-frame card-surface card-style-${style.id}`} aria-hidden="true">
               <div className="appearance-preview-title">
                 <Sparkles size={22} />
                 <span>
