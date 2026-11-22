@@ -985,6 +985,51 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+type LegalDocument = "privacy" | "terms" | "cookies";
+const LEGAL_DOCUMENTS: Record<LegalDocument, { title: string; intro: string; sections: { heading: string; body: string }[] }> = {
+  privacy: {
+    title: "Privacy Policy",
+    intro: "Effective November 22, 2026. This policy explains how Evolution Co handles information when you use Evolution OS.",
+    sections: [
+      { heading: "Information we handle", body: "We handle account details such as name and email, the information you choose to add to your workspace, and technical information needed to operate and secure the service." },
+      { heading: "How information is used", body: "We use information to provide the workspace, keep accounts separate, support sign-in and password recovery, respond to support requests, and protect the service." },
+      { heading: "Payments", body: "Subscription checkout and recurring billing are handled by Stripe. Evolution Co does not receive or store your full card or bank details from Stripe checkout." },
+      { heading: "Storage and sharing", body: "Workspace data may be stored in your browser and in Evolution OS cloud storage when you are signed in. We share information with service providers only as needed to operate the product, including authentication, hosting, and payment processing." },
+      { heading: "Your choices", body: "You can update information in your workspace, sign out, request account support, or ask questions about this policy through the Evolution OS account and access page." },
+      { heading: "Changes", body: "We may update this policy as the product changes. The effective date above will show when it was last updated." },
+    ],
+  },
+  terms: {
+    title: "Terms of Service",
+    intro: "Effective November 22, 2026. These terms govern your use of Evolution OS, a personal organization workspace offered by Evolution Co.",
+    sections: [
+      { heading: "Your account", body: "Keep your sign-in credentials private and provide accurate account information. You are responsible for activity under your account." },
+      { heading: "Subscriptions and billing", body: "Evolution OS is offered as a recurring monthly subscription through Stripe. The current advertised total is $14.99 per month, tax included. Stripe manages payment processing and subscription billing. You may cancel future renewals through the Stripe subscription tools made available to you." },
+      { heading: "Product access", body: "A Stripe payment is not by itself a guarantee that access has been provisioned. Evolution Co currently confirms paid access separately while automated subscription verification is being completed." },
+      { heading: "Acceptable use", body: "Do not misuse the service, interfere with its operation, attempt unauthorized access, or use it to violate applicable law or another person’s rights." },
+      { heading: "Service changes", body: "Evolution OS is evolving. We may change, improve, suspend, or discontinue features while working to provide reasonable notice when practical." },
+      { heading: "Disclaimers", body: "Evolution OS is an organizational tool. It does not provide medical, legal, tax, financial, trading, or investment advice." },
+      { heading: "Questions", body: "For questions about these terms, use the Evolution OS account and access page." },
+    ],
+  },
+  cookies: {
+    title: "Cookie & Local Storage Policy",
+    intro: "Effective November 22, 2026. This policy explains the browser storage Evolution OS uses to keep the product working.",
+    sections: [
+      { heading: "Essential storage", body: "Evolution OS uses browser storage and authentication data to keep you signed in when you choose, remember workspace preferences, keep your local changes available, and protect account separation." },
+      { heading: "Cloud sync", body: "When you sign in, Evolution OS may sync workspace information to its cloud data service so it can be available across your devices." },
+      { heading: "Payments", body: "Stripe may set its own cookies or similar technologies when you open Stripe checkout or manage billing. Stripe’s privacy and cookie notices apply to those services." },
+      { heading: "Managing storage", body: "You can clear browser storage through your browser settings. Clearing it may sign you out or remove locally stored workspace preferences. Essential storage is required for the signed-in product to function." },
+      { heading: "Updates", body: "We will update this page if our browser storage practices materially change." },
+    ],
+  },
+};
+
+function LegalPage({ document }: { document: LegalDocument }) {
+  const legal = LEGAL_DOCUMENTS[document];
+  return <main className="min-h-screen bg-[#020711] text-white px-5 py-10 sm:px-8"><article className="mx-auto max-w-3xl"><a href="/?section=access" className="text-sm text-cyan-300 hover:underline">Evolution OS</a><p className="mt-10 text-xs uppercase tracking-[.24em] text-cyan-300">Evolution Co · Legal</p><h1 className="mt-3 text-4xl font-semibold">{legal.title}</h1><p className="mt-5 text-lg leading-relaxed text-slate-300">{legal.intro}</p><div className="mt-10 space-y-8">{legal.sections.map((section) => <section key={section.heading}><h2 className="text-xl font-semibold">{section.heading}</h2><p className="mt-2 leading-7 text-slate-300">{section.body}</p></section>)}</div><nav className="mt-12 flex flex-wrap gap-5 border-t border-white/10 pt-6 text-sm text-cyan-300"><a href="/?section=privacy">Privacy Policy</a><a href="/?section=terms">Terms of Service</a><a href="/?section=cookies">Cookie Policy</a></nav></article></main>;
+}
+
 function RootComponent() {
   useTheme();
   const isPhone = useIsPhone();
@@ -1027,7 +1072,7 @@ function RootComponent() {
     };
   }, []);
   useEffect(() => {
-    if (pathname !== "/auth" && section !== "access" && section !== "account" && authState === "signed-out") window.location.replace("/auth");
+    if (pathname !== "/auth" && section !== "access" && section !== "account" && section !== "privacy" && section !== "terms" && section !== "cookies" && authState === "signed-out") window.location.replace("/auth");
   }, [pathname, authState, section]);
   if (section === "access" && pathname !== "/auth") return <ProductLanding />;
   if (section === "account" && pathname !== "/auth")
@@ -1037,6 +1082,7 @@ function RootComponent() {
         <Toaster theme="dark" position="top-right" />
       </>
     );
+  if ((section === "privacy" || section === "terms" || section === "cookies") && pathname !== "/auth") return <LegalPage document={section} />;
   // Gate before all mobile and assistant branches. This UI gate supplements, never replaces, server RLS.
   if (pathname === "/auth")
     return (
