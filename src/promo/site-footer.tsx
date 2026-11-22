@@ -66,5 +66,13 @@ export const promoFooterGroups = [
       },
     ],
   },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/?section=privacy" },
+      { label: "Terms of Service", href: "/?section=terms" },
+      { label: "Cookie Policy", href: "/?section=cookies" },
+    ],
+  },
 ];
 
