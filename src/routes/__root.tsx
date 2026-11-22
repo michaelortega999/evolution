@@ -2271,7 +2271,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
         <div className="mb-8 max-w-2xl">
           <p className="text-sm uppercase tracking-[.22em] text-cyan-300 mb-3">Evolution OS · Sign up</p>
           <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-4">Your account, one clear start.</h1>
-          <p className="text-lg text-slate-300 leading-relaxed">Create your account here. Secure payment will follow through Stripe when checkout is connected.</p>
+          <p className="text-lg text-slate-300 leading-relaxed">Create your account, then subscribe securely through Stripe for $14.99 per month, tax included.</p>
         </div>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(300px,.85fr)] items-start">
           <section id="access-overview" className="access-card rounded-2xl p-5 sm:p-8" aria-labelledby="signup-heading">
@@ -2279,7 +2279,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             <h2 id="signup-heading" className="text-2xl font-semibold mb-5">{signedIn ? "You're signed in" : "Create your account"}</h2>
             {signedIn ? (
               <div role="status" className="space-y-5">
-                <p className="text-base text-slate-300">Your account is ready. Checkout is not available yet, and creating an account does not start a subscription.</p>
+                <p className="text-base text-slate-300">Your account is ready. Use the same email at checkout so we can match your subscription. Creating an account alone does not start a subscription.</p>
                 <a className="access-button" href="/">Open Home</a>
               </div>
             ) : authState === "signed-out" ? (
@@ -2295,15 +2295,19 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
             <p className="text-sm text-cyan-300 mb-2">PAYMENT</p>
             <h2 id="payment-heading" className="text-2xl font-semibold mb-5">Evolution OS</h2>
             <dl className="space-y-4 text-base">
-              <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-slate-300">Plan</dt><dd>Subscription</dd></div>
-              <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-slate-300">Price</dt><dd>Not configured</dd></div>
+              <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-slate-300">Plan</dt><dd>Monthly subscription</dd></div>
+              <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-slate-300">Total</dt><dd>$14.99 / month, tax included</dd></div>
             </dl>
             <div className="mt-6 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4" role="status">
-              <p className="font-semibold">Stripe checkout is being connected</p>
-              <p className="text-sm text-slate-300 mt-2 leading-relaxed">No payment can be made on this page yet. Once ready, your card or eligible bank payment details will be entered securely in Stripe checkout.</p>
+              <p className="font-semibold">Secure checkout through Stripe</p>
+              <p className="text-sm text-slate-300 mt-2 leading-relaxed">Payment details are entered on Stripe, never on this page. Use the same email as your Evolution account. Paid access is confirmed separately while automatic billing verification is being connected.</p>
             </div>
-            <button disabled className="access-button w-full mt-5 opacity-50 cursor-not-allowed">Continue to secure payment · unavailable</button>
-            <p className="text-sm text-slate-400 mt-5 leading-relaxed">Your business payout bank is managed privately in your Stripe account. Customers are never asked for that bank information here.</p>
+            {signedIn ? (
+              <a className="access-button w-full mt-5" href="https://buy.stripe.com/4gMdR9aOqa1k5zM1VW5AQ00">Subscribe for $14.99 / month</a>
+            ) : (
+              <p className="mt-5 text-sm text-cyan-200">Create or sign in to your account to continue to payment.</p>
+            )}
+            <p className="text-sm text-slate-400 mt-5 leading-relaxed">Recurring monthly billing. Payment does not automatically change your account access yet; your purchase is confirmed separately.</p>
           </section>
         </div>
       </div>
