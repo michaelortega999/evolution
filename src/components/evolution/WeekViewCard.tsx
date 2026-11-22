@@ -222,9 +222,9 @@ export function WeekViewCard() {
   return (
     <div className="flex flex-col gap-3">
       <Panel title={`WEEK · ${rangeLabel.toUpperCase()}`}>
-        <div className={cn("grid gap-3", formDate && "lg:grid-cols-[230px_minmax(0,1fr)]")}>
+        <div className={cn("grid gap-3", formDate && "lg:grid-cols-[minmax(0,1fr)_230px]")}>
           {formDate && (
-            <aside className="self-start rounded-lg border border-primary/40 bg-primary/5 p-3 shadow-[inset_0_0_18px_color-mix(in_srgb,var(--primary)_10%,transparent)]">
+            <aside className="self-start rounded-lg border border-primary/40 bg-primary/5 p-3 shadow-[inset_0_0_18px_color-mix(in_srgb,var(--primary)_10%,transparent)] lg:order-2">
               <div className="hud-label text-[10px] text-primary">{editId ? "EDIT EVENT" : "NEW EVENT"}</div>
               <p className="mt-1 text-sm text-foreground">{new Date(`${formDate}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</p>
               <div className="mt-3 space-y-2">
@@ -239,7 +239,7 @@ export function WeekViewCard() {
               </div>
             </aside>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 lg:order-1">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => setWeekCursor(addDays(weekCursor, -7))}
