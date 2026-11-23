@@ -2284,11 +2284,16 @@ const EvolutionPage = (() => {
                 }),
               }),
               jsxs("main", {
+                style: {
+                  display: resolveAssets("flex"),
+                  flexDirection: resolveAssets("column"),
+                },
                 children: [
                   jsxs("section", {
                     id: "top",
                     "data-screen-label": "Hero",
                     style: {
+                      order: resolveAssets("-2"),
                       position: resolveAssets("relative"),
                       isolation: resolveAssets("isolate"),
                       paddingTop: resolveAssets("80px"),
@@ -2872,6 +2877,7 @@ const EvolutionPage = (() => {
                     id: "system",
                     "data-screen-label": "Modules",
                     style: {
+                      order: resolveAssets("-1"),
                       borderTop: resolveAssets("1px solid oklch(0.35 0.019 230 / 0.52)"),
                       padding: resolveAssets("88px 0"),
                       scrollMarginTop: resolveAssets("96px"),
