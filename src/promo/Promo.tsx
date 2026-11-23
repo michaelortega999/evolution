@@ -2246,7 +2246,8 @@ const EvolutionPage = (() => {
                       ),
                     }),
                     jsxs("a", {
-                      href: resolveAssets("#walkthrough"),
+                      href: resolveAssets("/?section=account"),
+                      target: "_top",
                       style: {
                         display: resolveAssets("inline-flex"),
                         alignItems: resolveAssets("center"),
@@ -2265,7 +2266,7 @@ const EvolutionPage = (() => {
                       },
                       className: "lp-cta ported-hover-16",
                       children: [
-                        "Explore the OS ",
+                        "Open Evolution OS ",
                         jsxs("svg", {
                           width: "14",
                           height: "14",
