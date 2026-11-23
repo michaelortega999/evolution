@@ -32,6 +32,3 @@ dist-ssr
 *.sw?
 
 # Generated from src/promo by build:promo
-/public/evolution-promo/index.html
-/public/evolution-promo/promo.js
-/public/evolution-promo/promo.css
