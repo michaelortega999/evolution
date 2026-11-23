@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import React from "react";
-import { EvolutionVisualTour } from "./dashboard-preview";
 import { promoSalesCopy, promoFooterGroups } from "./site-footer";
 import { claudePromoAssets as ASSETS } from "./content";
 // Original owner-supplied Extremis artwork; embedded unchanged for a durable preview asset.
@@ -1765,7 +1764,6 @@ const EvolutionPage = (() => {
   const NAV = [
     ["features", "Philosophy"],
     ["system", "The system"],
-    ["walkthrough", "Product tour"],
     ["mobile", "Mobile previews"],
     ["workflow", "Deep work"],
     ["access", "Access"],
@@ -2507,7 +2505,7 @@ const EvolutionPage = (() => {
                                     ],
                                   }),
                                   jsx("a", {
-                                    href: resolveAssets("#walkthrough"),
+                                    href: resolveAssets("#system"),
                                     style: {
                                       display: resolveAssets("inline-flex"),
                                       alignItems: resolveAssets("center"),
@@ -3161,7 +3159,7 @@ const EvolutionPage = (() => {
                                       children: active.prompt,
                                     }),
                                     jsxs("a", {
-                                      href: resolveAssets("#walkthrough"),
+                                      href: resolveAssets("#system"),
                                       style: {
                                         display: resolveAssets("inline-flex"),
                                         alignItems: resolveAssets("center"),
@@ -3199,7 +3197,6 @@ const EvolutionPage = (() => {
                       ],
                     }),
                   }),
-                  jsx(EvolutionVisualTour, {}),
                   jsx("section", {
                     id: "mobile",
                     "data-screen-label": "Mobile previews",
@@ -4211,7 +4208,7 @@ const EvolutionPage = (() => {
                               ],
                             }),
                             jsxs("a", {
-                              href: resolveAssets("#walkthrough"),
+                              href: resolveAssets("#system"),
                               style: {
                                 display: resolveAssets("inline-flex"),
                                 alignItems: resolveAssets("center"),
