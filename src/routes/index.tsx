@@ -54,11 +54,6 @@ function Index() {
   ] as const;
   const ordered = [...layout.first.flatMap(name => cards.filter(([key]) => key === name)),
     ...cards.filter(([name]) => !layout.first.includes(name))];
-  const card = (name: (typeof cards)[number][0]) => {
-    const found = cards.find(([key]) => key === name);
-    const Card = found?.[1];
-    return Card ? <Card /> : null;
-  };
 
   if (!data.profile.onboarded) {
     return <Onboarding />;
@@ -74,10 +69,7 @@ function Index() {
           </div>
 
           <main className="dashboard-main flex flex-col gap-6 min-w-0">
-            {layout.id === "ring" ? <HolographicRingDashboard cards={{
-              fitness: card("Fitness"), wealth: card("Wealth"), business: card("Business"), nutrition: card("Nutrition"),
-              investing: card("Investing"), journal: card("Journal"), calendar: card("Calendar"), hobby: card("Hobby"),
-            }} /> : <>
+            {layout.id === "ring" ? <HolographicRingDashboard /> : <>
               <AppBrandBar />
               <div className="dashboard-greeting"><TopBar /></div>
               <div className="dashboard-months"><MonthSelector /></div>
