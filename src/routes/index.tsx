@@ -5,6 +5,7 @@ import { TopBar } from "@/components/evolution/TopBar";
 import { Onboarding } from "@/components/evolution/Onboarding";
 import { DashboardHologram } from "@/components/evolution/DashboardHologram";
 import { HolographicRingDashboard } from "@/components/evolution/HolographicRingDashboard";
+import { DesignedHomeLayout } from "@/components/evolution/DesignedHomeLayout";
 import { getHomeLayout } from "@/lib/home-layouts";
 import { FocusPanel, MobileDashboard } from "@/components/evolution/MobileDashboard";
 import {
@@ -54,6 +55,7 @@ function Index() {
   ] as const;
   const ordered = [...layout.first.flatMap(name => cards.filter(([key]) => key === name)),
     ...cards.filter(([name]) => !layout.first.includes(name))];
+  const designed = ["core", "executive", "minimal", "growth", "grid", "workflow"].includes(layout.id);
 
   if (!data.profile.onboarded) {
     return <Onboarding />;
@@ -63,13 +65,13 @@ function Index() {
     <>
       <MobileDashboard />
       <div className="dashboard-desktop hidden md:block min-h-screen p-4 md:p-6">
-        <div className="dashboard-shell mx-auto max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
-          <div className="dashboard-sidebar hidden lg:block lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
+        <div className={`dashboard-shell mx-auto max-w-[1600px] grid grid-cols-1 gap-6 ${designed ? "" : "lg:grid-cols-[240px_1fr]"}`}>
+          {!designed && <div className="dashboard-sidebar hidden lg:block lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
             <Sidebar />
-          </div>
+          </div>}
 
           <main className="dashboard-main flex flex-col gap-6 min-w-0">
-            {layout.id === "ring" ? <HolographicRingDashboard /> : <>
+            {layout.id === "ring" ? <HolographicRingDashboard /> : designed ? <DesignedHomeLayout variant={layout.id as "core" | "executive" | "minimal" | "growth" | "grid" | "workflow"} /> : <>
               <AppBrandBar />
               <div className="dashboard-greeting"><TopBar /></div>
               <div className="dashboard-months"><MonthSelector /></div>
