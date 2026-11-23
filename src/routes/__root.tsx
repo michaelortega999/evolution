@@ -2271,6 +2271,7 @@ const EVO_WORKSPACE_CSS = `.evo-workspace{--evo-blue:#70c8ff;--evo-line:#254e77;
 // No client URL, profile field, or account creation grants a paid entitlement.
 function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" | "signed-out" | "error" }) {
   const compactBrand = useIsPhone();
+  const stripeButtonMount = useRef<HTMLDivElement>(null);
   const [identity, setIdentity] = useState<string | null>(null);
   const [identityError, setIdentityError] = useState(false);
   const [generation, setGeneration] = useState(0);
@@ -2306,6 +2307,31 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
     };
   }, []);
   const signedIn = authState === "signed-in" && !!identity;
+  useEffect(() => {
+    if (!signedIn || !stripeButtonMount.current) return;
+    const mountButton = () => {
+      const mount = stripeButtonMount.current;
+      if (!mount) return;
+      mount.replaceChildren();
+      const button = document.createElement("stripe-buy-button");
+      button.setAttribute("buy-button-id", "buy_btn_1UelXqDVkczpjVbKYth3VUii");
+      button.setAttribute("publishable-key", "pk_live_51UW7PtDVkczpjVbKdpP1VrNHN2AjM93QerwD6bpO8DSjHd6zH33g7k7BxpzGXrJUJB6Vi2uUJJEJSL8kpcsCxY8D00nCdWfMYa");
+      mount.append(button);
+    };
+    const existing = document.getElementById("stripe-buy-button-js") as HTMLScriptElement | null;
+    if (existing) {
+      if (customElements.get("stripe-buy-button")) mountButton();
+      else existing.addEventListener("load", mountButton, { once: true });
+      return () => existing.removeEventListener("load", mountButton);
+    }
+    const script = document.createElement("script");
+    script.id = "stripe-buy-button-js";
+    script.async = true;
+    script.src = "https://js.stripe.com/v3/buy-button.js";
+    script.addEventListener("load", mountButton, { once: true });
+    document.head.append(script);
+    return () => script.removeEventListener("load", mountButton);
+  }, [signedIn]);
   return (
     <main className="access-page min-h-screen bg-[#020711] text-white px-4 py-6 sm:px-8 sm:py-10" data-customer-access>
       <style>{`.access-page{background:radial-gradient(ellipse at 76% 0%,rgba(0,116,186,.16),transparent 48%),#020711}.access-page .access-card{background:linear-gradient(145deg,rgba(18,36,52,.88),rgba(5,13,25,.96));border:1px solid rgba(85,182,225,.24);box-shadow:0 20px 70px rgba(0,0,0,.34)}.access-page .access-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid rgba(85,182,225,.35);background:rgba(49,134,180,.12);font-weight:600}.access-page :focus-visible{outline:2px solid #70d8ff;outline-offset:3px}`}</style>
@@ -2349,7 +2375,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
               <p className="text-sm text-slate-300 mt-2 leading-relaxed">Payment details are entered on Stripe, never on this page. Use the same email as your Evolution account. Paid access is confirmed separately while automatic billing verification is being connected.</p>
             </div>
             {signedIn ? (
-              <a className="access-button w-full mt-5" href="https://buy.stripe.com/4gMdR9aOqa1k5zM1VW5AQ00">Subscribe for $14.99 / month</a>
+              <div className="mt-5 min-h-12" ref={stripeButtonMount} aria-label="Subscribe securely with Stripe" />
             ) : (
               <p className="mt-5 text-sm text-cyan-200">Create or sign in to your account to continue to payment.</p>
             )}
