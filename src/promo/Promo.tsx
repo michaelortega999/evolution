@@ -2171,7 +2171,7 @@ const EvolutionPage = (() => {
                     alignItems: resolveAssets("center"),
                     flexWrap: resolveAssets("wrap"),
                     gap: resolveAssets("0 30px"),
-                    minHeight: resolveAssets("80px"),
+                    minHeight: resolveAssets("112px"),
                   },
                   children: [
                     jsxs("a", {
@@ -2180,10 +2180,10 @@ const EvolutionPage = (() => {
                       style: {
                         display: resolveAssets("inline-flex"),
                         alignItems: resolveAssets("center"),
-                        gap: resolveAssets("12px"),
+                        gap: resolveAssets("18px"),
                         fontFamily: resolveAssets("'Space Grotesk',sans-serif"),
                         fontWeight: resolveAssets("700"),
-                        fontSize: resolveAssets("17px"),
+                        fontSize: resolveAssets("28px"),
                         color: resolveAssets("oklch(0.965 0.006 220)"),
                         flexShrink: resolveAssets("0"),
                       },
@@ -2192,8 +2192,8 @@ const EvolutionPage = (() => {
                           src: asset("assets/bonsai-logo.png"),
                           alt: "Evolution OS bonsai logo",
                           style: {
-                            width: resolveAssets("38px"),
-                            height: resolveAssets("34px"),
+                            width: resolveAssets("68px"),
+                            height: resolveAssets("62px"),
                             objectFit: resolveAssets("contain"),
                           },
                         }),
