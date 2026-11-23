@@ -1543,15 +1543,14 @@ export function investingSummary(rows: InvestingEntry[]) {
   return { data, current, change, pct };
 }
 
-export const LIABILITY_CATEGORIES = new Set(["Rent", "Mortgage", "Car Payment", "Insurance", "Loan", "Credit Card"]);
-
 export function wealthSummary(data: { assets: Asset[]; transactions: Transaction[] }) {
   const assetsTotal = data.assets.reduce((s, a) => s + a.value, 0);
   const income = data.transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expenses = data.transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-  const liabilities = data.transactions
-    .filter((t) => t.type === "expense" && LIABILITY_CATEGORIES.has(t.category))
-    .reduce((s, t) => s + t.amount, 0);
+  // Keep Wealth intentionally simple: every manually recorded expense is money owed/spent.
+  // This keeps Total Liabilities, Cash Balance, Net Worth, charts, and Recent Transactions
+  // driven by the same ledger instead of a separate bank-import state.
+  const liabilities = expenses;
   const cash = income - expenses;
   const netWorth = assetsTotal + income - expenses;
 
