@@ -65,7 +65,10 @@ function Index() {
     <>
       <MobileDashboard />
       <div className="dashboard-desktop hidden md:block min-h-screen p-4 md:p-6">
-        <div className={`dashboard-shell mx-auto max-w-[1600px] grid grid-cols-1 gap-6 ${designed ? "" : "lg:grid-cols-[240px_1fr]"}`}>
+        <div
+          className={`dashboard-shell mx-auto w-full max-w-[1600px] grid grid-cols-1 gap-6 ${designed ? "dashboard-shell--designed" : "lg:grid-cols-[240px_1fr]"}`}
+          style={designed ? { gridTemplateColumns: "minmax(0, 1fr)" } : undefined}
+        >
           {!designed && <div className="dashboard-sidebar hidden lg:block lg:sticky lg:top-6 lg:self-start lg:h-[calc(100vh-3rem)]">
             <Sidebar />
           </div>}
