@@ -1764,7 +1764,6 @@ const EvolutionPage = (() => {
   const NAV = [
     ["features", "Philosophy"],
     ["system", "The system"],
-    ["mobile", "Mobile previews"],
     ["workflow", "Deep work"],
     ["access", "Access"],
     ["faq", "FAQ"],
@@ -1807,6 +1806,8 @@ const EvolutionPage = (() => {
       detail: "A dedicated place to bring your financial picture into focus.",
       topics: ["Net worth", "Assets", "Financial goals"],
       prompt: "What are you building toward?",
+      image: "public/showcase/wealth-demo.png",
+      imageAlt: "Evolution OS Wealth dashboard with net worth, asset allocation, and recent transactions",
     },
     {
       name: "Nutrition",
@@ -1815,6 +1816,8 @@ const EvolutionPage = (() => {
       detail: "Keep the day's nutrition in one view, with a fresh start at midnight.",
       topics: ["Daily calories", "Macros", "Meals"],
       prompt: "What does today look like?",
+      image: "assets/mobile-home.jpeg",
+      imageAlt: "Evolution OS daily mobile dashboard showing the seven life systems",
     },
     {
       name: "Fitness",
@@ -1823,6 +1826,8 @@ const EvolutionPage = (() => {
       detail: "Bring your training sessions and personal records into the same picture.",
       topics: ["Workouts", "Personal records", "Weekly sessions"],
       prompt: "What are you working on?",
+      image: "assets/mobile-stats.png",
+      imageAlt: "Evolution OS mobile statistics dashboard showing activity and progress",
     },
     {
       name: "Journal",
@@ -1831,6 +1836,8 @@ const EvolutionPage = (() => {
       detail: "Make room to reflect on the day, not just move through it.",
       topics: ["Daily reflection", "Mindset entries"],
       prompt: "What is worth remembering?",
+      image: "public/showcase/journal-demo.png",
+      imageAlt: "Evolution OS Journal dashboard with reflection entries and mood labels",
     },
     {
       name: "Notes",
@@ -1839,6 +1846,8 @@ const EvolutionPage = (() => {
       detail: "A place for the ideas, plans, and insights that deserve your attention.",
       topics: ["Ideas", "Plans", "Insights"],
       prompt: "What is on your mind?",
+      image: "assets/mobile-tasks.png",
+      imageAlt: "Evolution OS mobile tasks and habits screen for organizing plans and ideas",
     },
     {
       name: "Investing",
@@ -1847,6 +1856,8 @@ const EvolutionPage = (() => {
       detail: "Keep your investment results in view through P&L and your equity curve.",
       topics: ["Profit & loss", "Equity curve"],
       prompt: "What do the results tell you?",
+      image: "public/showcase/investing-demo.png",
+      imageAlt: "Evolution OS Investing dashboard with trading calendar, profit and loss, and account history",
     },
     {
       name: "Business",
@@ -1855,6 +1866,8 @@ const EvolutionPage = (() => {
       detail: "Keep the work you're building alongside the results you're reviewing.",
       topics: ["Projects", "Revenue", "Business goals"],
       prompt: "What deserves your focus next?",
+      image: "public/showcase/business-demo.png",
+      imageAlt: "Evolution OS Business dashboard with projects, progress, and revenue",
     },
   ];
   const SHOTS = [
@@ -3044,7 +3057,7 @@ const EvolutionPage = (() => {
                                 flexDirection: resolveAssets("column"),
                                 padding: resolveAssets("32px clamp(20px,3vw,40px)"),
                                 boxSizing: resolveAssets("border-box"),
-                                minHeight: resolveAssets("448px"),
+                                minHeight: resolveAssets("680px"),
                               },
                               children: [
                                 jsxs("div", {
@@ -3105,6 +3118,21 @@ const EvolutionPage = (() => {
                                       children: active.detail,
                                     }),
                                   ],
+                                }),
+                                jsx("img", {
+                                  key: active.name,
+                                  src: asset(active.image),
+                                  alt: active.imageAlt,
+                                  style: {
+                                    display: resolveAssets("block"),
+                                    width: resolveAssets("100%"),
+                                    height: resolveAssets("260px"),
+                                    marginTop: resolveAssets("22px"),
+                                    objectFit: resolveAssets("contain"),
+                                    objectPosition: resolveAssets("center top"),
+                                    background: resolveAssets("oklch(0.09 0.01 235)"),
+                                    border: resolveAssets("1px solid oklch(0.35 0.019 230 / 0.52)"),
+                                  },
                                 }),
                                 jsx("ul", {
                                   style: {
@@ -3201,6 +3229,7 @@ const EvolutionPage = (() => {
                     id: "mobile",
                     "data-screen-label": "Mobile previews",
                     style: {
+                      display: resolveAssets("none"),
                       borderTop: resolveAssets("1px solid oklch(0.35 0.019 230 / 0.52)"),
                       padding: resolveAssets("88px 0"),
                       background: resolveAssets("oklch(0.17 0.012 230 / 0.3)"),
