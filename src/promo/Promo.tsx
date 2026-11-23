@@ -2731,8 +2731,8 @@ const EvolutionPage = (() => {
                             children: "Built with intention",
                           }),
                           jsxs("a", {
-                            href: resolveAssets("#features"),
-                            "aria-label": "Discover the Evolution OS philosophy",
+                            href: resolveAssets("#system"),
+                            "aria-label": "Discover the seven Evolution OS surfaces",
                             style: {
                               display: resolveAssets("flex"),
                               alignItems: resolveAssets("center"),
