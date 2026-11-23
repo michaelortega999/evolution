@@ -21,7 +21,7 @@ export function HomeLayouts() {
           {value === "All" ? `All (${homeLayouts.length})` : value}
         </button>)}</nav>
     </header>
-    <div className="layout-gallery">{homeLayouts.map((layout, index) =>
+    <div className="layout-gallery">{homeLayouts.slice(0, 8).map((layout, index) =>
       (filter === "All" || layout.category === filter) && <button className="layout-option" key={layout.id}
         disabled={loading} aria-pressed={selected.id === layout.id}
         onClick={() => mutate(current => ({settings: {...current.settings, homeLayout: layout.id}}))}>
