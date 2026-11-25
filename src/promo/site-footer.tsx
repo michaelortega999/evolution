@@ -36,7 +36,7 @@ export const promoFooterGroups = [
       },
       {
         label: "Plans & bundle",
-        href: "/evolution-promo/index.html?page=home#pricing",
+        href: "/evolution-promo/index.html?page=evolution",
       },
     ],
   },
