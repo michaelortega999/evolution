@@ -30,7 +30,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
   const accessReturn = useRef(embedded);
   const accessDestination = () =>
     embedded || accessReturn.current || new URLSearchParams(window.location.search).get("next") === "access"
-      ? "/?section=account"
+      ? "/?section=account&step=checkout"
       : "/";
   const finishSignIn = () => window.location.assign(accessDestination());
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
@@ -45,13 +45,10 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
   const recoveryActive = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRemember] = useState(false);
   const passwordRef = useRef("");
-  const nameRef = useRef("");
   passwordRef.current = password;
-  nameRef.current = name;
   const [checkEmail, setCheckEmail] = useState<string | null>(null);
   const [signUpOnce] = useState(() =>
     createSignUp((addr: string) =>
@@ -60,7 +57,6 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
         password: passwordRef.current,
         options: {
           emailRedirectTo: `${window.location.origin}${accessDestination()}`,
-          data: { name: nameRef.current },
         },
       }),
     ),
@@ -556,7 +552,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
           </div>
         </div>
 
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+        {mode === "signin" && <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
           <label className="flex items-center gap-3 text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -573,8 +569,8 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
               ? "Keep me signed in on this trusted device until I sign out or my session expires."
               : "Use a temporary session in this tab. Browser session restore may keep it open."}
           </p>
-        </div>
-        <Button type="button" variant="outline" onClick={handleGoogle} disabled={loading} className="hud-label text-xs">
+        </div>}
+        {mode === "signin" && <><Button type="button" variant="outline" onClick={handleGoogle} disabled={loading} className="hud-label text-xs">
           Continue with Google
         </Button>
 
@@ -582,20 +578,15 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
           <div className="h-px bg-border flex-1" />
           <span className="hud-label text-[9px] text-muted-foreground">OR</span>
           <div className="h-px bg-border flex-1" />
-        </div>
+        </div></>}
 
         <form onSubmit={handleEmail} className="flex flex-col gap-3">
-          {mode === "signup" && (
-            <label className="block">
-              <span className="hud-label text-[10px] text-muted-foreground">Name</span>
-              <Input disabled={loading} value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
-            </label>
-          )}
           <label className="block">
             <span className="hud-label text-[10px] text-muted-foreground">Email</span>
             <Input
               disabled={loading}
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -607,6 +598,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
             <Input
               disabled={loading}
               type="password"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
               required
               minLength={6}
               value={password}
@@ -615,7 +607,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
             />
           </label>
           <Button type="submit" disabled={loading} className="hud-label text-xs mt-2">
-            {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
+            {loading ? "Please wait…" : mode === "signin" ? "Sign in" : embedded ? "Create account & continue" : "Create account"}
           </Button>
         </form>
 

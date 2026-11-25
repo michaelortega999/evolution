@@ -2315,6 +2315,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
       mount.replaceChildren();
       const button = document.createElement("stripe-buy-button");
       button.setAttribute("buy-button-id", "buy_btn_1UelXqDVkczpjVbKYth3VUii");
+      button.setAttribute("client-reference-id", identity!);
       button.setAttribute("publishable-key", "pk_live_51UW7PtDVkczpjVbKdpP1VrNHN2AjM93QerwD6bpO8DSjHd6zH33g7k7BxpzGXrJUJB6Vi2uUJJEJSL8kpcsCxY8D00nCdWfMYa");
       mount.append(button);
     };
@@ -2331,61 +2332,62 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
     script.addEventListener("load", mountButton, { once: true });
     document.head.append(script);
     return () => script.removeEventListener("load", mountButton);
-  }, [signedIn]);
+  }, [signedIn, identity]);
   return (
     <main className="access-page min-h-screen bg-[#020711] text-white px-4 py-6 sm:px-8 sm:py-10" data-customer-access>
-      <style>{`.access-page{background:radial-gradient(ellipse at 76% 0%,rgba(0,116,186,.16),transparent 48%),#020711}.access-page .access-card{background:linear-gradient(145deg,rgba(18,36,52,.88),rgba(5,13,25,.96));border:1px solid rgba(85,182,225,.24);box-shadow:0 20px 70px rgba(0,0,0,.34)}.access-page .access-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid rgba(85,182,225,.35);background:rgba(49,134,180,.12);font-weight:600}.access-page :focus-visible{outline:2px solid #70d8ff;outline-offset:3px}`}</style>
+      <style>{`
+        .access-page{background:radial-gradient(ellipse at 50% 0%,#07334f66,transparent 55%),#020711}
+        .access-page .access-card{background:linear-gradient(145deg,#102436dd,#050d19);border:1px solid #55b6e53d;box-shadow:0 24px 90px #0006}
+        .access-page input{min-height:48px;font-size:16px;background:#02071180;border-color:#31556b}
+        .access-page form button{min-height:48px;font-size:13px;border-radius:8px}
+        .access-page :focus-visible{outline:2px solid #70d8ff;outline-offset:3px}
+      `}</style>
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between gap-4 mb-10">
-          <a href="/" aria-label="Evolution Home"><BrandMark compact={compactBrand} /></a>
-          <a className="access-button text-sm" href="/?section=access">Explore Evolution OS</a>
+          <a href="/?section=access" aria-label="Evolution website"><BrandMark compact={compactBrand} /></a>
+          <a className="text-sm text-slate-400 hover:text-white" href="/?section=access">Back to website</a>
         </header>
-        <div className="mb-8 max-w-2xl">
-          <p className="text-sm uppercase tracking-[.22em] text-cyan-300 mb-3">Evolution OS · Sign up</p>
-          <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-4">Your account, one clear start.</h1>
-          <p className="text-lg text-slate-300 leading-relaxed">Create your account, then subscribe securely through Stripe for $14.99 per month, tax included.</p>
-        </div>
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(300px,.85fr)] items-start">
-          <section id="access-overview" className="access-card rounded-2xl p-5 sm:p-8" aria-labelledby="signup-heading">
-            <p className="text-sm text-cyan-300 mb-2">ACCOUNT</p>
-            <h2 id="signup-heading" className="text-2xl font-semibold mb-5">{signedIn ? "You're signed in" : "Create your account"}</h2>
-            {signedIn ? (
-              <div role="status" className="space-y-5">
-                <p className="text-base text-slate-300">Your account is ready. Use the same email at checkout so we can match your subscription. Creating an account alone does not start a subscription.</p>
-                <a className="access-button" href="/">Open Home</a>
-              </div>
-            ) : authState === "signed-out" ? (
-              <AuthPanel embedded initialMode="signup" />
-            ) : (
-              <p role="status" className="text-base text-slate-300">{authState === "error" ? "Account verification needs retry." : "Checking your account…"}</p>
-            )}
-            {(authState === "error" || identityError) && (
-              <p role="alert" className="mt-5 text-sm">We could not verify your account. <button className="underline text-cyan-300" onClick={() => authState === "error" ? window.location.reload() : setGeneration(n => n + 1)}>Retry account check</button></p>
-            )}
-          </section>
-          <section id="access-checkout" className="access-card rounded-2xl p-5 sm:p-8" aria-labelledby="payment-heading">
-            <p className="text-sm text-cyan-300 mb-2">PAYMENT</p>
-            <h2 id="payment-heading" className="text-2xl font-semibold mb-5">Evolution OS</h2>
-            <dl className="space-y-4 text-base">
-              <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-slate-300">Plan</dt><dd>Monthly subscription</dd></div>
-              <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-slate-300">Total</dt><dd>$14.99 / month, tax included</dd></div>
-            </dl>
-            <div className="mt-6 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4" role="status">
-              <p className="font-semibold">Secure checkout through Stripe</p>
-              <p className="text-sm text-slate-300 mt-2 leading-relaxed">Payment details are entered on Stripe, never on this page. Use the same email as your Evolution account. Paid access is confirmed separately while automatic billing verification is being connected.</p>
+        <ol aria-label="Signup progress" className="flex justify-center items-center gap-4 text-sm mb-8">
+          <li aria-current={!signedIn ? "step" : undefined} className={!signedIn ? "text-cyan-300" : "text-slate-400"}>01 · Account</li>
+          <li aria-hidden="true" className="h-px w-10 bg-white/20" />
+          <li aria-current={signedIn ? "step" : undefined} className={signedIn ? "text-cyan-300" : "text-slate-500"}>02 · Payment</li>
+        </ol>
+        {signedIn ? (
+          <section id="access-checkout" aria-labelledby="payment-heading" className="access-card rounded-2xl overflow-hidden grid md:grid-cols-2">
+            <div className="p-7 sm:p-10">
+              <p className="text-xs tracking-[.2em] text-cyan-300 uppercase mb-5">Evolution OS</p>
+              <h1 id="payment-heading" className="text-3xl font-semibold tracking-tight">Make it yours.</h1>
+              <p className="mt-3 text-slate-400">One home for your daily life.</p>
+              <p className="mt-8 text-5xl font-semibold">$14.99<span className="text-base font-normal text-slate-400"> / month</span></p>
+              <p className="mt-2 text-sm text-slate-400">Tax included · Billed monthly</p>
+              <div className="mt-8 border-t border-white/10 pt-5 text-sm text-slate-300">Plan your day. Track your progress. Build your routine.</div>
             </div>
-            {signedIn ? (
-              <div className="mt-5 min-h-12" ref={stripeButtonMount} aria-label="Subscribe securely with Stripe" />
-            ) : (
-              <p className="mt-5 text-sm text-cyan-200">Create or sign in to your account to continue to payment.</p>
-            )}
-            <p className="text-sm text-slate-400 mt-5 leading-relaxed">Recurring monthly billing. Payment does not automatically change your account access yet; your purchase is confirmed separately.</p>
+            <div className="bg-white p-7 sm:p-10 text-slate-900">
+              <p className="text-xs uppercase tracking-[.18em] text-slate-500">Secure payment</p>
+              <h2 className="text-2xl font-semibold mt-3">Complete your subscription</h2>
+              <p className="mt-3 text-sm text-slate-500">Continue to Stripe to enter your payment details.</p>
+              <div className="mt-7 min-h-20" ref={stripeButtonMount} aria-label="Subscribe securely with Stripe" />
+              <p className="mt-5 text-xs text-slate-500">Use your Evolution account email at checkout.</p>
+              <p className="mt-3 text-xs text-slate-500">Access is activated after purchase confirmation.</p>
+              <div className="mt-7 flex gap-4 text-xs text-slate-500">
+                <a href="/?section=terms" className="underline">Terms</a>
+                <a href="/?section=privacy" className="underline">Privacy</a>
+              </div>
+            </div>
           </section>
-        </div>
+        ) : (
+          <section id="access-overview" aria-label="Create your Evolution account" className="access-card rounded-2xl mx-auto max-w-md p-7 sm:p-9">
+            {authState === "signed-out" ? <AuthPanel embedded initialMode="signup" /> :
+              <p role="status" className="text-center text-slate-300">Checking your account…</p>}
+            {(authState === "error" || identityError) && <p role="alert" className="mt-4 text-sm text-center">Could not verify your account. <button className="underline text-cyan-300" onClick={() => authState === "error" ? window.location.reload() : setGeneration(n => n + 1)}>Retry</button></p>}
+            <p className="mt-6 text-xs text-center text-slate-400">Next: secure payment with Stripe.</p>
+          </section>
+        )}
       </div>
     </main>
   );
 }
+
 function CustomerSetupForm({ identity }: { identity: string }) {
   const { data, updateProfile } = useEvolutionData();
   const cloud = useCloudStatus();
