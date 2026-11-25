@@ -1579,6 +1579,31 @@ const EvolutionPage = (() => {
                     }),
                   }),
                   jsx("section", {
+                    "aria-label": "Mobile screens",
+                    "data-screen-label": "Mobile showcase",
+                    style: { order: "-1", padding: "8px 0 88px" },
+                    children: jsx("div", {
+                      style: { maxWidth: "1440px", margin: "0 auto", padding: "0 clamp(20px,3.4vw,48px)" },
+                      children: jsx("div", {
+                        tabIndex: 0,
+                        "aria-label": "Scroll mobile screens",
+                        style: { display: "flex", gap: "clamp(16px,2.4vw,32px)", overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: "16px", justifyContent: "safe center" },
+                        children: MSHOTS.map((s) =>
+                          jsxs("figure", {
+                            style: { flex: "0 0 clamp(200px,22vw,270px)", margin: 0, scrollSnapAlign: "center" },
+                            children: [
+                              jsx("div", {
+                                style: { borderRadius: "32px", padding: "8px", border: "1px solid oklch(0.82 0.14 205 / 0.45)", background: "oklch(0.12 0.01 230)", boxShadow: "0 0 32px oklch(0.82 0.14 205 / 0.18)" },
+                                children: jsx("img", { src: asset(s.src), alt: s.alt, width: s.w, height: s.h, loading: "lazy", style: { display: "block", width: "100%", height: "auto", borderRadius: "25px" } }),
+                              }),
+                              jsx("figcaption", { style: { marginTop: "12px", textAlign: "center", fontSize: "14px", fontWeight: 600, color: "oklch(0.82 0.14 205)" }, children: s.title }),
+                            ],
+                          }, s.title),
+                        ),
+                      }),
+                    }),
+                  }),
+                  jsx("section", {
                     id: "mobile",
                     "data-screen-label": "Mobile previews",
                     style: {
