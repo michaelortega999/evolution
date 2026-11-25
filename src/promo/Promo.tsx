@@ -99,6 +99,7 @@ const EvolutionPage = (() => {
   const MSHOTS = [
     {
       title: "Home",
+      summary: "Your day at a glance.",
       src: "assets/mobile-home.jpeg",
       w: 1290,
       h: 2573,
@@ -106,6 +107,7 @@ const EvolutionPage = (() => {
     },
     {
       title: "Tasks & Habits",
+      summary: "Plan. Check off. Repeat.",
       src: "assets/mobile-tasks.png",
       w: 834,
       h: 1663,
@@ -113,6 +115,7 @@ const EvolutionPage = (() => {
     },
     {
       title: "Stats",
+      summary: "See your progress.",
       src: "assets/mobile-stats.png",
       w: 1161,
       h: 2316,
@@ -120,6 +123,7 @@ const EvolutionPage = (() => {
     },
     {
       title: "Business / Projects",
+      summary: "Keep projects moving.",
       src: "assets/mobile-business.png",
       w: 1290,
       h: 2796,
@@ -1250,6 +1254,33 @@ const EvolutionPage = (() => {
                     }),
                   }),
                   jsx("section", {
+                    "aria-label": "Mobile screens",
+                    "data-screen-label": "Mobile showcase",
+                    id: "mobile-showcase",
+                    style: { order: "-1", padding: "24px 0 32px" },
+                    children: jsx("div", {
+                      style: { maxWidth: "1440px", margin: "0 auto", padding: "0 clamp(20px,3.4vw,48px)" },
+                      children: jsx("div", {
+                        className: "mobile-showcase-grid",
+                        "aria-label": "Mobile screen gallery",
+                        children: MSHOTS.map((s) =>
+                          jsxs("figure", {
+                            style: { minWidth: 0, margin: 0 },
+                            children: [
+                              jsx("div", {
+                                className: "mobile-showcase-frame",
+                                style: { borderRadius: "20px", padding: "5px", border: "1px solid oklch(0.82 0.14 205 / 0.45)", background: "oklch(0.12 0.01 230)", boxShadow: "0 0 32px oklch(0.82 0.14 205 / 0.18)" },
+                                children: jsx("img", { src: asset(s.src), alt: s.alt, width: s.w, height: s.h, loading: "lazy", style: { display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "15px" } }),
+                              }),
+                              jsx("figcaption", { style: { marginTop: "12px", textAlign: "center", fontSize: "14px", fontWeight: 600, color: "oklch(0.82 0.14 205)" }, children: s.title }),
+                              jsx("p", { style: { marginTop: "5px", textAlign: "center", fontSize: "12px", lineHeight: 1.4, color: "oklch(0.72 0.018 225)" }, children: s.summary }),
+                            ],
+                          }, s.title),
+                        ),
+                      }),
+                    }),
+                  }),
+                  jsx("section", {
                     id: "system",
                     "data-screen-label": "Modules",
                     style: {
@@ -1576,31 +1607,6 @@ const EvolutionPage = (() => {
                           ],
                         }),
                       ],
-                    }),
-                  }),
-                  jsx("section", {
-                    "aria-label": "Mobile screens",
-                    "data-screen-label": "Mobile showcase",
-                    style: { order: "-1", padding: "8px 0 88px" },
-                    children: jsx("div", {
-                      style: { maxWidth: "1440px", margin: "0 auto", padding: "0 clamp(20px,3.4vw,48px)" },
-                      children: jsx("div", {
-                        tabIndex: 0,
-                        "aria-label": "Scroll mobile screens",
-                        style: { display: "flex", gap: "clamp(16px,2.4vw,32px)", overflowX: "auto", scrollSnapType: "x mandatory", paddingBottom: "16px", justifyContent: "safe center" },
-                        children: MSHOTS.map((s) =>
-                          jsxs("figure", {
-                            style: { flex: "0 0 clamp(200px,22vw,270px)", margin: 0, scrollSnapAlign: "center" },
-                            children: [
-                              jsx("div", {
-                                style: { borderRadius: "32px", padding: "8px", border: "1px solid oklch(0.82 0.14 205 / 0.45)", background: "oklch(0.12 0.01 230)", boxShadow: "0 0 32px oklch(0.82 0.14 205 / 0.18)" },
-                                children: jsx("img", { src: asset(s.src), alt: s.alt, width: s.w, height: s.h, loading: "lazy", style: { display: "block", width: "100%", height: "auto", borderRadius: "25px" } }),
-                              }),
-                              jsx("figcaption", { style: { marginTop: "12px", textAlign: "center", fontSize: "14px", fontWeight: 600, color: "oklch(0.82 0.14 205)" }, children: s.title }),
-                            ],
-                          }, s.title),
-                        ),
-                      }),
                     }),
                   }),
                   jsx("section", {
