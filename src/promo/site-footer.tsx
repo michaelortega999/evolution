@@ -17,9 +17,9 @@ export const promoSalesCopy = {
   section10:
     "A trading workspace built around your process. Extremis OS is listed at $15/month, or explore both systems in the Evolution Co Bundle for $15/month. Checkout is not connected yet. The previews do not provide a live market feed, broker connection, trade execution, or replay.",
   section11:
-    "Explore Evolution OS for daily life and Extremis OS for your trading process. Compare features, view product previews, and discover the Evolution Co Bundle.",
+    "Explore Evolution OS for daily life. Compare features and view product previews.",
   tagline: "Higher standards. Brighter days.",
-  summary: "Purpose-built systems for your daily life and trading process.",
+  summary: "A purpose-built system for your daily life.",
   availability: "Product tour · Illustrative sample content. Checkout is not connected yet.",
 };
 export const promoFooterGroups = [
@@ -28,14 +28,6 @@ export const promoFooterGroups = [
     links: [
       {
         label: "Evolution OS",
-        href: "/evolution-promo/index.html?page=evolution",
-      },
-      {
-        label: "Extremis OS",
-        href: "/evolution-promo/index.html?page=extremis",
-      },
-      {
-        label: "Plans & bundle",
         href: "/evolution-promo/index.html?page=evolution",
       },
     ],
@@ -59,10 +51,6 @@ export const promoFooterGroups = [
       {
         label: "Evolution OS FAQ",
         href: "/evolution-promo/index.html?page=evolution#faq",
-      },
-      {
-        label: "Extremis OS FAQ",
-        href: "/evolution-promo/index.html?page=extremis#faq",
       },
     ],
   },

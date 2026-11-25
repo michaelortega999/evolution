@@ -5219,7 +5219,7 @@ function PhilosophyPage() {
 export default function Promo() {
   const page = new URLSearchParams(window.location.search).get("page") || "evolution";
   const Page =
-    { evolution: EvolutionPage, extremis: ExtremisPage, about: AboutPage, philosophy: PhilosophyPage }[
+    { evolution: EvolutionPage, about: AboutPage, philosophy: PhilosophyPage }[
       page
     ] || EvolutionPage;
   return jsxs(Fragment, {
