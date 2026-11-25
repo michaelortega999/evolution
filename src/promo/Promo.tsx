@@ -2913,20 +2913,8 @@ const EvolutionPage = (() => {
                             jsxs("div", {
                               style: { flex: resolveAssets("1 1 420px") },
                               children: [
-                                jsx("p", {
-                                  style: {
-                                    fontFamily: resolveAssets("'JetBrains Mono',monospace"),
-                                    fontSize: resolveAssets("12px"),
-                                    fontWeight: resolveAssets("500"),
-                                    lineHeight: resolveAssets("1.8"),
-                                    textTransform: resolveAssets("uppercase"),
-                                    color: resolveAssets("oklch(0.82 0.14 205)"),
-                                  },
-                                  children: "Seven areas. A shared perspective.",
-                                }),
                                 jsxs("h2", {
                                   style: {
-                                    marginTop: resolveAssets("18px"),
                                     fontFamily: resolveAssets("'Space Grotesk',sans-serif"),
                                     fontSize: resolveAssets("clamp(33px,3.6vw,44px)"),
                                     fontWeight: resolveAssets("700"),
