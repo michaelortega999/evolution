@@ -12,10 +12,11 @@ await build({
   define: { 'process.env.NODE_ENV': '"production"' },
 });
 const promoBundle = await readFile(`${output}/promo-v2.js`, 'utf8');
+const promoStyles = await readFile(`${output}/promo-v2.css`, 'utf8');
 await writeFile(`${output}/index.html`, `<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Evolution OS — Your digital home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Michroma&display=swap">
-<link rel="stylesheet" href="./promo.css"></head>
+<style>${promoStyles}</style></head>
 <body><div id="root"></div><script type="module">${promoBundle}</script></body></html>`);
