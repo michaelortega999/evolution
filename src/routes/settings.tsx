@@ -1,6 +1,6 @@
 import { HomeLayouts } from "@/components/evolution/HomeLayouts";
 import { resolvePalette } from "@/lib/theme-palette";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router";
 import {
   Settings as SettingsIcon,
   User,
@@ -43,11 +43,16 @@ import {
   CUSTOMIZATION_CSS,
 } from "@/lib/use-theme";
 import { cn, localISO, CARD_STYLES, normalizeCardStyle } from "@/lib/utils";
+import {
+  CUSTOMIZE_TABS,
+  normalizeCustomizeTab,
+  type CustomizeTab,
+} from "@/lib/customize-tabs";
 
 type SettingsView = "profile" | "customize" | "settings";
 export const Route = createFileRoute("/settings")({
   validateSearch: (search: Record<string, unknown>): { view?: SettingsView; tab?: CustomizeTab } => ({
-    tab: CUSTOMIZE_TABS.find(([id]) => id === search.tab)?.[0],
+    tab: normalizeCustomizeTab(search.tab),
     view: search.view === "customize" || search.view === "settings" ? search.view : "profile",
   }),
   head: () => ({
@@ -631,15 +636,6 @@ function SettingsPage() {
   );
 }
 
-type CustomizeTab = "appearance" | "layout" | "cards" | "themes" | "advanced";
-const CUSTOMIZE_TABS: [CustomizeTab, string][] = [
-  ["appearance", "Appearance"],
-  ["layout", "Layout"],
-  ["cards", "Cards"],
-  ["themes", "Themes"],
-  ["advanced", "Advanced"],
-];
-
 function CustomizeWorkspace() {
   const { data, mutate } = useEvolutionData();
   const cloud = useCloudStatus();
@@ -648,6 +644,14 @@ function CustomizeWorkspace() {
   const previewCardStyle = normalizeCardStyle(data.settings.cardStyle);
   const { tab = "appearance" } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { searchStr } = useLocation();
+  // A stale link can still carry the removed Layout tab; drop it so the safe
+  // Appearance view shows and the address bar stops advertising a dead section.
+  useEffect(() => {
+    if (new URLSearchParams(searchStr).get("tab") === "layout") {
+      navigate({ search: { view: "customize", tab: "appearance" }, replace: true });
+    }
+  }, [searchStr, navigate]);
   const show = (...tabs: CustomizeTab[]) => tab === "appearance" || tabs.includes(tab);
   const update = (patch: Partial<typeof appearance>) => {
     if (disabled) return;
