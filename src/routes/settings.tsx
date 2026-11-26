@@ -43,7 +43,6 @@ import {
   CUSTOMIZATION_CSS,
 } from "@/lib/use-theme";
 import { cn, localISO, CARD_STYLES, normalizeCardStyle } from "@/lib/utils";
-import { BankConnectionPanel } from "@/components/evolution/BankConnectionPanel";
 
 type SettingsView = "profile" | "customize" | "settings";
 export const Route = createFileRoute("/settings")({
@@ -498,15 +497,6 @@ function SettingsPage() {
                     <small>Not configured here</small>
                   </div>
                 ))}
-                <Link
-                  className="es-inline-link"
-                  to="/settings"
-                  search={{ view: "settings" }}
-                  hash="es-bank"
-                  onClick={() => setQuery("")}
-                >
-                  Bank connection settings <ArrowUpRight size={15} />
-                </Link>
               </GlassPanel>
             )}
             {show("settings", "data management export clear reset backup history import") && (
@@ -627,17 +617,7 @@ function SettingsPage() {
                 </div>
               </GlassPanel>
             )}
-            {(view === "settings" || !!query) && matches("bank connection integrations") && (
-              <div className="es-bank" id="es-bank">
-                <BankConnectionPanel />
-              </div>
-            )}
           </div>
-          {view === "profile" && !query && (
-            <div id="es-bank" className="es-bank">
-              <BankConnectionPanel />
-            </div>
-          )}
           <footer className="es-footer">
             <span>EVOLUTION OS</span>
             <span>Higher standards. Brighter days.</span>

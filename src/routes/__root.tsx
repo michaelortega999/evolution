@@ -2348,7 +2348,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
           <a className="text-sm text-slate-400 hover:text-white" href="/?section=access">Back to website</a>
         </header>
         <ol aria-label="Signup progress" className="flex justify-center items-center gap-4 text-sm mb-8">
-          <li aria-current={!signedIn ? "step" : undefined} className={!signedIn ? "text-cyan-300" : "text-slate-400"}>01 · Account</li>
+          <li aria-current={!signedIn ? "step" : undefined} className={!signedIn ? "text-cyan-300" : "text-slate-400"}><a href={signedIn ? "/auth?next=access" : "#access-overview"} className="underline-offset-4 hover:underline hover:text-white rounded" aria-label="Step 1: Account — sign in or create an account">01 · Account</a></li>
           <li aria-hidden="true" className="h-px w-10 bg-white/20" />
           <li aria-current={signedIn ? "step" : undefined} className={signedIn ? "text-cyan-300" : "text-slate-500"}>02 · Payment</li>
         </ol>
