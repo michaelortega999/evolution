@@ -74,6 +74,8 @@ function EventBlock({
       <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
 
       <button
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onDuplicate();
