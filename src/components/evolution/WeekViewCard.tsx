@@ -70,10 +70,10 @@ function EventBlock({
       role="button"
       tabIndex={0}
     >
-      <div className="hud-label text-[9px] text-primary truncate group-hover:hud-glow">
+      <div className="hud-label text-[11px] leading-tight text-primary truncate group-hover:hud-glow">
         {fmt12(event.time)}
       </div>
-      <div className="text-[11px] text-foreground truncate font-medium">{event.title}</div>
+      <div className="text-[14px] leading-tight text-foreground truncate font-semibold">{event.title}</div>
 
       <button
         onPointerDown={(e) => e.stopPropagation()}
@@ -87,7 +87,7 @@ function EventBlock({
         title="Duplicate event"
         type="button"
       >
-        <Files className="h-2.5 w-2.5" />
+        <Files className="h-3 w-3" />
       </button>
     </div>
   );
