@@ -60,6 +60,8 @@ function EventBlock({
         height,
         boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--glow) 25%, transparent)",
       }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onSelect();
