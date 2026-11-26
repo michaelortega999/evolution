@@ -389,10 +389,14 @@ export function WeekViewCard() {
         </div>
       </Panel>
 
-      <div className="grid gap-3 lg:grid-cols-3 items-start" aria-label="Week planning cards">
-        <WeeklyTasksCard />
-        <TodayTasksCard />
-        <FocusModeCard />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] items-start" aria-label="Week planning cards">
+        <div className="min-w-0">
+          <WeeklyTasksCard />
+        </div>
+        <div className="grid gap-4 min-w-0">
+          <TodayTasksCard />
+          <FocusModeCard />
+        </div>
       </div>
 
     </div>
