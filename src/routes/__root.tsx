@@ -1147,6 +1147,7 @@ function RootComponent() {
     );
   if (
     isPhone &&
+    !(pathname === "/" && !new URLSearchParams(searchStr).has("mobilePage")) &&
     new URLSearchParams(searchStr).get("mobileFallback") !== "1" &&
     pathname !== "/auth" &&
     pathname !== "/settings" &&
