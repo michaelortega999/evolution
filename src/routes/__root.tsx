@@ -1031,7 +1031,6 @@ function LegalPage({ document }: { document: LegalDocument }) {
 }
 
 function RootComponent() {
-  useTheme();
   const isPhone = useIsPhone();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
@@ -1039,6 +1038,8 @@ function RootComponent() {
   const hash = useRouterState({ select: (s) => s.location.hash });
   const section = requestedSection === "access" && /^#?access-/.test(hash) ? "account" : requestedSection;
   const [authState, setAuthState] = useState<"loading" | "signed-in" | "signed-out" | "error">("loading");
+  const publicScreen = pathname === "/auth" || ["access", "account", "privacy", "terms", "cookies"].includes(section ?? "");
+  useTheme(authState === "signed-in" && !publicScreen);
   useEffect(() => {
     let active = true;
     let generation = 0;
