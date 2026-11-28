@@ -32,7 +32,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
     embedded || accessReturn.current || new URLSearchParams(window.location.search).get("next") === "access"
       ? "/?section=account&step=checkout"
       : "/";
-  const finishSignIn = () => window.location.assign(accessDestination());
+  const finishSignIn = () => window.location.assign("/");
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [recovery, setRecovery] = useState<"request" | "sent" | "reset" | "done" | null>(null);
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -305,7 +305,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
         const r = await signUpOnce(submitted);
         if (!live(id)) return;
         if (r.kind === "error") throw new Error(r.message);
-        if (r.kind === "signed-in") finishSignIn();
+        if (r.kind === "signed-in") window.location.assign(accessDestination());
         else if (r.kind === "check-email") setCheckEmail(submitted);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: submitted, password });
@@ -326,7 +326,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
     try {
       setRememberMe(rememberMe);
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}${accessDestination()}`,
+        redirect_uri: `${window.location.origin}/`,
       });
       if (!live(id)) return;
       if (result.error) {
