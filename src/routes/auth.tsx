@@ -32,7 +32,12 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
     embedded || accessReturn.current || new URLSearchParams(window.location.search).get("next") === "access"
       ? "/?section=account&step=checkout"
       : "/";
-  const finishSignIn = () => window.location.assign("/");
+  const navigationStarted = useRef(false);
+  const finishSignIn = () => {
+    if (navigationStarted.current) return;
+    navigationStarted.current = true;
+    window.location.replace("/");
+  };
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [recovery, setRecovery] = useState<"request" | "sent" | "reset" | "done" | null>(null);
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -120,7 +125,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
     });
     supabase.auth
       .getSession()
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (!active) return;
         if (error && returning) setRecoveryError("Unable to verify this link. Request a new recovery email.");
         if (isVerifiedRecoverySession(data.session)) {
@@ -131,7 +136,10 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
           setPassword("");
           setConfirmation("");
           window.history.replaceState(window.history.state, "", "/auth?recovery=1");
-        } else if (data.session && !recoveryActive.current && !embedded) finishSignIn();
+        } else if (data.session && !recoveryActive.current && !embedded) {
+          const verified = await supabase.auth.getUser();
+          if (active && !busyRef.current && !recoveryActive.current && !verified.error && verified.data.user) finishSignIn();
+        }
       })
       .catch(() => {
         if (active && returning) setRecoveryError("Unable to verify this link. Request a new recovery email.");
@@ -347,7 +355,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
       <div className={embedded ? "w-full" : "min-h-screen bg-black flex items-center justify-center p-4"}>
         <div
           className={
-            embedded ? "w-full flex flex-col gap-5" : "hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5"
+            embedded ? "w-full flex flex-col gap-5" : "hud-card p-5 sm:p-6 w-full max-w-md flex flex-col gap-5"
           }
         >
           <div className="text-center">
@@ -513,7 +521,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
           className={
             embedded
               ? "w-full flex flex-col gap-4 text-center"
-              : "hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-4 text-center"
+              : "hud-card p-5 sm:p-6 w-full max-w-md flex flex-col gap-4 text-center"
           }
           role="status"
         >
@@ -542,7 +550,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
     <div className={embedded ? "w-full" : "min-h-screen bg-black flex items-center justify-center p-4"}>
       <div
         className={
-          embedded ? "w-full flex flex-col gap-5" : "hud-card hud-scan p-5 sm:p-6 w-full max-w-md flex flex-col gap-5"
+          embedded ? "w-full flex flex-col gap-5" : "hud-card p-5 sm:p-6 w-full max-w-md flex flex-col gap-5"
         }
       >
         <div className="text-center">
@@ -590,7 +598,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
+              className="mt-1 text-base"
             />
           </label>
           <label className="block">
@@ -603,7 +611,7 @@ export function AuthPanel({ embedded = false, initialMode = "signin" }: { embedd
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1"
+              className="mt-1 text-base"
             />
           </label>
           <Button type="submit" disabled={loading} className="hud-label text-xs mt-2">
