@@ -1078,7 +1078,7 @@ function RootComponent() {
   if (section === "account" && pathname !== "/auth")
     return (
       <>
-        <CustomerAccessPage authState={authState} />
+        <CustomerAccessPage authState={authState} accountSelected={new URLSearchParams(searchStr).get("step") === "account"} />
         <Toaster theme="dark" position="top-right" />
       </>
     );
@@ -2269,7 +2269,26 @@ const EVO_WORKSPACE_CSS = `.evo-workspace{--evo-blue:#70c8ff;--evo-line:#254e77;
 
 // Customer signup stays available while server-side Stripe checkout is being configured.
 // No client URL, profile field, or account creation grants a paid entitlement.
-function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" | "signed-out" | "error" }) {
+function CustomerAccessPage({ authState, accountSelected }: {
+  authState: "loading" | "signed-in" | "signed-out" | "error";
+  accountSelected: boolean;
+}) {
+  const [switchingAccount, setSwitchingAccount] = useState(false);
+  const [switchError, setSwitchError] = useState(false);
+
+  async function switchAccount() {
+    setSwitchError(false);
+    setSwitchingAccount(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) throw error;
+      window.location.assign("/?section=account&step=account");
+    } catch {
+      setSwitchError(true);
+      setSwitchingAccount(false);
+    }
+  }
+
   const compactBrand = useIsPhone();
   const stripeButtonMount = useRef<HTMLDivElement>(null);
   const [identity, setIdentity] = useState<string | null>(null);
@@ -2307,8 +2326,9 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
     };
   }, []);
   const signedIn = authState === "signed-in" && !!identity;
+  const showPayment = signedIn && !accountSelected;
   useEffect(() => {
-    if (!signedIn || !stripeButtonMount.current) return;
+    if (!showPayment || !stripeButtonMount.current) return;
     const mountButton = () => {
       const mount = stripeButtonMount.current;
       if (!mount) return;
@@ -2332,7 +2352,7 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
     script.addEventListener("load", mountButton, { once: true });
     document.head.append(script);
     return () => script.removeEventListener("load", mountButton);
-  }, [signedIn, identity]);
+  }, [showPayment, identity]);
   return (
     <main className="access-page min-h-screen bg-[#020711] text-white px-4 py-6 sm:px-8 sm:py-10" data-customer-access>
       <style>{`
@@ -2348,11 +2368,17 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
           <a className="text-sm text-slate-400 hover:text-white" href="/?section=access">Back to website</a>
         </header>
         <ol aria-label="Signup progress" className="flex justify-center items-center gap-4 text-sm mb-8">
-          <li aria-current={!signedIn ? "step" : undefined} className={!signedIn ? "text-cyan-300" : "text-slate-400"}><a href={signedIn ? "/auth?next=access" : "#access-overview"} className="underline-offset-4 hover:underline hover:text-white rounded" aria-label="Step 1: Account — sign in or create an account">01 · Account</a></li>
+          <li aria-current={!showPayment ? "step" : undefined} className={!showPayment ? "text-cyan-300" : "text-slate-400"}>
+            <a href="/?section=account&step=account" className="underline-offset-4 hover:underline hover:text-white">01 · Account</a>
+          </li>
           <li aria-hidden="true" className="h-px w-10 bg-white/20" />
-          <li aria-current={signedIn ? "step" : undefined} className={signedIn ? "text-cyan-300" : "text-slate-500"}>02 · Payment</li>
+          <li aria-current={showPayment ? "step" : undefined} className={showPayment ? "text-cyan-300" : "text-slate-400"}>
+            {signedIn ? (
+              <a href="/?section=account&step=checkout" className="underline-offset-4 hover:underline hover:text-white">02 · Payment</a>
+            ) : <span>02 · Payment</span>}
+          </li>
         </ol>
-        {signedIn ? (
+        {showPayment ? (
           <section id="access-checkout" aria-labelledby="payment-heading" className="access-card rounded-2xl overflow-hidden grid md:grid-cols-2">
             <div className="p-7 sm:p-10">
               <p className="text-xs tracking-[.2em] text-cyan-300 uppercase mb-5">Evolution OS</p>
@@ -2362,14 +2388,14 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
               <p className="mt-2 text-sm text-slate-400">Tax included · Billed monthly</p>
               <div className="mt-8 border-t border-white/10 pt-5 text-sm text-slate-300">Plan your day. Track your progress. Build your routine.</div>
             </div>
-            <div className="bg-white p-7 sm:p-10 text-slate-900">
-              <p className="text-xs uppercase tracking-[.18em] text-slate-500">Secure payment</p>
+            <div className="border-t border-white/10 p-7 sm:p-10 md:border-t-0 md:border-l">
+              <p className="text-xs uppercase tracking-[.18em] text-slate-300">Secure payment</p>
               <h2 className="text-2xl font-semibold mt-3">Complete your subscription</h2>
-              <p className="mt-3 text-sm text-slate-500">Continue to Stripe to enter your payment details.</p>
+              <p className="mt-3 text-sm text-slate-300">Continue to Stripe to enter your payment details.</p>
               <div className="mt-7 min-h-20" ref={stripeButtonMount} aria-label="Subscribe securely with Stripe" />
-              <p className="mt-5 text-xs text-slate-500">Use your Evolution account email at checkout.</p>
-              <p className="mt-3 text-xs text-slate-500">Access is activated after purchase confirmation.</p>
-              <div className="mt-7 flex gap-4 text-xs text-slate-500">
+              <p className="mt-5 text-xs text-slate-300">Use your Evolution account email at checkout.</p>
+              <p className="mt-3 text-xs text-slate-300">Access is activated after purchase confirmation.</p>
+              <div className="mt-7 flex gap-4 text-xs text-slate-300">
                 <a href="/?section=terms" className="underline">Terms</a>
                 <a href="/?section=privacy" className="underline">Privacy</a>
               </div>
@@ -2377,7 +2403,19 @@ function CustomerAccessPage({ authState }: { authState: "loading" | "signed-in" 
           </section>
         ) : (
           <section id="access-overview" aria-label="Create your Evolution account" className="access-card rounded-2xl mx-auto max-w-md p-7 sm:p-9">
-            {authState === "signed-out" ? <AuthPanel embedded initialMode="signup" /> :
+            {signedIn ? (
+              <div className="space-y-4">
+                <h1 className="text-2xl font-semibold">Your Evolution account</h1>
+                <p className="text-slate-300">You’re signed in.</p>
+                <a href="/?section=account&step=checkout" className="block rounded-lg border border-cyan-300/40 px-4 py-3 text-center text-cyan-200 hover:bg-cyan-300/10">
+                  Continue to payment
+                </a>
+                <button type="button" disabled={switchingAccount} onClick={switchAccount} className="text-sm text-slate-300 underline disabled:opacity-50">
+                  {switchingAccount ? "Signing out…" : "Sign in with a different account"}
+                </button>
+                {switchError && <p role="alert" className="text-sm text-red-300">Could not sign out. Please try again.</p>}
+              </div>
+            ) : authState === "signed-out" ? <AuthPanel embedded initialMode="signup" /> :
               <p role="status" className="text-center text-slate-300">Checking your account…</p>}
             {(authState === "error" || identityError) && <p role="alert" className="mt-4 text-sm text-center">Could not verify your account. <button className="underline text-cyan-300" onClick={() => authState === "error" ? window.location.reload() : setGeneration(n => n + 1)}>Retry</button></p>}
             <p className="mt-6 text-xs text-center text-slate-400">Next: secure payment with Stripe.</p>
