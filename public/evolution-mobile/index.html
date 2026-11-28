@@ -315,6 +315,14 @@
                   @media(prefers-reduced-motion:reduce) { .st-card,.st-card-track span { transition:none; } }
 
           /* Public chrome is clean artwork; all private values are rendered from the signed-in state. */
+
+          .profile-master-logo{position:absolute;left:2%;top:.8%;width:66%;height:6.8%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding:1.2cqw 5cqw 1.6cqw 2cqw;background:#030b13;color:#f2f6ff;text-decoration:none;isolation:isolate}
+          .profile-master-logo:before{content:"";position:absolute;inset:0;border-top:1px solid #51caff;border-right:2px solid #51caff;transform:skewX(-26deg);transform-origin:bottom;box-shadow:2px -2px 8px #168cff55;z-index:-1}
+          .profile-master-logo:after{content:"";position:absolute;left:2cqw;bottom:.3cqw;width:10cqw;height:.45cqw;background:#31dbea;box-shadow:0 0 6px #26cfff}
+          .profile-master-logo-name{font-family:Orbitron,Arial,sans-serif;font-size:4.3cqw;font-weight:400;letter-spacing:.14em;white-space:nowrap;line-height:1.2;color:#f2f6ff!important}
+          .profile-master-logo-os{color:#31dbea!important;margin-left:.35em;letter-spacing:.1em;text-shadow:0 0 7px #26cfff88}
+          .profile-master-logo-tag{font-family:Rajdhani,Arial,sans-serif;font-weight:700;font-size:1.67cqw;letter-spacing:.04em;line-height:1.4;margin-top:.8cqw;color:#5ce6ee!important;white-space:nowrap}
+
           .public-page-art { position:absolute; inset:0; background-size:100% 100%; background-position:top center; background-repeat:no-repeat; pointer-events:none; }
           .public-module-heading { position:absolute; left:1%; right:1%; top:8.4%; height:5.2%; padding:0 3%; box-sizing:border-box; border:1px solid #14627c; border-radius:1cqw; background:linear-gradient(110deg,#02111c,#03131c 60%,#02080e); color:#29cde7; display:flex; align-items:center; justify-content:space-between; box-shadow:inset 0 0 12px #148bc022; pointer-events:none; }
           .public-module-heading span { font-size:2.5cqw; letter-spacing:.1em; }
@@ -8683,6 +8691,10 @@
                 aria-hidden="true"
                 style="background-image:url(https://preview--integrate-stream.lovable.app/__l5e/assets-v1/94548278-a7af-4330-9040-0ca816d3ab60/evolution-05.jpeg)"
               ></div>
+              <a class="profile-master-logo" href="/?mobilePage=home" target="_top" aria-label="Evolution OS — Higher standards. Brighter days.">
+                <span class="profile-master-logo-name">EVOLUTION<span class="profile-master-logo-os">OS</span></span>
+                <span class="profile-master-logo-tag">HIGHER STANDARDS. BRIGHTER DAYS.</span>
+              </a>
               <div class="public-module-heading" aria-hidden="true">
                 <span>‹ SYSTEMS</span><strong>PROFILE<small>YOUR SPACE</small></strong
                 ><i>BUILD<br />YOUR<br />FUTURE</i>
