@@ -41,6 +41,9 @@ export function MobileApp() {
   const paletteJson = JSON.stringify(bridgePalette(resolvedAppPalette(data.settings)));
   const [ready, setReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
+  const [visibleFrame, setVisibleFrame] = useState<string | null>(null);
+  const frameIdentity = `${frameKey}:${pathname}:${mobilePage}`;
+  const frameVisible = ready && visibleFrame === frameIdentity;
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const status = useCloudStatus();
   const bank = useBank();
@@ -253,9 +256,9 @@ export function MobileApp() {
         </a>
       </nav>
       <div className="relative min-h-0 flex-1">
-        {ready ? (
+        {ready && (
           <iframe
-            key={`${frameKey}:${pathname}`}
+            key={frameIdentity}
             ref={frameRef}
             src={"/evolution-mobile/index.html" + (mobilePage ? "?evoPage=" + mobilePage : "")}
             title="Evolution OS"
@@ -264,19 +267,31 @@ export function MobileApp() {
               // Never keep nesting the app: retain this route in the native layout.
               const doc = event.currentTarget.contentDocument;
               if (!readyRef.current || doc?.URL === "about:blank") return;
-              if (!doc || doc.querySelector("x-dc, script[data-dc-script]")) return;
+              if (!doc) return;
+              if (doc.querySelector("x-dc, script[data-dc-script]")) {
+                const frame = event.currentTarget;
+                frame.contentWindow?.postMessage(
+                  { type: "evo:appearance", cardStyle, palette: JSON.parse(paletteJson) },
+                  window.location.origin,
+                );
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                  if (readyRef.current && frameRef.current === frame) setVisibleFrame(frameIdentity);
+                }));
+                return;
+              }
               if (readyRef.current) pullMobileIntoDesktop();
               const fallback = new URL(window.location.href);
               fallback.searchParams.set("mobileFallback", "1");
               fallback.searchParams.delete("mobilePage");
               window.location.replace(fallback.pathname + fallback.search + fallback.hash);
             }}
-            className="h-full w-full border-0"
+            className={`h-full w-full border-0 ${frameVisible ? "" : "invisible"}`}
             allow="autoplay"
           />
-        ) : (
-          <div className="flex h-full items-center justify-center hud-label text-xs tracking-widest text-primary">
-            LOADING…
+        )}
+        {!frameVisible && (
+          <div role="status" className="absolute inset-0 flex items-center justify-center bg-[#020711] text-cyan-300 hud-label text-xs tracking-widest">
+            Loading Evolution OS…
           </div>
         )}
         {bankOwner && bankOpen && (
