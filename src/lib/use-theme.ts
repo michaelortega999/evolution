@@ -22,17 +22,18 @@ export function applyTheme(theme: ThemeKey) {
   root.classList.add(`theme-${theme}`);
 }
 
-export function useTheme() {
+export function useTheme(useSavedAppearance = true) {
   const { data } = useEvolutionData();
+  const settings = useSavedAppearance ? data.settings : undefined;
   useEffect(() => {
-    applyTheme(data.settings?.theme ?? "default");
-  }, [data.settings?.theme]);
-  const effective = JSON.stringify(effectiveCustomization(data.settings));
+    applyTheme(settings?.theme ?? "default");
+  }, [settings?.theme]);
+  const effective = JSON.stringify(effectiveCustomization(settings));
   useEffect(() => {
     applyCustomization(JSON.parse(effective));
     return () => applyCustomization(undefined);
   }, [effective]);
-  const cardStyle = effectiveCardStyle(data.settings);
+  const cardStyle = effectiveCardStyle(settings);
   useEffect(() => {
     document.documentElement.dataset.cardStyle = cardStyle;
   }, [cardStyle]);
