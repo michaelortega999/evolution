@@ -2273,22 +2273,6 @@ function CustomerAccessPage({ authState, accountSelected }: {
   authState: "loading" | "signed-in" | "signed-out" | "error";
   accountSelected: boolean;
 }) {
-  const [switchingAccount, setSwitchingAccount] = useState(false);
-  const [switchError, setSwitchError] = useState(false);
-
-  async function switchAccount() {
-    setSwitchError(false);
-    setSwitchingAccount(true);
-    try {
-      const { error } = await supabase.auth.signOut({ scope: "local" });
-      if (error) throw error;
-      window.location.assign("/?section=account&step=account");
-    } catch {
-      setSwitchError(true);
-      setSwitchingAccount(false);
-    }
-  }
-
   const compactBrand = useIsPhone();
   const stripeButtonMount = useRef<HTMLDivElement>(null);
   const [identity, setIdentity] = useState<string | null>(null);
@@ -2403,20 +2387,10 @@ function CustomerAccessPage({ authState, accountSelected }: {
           </section>
         ) : (
           <section id="access-overview" aria-label="Create your Evolution account" className="access-card rounded-2xl mx-auto max-w-md p-7 sm:p-9">
-            {signedIn ? (
-              <div className="space-y-4">
-                <h1 className="text-2xl font-semibold">Your Evolution account</h1>
-                <p className="text-slate-300">You’re signed in.</p>
-                <a href="/?section=account&step=checkout" className="block rounded-lg border border-cyan-300/40 px-4 py-3 text-center text-cyan-200 hover:bg-cyan-300/10">
-                  Continue to payment
-                </a>
-                <button type="button" disabled={switchingAccount} onClick={switchAccount} className="text-sm text-slate-300 underline disabled:opacity-50">
-                  {switchingAccount ? "Signing out…" : "Sign in with a different account"}
-                </button>
-                {switchError && <p role="alert" className="text-sm text-red-300">Could not sign out. Please try again.</p>}
-              </div>
-            ) : authState === "signed-out" ? <AuthPanel embedded initialMode="signup" /> :
-              <p role="status" className="text-center text-slate-300">Checking your account…</p>}
+            <AuthPanel embedded initialMode={accountSelected ? "signin" : "signup"} />
+            <a href="/?section=access" className="mt-5 block text-center text-sm text-cyan-300 hover:underline">
+              Purchase &amp; website access
+            </a>
             {(authState === "error" || identityError) && <p role="alert" className="mt-4 text-sm text-center">Could not verify your account. <button className="underline text-cyan-300" onClick={() => authState === "error" ? window.location.reload() : setGeneration(n => n + 1)}>Retry</button></p>}
             <p className="mt-6 text-xs text-center text-slate-400">Next: secure payment with Stripe.</p>
           </section>
