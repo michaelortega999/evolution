@@ -1145,6 +1145,15 @@ function RootComponent() {
         <Toaster />
       </>
     );
+  if (
+    isPhone &&
+    new URLSearchParams(searchStr).get("mobileFallback") !== "1" &&
+    pathname !== "/settings" &&
+    pathname !== "/business" &&
+    pathname !== "/hobby" &&
+    pathname !== "/calendar" &&
+    pathname !== "/goals"
+  ) return <MobileApp />;
   return (
     <>
       <Outlet />
