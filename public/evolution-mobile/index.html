@@ -316,12 +316,13 @@
 
           /* Public chrome is clean artwork; all private values are rendered from the signed-in state. */
 
-          .profile-master-logo{position:absolute;left:2%;top:.8%;width:66%;height:6.8%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding:1.2cqw 5cqw 1.6cqw 2cqw;background:#030b13;color:#f2f6ff;text-decoration:none;isolation:isolate}
-          .profile-master-logo:before{content:"";position:absolute;inset:0;border-top:1px solid #51caff;border-right:2px solid #51caff;transform:skewX(-26deg);transform-origin:bottom;box-shadow:2px -2px 8px #168cff55;z-index:-1}
-          .profile-master-logo:after{content:"";position:absolute;left:2cqw;bottom:.3cqw;width:10cqw;height:.45cqw;background:#31dbea;box-shadow:0 0 6px #26cfff}
-          .profile-master-logo-name{font-family:Orbitron,Arial,sans-serif;font-size:4.3cqw;font-weight:400;letter-spacing:.14em;white-space:nowrap;line-height:1.2;color:#f2f6ff!important}
-          .profile-master-logo-os{color:#31dbea!important;margin-left:.35em;letter-spacing:.1em;text-shadow:0 0 7px #26cfff88}
-          .profile-master-logo-tag{font-family:Rajdhani,Arial,sans-serif;font-weight:700;font-size:1.67cqw;letter-spacing:.04em;line-height:1.4;margin-top:.8cqw;color:#5ce6ee!important;white-space:nowrap}
+          /* Canonical Evolution OS mobile wordmark: one shared source of truth across every app page. */
+          .mobile-master-logo{position:absolute;left:2%;top:.72%;width:58%;height:7.05%;z-index:80;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding:1.05cqw 5.5cqw 1.55cqw 2.2cqw;background:linear-gradient(90deg,#02080f 0%,#04111c 78%,#02080f 100%);color:#f4f7ff;text-decoration:none;isolation:isolate;overflow:visible}
+          .mobile-master-logo:before{content:"";position:absolute;inset:.15cqw 0 .15cqw 0;border-top:1px solid #55cfff;border-right:2px solid #55cfff;transform:skewX(-28deg);transform-origin:bottom;box-shadow:2px -2px 9px #168cff77,0 0 12px #1c8dff33;z-index:-1}
+          .mobile-master-logo:after{content:"";position:absolute;left:2.15cqw;bottom:.28cqw;width:10.5cqw;height:.4cqw;background:#32dce9;box-shadow:0 0 7px #26cfff}
+          .mobile-master-logo-name{font-family:Orbitron,Arial,sans-serif;font-size:4.15cqw;font-weight:400;letter-spacing:.145em;white-space:nowrap;line-height:1.08;color:#f4f7ff!important;text-shadow:0 0 2px #fff6}
+          .mobile-master-logo-os{color:#31dbea!important;margin-left:.34em;letter-spacing:.08em;text-shadow:0 0 8px #26cfff99}
+          .mobile-master-logo-tag{font-family:Rajdhani,Arial,sans-serif;font-weight:700;font-size:1.58cqw;letter-spacing:.055em;line-height:1.15;margin-top:.75cqw;color:#5ce6ee!important;white-space:nowrap;text-shadow:0 0 6px #2ddff766}
 
           .public-page-art { position:absolute; inset:0; background-size:100% 100%; background-position:top center; background-repeat:no-repeat; pointer-events:none; }
           .public-module-heading { position:absolute; left:1%; right:1%; top:8.4%; height:5.2%; padding:0 3%; box-sizing:border-box; border:1px solid #14627c; border-radius:1cqw; background:linear-gradient(110deg,#02111c,#03131c 60%,#02080e); color:#29cde7; display:flex; align-items:center; justify-content:space-between; box-shadow:inset 0 0 12px #148bc022; pointer-events:none; }
@@ -336,6 +337,12 @@
         style="width:100%; min-height:100vh; min-height:100dvh; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:env(safe-area-inset-bottom); background:#000000"
       >
         <div style="{{ mobileCanvasStyle }}">
+          <sc-if value="{{ !isHome }}">
+            <a class="mobile-master-logo" href="/?mobilePage=home" target="_top" aria-label="Evolution OS — Higher standards. Brighter days.">
+              <span class="mobile-master-logo-name">EVOLUTION<span class="mobile-master-logo-os">OS</span></span>
+              <span class="mobile-master-logo-tag">HIGHER STANDARDS. BRIGHTER DAYS.</span>
+            </a>
+          </sc-if>
           <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
             <div style="position:absolute; inset:0">
               <img
@@ -8691,10 +8698,6 @@
                 aria-hidden="true"
                 style="background-image:url(https://preview--integrate-stream.lovable.app/__l5e/assets-v1/94548278-a7af-4330-9040-0ca816d3ab60/evolution-05.jpeg)"
               ></div>
-              <a class="profile-master-logo" href="/?mobilePage=home" target="_top" aria-label="Evolution OS — Higher standards. Brighter days.">
-                <span class="profile-master-logo-name">EVOLUTION<span class="profile-master-logo-os">OS</span></span>
-                <span class="profile-master-logo-tag">HIGHER STANDARDS. BRIGHTER DAYS.</span>
-              </a>
               <div class="public-module-heading" aria-hidden="true">
                 <span>‹ SYSTEMS</span><strong>PROFILE<small>YOUR SPACE</small></strong
                 ><i>BUILD<br />YOUR<br />FUTURE</i>
