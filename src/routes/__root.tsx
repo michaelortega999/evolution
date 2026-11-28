@@ -2380,6 +2380,7 @@ function CustomerAccessPage({ authState, accountSelected }: {
               <div className="mt-7 min-h-20" ref={stripeButtonMount} aria-label="Subscribe securely with Stripe" />
               <p className="mt-5 text-xs text-slate-300">Use your Evolution account email at checkout.</p>
               <p className="mt-3 text-xs text-slate-300">Access is activated after purchase confirmation.</p>
+              <a href="/auth" className="mt-5 inline-block text-sm text-cyan-300 underline">Already subscribed? Open Evolution OS</a>
               <div className="mt-7 flex gap-4 text-xs text-slate-300">
                 <a href="/?section=terms" className="underline">Terms</a>
                 <a href="/?section=privacy" className="underline">Privacy</a>
