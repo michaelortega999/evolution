@@ -1079,7 +1079,7 @@ function RootComponent() {
   if (section === "account" && pathname !== "/auth")
     return (
       <>
-        <CustomerAccessPage authState={authState} accountSelected={new URLSearchParams(searchStr).get("step") === "account"} />
+        <CustomerAccessPage authState={authState} accountSelected={new URLSearchParams(searchStr).get("step") !== "checkout"} />
         <Toaster theme="dark" position="top-right" />
       </>
     );
